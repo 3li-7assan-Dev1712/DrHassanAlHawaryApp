@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">HassanAlHawary</string>
+    <string name="web_client_id" translatable="false">513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com</string>
+    <string name="login">Login</string>
+    <string name="enter_email">E-mail</string>
+    <string name="name">Name</string>
+    <string name="articles">Articles</string>
+    <string name="read_more">Read more…</string>
+    <string name="enter_password">Password</string>
+    <string name="register">Register</string>
+    <string name="login_question">already have an account?</string>
+    <string name="register_question">don\'t have an account?</string>
+    <string name="register_using">Login using Google</string>
+    <string name="login_using">login using…</string>
+    <string name="facebook_app_id" translatable="false">1962082974176203</string>
+    <string name="favorite_articles">Favorite Articles</string>
+    <string name="favorite_lectures">Favorite Lectures</string>
+    <string name="questions">Questions</string>
+    <string name="videos">Videos</string>
+    <string name="lectures">Lectures</string>
+    <string name="summary">Summary</string>
+    <string name="main_screen">Main screen</string>
+    <string name="favorites">Favorites</string>
+    <string name="profile">Profile</string>
 </resources>
