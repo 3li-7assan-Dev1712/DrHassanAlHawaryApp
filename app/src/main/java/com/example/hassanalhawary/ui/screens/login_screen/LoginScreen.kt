@@ -149,10 +149,10 @@ fun SignInScreen(
 
             onClick = {
 //                onLoginBtnClick()
-                signInViewModel.signInWithEmailAndPassword(
+                /*signInViewModel.signInWithEmailAndPassword(
                     state.enteredEmail,
                     state.enteredPassword
-                )
+                )*/
             }
         ) {
             Text(

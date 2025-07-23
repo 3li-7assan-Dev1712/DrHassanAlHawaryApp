@@ -3,26 +3,36 @@ package com.example.hassanal_hawary.ui.screens.login_screens
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
 import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.Firebase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-class LoginViewModel(): ViewModel()
+import javax.inject.Inject
+import kotlin.math.log
+@HiltViewModel
+class LoginViewModel
+    @Inject constructor(
+        private val loginWithGoogleUseCase: LoginWithGoogleUseCase
+    ): ViewModel()
 {
     private val _state = MutableStateFlow(LoginState())
 
     val state = _state.asStateFlow()
 
-    private lateinit var auth: FirebaseAuth
+    fun loginWithGoogle() {
 
-    init {
-        auth = Firebase.auth
+         viewModelScope.launch {
+            val loginResult = loginWithGoogleUseCase()
+            onSignInResult(loginResult)
+        }
     }
+
 
     fun onSignInResult(loginResult: LoginResult) {
         _state.update {
@@ -101,6 +111,7 @@ class LoginViewModel(): ViewModel()
 
     }
 
+/*
 
     fun signInWithEmailAndPassword(email: String, password: String) {
         // validate the email and password
@@ -121,11 +132,13 @@ class LoginViewModel(): ViewModel()
             }
         } else {
 
-            /*
+            */
+/*
             here we are going to create a new
             user with email and password yaah!
             I'm really excited about that *_*
-             */
+             *//*
+
 
             _state.update {
                 it.copy(
@@ -157,6 +170,7 @@ class LoginViewModel(): ViewModel()
 
         }
     }
+*/
 
 
 
