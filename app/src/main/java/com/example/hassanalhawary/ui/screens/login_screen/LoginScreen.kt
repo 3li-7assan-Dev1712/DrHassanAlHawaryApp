@@ -26,7 +26,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,15 +40,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.components.LoginRegisterSection
+import com.example.hassanalhawary.core.components.LoginWithGoogleComp
 import com.example.hassanalhawary.core.components.OutlinedField
 import com.example.hassanalhawary.core.components.WelcomeScreen
 import com.example.hassanalhawary.core.util.LoginRegisterProviderElement
+import com.example.hassanalhawary.ui.theme.CairoTypography
 
 
 @Composable
@@ -84,6 +89,16 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        Spacer(
+            modifier = Modifier.height(4.dp)
+        )
+
+        if (state.showSignInProgressBar) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+        }
 
         Spacer(
             modifier = Modifier.height(15.dp)
@@ -141,8 +156,11 @@ fun LoginScreen(
         Spacer(Modifier.weight(1f))
 
         Button(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
 
+            shape = RoundedCornerShape(8.dp),
             onClick = {
 //                onLoginBtnClick()
                 /*signInViewModel.signInWithEmailAndPassword(
@@ -152,28 +170,17 @@ fun LoginScreen(
             }
         ) {
             Text(
-                text = "Login"
+                text = stringResource(R.string.login),
+                style = CairoTypography.bodyMedium
             )
         }
 
-        if (state.showSignInProgressBar) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            // surfaceVariant
-        }
-
-//        Spacer(modifier = Modifier.height(20.dp))
-
-        LoginRegisterProvidersSection(
-            modifier = Modifier,
-            context = context,
+        LoginWithGoogleComp(
+            modifier = Modifier.fillMaxWidth(),
             isLogin = true,
-            onElementClick = {
-                onLoginRegisterElementClick(it)
-            }
-        )
+        ) {
+
+        }
 
     }
 }
@@ -182,117 +189,14 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview(modifier: Modifier = Modifier) {
 
-    WelcomeScreen(
-        modifier = Modifier,
-        loginRegister = R.string.login
-    )
-}
+    LoginScreen(
+        state = LoginState(),
+        onRegisterClick = {
 
+        },
+        onLoginRegisterElementClick = {
 
-
-@Composable
-fun LoginRegisterProvidersSection(
-    modifier: Modifier,
-    context: Context,
-    isLogin: Boolean,
-    onElementClick: (LoginRegisterProviderElement) -> Unit
-) {
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = if (isLogin) context.getString(R.string.register_using)
-            else context.getString(R.string.login_using),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(
-                start = 16.dp
-            )
-
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LoginRegisterProviderElements(
-            modifier = Modifier.size(56.dp),
-            onElementClick = {
-                onElementClick(it)
-            })
-
-    }
-
-}
-
-@Composable
-fun LoginRegisterProviderElements(
-    modifier: Modifier = Modifier,
-    onElementClick: (LoginRegisterProviderElement) -> Unit
-) {
-
-    Row {
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center
-        ) {
-            ProviderElement(
-                loginRegisterProviderElement = LoginRegisterProviderElement.GoogleElement,
-                imageRes = com.google.android.gms.base.R.drawable.googleg_standard_color_18,
-                onElementClick = {
-                    onElementClick(it)
-                }
-            )
         }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center
-        ) {
-            ProviderElement(
-                loginRegisterProviderElement = LoginRegisterProviderElement.GoogleElement,
-                imageRes = R.drawable.facebook_icon,
-                onElementClick = {
-                    onElementClick(it)
-                }
-            )
-        }
-    }
-
-
-}
-
-@Composable
-fun ProviderElement(
-    loginRegisterProviderElement: LoginRegisterProviderElement,
-    imageRes: Int,
-    onElementClick: (LoginRegisterProviderElement) -> Unit
-) {
-
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .clickable {
-                onElementClick(loginRegisterProviderElement)
-            }
-            .height(56.dp)
-            .fillMaxWidth()
-            .clip(
-                RoundedCornerShape(size = 16.dp)
-            )
-            .background(color = Color.Black)
-    ) {
-        Image(
-            painter = painterResource(id = imageRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-
-        )
-    }
-
-
+    ) { }
 }
 

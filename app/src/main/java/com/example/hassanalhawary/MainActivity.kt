@@ -6,6 +6,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,27 +54,32 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-                LoginScreen(
+                Surface (
+                    modifier = Modifier.fillMaxSize()
+                ) {
 
-                    state = state,
-                    onRegisterClick = {
-                        Toast.makeText(
-                            applicationContext,
-                            "Navigate to register screen",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    },
-                    onLoginRegisterElementClick = {
-                        loginViewModel.showProgressBar()
-                        lifecycleScope.launch {
-                           loginViewModel.loginWithGoogle()
+                    LoginScreen(
 
+                        state = state,
+                        onRegisterClick = {
+                            Toast.makeText(
+                                applicationContext,
+                                "Navigate to register screen",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        },
+                        onLoginRegisterElementClick = {
+                            loginViewModel.showProgressBar()
+                            lifecycleScope.launch {
+                                loginViewModel.loginWithGoogle()
+
+                            }
+                        },
+                        onNavigateTo = { r ->
+                            Log.d("MainAct", r)
                         }
-                    },
-                    onNavigateTo = { r ->
-                        Log.d("MainAct", r)
-                    }
-                )
+                    )
+                }
             }
         }
 
