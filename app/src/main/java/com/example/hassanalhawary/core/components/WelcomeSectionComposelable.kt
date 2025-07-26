@@ -19,7 +19,7 @@ fun WelcomeScreen(
 
 
     Column(
-        verticalArrangement = Arrangement.SpaceAround,
+        verticalArrangement = Arrangement.SpaceEvenly,
         modifier = modifier
     ) {
         Text(

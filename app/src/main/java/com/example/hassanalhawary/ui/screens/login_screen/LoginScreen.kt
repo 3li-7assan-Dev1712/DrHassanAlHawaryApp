@@ -178,84 +178,16 @@ fun LoginScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true, showSystemUi = true, widthDp = 320, heightDp = 640)
 @Composable
-fun EmailPasswordSection(
-    email: String,
-    password: String,
-    emailError: Boolean = false,
-    passwordError: Boolean = false,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit
+fun LoginScreenPreview(modifier: Modifier = Modifier) {
 
-) {
-
-
-    Column {
-        OutlinedTextField(
-            placeholder = {
-                Text("Enter your email")
-            },
-            value = email, onValueChange = {
-            onEmailChange(it)
-        }, modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Email, contentDescription = "Email Section"
-            )
-        }, label = {
-            Text(
-                text = LocalContext.current.getString(R.string.enter_email)
-            )
-        },
-            isError = emailError
-
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-
-            placeholder = {
-                Text("Enter your email")
-            },
-            value = password, onValueChange = {
-            onPasswordChange(it)
-        }, modifier = Modifier.fillMaxWidth(), singleLine = true, leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Lock, contentDescription = "Password"
-            )
-        }, label = {
-            Text(
-                text = LocalContext.current.getString(R.string.enter_password)
-            )
-        }
-            ,
-            isError = passwordError
-        )
-    }
-}
-
-@Composable
-fun LoginScreenGraphic(modifier: Modifier = Modifier) {
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                color = MaterialTheme.colorScheme.primary
-            )
-            .padding(4.dp)
+    WelcomeScreen(
+        modifier = Modifier,
+        loginRegister = R.string.login
     )
 }
 
-@Preview(name = "graphic prev", heightDp = 400)
-@Composable
-private fun LoginScreenGraphicComp() {
-    LoginScreenGraphic(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(.25f)
-    )
-}
 
 
 @Composable
@@ -364,15 +296,3 @@ fun ProviderElement(
 
 }
 
-@Preview
-@Composable
-private fun EmailPasswordPrev() {
-
-    EmailPasswordSection(
-        email = "alihassan@gmail.com",
-        password = "Dkfjdkf",
-        onEmailChange = {
-
-        }
-    ) { }
-}

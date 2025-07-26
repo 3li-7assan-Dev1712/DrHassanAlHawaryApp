@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.hassanalhawary.R
+import com.example.hassanalhawary.ui.theme.CairoTypography
 
 @Composable
 fun OutlinedField(
@@ -45,7 +45,7 @@ fun OutlinedField(
         }, label = {
             Text(
                 text = stringResource(label),
-                style = MaterialTheme.typography.bodyMedium
+                style = CairoTypography.bodyMedium
             )
         },
         trailingIcon = {
