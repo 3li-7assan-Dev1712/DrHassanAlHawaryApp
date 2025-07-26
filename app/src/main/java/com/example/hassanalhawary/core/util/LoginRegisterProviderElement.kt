@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.core
+package com.example.hassanalhawary.core.util
 
 sealed class LoginRegisterProviderElement {
     object GoogleElement: LoginRegisterProviderElement()

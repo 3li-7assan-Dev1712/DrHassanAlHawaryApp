@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.core
+package com.example.hassanalhawary.core.util
 
 import android.content.Context
 import androidx.credentials.CredentialManager
@@ -10,10 +10,8 @@ import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.auth
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.CancellationException
 import javax.inject.Inject
@@ -23,9 +21,9 @@ This is the class that will be used to sign in / out/ and get the user data
  */
 class GoogleAuthUiClient
     @Inject constructor(
-    private val context: Context,
-    private val credentialManager: CredentialManager,
-    private val auth: FirebaseAuth,
+        private val context: Context,
+        private val credentialManager: CredentialManager,
+        private val auth: FirebaseAuth,
 ) {
 
     val googleIdOption =

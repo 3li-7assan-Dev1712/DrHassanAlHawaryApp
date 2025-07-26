@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HassanAlHawary</string>
+    <string name="app_name">Dr. Hassan Al-Hawary</string>
     <string name="web_client_id" translatable="false">513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com</string>
     <string name="login">Login</string>
     <string name="enter_email">E-mail</string>

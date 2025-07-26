@@ -1,7 +1,7 @@
 package com.example.hassanalhawary.domain.repository
 
 import com.example.hassanalhawary.domain.model.UserData
-import com.example.hassanalhawary.core.GoogleAuthUiClient
+import com.example.hassanalhawary.core.util.GoogleAuthUiClient
 import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
 import javax.inject.Inject
 

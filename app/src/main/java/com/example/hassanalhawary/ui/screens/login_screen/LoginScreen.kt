@@ -38,19 +38,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hassanalhawary.R
-import com.example.hassanalhawary.core.LoginRegisterProviderElement
+import com.example.hassanalhawary.core.components.LoginRegisterSection
+import com.example.hassanalhawary.core.components.OutlinedField
+import com.example.hassanalhawary.core.components.WelcomeScreen
+import com.example.hassanalhawary.core.util.LoginRegisterProviderElement
 
 
 @Composable
-fun SignInScreen(
+fun LoginScreen(
     state: LoginState,
     onRegisterClick: () -> Unit,
     onLoginRegisterElementClick: (LoginRegisterProviderElement) -> Unit,
@@ -73,8 +73,8 @@ fun SignInScreen(
 
 
 
-    val signInViewModel: LoginViewModel = viewModel()
-    val signInState by signInViewModel.state.collectAsState()
+    val loginViewModel: LoginViewModel = viewModel()
+    val loginState by loginViewModel.state.collectAsState()
 
 
     Column(
@@ -89,48 +89,44 @@ fun SignInScreen(
             modifier = Modifier.height(15.dp)
         )
 
-        Text(
-            text = "Welcome you",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
+        WelcomeScreen(
+            loginRegister = R.string.login,
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(.3f)
+        )
+
+        OutlinedField(
+            modifier = Modifier.fillMaxWidth(),
+            label = R.string.enter_email,
+            icon = Icons.Default.Email,
+            value = state.enteredEmail,
+            onValueChange = {
+                loginViewModel.emailChanged(it)
+            },
+            showError = state.errorMessage != null,
+            errorMessage = state.enterValidEmailMsg
         )
 
         Spacer(
             modifier = Modifier.height(8.dp)
         )
 
-        Text(
-            text = "In Dr Hassan App!",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(
-            modifier = Modifier.height(30.dp)
-        )
-
-
-
-
-        EmailPasswordSection(
-            email = signInState.enteredEmail,
-            password = signInState.enteredPassword,
-            onEmailChange = { email ->
-//                onEmailChange(email)
-                signInViewModel.emailChanged(email)
+        OutlinedField(
+            modifier = Modifier.fillMaxWidth(),
+            label = R.string.enter_password,
+            icon = Icons.Default.Lock,
+            value = state.enteredPassword,
+            onValueChange = {
+                loginViewModel.passwordChanged(it)
             },
-            onPasswordChange = { password ->
-//                onPasswordChange(password)
-                signInViewModel.passwordChanged(password)
-            }
+            showError = state.errorMessage != null,
+            errorMessage = state.enterValidPassowrdMsg
         )
 
         Spacer(
-            modifier = Modifier.height(15.dp)
+            modifier = Modifier.height(8.dp)
         )
 
         LoginRegisterSection(
-            LocalContext.current,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
@@ -238,62 +234,6 @@ fun EmailPasswordSection(
     }
 }
 
-@Preview(name = "Sign In Screen", widthDp = 320, heightDp = 640)
-@Composable
-fun SignInScreenPreview() {
-    SignInScreen(state = LoginState(),
-        onRegisterClick = {
-
-        },
-        onLoginRegisterElementClick = {
-
-        },
-        onNavigateTo = {
-
-        })
-}
-
-@Composable
-fun LoginRegisterSection(
-    context: Context,
-    modifier: Modifier,
-    isLogin: Boolean,
-
-    onLoginRegisterClick: () -> Unit
-
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Text(
-            text = if (!isLogin) context.getString(R.string.login_question)
-            else context.getString(R.string.register_question)
-        )
-
-
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(
-            text = if (!isLogin) context.getString(R.string.login)
-            else context.getString(R.string.register),
-            modifier = Modifier.clickable {
-                onLoginRegisterClick()
-            },
-            style = TextStyle(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary,
-                fontSize = 18.sp
-            )
-
-        )
-    }
-}
-
-
 @Composable
 fun LoginScreenGraphic(modifier: Modifier = Modifier) {
 
@@ -317,28 +257,6 @@ private fun LoginScreenGraphicComp() {
     )
 }
 
-
-@Composable
-fun LoginRegisterProviders(
-    modifier: Modifier,
-    isLogin: Boolean,
-    context: Context
-) {
-
-    Column(
-        modifier = modifier
-    ) {
-        Text(
-            text = if (isLogin) context.getString(R.string.register_using)
-            else context.getString(R.string.login_using)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-    }
-
-}
 
 @Composable
 fun LoginRegisterProvidersSection(

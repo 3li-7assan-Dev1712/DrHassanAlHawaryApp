@@ -16,8 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hassanal_hawary.ui.screens.login_screens.LoginViewModel
-import com.example.hassanal_hawary.ui.screens.login_screens.SignInScreen
-import com.example.hassanalhawary.core.GoogleAuthUiClient
+import com.example.hassanal_hawary.ui.screens.login_screens.LoginScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -53,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-                SignInScreen(
+                LoginScreen(
 
                     state = state,
                     onRegisterClick = {
