@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.hassanal_hawary.ui.screens.login_screens.LoginScreen
+import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
                                             "Navigate to register screen",
                                             Toast.LENGTH_LONG
                                         ).show()
+                                        navController.navigate("register_screen")
                                     },
                                     onLoginRegisterElementClick = {
 
@@ -76,6 +78,12 @@ class MainActivity : ComponentActivity() {
                                     onNavigateTo = { r ->
                                         Log.d("MainAct", r)
                                     }
+                                )
+                            }
+
+                            composable("register_screen") {
+                                RegisterScreen(
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
                         }

@@ -4,7 +4,7 @@ data class AuthScreenState(
     val isSignInSuccessful: Boolean = false,
     val showSignInProgressBar: Boolean = false,
     val errorMessage: String? = null,
-    val userName: String? = null,
+    val userName: String = "",
     val enteredEmail: String = "",
     val enteredPassword: String = "",
     val enterValidEmailMsg: String = "",

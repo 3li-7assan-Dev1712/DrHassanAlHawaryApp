@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.hassanalhawary.R
@@ -43,7 +45,7 @@ fun RegisterScreen(
 
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 15.dp, vertical = 15.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -65,15 +67,15 @@ fun RegisterScreen(
         )
 
         WelcomeScreen(
-            loginRegister = R.string.login,
+            loginRegister = R.string.register,
             modifier = Modifier.fillMaxWidth().fillMaxHeight(.3f)
         )
 
         OutlinedField(
             modifier = Modifier.fillMaxWidth(),
             label = R.string.enter_name,
-            icon = Icons.Default.Email,
-            value = state.enteredEmail,
+            icon = Icons.Default.Person,
+            value = state.userName,
             onValueChange = {
                 registerVm.userNameChanged(it)
             },
@@ -122,7 +124,7 @@ fun RegisterScreen(
                 .padding(
                     vertical = 15.dp,
                 ),
-            isLogin = true,
+            isLogin = false,
 
             ) {
         }
@@ -144,17 +146,26 @@ fun RegisterScreen(
             }
         ) {
             Text(
-                text = stringResource(R.string.login),
+                text = stringResource(R.string.register),
                 style = CairoTypography.bodyMedium
             )
         }
 
         LoginWithGoogleComp(
             modifier = Modifier.fillMaxWidth(),
-            isLogin = true,
+            isLogin = false,
         ) {
             val loginResult = registerVm.loginWithGoogle()
         }
 
     }
+}
+@Preview(showBackground = true, showSystemUi = true, widthDp = 320, heightDp = 640)
+@Composable
+fun RegisterPreviewComposeable() {
+
+    RegisterScreen(
+        modifier = Modifier.fillMaxSize()
+    )
+
 }

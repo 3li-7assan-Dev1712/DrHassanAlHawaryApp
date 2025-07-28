@@ -10,8 +10,8 @@
     <string name="register">Register</string>
     <string name="login_question">already have an account?</string>
     <string name="register_question">don\'t have an account?</string>
-    <string name="register_using">Login using Google</string>
-    <string name="login_using">login using…</string>
+    <string name="register_using">Register using Google</string>
+    <string name="login_using">Login using Google</string>
     <string name="facebook_app_id" translatable="false">1962082974176203</string>
     <string name="favorite_articles">Favorite Articles</string>
     <string name="favorite_lectures">Favorite Lectures</string>
