@@ -19,7 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.hassanal_hawary.ui.screens.login_screens.LoginScreen
+import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,11 +69,7 @@ class MainActivity : ComponentActivity() {
                                             Toast.LENGTH_LONG
                                         ).show()
                                         navController.navigate("register_screen")
-                                    },
-                                    onLoginRegisterElementClick = {
-
-
-
+                                        navController.clearBackStack("login_screen")
                                     },
                                     onNavigateTo = { r ->
                                         Log.d("MainAct", r)
@@ -84,7 +80,9 @@ class MainActivity : ComponentActivity() {
                             composable("register_screen") {
                                 RegisterScreen(
                                     modifier = Modifier.fillMaxSize()
-                                )
+                                ) {
+                                    navController.popBackStack()
+                                }
                             }
                         }
 

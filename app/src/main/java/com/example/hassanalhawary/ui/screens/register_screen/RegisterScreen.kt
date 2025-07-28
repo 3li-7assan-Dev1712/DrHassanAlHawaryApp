@@ -36,7 +36,8 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 
 @Composable
 fun RegisterScreen(
-    modifier: Modifier
+    modifier: Modifier,
+    onLoginClick: () -> Unit
 ) {
     val registerVm: AuthViewModel = hiltViewModel()
     val state by registerVm.state.collectAsState()
@@ -68,7 +69,9 @@ fun RegisterScreen(
 
         WelcomeScreen(
             loginRegister = R.string.register,
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(.3f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.3f)
         )
 
         OutlinedField(
@@ -79,7 +82,6 @@ fun RegisterScreen(
             onValueChange = {
                 registerVm.userNameChanged(it)
             },
-            showError = state.errorMessage != null,
             errorMessage = state.enterValidEmailMsg
         )
 
@@ -94,7 +96,7 @@ fun RegisterScreen(
             onValueChange = {
                 registerVm.emailChanged(it)
             },
-            showError = state.errorMessage != null,
+            showError = state.enterValidEmailMsg.isNotEmpty(),
             errorMessage = state.enterValidEmailMsg
         )
 
@@ -110,7 +112,7 @@ fun RegisterScreen(
             onValueChange = {
                 registerVm.passwordChanged(it)
             },
-            showError = state.errorMessage != null,
+            showError = state.enterValidPassowrdMsg.isNotEmpty(),
             errorMessage = state.enterValidPassowrdMsg
         )
 
@@ -127,6 +129,7 @@ fun RegisterScreen(
             isLogin = false,
 
             ) {
+            onLoginClick()
         }
 
         Spacer(Modifier.weight(1f))
@@ -160,12 +163,15 @@ fun RegisterScreen(
 
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true, widthDp = 320, heightDp = 640)
 @Composable
 fun RegisterPreviewComposeable() {
 
     RegisterScreen(
         modifier = Modifier.fillMaxSize()
-    )
+    ) {
+
+    }
 
 }

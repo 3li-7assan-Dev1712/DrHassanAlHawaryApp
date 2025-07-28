@@ -7,6 +7,11 @@ interface AuthRepository {
 
     suspend fun loginWithGoogle(): LoginResult
 
+    suspend fun loginWithEmailAndPassword(
+        email: String,
+        password: String
+    ): LoginResult
+
     suspend fun getLoggedInUser(): UserData?
 
 

@@ -1,4 +1,4 @@
-package com.example.hassanal_hawary.ui.screens.login_screens
+package com.example.hassanalhawary.ui.screens.login_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
@@ -31,7 +31,6 @@ import com.example.hassanalhawary.core.components.LoginRegisterSection
 import com.example.hassanalhawary.core.components.LoginWithGoogleComp
 import com.example.hassanalhawary.core.components.OutlinedField
 import com.example.hassanalhawary.core.components.WelcomeScreen
-import com.example.hassanalhawary.core.util.LoginRegisterProviderElement
 import com.example.hassanalhawary.ui.components.AuthViewModel
 import com.example.hassanalhawary.ui.theme.CairoTypography
 
@@ -39,7 +38,6 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
-    onLoginRegisterElementClick: (LoginRegisterProviderElement) -> Unit,
     onNavigateTo: (String) -> Unit
 ) {
 
@@ -98,7 +96,7 @@ fun LoginScreen(
             onValueChange = {
                 loginViewModel.emailChanged(it)
             },
-            showError = state.errorMessage != null,
+            showError = state.enterValidEmailMsg.isNotEmpty(),
             errorMessage = state.enterValidEmailMsg
         )
 
@@ -114,7 +112,7 @@ fun LoginScreen(
             onValueChange = {
                 loginViewModel.passwordChanged(it)
             },
-            showError = state.errorMessage != null,
+            showError = state.enterValidPassowrdMsg.isNotEmpty(),
             errorMessage = state.enterValidPassowrdMsg
         )
 
@@ -143,11 +141,10 @@ fun LoginScreen(
 
             shape = RoundedCornerShape(8.dp),
             onClick = {
-//                onLoginBtnClick()
-                /*signInViewModel.signInWithEmailAndPassword(
+                loginViewModel.loginWithEmailPassword(
                     state.enteredEmail,
                     state.enteredPassword
-                )*/
+                )
             }
         ) {
             Text(
@@ -172,9 +169,6 @@ fun LoginScreenPreview(modifier: Modifier = Modifier) {
 
     LoginScreen(
         onRegisterClick = {
-
-        },
-        onLoginRegisterElementClick = {
 
         }
     ) { }

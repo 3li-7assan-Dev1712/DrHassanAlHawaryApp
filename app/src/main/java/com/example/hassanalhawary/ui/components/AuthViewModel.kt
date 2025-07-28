@@ -2,6 +2,7 @@ package com.example.hassanalhawary.ui.components
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
 import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
 import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel
     @Inject constructor(
-        private val loginWithGoogleUseCase: LoginWithGoogleUseCase
+        private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
+        private val loginWithEmailAndPasswordUseCase: LoginWithEmailAndPasswordUseCase
     ): ViewModel()
 {
     private val _state = MutableStateFlow(AuthScreenState())
@@ -43,6 +45,20 @@ class AuthViewModel
                  }
              }
         }
+    }
+
+    fun loginWithEmailPassword(email: String, password: String) {
+
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    showSignInProgressBar = true
+                )
+            }
+            val loginResult = loginWithEmailAndPasswordUseCase(email, password)
+            onSignInResult(loginResult)
+        }
+
     }
 
 

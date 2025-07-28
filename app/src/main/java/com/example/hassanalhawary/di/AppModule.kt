@@ -5,6 +5,7 @@ import androidx.credentials.CredentialManager
 import com.example.hassanalhawary.core.util.GoogleAuthUiClient
 import com.example.hassanalhawary.domain.repository.AuthRepository
 import com.example.hassanalhawary.domain.repository.AuthRepositoryImpl
+import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
 import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
@@ -41,9 +42,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provideAuthRepository(
-        googleAuthUiClient: GoogleAuthUiClient
+        googleAuthUiClient: GoogleAuthUiClient,
+        firebaseAuth: FirebaseAuth
     ): AuthRepository {
-        return AuthRepositoryImpl(googleAuthUiClient)
+        return AuthRepositoryImpl(googleAuthUiClient, firebaseAuth)
     }
 
     @Singleton
@@ -52,5 +54,12 @@ object AppModule {
         authRepository: AuthRepository
     ): LoginWithGoogleUseCase {
         return LoginWithGoogleUseCase(authRepository)
+    }
+    @Singleton
+    @Provides
+    fun provideLoginWithEmailAndPasswordUseCase(
+        authRepository: AuthRepository
+    ): LoginWithEmailAndPasswordUseCase {
+        return LoginWithEmailAndPasswordUseCase(authRepository)
     }
 }
