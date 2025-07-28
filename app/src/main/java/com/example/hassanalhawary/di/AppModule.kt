@@ -11,23 +11,24 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ActivityRetainedScoped
-import dagger.hilt.android.scopes.ActivityScoped
 import dagger.hilt.components.SingletonComponent
-import jakarta.inject.Singleton
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    @Singleton
     @Provides
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
 
+    @Singleton
     @Provides
     fun provideCredentialManager(
         @ApplicationContext context: Context
     ): CredentialManager = CredentialManager.create(context)
 
+    @Singleton
     @Provides
     fun provideGoogleAuthUiClient(
         @ApplicationContext context: Context,
@@ -37,6 +38,7 @@ object AppModule {
         return GoogleAuthUiClient(context, credentialManager, firebaseAuth)
     }
 
+    @Singleton
     @Provides
     fun provideAuthRepository(
         googleAuthUiClient: GoogleAuthUiClient
@@ -44,6 +46,7 @@ object AppModule {
         return AuthRepositoryImpl(googleAuthUiClient)
     }
 
+    @Singleton
     @Provides
     fun provideLoginWithGoogleUseCase(
         authRepository: AuthRepository

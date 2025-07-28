@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.components.LoginRegisterSection
@@ -56,13 +57,16 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 
 @Composable
 fun LoginScreen(
-    state: LoginState,
     onRegisterClick: () -> Unit,
     onLoginRegisterElementClick: (LoginRegisterProviderElement) -> Unit,
     onNavigateTo: (String) -> Unit
 ) {
 
+    val loginViewModel: LoginViewModel = hiltViewModel()
+    val state by loginViewModel.state.collectAsState()
+
     val context = LocalContext.current
+
     LaunchedEffect(key1 = state.errorMessage) {
         state.errorMessage?.let { error ->
             Toast.makeText(
@@ -72,14 +76,9 @@ fun LoginScreen(
     }
     LaunchedEffect(key1 = state.navigateTo) {
         state.navigateTo?.let { destination ->
-           onNavigateTo(destination)
+            onNavigateTo(destination)
         }
     }
-
-
-
-    val loginViewModel: LoginViewModel = viewModel()
-    val loginState by loginViewModel.state.collectAsState()
 
 
     Column(
@@ -190,7 +189,6 @@ fun LoginScreen(
 fun LoginScreenPreview(modifier: Modifier = Modifier) {
 
     LoginScreen(
-        state = LoginState(),
         onRegisterClick = {
 
         },

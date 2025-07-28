@@ -15,13 +15,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.hassanal_hawary.ui.screens.login_screens.LoginViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.hassanal_hawary.ui.screens.login_screens.LoginScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -35,51 +35,54 @@ class MainActivity : ComponentActivity() {
         setContent {
             HassanAlHawaryTheme {
 
+                val mainActivityViewModel = viewModel<MainActivityViewModel>()
+                val mainActivityState by mainActivityViewModel.state.collectAsState()
 
-                val loginViewModel = viewModel<LoginViewModel>()
-                val state by loginViewModel.state.collectAsState()
-
-
-                LaunchedEffect(key1 = state.isSignInSuccessful) {
-                    if (state.isSignInSuccessful) {
+                LaunchedEffect(key1 = mainActivityState.navigateTo) {
+                    if (mainActivityState.navigateTo != null) {
                         Toast.makeText(
                             applicationContext,
                             "Sign in successful",
                             Toast.LENGTH_LONG
                         ).show()
-                        loginViewModel.hideProgressBar()
-                        // login success
-                        loginViewModel.resetState()
+                        mainActivityViewModel.hideProgressBar()
                     }
                 }
-
 
                 Surface (
                     modifier = Modifier.fillMaxSize()
                 ) {
 
-                    LoginScreen(
 
-                        state = state,
-                        onRegisterClick = {
-                            Toast.makeText(
-                                applicationContext,
-                                "Navigate to register screen",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        },
-                        onLoginRegisterElementClick = {
-                            loginViewModel.showProgressBar()
-                            lifecycleScope.launch {
-                                loginViewModel.loginWithGoogle()
+                    val navController = rememberNavController()
+                    val navHost =
+                        NavHost(navController, startDestination = "login_screen") {
 
+                            composable(route = "login_screen") {
+                                LoginScreen(
+
+                                    onRegisterClick = {
+                                        Toast.makeText(
+                                            applicationContext,
+                                            "Navigate to register screen",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    },
+                                    onLoginRegisterElementClick = {
+
+
+
+                                    },
+                                    onNavigateTo = { r ->
+                                        Log.d("MainAct", r)
+                                    }
+                                )
                             }
-                        },
-                        onNavigateTo = { r ->
-                            Log.d("MainAct", r)
                         }
-                    )
+
+
                 }
+
             }
         }
 
