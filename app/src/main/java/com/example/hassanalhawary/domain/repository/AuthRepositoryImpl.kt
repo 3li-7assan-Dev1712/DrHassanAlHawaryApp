@@ -4,6 +4,9 @@ import com.example.hassanalhawary.core.util.GoogleAuthUiClient
 import com.example.hassanalhawary.domain.model.UserData
 import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -48,6 +51,62 @@ class AuthRepositoryImpl @Inject constructor(
                 errorMessage = e.message ?: "Login failed. Please try again."
             )
         }
+    }
+
+    override suspend fun registerNewUserWithEmailPassword(
+        userName: String,
+        email: String,
+        password: String
+    ): LoginResult {
+        return try {
+            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = authResult.user
+
+            if (firebaseUser != null) {
+                // Optionally update the user's profile with a display name
+
+                if (userName.isNotBlank()) {
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(userName)
+                        .build()
+                        firebaseUser.updateProfile(profileUpdates).await()
+                }
+
+                // Fetch the updated user (or map directly)
+                val updatedUser = firebaseAuth.currentUser!! // User should exist and be current
+                LoginResult(
+                    data = UserData(
+                        userId = firebaseUser.uid,
+                        username = firebaseUser.displayName,
+                        userProfilePictureUrl = firebaseUser.photoUrl?.toString()
+                    ),
+                    errorMessage = null
+                )
+            } else {
+                LoginResult(
+                    data = null,
+                    errorMessage = "Login successful but user data not found."
+                )
+            }
+        } catch (e: FirebaseAuthUserCollisionException) {
+            LoginResult(
+                data = null,
+                errorMessage = "An account already exists with this email address."
+            )
+        } catch (e: FirebaseAuthWeakPasswordException) {
+            // The password is too weak. Please choose a stronger password.
+            LoginResult(
+                data = null,
+                errorMessage = "The password is too weak. Please choose a stronger password"
+            )
+        } catch (e: Exception) {
+//            Registration failed. Please try again.
+            LoginResult(
+                data = null,
+                errorMessage = e.message ?: "Registration failed. Please try again."
+            )
+        }
+
     }
 
     override suspend fun getLoggedInUser(): UserData? {

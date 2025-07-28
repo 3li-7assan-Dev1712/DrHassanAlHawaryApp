@@ -7,6 +7,7 @@ import com.example.hassanalhawary.domain.repository.AuthRepository
 import com.example.hassanalhawary.domain.repository.AuthRepositoryImpl
 import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
 import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
+import com.example.hassanalhawary.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Module
 import dagger.Provides
@@ -61,5 +62,13 @@ object AppModule {
         authRepository: AuthRepository
     ): LoginWithEmailAndPasswordUseCase {
         return LoginWithEmailAndPasswordUseCase(authRepository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideRegisterNewUserWithEmailPasswordUseCase(
+        authRepository: AuthRepository
+    ): RegisterNewUserWithEmailPasswordUseCase {
+        return RegisterNewUserWithEmailPasswordUseCase(authRepository)
     }
 }

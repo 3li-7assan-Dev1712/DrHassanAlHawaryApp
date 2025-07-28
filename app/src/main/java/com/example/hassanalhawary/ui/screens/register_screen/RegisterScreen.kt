@@ -1,5 +1,6 @@
 package com.example.hassanalhawary.ui.screens.register_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -37,12 +39,28 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 @Composable
 fun RegisterScreen(
     modifier: Modifier,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onSuccessfulRegister: () -> Unit
 ) {
     val registerVm: AuthViewModel = hiltViewModel()
     val state by registerVm.state.collectAsState()
 
     val context = LocalContext.current
+
+    LaunchedEffect(key1 = state.isSignInSuccessful, key2 = state.errorMessage.isNullOrBlank()) {
+        if (state.isSignInSuccessful) {
+            onSuccessfulRegister()
+        }
+        if (state.errorMessage != null) {
+            Toast.makeText(
+                context,
+                state.errorMessage,
+                Toast.LENGTH_LONG
+            ).show()
+
+        }
+    }
+
 
 
     Column(
@@ -141,11 +159,11 @@ fun RegisterScreen(
 
             shape = RoundedCornerShape(8.dp),
             onClick = {
-//                onLoginBtnClick()
-                /*signInViewModel.signInWithEmailAndPassword(
-                    state.enteredEmail,
-                    state.enteredPassword
-                )*/
+                registerVm.registerNewUserWithEmailPassword(
+                    userName = state.userName,
+                    email = state.enteredEmail,
+                    password = state.enteredPassword
+                )
             }
         ) {
             Text(
@@ -169,7 +187,8 @@ fun RegisterScreen(
 fun RegisterPreviewComposeable() {
 
     RegisterScreen(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        onLoginClick = {},
     ) {
 
     }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
 import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
+import com.example.hassanalhawary.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
 import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 class AuthViewModel
     @Inject constructor(
         private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
-        private val loginWithEmailAndPasswordUseCase: LoginWithEmailAndPasswordUseCase
+        private val loginWithEmailAndPasswordUseCase: LoginWithEmailAndPasswordUseCase,
+        private val registerNewUserWithEmailPasswordUseCase: RegisterNewUserWithEmailPasswordUseCase
     ): ViewModel()
 {
     private val _state = MutableStateFlow(AuthScreenState())
@@ -61,6 +63,17 @@ class AuthViewModel
 
     }
 
+    fun registerNewUserWithEmailPassword(userName: String, email: String, password: String) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    showSignInProgressBar = true
+                )
+            }
+            val loginResult = registerNewUserWithEmailPasswordUseCase(userName, email, password)
+            onSignInResult(loginResult)
+        }
+    }
 
     fun onSignInResult(loginResult: LoginResult) {
         _state.update {

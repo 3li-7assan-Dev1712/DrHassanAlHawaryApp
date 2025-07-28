@@ -38,7 +38,7 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
-    onNavigateTo: (String) -> Unit
+    onSuccessfulLogin: () -> Unit
 ) {
 
     val loginViewModel: AuthViewModel = hiltViewModel()
@@ -46,6 +46,9 @@ fun LoginScreen(
 
     val context = LocalContext.current
 
+    LaunchedEffect(state.isSignInSuccessful) {
+        onSuccessfulLogin()
+    }
     LaunchedEffect(key1 = state.errorMessage) {
         state.errorMessage?.let { error ->
             Toast.makeText(
@@ -53,11 +56,7 @@ fun LoginScreen(
             ).show()
         }
     }
-    LaunchedEffect(key1 = state.navigateTo) {
-        state.navigateTo?.let { destination ->
-            onNavigateTo(destination)
-        }
-    }
+
 
 
     Column(

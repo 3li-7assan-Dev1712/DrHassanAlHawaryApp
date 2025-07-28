@@ -1,7 +1,6 @@
 package com.example.hassanalhawary
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -71,18 +70,32 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate("register_screen")
                                         navController.clearBackStack("login_screen")
                                     },
-                                    onNavigateTo = { r ->
-                                        Log.d("MainAct", r)
+                                    onSuccessfulLogin = {
+                                        // go to home screen
+                                        Toast.makeText(
+                                            applicationContext,
+                                            "Login successful",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 )
                             }
 
                             composable("register_screen") {
                                 RegisterScreen(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    navController.popBackStack()
-                                }
+                                    modifier = Modifier.fillMaxSize(),
+                                    onLoginClick = {
+                                        navController.popBackStack()
+                                    },
+                                    onSuccessfulRegister = {
+                                        // go to home screen
+                                        Toast.makeText(
+                                            applicationContext,
+                                            "Register successful",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                )
                             }
                         }
 

@@ -12,6 +12,12 @@ interface AuthRepository {
         password: String
     ): LoginResult
 
+  suspend fun registerNewUserWithEmailPassword(
+        userName: String,
+        email: String,
+        password: String
+    ): LoginResult
+
     suspend fun getLoggedInUser(): UserData?
 
 
