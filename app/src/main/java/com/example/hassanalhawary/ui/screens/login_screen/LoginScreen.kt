@@ -88,11 +88,12 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Spacer(
-            modifier = Modifier.height(4.dp)
-        )
+
 
         if (state.showSignInProgressBar) {
+            Spacer(
+                modifier = Modifier.height(16.dp)
+            )
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -178,7 +179,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             isLogin = true,
         ) {
-
+            val loginResult = loginViewModel.loginWithGoogle()
         }
 
     }

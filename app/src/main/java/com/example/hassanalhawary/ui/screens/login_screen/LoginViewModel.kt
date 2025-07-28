@@ -24,8 +24,24 @@ class LoginViewModel
     fun loginWithGoogle() {
 
          viewModelScope.launch {
-            val loginResult = loginWithGoogleUseCase()
-            onSignInResult(loginResult)
+             // show progress
+             _state.update {
+                 it.copy(
+                     showSignInProgressBar = true
+                 )
+             }
+             try {
+                 val loginResult = loginWithGoogleUseCase()
+                 onSignInResult(loginResult)
+             } catch (e: Exception) {
+                 e.printStackTrace()
+                 _state.update {
+                     it.copy(
+                         errorMessage = e.message,
+                         showSignInProgressBar = false
+                     )
+                 }
+             }
         }
     }
 
@@ -34,7 +50,8 @@ class LoginViewModel
         _state.update {
             it.copy(
                 isSignInSuccessful = loginResult.data != null,
-                errorMessage = loginResult.errorMessage
+                errorMessage = loginResult.errorMessage,
+                showSignInProgressBar = false
             )
         }
     }
