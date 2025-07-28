@@ -1,9 +1,10 @@
-package com.example.hassanal_hawary.ui.screens.login_screens
+package com.example.hassanalhawary.ui.components
 
-data class LoginState(
+data class AuthScreenState(
     val isSignInSuccessful: Boolean = false,
     val showSignInProgressBar: Boolean = false,
     val errorMessage: String? = null,
+    val userName: String? = null,
     val enteredEmail: String = "",
     val enteredPassword: String = "",
     val enterValidEmailMsg: String = "",

@@ -1,4 +1,4 @@
-package com.example.hassanal_hawary.ui.screens.login_screens
+package com.example.hassanalhawary.ui.components
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,12 +12,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel
+class AuthViewModel
     @Inject constructor(
         private val loginWithGoogleUseCase: LoginWithGoogleUseCase
     ): ViewModel()
 {
-    private val _state = MutableStateFlow(LoginState())
+    private val _state = MutableStateFlow(AuthScreenState())
 
     val state = _state.asStateFlow()
 
@@ -57,7 +57,7 @@ class LoginViewModel
     }
     fun resetState() {
         _state.update {
-            LoginState()
+            AuthScreenState()
         }
     }
 
@@ -99,6 +99,14 @@ class LoginViewModel
         viewModelScope.launch {
             _state.update {
                 it.copy(enteredPassword = password)
+            }
+        }
+    }
+  fun userNameChanged(userName: String) {
+
+        viewModelScope.launch {
+            _state.update {
+                it.copy(userName = userName)
             }
         }
     }

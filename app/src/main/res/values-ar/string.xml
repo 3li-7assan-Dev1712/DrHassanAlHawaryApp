@@ -23,5 +23,6 @@
     <string name="summary">ملخــــص</string>
     <string name="main_screen">الشاشـــة الرئيــــسة</string>
     <string name="favorites">المفضــــلات</string>
+    <string name="enter_name">الإســم</string>
     <string name="profile">الملـــف الشخصـــي</string>
 </resources>

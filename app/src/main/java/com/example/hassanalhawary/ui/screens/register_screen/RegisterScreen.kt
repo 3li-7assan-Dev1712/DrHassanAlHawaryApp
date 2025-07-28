@@ -1,6 +1,5 @@
-package com.example.hassanal_hawary.ui.screens.login_screens
+package com.example.hassanalhawary.ui.screens.register_screen
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -16,14 +15,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.hassanalhawary.R
@@ -31,35 +28,18 @@ import com.example.hassanalhawary.core.components.LoginRegisterSection
 import com.example.hassanalhawary.core.components.LoginWithGoogleComp
 import com.example.hassanalhawary.core.components.OutlinedField
 import com.example.hassanalhawary.core.components.WelcomeScreen
-import com.example.hassanalhawary.core.util.LoginRegisterProviderElement
 import com.example.hassanalhawary.ui.components.AuthViewModel
 import com.example.hassanalhawary.ui.theme.CairoTypography
 
 
 @Composable
-fun LoginScreen(
-    onRegisterClick: () -> Unit,
-    onLoginRegisterElementClick: (LoginRegisterProviderElement) -> Unit,
-    onNavigateTo: (String) -> Unit
+fun RegisterScreen(
+    modifier: Modifier
 ) {
-
-    val loginViewModel: AuthViewModel = hiltViewModel()
-    val state by loginViewModel.state.collectAsState()
+    val registerVm: AuthViewModel = hiltViewModel()
+    val state by registerVm.state.collectAsState()
 
     val context = LocalContext.current
-
-    LaunchedEffect(key1 = state.errorMessage) {
-        state.errorMessage?.let { error ->
-            Toast.makeText(
-                context, error, Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-    LaunchedEffect(key1 = state.navigateTo) {
-        state.navigateTo?.let { destination ->
-            onNavigateTo(destination)
-        }
-    }
 
 
     Column(
@@ -68,7 +48,6 @@ fun LoginScreen(
             .padding(horizontal = 15.dp, vertical = 15.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
 
 
         if (state.showSignInProgressBar) {
@@ -92,11 +71,26 @@ fun LoginScreen(
 
         OutlinedField(
             modifier = Modifier.fillMaxWidth(),
+            label = R.string.enter_name,
+            icon = Icons.Default.Email,
+            value = state.enteredEmail,
+            onValueChange = {
+                registerVm.userNameChanged(it)
+            },
+            showError = state.errorMessage != null,
+            errorMessage = state.enterValidEmailMsg
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+        OutlinedField(
+            modifier = Modifier.fillMaxWidth(),
             label = R.string.enter_email,
             icon = Icons.Default.Email,
             value = state.enteredEmail,
             onValueChange = {
-                loginViewModel.emailChanged(it)
+                registerVm.emailChanged(it)
             },
             showError = state.errorMessage != null,
             errorMessage = state.enterValidEmailMsg
@@ -112,7 +106,7 @@ fun LoginScreen(
             icon = Icons.Default.Lock,
             value = state.enteredPassword,
             onValueChange = {
-                loginViewModel.passwordChanged(it)
+                registerVm.passwordChanged(it)
             },
             showError = state.errorMessage != null,
             errorMessage = state.enterValidPassowrdMsg
@@ -130,8 +124,7 @@ fun LoginScreen(
                 ),
             isLogin = true,
 
-        ) {
-            onRegisterClick()
+            ) {
         }
 
         Spacer(Modifier.weight(1f))
@@ -160,23 +153,8 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             isLogin = true,
         ) {
-            val loginResult = loginViewModel.loginWithGoogle()
+            val loginResult = registerVm.loginWithGoogle()
         }
 
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true, widthDp = 320, heightDp = 640)
-@Composable
-fun LoginScreenPreview(modifier: Modifier = Modifier) {
-
-    LoginScreen(
-        onRegisterClick = {
-
-        },
-        onLoginRegisterElementClick = {
-
-        }
-    ) { }
-}
-
