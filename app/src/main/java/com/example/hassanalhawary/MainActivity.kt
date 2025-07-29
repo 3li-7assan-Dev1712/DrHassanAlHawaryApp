@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
@@ -56,7 +57,7 @@ class MainActivity : ComponentActivity() {
 
                     val navController = rememberNavController()
                     val navHost =
-                        NavHost(navController, startDestination = "login_screen") {
+                        NavHost(navController, startDestination = "home_screen") {
 
                             composable(route = "login_screen") {
                                 LoginScreen(
@@ -78,6 +79,12 @@ class MainActivity : ComponentActivity() {
                                             Toast.LENGTH_LONG
                                         ).show()
                                     }
+                                )
+                            }
+
+                            composable("home_screen") {
+                                HomeScreen(
+
                                 )
                             }
 

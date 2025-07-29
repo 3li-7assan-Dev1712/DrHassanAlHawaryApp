@@ -76,9 +76,9 @@ class AuthRepositoryImpl @Inject constructor(
                 val updatedUser = firebaseAuth.currentUser!! // User should exist and be current
                 LoginResult(
                     data = UserData(
-                        userId = firebaseUser.uid,
-                        username = firebaseUser.displayName,
-                        userProfilePictureUrl = firebaseUser.photoUrl?.toString()
+                        userId = updatedUser.uid,
+                        username = updatedUser.displayName,
+                        userProfilePictureUrl = updatedUser.photoUrl?.toString()
                     ),
                     errorMessage = null
                 )
