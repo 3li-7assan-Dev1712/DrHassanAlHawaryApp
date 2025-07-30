@@ -6,7 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,8 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,83 +49,85 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Surface (
+
+//                val navHost =
+
+                Scaffold(
                     modifier = Modifier.fillMaxSize()
-                ) {
-
-
+                ) { innerPadding ->
                     val navController = rememberNavController()
-                    val navHost =
-                        NavHost(navController, startDestination = "home_screen") {
+                    NavHost(
+                        navController,
+                        startDestination = "home_screen",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
 
-                            composable(route = "login_screen") {
-                                LoginScreen(
+                        composable(route = "login_screen") {
+                            LoginScreen(
 
-                                    onRegisterClick = {
-                                        Toast.makeText(
-                                            applicationContext,
-                                            "Navigate to register screen",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        navController.navigate("register_screen")
-                                        navController.clearBackStack("login_screen")
-                                    },
-                                    onSuccessfulLogin = {
-                                        // go to home screen
-                                        Toast.makeText(
-                                            applicationContext,
-                                            "Login successful",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
-                                )
-                            }
-
-                            composable("home_screen") {
-                                HomeScreen(
-
-                                )
-                            }
-
-                            composable("register_screen") {
-                                RegisterScreen(
-                                    modifier = Modifier.fillMaxSize(),
-                                    onLoginClick = {
-                                        navController.popBackStack()
-                                    },
-                                    onSuccessfulRegister = {
-                                        // go to home screen
-                                        Toast.makeText(
-                                            applicationContext,
-                                            "Register successful",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                    }
-                                )
-                            }
+                                onRegisterClick = {
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Navigate to register screen",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    navController.navigate("register_screen")
+                                    navController.clearBackStack("login_screen")
+                                },
+                                onSuccessfulLogin = {
+                                    // go to home screen
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Login successful",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
                         }
 
+                        composable("home_screen") {
+                            HomeScreen(
 
+                            )
+                        }
+
+                        composable("register_screen") {
+                            RegisterScreen(
+                                modifier = Modifier.fillMaxSize(),
+                                onLoginClick = {
+                                    navController.popBackStack()
+                                },
+                                onSuccessfulRegister = {
+                                    // go to home screen
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Register successful",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            )
+                        }
+                    }
                 }
 
             }
+
         }
-
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    @Composable
+    fun Greeting(name: String, modifier: Modifier = Modifier) {
+        Text(
+            text = "Hello $name!",
+            modifier = modifier
+        )
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    HassanAlHawaryTheme {
-        Greeting("Android")
+    @Preview(showBackground = true)
+    @Composable
+    fun GreetingPreview() {
+        HassanAlHawaryTheme {
+            Greeting("Android")
+        }
     }
 }

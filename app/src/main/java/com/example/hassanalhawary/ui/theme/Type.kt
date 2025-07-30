@@ -48,6 +48,22 @@ val CairoTypography = Typography(
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
+    titleMedium = TextStyle(
+        fontFamily = Cairo,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+
+    ),
+    titleSmall = TextStyle(
+        fontFamily = Cairo,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+
+    ),
     labelSmall = TextStyle(
         fontFamily = Cairo,
         fontWeight = FontWeight.Medium,
@@ -76,6 +92,14 @@ val CairoTypography = Typography(
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
+    bodySmall = TextStyle(
+        fontFamily = Cairo,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+
+    )
 
 
 
