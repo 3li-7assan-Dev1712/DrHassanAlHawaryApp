@@ -30,7 +30,8 @@ val sampleArticles = listOf(
         "1",
         "Understanding Ramadan",
         "A deep dive into the practices..."
-    ), Article(
+    ),
+    Article(
         "2",
         "The Beauty of Zakat",
         "Exploring the significance..."

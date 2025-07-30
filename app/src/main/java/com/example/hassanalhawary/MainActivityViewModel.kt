@@ -2,6 +2,7 @@ package com.example.hassanalhawary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hassanalhawary.domain.use_cases.IsUserLoggedInUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,17 +11,18 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-
 @HiltViewModel
-class MainActivityViewModel @Inject constructor() :ViewModel()
-    {
+class MainActivityViewModel @Inject constructor(
+    private val IsUserLoggedInUseCase: IsUserLoggedInUseCase
+) : ViewModel() {
 
     private val _state = MutableStateFlow(MainActivityState())
 
     val state = _state.asStateFlow()
 
-
-
+    init {
+        checkUserAuthState()
+    }
 
     fun hideProgressBar() {
         viewModelScope.launch {
@@ -31,4 +33,16 @@ class MainActivityViewModel @Inject constructor() :ViewModel()
             }
         }
     }
+
+    fun checkUserAuthState() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isUserLoggedIn = IsUserLoggedInUseCase()
+                )
+            }
+        }
+    }
+
+
 }

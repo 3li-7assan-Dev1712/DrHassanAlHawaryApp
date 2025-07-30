@@ -109,8 +109,19 @@ class AuthRepositoryImpl @Inject constructor(
 
     }
 
-    override suspend fun getLoggedInUser(): UserData? {
-//        TODO("Not yet implemented")
-        return null
+    override suspend fun getLoggedInUser(): LoginResult? {
+        val firebaseUser = firebaseAuth.currentUser
+        return if (firebaseUser != null) {
+            LoginResult(
+                data = UserData(
+                    userId = firebaseUser.uid,
+                    username = firebaseUser.displayName,
+                    userProfilePictureUrl = firebaseUser.photoUrl?.toString()
+                ),
+                errorMessage = null
+            )
+        } else {
+            null
+        }
     }
 }

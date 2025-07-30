@@ -38,6 +38,24 @@ class MainActivity : ComponentActivity() {
                 val mainActivityViewModel = viewModel<MainActivityViewModel>()
                 val mainActivityState by mainActivityViewModel.state.collectAsState()
 
+                val isLoggedIn = mainActivityState.isUserLoggedIn
+
+                val rootNavController =
+                    rememberNavController() // Single NavController for switching graphs
+
+                if (isLoggedIn) {
+                    MainAppContent(
+                        onLogout = { }
+                    )
+                } else {
+                    AuthNavHost(
+                        onLoginSuccess = {
+
+                        }
+                    )
+                }
+
+
                 LaunchedEffect(key1 = mainActivityState.navigateTo) {
                     if (mainActivityState.navigateTo != null) {
                         Toast.makeText(
@@ -52,63 +70,6 @@ class MainActivity : ComponentActivity() {
 
 //                val navHost =
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-                    val navController = rememberNavController()
-                    NavHost(
-                        navController,
-                        startDestination = "home_screen",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-
-                        composable(route = "login_screen") {
-                            LoginScreen(
-
-                                onRegisterClick = {
-                                    Toast.makeText(
-                                        applicationContext,
-                                        "Navigate to register screen",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                    navController.navigate("register_screen")
-                                    navController.clearBackStack("login_screen")
-                                },
-                                onSuccessfulLogin = {
-                                    // go to home screen
-                                    Toast.makeText(
-                                        applicationContext,
-                                        "Login successful",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            )
-                        }
-
-                        composable("home_screen") {
-                            HomeScreen(
-
-                            )
-                        }
-
-                        composable("register_screen") {
-                            RegisterScreen(
-                                modifier = Modifier.fillMaxSize(),
-                                onLoginClick = {
-                                    navController.popBackStack()
-                                },
-                                onSuccessfulRegister = {
-                                    // go to home screen
-                                    Toast.makeText(
-                                        applicationContext,
-                                        "Register successful",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            )
-                        }
-                    }
-                }
 
             }
 
@@ -131,3 +92,90 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+@Composable
+fun MainAppContent(
+    onLogout: () -> Unit
+
+) {
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+
+        }
+    ) { innerPadding ->
+
+        val navController = rememberNavController()
+        NavHost(
+            navController,
+            startDestination = "home_screen",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+
+
+            composable("home_screen") {
+                HomeScreen(
+
+                )
+            }
+
+            composable("register_screen") {
+                RegisterScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    onLoginClick = {
+                        navController.popBackStack()
+                    },
+                    onSuccessfulRegister = {
+                        // go to home screen
+                        /*  Toast.makeText(
+                              applicationContext,
+                              "Register successful",
+                              Toast.LENGTH_LONG
+                          ).show()*/
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AuthNavHost(
+    onLoginSuccess: () -> Unit
+) {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = "login_screen"
+    ) {
+
+        composable(route = "login_screen") {
+            LoginScreen(
+
+                onRegisterClick = {
+//                    Toast.makeText(
+//                        context =  LocalContext.current,
+//                        text = "Navigate to register screen",
+//                        duration  =Toast.LENGTH_LONG
+//                    ).show()
+                    navController.navigate("register_screen")
+                    navController.clearBackStack("login_screen")
+                },
+                onSuccessfulLogin = {
+                    // go to home screen
+                    /*Toast.makeText(
+                        ,
+                        "Login successful",
+                        Toast.LENGTH_LONG
+                    ).show()*/
+                }
+            )
+        }
+    }
+
+
+
+}
+
+
