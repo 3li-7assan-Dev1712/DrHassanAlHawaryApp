@@ -35,7 +35,7 @@ fun ArticleCard( // This remains largely the same
             modifier = Modifier
                 .padding(horizontal = 12.dp, vertical = 8.dp)
                 .fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
             Text(
                 text = article.title,
@@ -48,7 +48,7 @@ fun ArticleCard( // This remains largely the same
             Text(
                 text = article.contentSnippet,
                 style = CairoTypography.bodySmall,
-                maxLines = 2,
+                maxLines = 6,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
