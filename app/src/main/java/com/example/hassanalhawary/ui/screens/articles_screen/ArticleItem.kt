@@ -52,7 +52,7 @@ fun ArticleItem(
             Text(
                 text = article.contentSnippet,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 3,
+                maxLines = 5,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
