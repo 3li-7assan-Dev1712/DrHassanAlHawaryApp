@@ -21,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
+import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
@@ -126,6 +127,9 @@ fun MainAppContent(
             }
             composable("articles_screen")  {
 
+                ArticlesScreen {
+
+                }
             }
             composable("audios_screen") {
 

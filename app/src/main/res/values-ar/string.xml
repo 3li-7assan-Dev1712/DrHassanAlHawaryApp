@@ -25,4 +25,6 @@
     <string name="favorites">المفضــــلات</string>
     <string name="enter_name">الإســم</string>
     <string name="profile">الملـــف الشخصـــي</string>
+    <string name="home">الرئيسية</string>
+    <string name="search_hint">بحـــث…</string>
 </resources>

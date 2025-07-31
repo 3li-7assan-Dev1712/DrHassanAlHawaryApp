@@ -14,9 +14,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.hassanalhawary.R
-import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.domain.model.Audio
 import com.example.hassanalhawary.domain.model.Question
+import com.example.hassanalhawary.domain.model.getFakeArticles
 import com.example.hassanalhawary.ui.components.SearchBar
 import com.example.hassanalhawary.ui.components.TopAppBar
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
@@ -25,23 +25,7 @@ import com.example.hassanalhawary.ui.screens.home_screen.components.LatestArticl
 import com.example.hassanalhawary.ui.screens.home_screen.components.QuestionOfTheDay
 
 
-val sampleArticles = listOf(
-    Article(
-        "1",
-        "Understanding Ramadan",
-        "A deep dive into the practices..."
-    ),
-    Article(
-        "2",
-        "The Beauty of Zakat",
-        "Exploring the significance..."
-    ),
-    Article(
-        "3",
-        "Islamic Art Forms",
-        "Calligraphy, architecture, and more..."
-    )
-)
+val sampleArticles = getFakeArticles()
 
 val sampleAudios = listOf(
     Audio("aud1", "Tafsir of Surah Al-Fatiha"),
@@ -79,7 +63,7 @@ fun HomeScreen(
 
         SearchBar(
             modifier = Modifier.padding(horizontal = 15.dp),
-            query = "",
+            searchQuery = "",
             onQueryChanged = {},
             hint = "Search"
         )

@@ -23,9 +23,10 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    query: String,
+    searchQuery: String,
     onQueryChanged: (String) -> Unit,
-    hint: String
+    hint: String,
+    onSearchClicked: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -38,7 +39,7 @@ fun SearchBar(
 
         // Using BasicTextField for more control over styling and no default Material decorations
         BasicTextField(
-            value = query,
+            value = searchQuery,
             onValueChange = onQueryChanged,
             modifier = Modifier
                 .weight(1f) // Takes remaining space
@@ -54,7 +55,7 @@ fun SearchBar(
                 Box(
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    if (query.isEmpty()) {
+                    if (searchQuery.isEmpty()) {
                         Text(
                             text = hint,
                             style = MaterialTheme.typography.bodyLarge,
@@ -67,7 +68,7 @@ fun SearchBar(
         )
 
         // let user clear the search query
-        if (query.isNotEmpty()) {
+        if (searchQuery.isNotEmpty()) {
             IconButton(onClick = { onQueryChanged("") }) { // Clear the query
                 Icon(
                     imageVector = Icons.Default.Close, // Or Icons.Filled.Clear
@@ -82,7 +83,7 @@ fun SearchBar(
 @Composable
 fun SearchBarPreview() {
     SearchBar(
-        query = "Search Query",
+        searchQuery = "Search Query",
         onQueryChanged = { /* Handle query changes */ },
         hint = "Search"
     )

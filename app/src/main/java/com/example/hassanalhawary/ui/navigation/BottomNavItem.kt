@@ -7,7 +7,7 @@ import com.example.hassanalhawary.R
 
 sealed class BottomNavItem(
     val route: String,
-    val title: String,
+    val titleResId:  Int,
     val selectedIconResId: Int,
     val unselectedIconResId: Int
 ) {
@@ -20,28 +20,28 @@ sealed class BottomNavItem(
 
     object Home : BottomNavItem(
         route = "home_screen",
-        title = "Home",
-        selectedIconResId = R.drawable.home_icon,
+        titleResId = R.string.home,
+        selectedIconResId = R.drawable.filled_home_icon,
         unselectedIconResId = R.drawable.home_icon
     )
 
     object Articles : BottomNavItem(
         route = "articles_screen",
-        title = "Articles",
-        selectedIconResId = R.drawable.article_icon,
+        titleResId = R.string.articles,
+        selectedIconResId = R.drawable.filled_article_icon,
         unselectedIconResId = R.drawable.article_icon
     )
 
     object Audios : BottomNavItem(
         route = "audios_screen",
-        title = "Audios",
-        selectedIconResId = R.drawable.audio_icon,
+        titleResId = R.string.lectures,
+        selectedIconResId = R.drawable.filled_audio_icon,
         unselectedIconResId = R.drawable.audio_icon
     )
 
     object Questions : BottomNavItem(
         route = "questions_screen",
-        title = "Questions",
+        titleResId = R.string.questions,
         selectedIconResId = R.drawable.question_icon,
         unselectedIconResId = R.drawable.question_icon
     )
