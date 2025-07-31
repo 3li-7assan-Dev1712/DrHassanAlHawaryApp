@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,6 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
@@ -98,15 +100,18 @@ fun MainAppContent(
     onLogout: () -> Unit
 
 ) {
+    val navController = rememberNavController()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-
+            BottomNavigationBar(
+                modifier = Modifier.fillMaxWidth(),
+                navController = navController
+            )
         }
     ) { innerPadding ->
 
-        val navController = rememberNavController()
         NavHost(
             navController,
             startDestination = "home_screen",
@@ -119,23 +124,17 @@ fun MainAppContent(
 
                 )
             }
+            composable("articles_screen")  {
 
-            composable("register_screen") {
-                RegisterScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    onLoginClick = {
-                        navController.popBackStack()
-                    },
-                    onSuccessfulRegister = {
-                        // go to home screen
-                        /*  Toast.makeText(
-                              applicationContext,
-                              "Register successful",
-                              Toast.LENGTH_LONG
-                          ).show()*/
-                    }
-                )
             }
+            composable("audios_screen") {
+
+            }
+            composable("questions_screen") {
+
+            }
+
+
         }
     }
 }
@@ -172,8 +171,23 @@ fun AuthNavHost(
                 }
             )
         }
+        composable("register_screen") {
+            RegisterScreen(
+                modifier = Modifier.fillMaxSize(),
+                onLoginClick = {
+                    navController.popBackStack()
+                },
+                onSuccessfulRegister = {
+                    // go to home screen
+                    /*  Toast.makeText(
+                          applicationContext,
+                          "Register successful",
+                          Toast.LENGTH_LONG
+                      ).show()*/
+                }
+            )
+        }
     }
-
 
 
 }
