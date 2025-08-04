@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
+import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
@@ -128,7 +129,12 @@ fun MainAppContent(
             composable("articles_screen")  {
 
                 ArticlesScreen {
-
+                    navController.navigate("detail_article")
+                }
+            }
+            composable("detail_article") {
+                DetailArticleScreen {
+                    navController.popBackStack()
                 }
             }
             composable("audios_screen") {
