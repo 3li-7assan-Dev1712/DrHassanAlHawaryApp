@@ -33,7 +33,7 @@ sealed class BottomNavItem(
     )
 
     object Audios : BottomNavItem(
-        route = "audios_screen",
+        route = "audio_list_screen",
         titleResId = R.string.lectures,
         selectedIconResId = R.drawable.filled_audio_icon,
         unselectedIconResId = R.drawable.audio_icon

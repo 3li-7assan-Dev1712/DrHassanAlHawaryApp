@@ -28,4 +28,8 @@
     <string name="home">الرئيسية</string>
     <string name="search_hint">بحـــث…</string>
     <string name="loading">يتم التحميل…</string>
+    <string name="navigate_back">الرجوع للخلف</string>
+    <string name="no_audios_available">لا تــوجــــد صــــوتــيات متاحــــة الآن</string>
+
+    <string name="error_msg">حـــدث خــــطأ</string>
 </resources>
