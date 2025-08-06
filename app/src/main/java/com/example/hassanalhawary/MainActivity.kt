@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
+import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListScreen
 import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
@@ -145,6 +146,18 @@ fun MainAppContent(
                     }
                 )
             }
+
+            composable(
+                route = "audio_detail_screen/{audioId}",
+                arguments = listOf()
+            ) {
+                AudioDetailRoute(
+                    onNavigateUp = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
             composable("questions_screen") {
 
             }

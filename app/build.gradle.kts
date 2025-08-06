@@ -72,6 +72,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.androidx.media3.exoplayer)
     kapt(libs.hilt.compiler)
 
     // navigation
