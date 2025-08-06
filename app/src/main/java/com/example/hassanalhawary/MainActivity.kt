@@ -13,12 +13,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
@@ -106,13 +109,43 @@ fun MainAppContent(
 ) {
     val navController = rememberNavController()
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // routes where the bottom nav should be hidden
+    val routesWithoutBottomNav = remember {
+        setOf(
+            "detail_article",
+            "audio_detail_screen/{audioId}" // Use the route pattern
+        )
+    }
+
+    // More robust check for pattern routes like "audio_detail_screen/{audioId}"
+    val shouldShowBottomNav = remember(currentRoute) {
+        derivedStateOf {
+            currentRoute != null && routesWithoutBottomNav.none { routePattern ->
+                // Simple check for exact match or prefix match for routes with arguments
+                if (routePattern.contains("{")) {
+                    val baseRoutePattern = routePattern.substringBefore("/{")
+                    currentRoute.startsWith(baseRoutePattern)
+                } else {
+                    currentRoute == routePattern
+                }
+            }
+        }.value
+    }
+
+
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            BottomNavigationBar(
-                modifier = Modifier.fillMaxWidth(),
-                navController = navController
-            )
+            if (shouldShowBottomNav) {
+                BottomNavigationBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    navController = navController
+                )
+            }
         }
     ) { innerPadding ->
 

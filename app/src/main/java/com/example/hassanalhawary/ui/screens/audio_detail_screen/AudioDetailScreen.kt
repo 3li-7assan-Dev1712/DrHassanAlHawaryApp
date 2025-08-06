@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -139,149 +140,202 @@ fun AudioDetailScreen(
         containerColor = MaterialTheme.colorScheme.surface // Main background
     ) { paddingValues ->
         if (uiState.isLoadingDetails) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues), contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
+            LoadingSection(paddingValues)
         } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background( // Adding a subtle gradient background
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                                MaterialTheme.colorScheme.surface
-                            )
-                        )
+            AudioDetailContent(
+                paddingValues,
+                uiState,
+                onToggleFavorite,
+                onPlayPauseToggle,
+                onSeek,
+                onRewind,
+                onForward,
+                onChangeSpeed,
+                onDownload
+            )
+        }
+    }
+}
+
+@Composable
+private fun AudioDetailContent(
+    paddingValues: PaddingValues,
+    uiState: AudioDetailUiState,
+    onToggleFavorite: () -> Unit,
+    onPlayPauseToggle: () -> Unit,
+    onSeek: (Float) -> Unit,
+    onRewind: () -> Unit,
+    onForward: () -> Unit,
+    onChangeSpeed: (Float) -> Unit,
+    onDownload: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background( // Adding a subtle gradient background
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                        MaterialTheme.colorScheme.surface
                     )
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-            ) {
+                )
+            )
+            .padding(paddingValues)
+            .verticalScroll(rememberScrollState())
+    ) {
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.5f) // Adjust aspect ratio for a pleasing look
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
-                        .clip(RoundedCornerShape(20.dp)) // Softer corners
-                        .background(
-                            MaterialTheme.colorScheme.surfaceColorAtElevation(
-                                3.dp
-                            )
-                        ), // Elevated look
-                    contentAlignment = Alignment.Center
-                ) {
+        AudioTitleSection(uiState, onToggleFavorite)
 
-                   /* Image(
+
+        Spacer(modifier = Modifier.height(8.dp)) // Reduced spacer
+
+        // --- Player Controls Section ---
+        ThemedPlayerControls(
+            uiState = uiState, // Pass full uiState for theming potential
+            onPlayPauseToggle = onPlayPauseToggle,
+            onSeek = onSeek,
+            onRewind = onRewind,
+            onForward = onForward,
+            onChangeSpeed = onChangeSpeed,
+            modifier = Modifier.padding(
+                horizontal = 16.dp,
+                vertical = 12.dp
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // --- Download Button & Description ---
+        AudioDownloadDescriptionSection(onDownload, uiState)
+        Spacer(modifier = Modifier.height(24.dp)) // Bottom padding
+    }
+}
+
+@Composable
+private fun AudioDownloadDescriptionSection(
+    onDownload: () -> Unit,
+    uiState: AudioDetailUiState
+) {
+    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+        Button(
+            onClick = onDownload,
+            enabled = !uiState.isDownloaded,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_download),
+                contentDescription = "Download",
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(if (uiState.isDownloaded) "Downloaded" else "Download Lesson")
+        }
+
+        if (uiState.description != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "About this lesson",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = uiState.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.animateContentSize()
+            )
+        }
+    }
+}
+
+@Composable
+private fun AudioTitleSection(
+    uiState: AudioDetailUiState,
+    onToggleFavorite: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1.5f) // Adjust aspect ratio for a pleasing look
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .clip(RoundedCornerShape(20.dp)) // Softer corners
+            .background(
+                MaterialTheme.colorScheme.surfaceColorAtElevation(
+                    3.dp
+                )
+            ), // Elevated look
+        contentAlignment = Alignment.Center
+    ) {
+
+        /* Image(
                         painter = painterResource(id = getThemedLessonImage(uiState.title)), // Helper to get a themed image
                         contentDescription = uiState.title,
                         contentScale = ContentScale.Crop, // Crop to fill bounds
                         modifier = Modifier.fillMaxSize()
                     )*/
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.6f)
-                                    ),
-                                    startY = 0.6f * 220.dp.value // Adjust gradient start
-                                )
-                            )
-                    )
-                    Text(
-                        text = uiState.title,
-                        style = MaterialTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp)
-                    )
-                }
-
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)) {
-                    FloatingActionButton(
-                        onClick = onToggleFavorite,
-                        shape = CircleShape,
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.align(Alignment.TopEnd).offset(y = (-40).dp) // Adjust offset
-                    ) {
-                        Icon(
-                            imageVector = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = "Favorite"
-                        )
-                    }
-                }
-
-
-                Spacer(modifier = Modifier.height(8.dp)) // Reduced spacer
-
-                // --- Player Controls Section ---
-                ThemedPlayerControls(
-                    uiState = uiState, // Pass full uiState for theming potential
-                    onPlayPauseToggle = onPlayPauseToggle,
-                    onSeek = onSeek,
-                    onRewind = onRewind,
-                    onForward = onForward,
-                    onChangeSpeed = onChangeSpeed,
-                    modifier = Modifier.padding(
-                        horizontal = 16.dp,
-                        vertical = 12.dp
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.6f)
+                        ),
+                        startY = 0.6f * 220.dp.value // Adjust gradient start
                     )
                 )
+        )
+        Text(
+            text = uiState.title,
+            style = MaterialTheme.typography.headlineSmall.copy(
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            ),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
+    }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // --- Download Button & Description ---
-                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    Button(
-                        onClick = onDownload,
-                        enabled = !uiState.isDownloaded,
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_download),
-                            contentDescription = "Download",
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(if (uiState.isDownloaded) "Downloaded" else "Download Lesson")
-                    }
-
-                    if (uiState.description != null) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "About this lesson",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = uiState.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.animateContentSize()
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp)) // Bottom padding
-            }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        FloatingActionButton(
+            onClick = onToggleFavorite,
+            shape = CircleShape,
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(y = (-40).dp) // Adjust offset
+        ) {
+            Icon(
+                imageVector = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = "Favorite"
+            )
         }
+    }
+}
+
+@Composable
+private fun LoadingSection(paddingValues: PaddingValues) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues), contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 
