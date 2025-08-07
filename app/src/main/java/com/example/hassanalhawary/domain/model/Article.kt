@@ -6,8 +6,8 @@ import java.util.Date
 data class Article(
     val id: String,
     val title: String,
-    val contentSnippet: String,
-    val publishDate: Date,
+    val contentSnippet: String = "",
+    val publishDate: Date = Date(),
     val fullContent: String,
 )
 

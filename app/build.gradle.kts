@@ -56,10 +56,17 @@ dependencies {
     implementation(libs.androidx.material3)
 
     // firebase
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    // firestore
+    implementation(libs.firebase.firestore.ktx)
+    // firebase storage
+//    implementation(libs.firebase.storage)
+
+
     // auth credential
     implementation(libs.androidx.credentials.v130)
     implementation(libs.androidx.credentials.play.services.auth.v130)

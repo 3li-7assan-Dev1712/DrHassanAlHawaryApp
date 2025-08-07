@@ -1,0 +1,7 @@
+package com.example.hassanalhawary.domain.model
+
+data class ArticlesResult(
+    val articles: List<Article>? = null,
+    val errorMessage: String? = null
+
+)

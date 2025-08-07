@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -19,6 +20,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,10 +37,30 @@ fun ArticlesScreen(
     articlesViewModel: ArticlesViewModel = hiltViewModel(),
     onNavigateToArticleDetail: (articleId: String) -> Unit // Callback to navigate
 ) {
+
+    val articlesUiState by articlesViewModel.articlesUiState.collectAsState()
+
     val searchQuery by articlesViewModel.searchQuery.collectAsState()
-    val articles by articlesViewModel.filteredArticles.collectAsState()
+//    val articles by articlesViewModel.filteredArticles.collectAsState()
     val focusManager = LocalFocusManager.current
 
+    ArticlesScreenContent(
+        searchQuery,
+        articlesViewModel,
+        focusManager,
+        articlesUiState,
+        onNavigateToArticleDetail
+    )
+}
+
+@Composable
+private fun ArticlesScreenContent(
+    searchQuery: String,
+    articlesViewModel: ArticlesViewModel,
+    focusManager: FocusManager,
+    articlesUiState: ArticlesUiState,
+    onNavigateToArticleDetail: (String) -> Unit
+) {
     Scaffold(
         topBar = {
             Column { // Use Column to stack TopAppBar and SearchBar
@@ -59,49 +81,86 @@ fun ArticlesScreen(
             }
         }
     ) { innerPadding ->
-        if (articles.isEmpty() && searchQuery.isNotBlank()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "No articles found matching your search.",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+        when (articlesUiState) {
+
+            is ArticlesUiState.Success -> {
+
+                if (articlesUiState.articles.isEmpty() && searchQuery.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No articles found matching your search.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                } else if (articlesUiState.articles.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No articles available at the moment.",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(articlesUiState.articles, key = { it.id }) { article ->
+                            ArticleItem(
+                                article = article,
+                                onReadMoreClicked = { onNavigateToArticleDetail(article.id) },
+                                formatDate = { date -> formatDate(date) }
+                            )
+                        }
+                    }
+                }
             }
-        } else if (articles.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "No articles available at the moment.",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                // You could add a CircularProgressIndicator here if you were actually loading
+
+            is ArticlesUiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    articlesUiState.message?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(articles, key = { it.id }) { article ->
-                    ArticleItem(
-                        article = article,
-                        onReadMoreClicked = { onNavigateToArticleDetail(article.id) },
-                        formatDate = { date -> formatDate(date) }
-                    )
+
+            is ArticlesUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
+
     }
+
 }

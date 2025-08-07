@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.domain.model.getFakeArticles
+import com.example.hassanalhawary.domain.use_cases.GetAllArticlesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,11 +14,31 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
-class ArticlesViewModel @Inject constructor() : ViewModel() {
+class ArticlesViewModel @Inject constructor(
+    private val getAllArticlesUseCase: GetAllArticlesUseCase
+) : ViewModel() {
+
+
+    private val _articlesUiState = MutableStateFlow<ArticlesUiState>(ArticlesUiState.Loading)
+    val articlesUiState: StateFlow<ArticlesUiState> = _articlesUiState.asStateFlow()
+
+
+    init {
+        viewModelScope.launch {
+            val articlesResult = getAllArticlesUseCase()
+            if (articlesResult.articles != null) {
+                _articlesUiState.value = ArticlesUiState.Success(articlesResult.articles)
+            } else {
+                _articlesUiState.value = ArticlesUiState.Error(articlesResult.errorMessage)
+            }
+        }
+    }
+
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()

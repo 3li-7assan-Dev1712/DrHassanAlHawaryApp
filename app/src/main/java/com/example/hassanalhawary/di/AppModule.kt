@@ -3,6 +3,8 @@ package com.example.hassanalhawary.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import com.example.hassanalhawary.core.util.GoogleAuthUiClient
+import com.example.hassanalhawary.domain.repository.ArticlesRepository
+import com.example.hassanalhawary.domain.repository.ArticlesRepositoryImpl
 import com.example.hassanalhawary.domain.repository.AudiosRepository
 import com.example.hassanalhawary.domain.repository.AudiosRepositoryImpl
 import com.example.hassanalhawary.domain.repository.AuthRepository
@@ -11,6 +13,7 @@ import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseC
 import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
 import com.example.hassanalhawary.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,6 +28,12 @@ object AppModule {
     @Singleton
     @Provides
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Singleton
+    @Provides
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+
 
     @Singleton
     @Provides
@@ -55,6 +64,14 @@ object AppModule {
     @Provides
     fun provideAudiosRepository(): AudiosRepository {
         return AudiosRepositoryImpl()
+    }
+
+@Singleton
+    @Provides
+    fun provideArticlesRepository(
+        firebaseDb: FirebaseFirestore
+    ): ArticlesRepository {
+        return ArticlesRepositoryImpl(firebaseDb)
     }
 
     @Singleton
