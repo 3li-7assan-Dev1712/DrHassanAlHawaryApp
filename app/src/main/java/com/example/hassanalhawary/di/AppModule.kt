@@ -3,6 +3,8 @@ package com.example.hassanalhawary.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import com.example.hassanalhawary.core.util.GoogleAuthUiClient
+import com.example.hassanalhawary.domain.repository.AudiosRepository
+import com.example.hassanalhawary.domain.repository.AudiosRepositoryImpl
 import com.example.hassanalhawary.domain.repository.AuthRepository
 import com.example.hassanalhawary.domain.repository.AuthRepositoryImpl
 import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
@@ -47,6 +49,12 @@ object AppModule {
         firebaseAuth: FirebaseAuth
     ): AuthRepository {
         return AuthRepositoryImpl(googleAuthUiClient, firebaseAuth)
+    }
+
+    @Singleton
+    @Provides
+    fun provideAudiosRepository(): AudiosRepository {
+        return AudiosRepositoryImpl()
     }
 
     @Singleton

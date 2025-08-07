@@ -3,7 +3,20 @@ package com.example.hassanalhawary.ui.screens.audio_list_sceen
 import com.example.hassanalhawary.domain.model.Audio
 
 sealed interface AudioListUiState {
-    data object Loading : AudioListUiState
-    data class Success(val audios: List<Audio>) : AudioListUiState
-    data class Error(val message: String) : AudioListUiState
+
+    val searchQuery: String
+
+    data class Loading(
+        override val searchQuery: String = ""
+    ) : AudioListUiState
+
+    data class Success(
+        val audios: List<Audio>,
+        val displayedAudios: List<Audio> = audios,
+        override val searchQuery: String
+    ) : AudioListUiState
+
+    data class Error(val message: String, override val searchQuery: String) : AudioListUiState
+
+
 }

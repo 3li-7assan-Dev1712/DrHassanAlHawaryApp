@@ -2,6 +2,7 @@ package com.example.hassanalhawary.ui.screens.audio_list_sceen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,11 +19,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.hassanalhawary.R
+import com.example.hassanalhawary.ui.components.SearchBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +41,8 @@ fun AudioListScreen(
 
     AudioListComposeble(
         modifier = modifier,
-        uiState = uiState
+        uiState = uiState,
+        onSearchQueryChanged = audiosViewModel::onSearchQueryChanged,
     ) {
         onNavigateToAudioDetail(it)
     }
@@ -50,15 +54,29 @@ fun AudioListScreen(
 fun AudioListComposeble(
     modifier: Modifier = Modifier,
     uiState: AudioListUiState,
+    onSearchQueryChanged: (String) -> Unit = {},
     onNavigateToAudioDetail: (audioId: String) -> Unit = {}
 ) {
+    val focusManager = LocalFocusManager.current
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.lectures)) },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-            )
+            Column {
+
+                TopAppBar(
+                    title = { Text(stringResource(R.string.lectures)) },
+
+                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+                )
+
+                SearchBar(
+                    searchQuery = uiState.searchQuery,
+                    hint = stringResource(R.string.search_hint),
+                    onQueryChanged =  onSearchQueryChanged,
+                    onSearchClicked = {
+                        focusManager.clearFocus() // Hide keyboard on search
+                    })
+            }
         },
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->
@@ -73,7 +91,7 @@ fun AudioListComposeble(
                 }
 
                 is AudioListUiState.Success -> {
-                    if (uiState.audios.isEmpty()) {
+                    if (uiState.displayedAudios.isEmpty()) {
                         Text(
                             text = stringResource(R.string.no_audios_available),
                             modifier = Modifier.align(Alignment.Center),
@@ -90,7 +108,7 @@ fun AudioListComposeble(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
-                                uiState.audios,
+                                uiState.displayedAudios,
                                 key = { it.id }) { audio ->
                                 AudioListItem(
                                     audio = audio,
