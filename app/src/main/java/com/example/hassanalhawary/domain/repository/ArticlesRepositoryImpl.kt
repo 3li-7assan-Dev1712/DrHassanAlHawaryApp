@@ -5,6 +5,7 @@ import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.domain.model.ArticlesResult
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -25,7 +26,7 @@ class ArticlesRepositoryImpl
                             Article(
                                 id = doc.id,
                                 title = doc.get("title").toString(),
-                                fullContent = doc.get("content").toString()
+                                content = doc.get("content").toString()
                             )
                         allArts.add(article)
                     } catch (e: Exception) {
@@ -44,5 +45,36 @@ class ArticlesRepositoryImpl
         return ArticlesResult(allArts)
 
     }
+
+    override suspend fun getArticleById(articleId: String): ArticlesResult {
+
+        return try {
+
+            Log.d("ArticlesRepository", "getArticleById: $articleId")
+            val documentSnapshot = firestoreDb.collection("articles")
+                .document(articleId)
+                .get()
+                .await()
+            if (documentSnapshot.exists()) {
+                val article = Article(
+                    id = documentSnapshot.id,
+                    title = documentSnapshot.getString("title") ?: "wwwway",
+                    content = documentSnapshot.getString("content") ?: "waaaaaay",
+                    publishDate = documentSnapshot.getDate("publishDate") ?: Date()
+                )
+                ArticlesResult(article = article) // Success, return the article
+
+            } else {
+                Log.d("ArticlesRepository", "getArticleById: dose not exists")
+                return ArticlesResult(errorMessage = "Article not found")
+            }
+        } catch (e: Exception) {
+            Log.d("ArticlesRepository", "getArticleById: ${e.message}")
+            ArticlesResult(errorMessage = e.message)
+
+        }
+
+    }
+
 
 }

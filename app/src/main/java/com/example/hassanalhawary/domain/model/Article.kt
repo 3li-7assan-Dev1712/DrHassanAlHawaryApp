@@ -1,33 +1,28 @@
 package com.example.hassanalhawary.domain.model
 
 import android.icu.util.Calendar
+import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 data class Article(
-    val id: String,
-    val title: String,
-    val contentSnippet: String = "",
-    val publishDate: Date = Date(),
-    val fullContent: String,
+    @DocumentId val id: String,
+    val title: String = "",
+    @ServerTimestamp val publishDate: Date = Date(),
+    val content: String = "",
 )
 
 
-
 // Fake data generation
- fun getFakeArticles(): List<Article> {
+fun getFakeArticles(): List<Article> {
     val calendar = Calendar.getInstance()
     return List(20) { index ->
         calendar.set(2023, Calendar.NOVEMBER, 20 - index) // Varying dates
         Article(
             id = "article_$index",
             title = "سبع وقفات مع الحرب الصهيو أمريكية ـ الإيرانية",
-            contentSnippet = "✍\uFE0F فهذه تعليقات في وقفات على الحرب الإيرانية الصهيونية، أقول وبالله التوفيق:\n" +
-                    "\n" +
-                    "▫\uFE0Fالوقفة الأولى: وقوع هذه الحرب:\n" +
-                    "\n" +
-                    "هذه الحرب وإن تحاشتها الأطراف، لكنها وقعت بقدر الله وقضائه، فإن ما شاء الله كان، وما لم يشأ لم يكن، {وَكَانَ أَمْرُ اللَّهِ قَدَرًا مَقْدُورًا} [الأحزاب: ٣٨]، وله سبحانه في ذلك حِكَم، وهو الحكيم العليم، وهذا لا ينفي العوامل التي ساهمت في وقوعها، والأسباب التي أدت إلى...",
             publishDate = calendar.time,
-            fullContent = "الحمد لله الملك الجبار، يكور النهار على الليل، ويكور الليل على النهار، يقضي ما يشاء لا راد لقضائه، ولا معقب لحكمه، {وَرَبُّكَ يَخْلُقُ مَا يَشَاءُ وَيَخْتَارُ} [القصص: ٦٨]، وصلّ اللهم وسلّم على النبي محمد إمام المصطفين الأخيار، وآله وصحبه الأكرمين الأطهار، وبعد:\n" +
+            content = "الحمد لله الملك الجبار، يكور النهار على الليل، ويكور الليل على النهار، يقضي ما يشاء لا راد لقضائه، ولا معقب لحكمه، {وَرَبُّكَ يَخْلُقُ مَا يَشَاءُ وَيَخْتَارُ} [القصص: ٦٨]، وصلّ اللهم وسلّم على النبي محمد إمام المصطفين الأخيار، وآله وصحبه الأكرمين الأطهار، وبعد:\n" +
                     "\n" +
                     "✍\uFE0F فهذه تعليقات في وقفات على الحرب الإيرانية الصهيونية، أقول وبالله التوفيق:\n" +
                     "\n" +

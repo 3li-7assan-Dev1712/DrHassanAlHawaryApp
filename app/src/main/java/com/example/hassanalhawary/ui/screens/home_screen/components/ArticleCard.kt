@@ -46,7 +46,7 @@ fun ArticleCard( // This remains largely the same
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = article.contentSnippet,
+                text = article.content,
                 style = CairoTypography.bodySmall,
                 maxLines = 6,
                 overflow = TextOverflow.Ellipsis,

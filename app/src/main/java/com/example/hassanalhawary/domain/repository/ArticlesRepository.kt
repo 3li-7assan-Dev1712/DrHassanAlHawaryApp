@@ -6,4 +6,6 @@ interface ArticlesRepository {
 
     suspend fun getAllArticles(): ArticlesResult
 
+    suspend fun getArticleById(articleId: String): ArticlesResult
+
 }

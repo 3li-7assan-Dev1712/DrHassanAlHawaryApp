@@ -2,6 +2,7 @@ package com.example.hassanalhawary.ui.screens.detail_article_screen
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -147,9 +148,10 @@ fun ArticleContent(
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
+        Log.d("Detail Screen", "ArticleContent: full content: ${article.content}")
         // Full Article Content
         Text(
-            text = article.fullContent,
+            text = article.content,
             style = MaterialTheme.typography.bodyLarge.copy(
                 lineHeight = 24.sp
             )
@@ -179,9 +181,8 @@ fun DetailArticleScreenPreview_Success() {
         val previewArticle = Article(
             id = "preview_id",
             title = "Preview Article: A Long Title to Test Ellipsis Handling in the Top App Bar",
-            contentSnippet = "",
             publishDate = ContentDataType.Companion.Date as Date,
-            fullContent = "This is the full preview content.\n\nIt can span multiple paragraphs.\n\nAnd should be scrollable if it's long enough. This is more text to ensure that scrolling will be necessary to see all of it. We are making sure that the content is sufficiently long for testing purposes."
+            content = "This is the full preview content.\n\nIt can span multiple paragraphs.\n\nAnd should be scrollable if it's long enough. This is more text to ensure that scrolling will be necessary to see all of it. We are making sure that the content is sufficiently long for testing purposes."
         )
 
         Scaffold(

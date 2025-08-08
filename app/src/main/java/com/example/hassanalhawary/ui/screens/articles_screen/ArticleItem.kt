@@ -50,7 +50,7 @@ fun ArticleItem(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = article.contentSnippet,
+                text = article.content,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis,

@@ -57,7 +57,7 @@ class ArticlesViewModel @Inject constructor(
                 } else {
                     articles.filter {
                         it.title.contains(query, ignoreCase = true) ||
-                                it.contentSnippet.contains(query, ignoreCase = true)
+                                it.content.contains(query, ignoreCase = true)
                     }
                 }
             }

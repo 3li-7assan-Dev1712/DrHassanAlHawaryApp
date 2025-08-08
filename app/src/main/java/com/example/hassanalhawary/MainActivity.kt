@@ -115,7 +115,7 @@ fun MainAppContent(
     // routes where the bottom nav should be hidden
     val routesWithoutBottomNav = remember {
         setOf(
-            "detail_article",
+            "detail_article_screen/{articleId}",
             "audio_detail_screen/{audioId}" // Use the route pattern
         )
     }
@@ -163,11 +163,11 @@ fun MainAppContent(
             }
             composable("articles_screen")  {
 
-                ArticlesScreen {
-                    navController.navigate("detail_article")
+                ArticlesScreen { articleId ->
+                    navController.navigate("detail_article_screen/$articleId")
                 }
             }
-            composable("detail_article") {
+            composable("detail_article_screen/{articleId}") {
                 DetailArticleScreen {
                     navController.popBackStack()
                 }
