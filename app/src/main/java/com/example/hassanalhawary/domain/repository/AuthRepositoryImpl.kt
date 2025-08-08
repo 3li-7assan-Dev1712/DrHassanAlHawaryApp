@@ -12,8 +12,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
 
-    private val googleAuthUiClient: GoogleAuthUiClient,
-    private val firebaseAuth: FirebaseAuth
+    private val googleAuthUiClient: GoogleAuthUiClient, private val firebaseAuth: FirebaseAuth
 )
 
     : AuthRepository {
@@ -22,8 +21,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun loginWithEmailAndPassword(
-        email: String,
-        password: String
+        email: String, password: String
     ): LoginResult {
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
@@ -35,28 +33,23 @@ class AuthRepositoryImpl @Inject constructor(
                         userId = firebaseUser.uid,
                         username = firebaseUser.displayName,
                         userProfilePictureUrl = firebaseUser.photoUrl?.toString()
-                    ),
-                    errorMessage = null
+                    ), errorMessage = null
                 )
             } else {
                 // Should not happen if await() succeeds without exception but user is null
                 LoginResult(
-                    data = null,
-                    errorMessage = "Login successful but user data not found."
+                    data = null, errorMessage = "Login successful but user data not found."
                 )
             }
         } catch (e: Exception) {
             LoginResult(
-                data = null,
-                errorMessage = e.message ?: "Login failed. Please try again."
+                data = null, errorMessage = e.message ?: "Login failed. Please try again."
             )
         }
     }
 
     override suspend fun registerNewUserWithEmailPassword(
-        userName: String,
-        email: String,
-        password: String
+        userName: String, email: String, password: String
     ): LoginResult {
         return try {
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
@@ -66,10 +59,9 @@ class AuthRepositoryImpl @Inject constructor(
                 // Optionally update the user's profile with a display name
 
                 if (userName.isNotBlank()) {
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(userName)
-                        .build()
-                        firebaseUser.updateProfile(profileUpdates).await()
+                    val profileUpdates =
+                        UserProfileChangeRequest.Builder().setDisplayName(userName).build()
+                    firebaseUser.updateProfile(profileUpdates).await()
                 }
 
                 // Fetch the updated user (or map directly)
@@ -79,19 +71,16 @@ class AuthRepositoryImpl @Inject constructor(
                         userId = updatedUser.uid,
                         username = updatedUser.displayName,
                         userProfilePictureUrl = updatedUser.photoUrl?.toString()
-                    ),
-                    errorMessage = null
+                    ), errorMessage = null
                 )
             } else {
                 LoginResult(
-                    data = null,
-                    errorMessage = "Login successful but user data not found."
+                    data = null, errorMessage = "Login successful but user data not found."
                 )
             }
         } catch (e: FirebaseAuthUserCollisionException) {
             LoginResult(
-                data = null,
-                errorMessage = "An account already exists with this email address."
+                data = null, errorMessage = "An account already exists with this email address."
             )
         } catch (e: FirebaseAuthWeakPasswordException) {
             // The password is too weak. Please choose a stronger password.
@@ -102,8 +91,7 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
 //            Registration failed. Please try again.
             LoginResult(
-                data = null,
-                errorMessage = e.message ?: "Registration failed. Please try again."
+                data = null, errorMessage = e.message ?: "Registration failed. Please try again."
             )
         }
 
@@ -117,8 +105,7 @@ class AuthRepositoryImpl @Inject constructor(
                     userId = firebaseUser.uid,
                     username = firebaseUser.displayName,
                     userProfilePictureUrl = firebaseUser.photoUrl?.toString()
-                ),
-                errorMessage = null
+                ), errorMessage = null
             )
         } else {
             null

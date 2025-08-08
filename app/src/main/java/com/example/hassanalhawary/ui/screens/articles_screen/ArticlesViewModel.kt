@@ -2,25 +2,27 @@ package com.example.hassanalhawary.ui.screens.articles_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hassanalhawary.domain.model.Article
-import com.example.hassanalhawary.domain.model.getFakeArticles
+import com.example.hassanalhawary.domain.use_cases.FilterArticlesUseCase
 import com.example.hassanalhawary.domain.use_cases.GetAllArticlesUseCase
+import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListViewModel.Companion.SEARCH_DEBOUNCE_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
-    private val getAllArticlesUseCase: GetAllArticlesUseCase
+    private val getAllArticlesUseCase: GetAllArticlesUseCase,
+    private val filterArticlesUseCase: FilterArticlesUseCase
 ) : ViewModel() {
 
 
@@ -28,7 +30,37 @@ class ArticlesViewModel @Inject constructor(
     val articlesUiState: StateFlow<ArticlesUiState> = _articlesUiState.asStateFlow()
 
 
+    private val _rawSearchInput = MutableStateFlow("")
+
+    private val _debouncedSearchQuery = MutableStateFlow("")
+
     init {
+        viewModelScope.launch {
+
+
+            _rawSearchInput
+                .debounce(SEARCH_DEBOUNCE_MS)
+                .distinctUntilChanged() // Only proceed if the query actually changed after debounce
+                .collectLatest { debouncedQuery -> // Use collectLatest to cancel previous filtering if a new query comes in
+                    _debouncedSearchQuery.value =
+                        debouncedQuery // Update the debounced query holder
+                    _articlesUiState.update {
+                        when (it) {
+                            is ArticlesUiState.Success -> {
+                                it.copy(
+                                    displayedArticles = filterArticlesUseCase(
+                                        articles = it.allArticles,
+                                        query = debouncedQuery
+                                    )
+                                )
+                            }
+
+                            else -> it
+                        }
+                    }
+                }
+
+        }
         viewModelScope.launch {
             val articlesResult = getAllArticlesUseCase()
             if (articlesResult.articles != null) {
@@ -40,35 +72,27 @@ class ArticlesViewModel @Inject constructor(
     }
 
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    fun onSearchQueryChanged(query: String) {
+        viewModelScope.launch {
 
-    // Simulate a data source
-    private val _allArticles = MutableStateFlow(getFakeArticles())
+            _rawSearchInput.value = query
 
-    // Debounce search query to avoid too many recompositions/filtering operations while typing
-    @OptIn(FlowPreview::class)
-    val filteredArticles: StateFlow<List<Article>> =
-        searchQuery
-            .debounce(300) // Debounce for 300ms
-            .combine(_allArticles) { query, articles ->
-                if (query.isBlank()) {
-                    articles
-                } else {
-                    articles.filter {
-                        it.title.contains(query, ignoreCase = true) ||
-                                it.content.contains(query, ignoreCase = true)
+            _articlesUiState.update {
+                when (it) {
+                    is ArticlesUiState.Success -> {
+                        it.copy(
+                            searchQuery = query,
+                            displayedArticles = filterArticlesUseCase(
+                                articles = it.allArticles,
+                                query = _debouncedSearchQuery.value
+                            )
+                        )
                     }
+
+                    else -> it
                 }
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000), // 5 seconds
-                initialValue = _allArticles.value
-            )
-
-    fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
+        }
     }
 
 

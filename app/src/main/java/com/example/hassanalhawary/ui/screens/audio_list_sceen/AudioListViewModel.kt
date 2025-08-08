@@ -32,7 +32,7 @@ class AudioListViewModel @Inject constructor(
     private val _debouncedSearchQuery = MutableStateFlow("")
 
     companion object {
-        private const val SEARCH_DEBOUNCE_MS = 500L // 500 milliseconds debounce time
+        const val SEARCH_DEBOUNCE_MS = 500L // 500 milliseconds debounce time
     }
 
 

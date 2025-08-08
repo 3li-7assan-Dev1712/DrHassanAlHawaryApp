@@ -39,8 +39,7 @@ fun ArticlesScreen(
 ) {
 
     val articlesUiState by articlesViewModel.articlesUiState.collectAsState()
-
-    val searchQuery by articlesViewModel.searchQuery.collectAsState()
+    val searchQuery = articlesUiState.searchQuery
 //    val articles by articlesViewModel.filteredArticles.collectAsState()
     val focusManager = LocalFocusManager.current
 
@@ -85,7 +84,7 @@ private fun ArticlesScreenContent(
 
             is ArticlesUiState.Success -> {
 
-                if (articlesUiState.articles.isEmpty() && searchQuery.isNotBlank()) {
+                if (articlesUiState.displayedArticles.isEmpty() && searchQuery.isNotBlank()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -98,7 +97,7 @@ private fun ArticlesScreenContent(
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
-                } else if (articlesUiState.articles.isEmpty()) {
+                } else if (articlesUiState.displayedArticles.isEmpty()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -120,7 +119,7 @@ private fun ArticlesScreenContent(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(articlesUiState.articles, key = { it.id }) { article ->
+                        items(articlesUiState.displayedArticles, key = { it.id }) { article ->
                             ArticleItem(
                                 article = article,
                                 onReadMoreClicked = { onNavigateToArticleDetail(article.id) },
