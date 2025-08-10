@@ -21,11 +21,11 @@ import com.example.hassanalhawary.ui.theme.CairoTypography
 @Composable
 fun ArticleCard( // This remains largely the same
     article: Article,
-    onClick: () -> Unit,
+    onClick: (articleId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
-        onClick = onClick,
+        onClick = { onClick(article.id) },
         modifier = modifier
             .width(280.dp)
             .height(200.dp)

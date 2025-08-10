@@ -11,5 +11,6 @@ interface ArticlesRepository {
 
     fun filterArticles(articles: List<Article>, query: String): List<Article>
 
+    suspend fun getLatestArticles(): ArticlesResult
 
 }

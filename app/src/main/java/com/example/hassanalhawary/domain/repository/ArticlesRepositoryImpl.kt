@@ -17,26 +17,26 @@ class ArticlesRepositoryImpl
 
         val allArts: MutableList<Article> = mutableListOf()
         firestoreDb.collection("articles").get().addOnSuccessListener { result ->
-                for (doc in result) {
-                    try {
-                        Log.d("Ali Has", "fetchAllArticles: Error")
-                        val article = Article(
-                            id = doc.id,
-                            title = doc.get("title").toString(),
-                            content = doc.get("content").toString()
-                        )
-                        allArts.add(article)
-                    } catch (e: Exception) {
-                        ArticlesResult(errorMessage = e.message)
-                    }
+            for (doc in result) {
+                try {
+                    Log.d("Ali Has", "fetchAllArticles: Error")
+                    val article = Article(
+                        id = doc.id,
+                        title = doc.get("title").toString(),
+                        content = doc.get("content").toString()
+                    )
+                    allArts.add(article)
+                } catch (e: Exception) {
+                    ArticlesResult(errorMessage = e.message)
                 }
+            }
 
-            }.addOnFailureListener { exception ->
-                ArticlesResult(errorMessage = exception.message)
-            }.addOnCompleteListener {
+        }.addOnFailureListener { exception ->
+            ArticlesResult(errorMessage = exception.message)
+        }.addOnCompleteListener {
 
 
-            }.await()
+        }.await()
         return ArticlesResult(allArts)
 
     }
@@ -77,7 +77,39 @@ class ArticlesRepositoryImpl
             return articles
         }
         return articles.filter { article ->
-            article.title.contains(query, ignoreCase = true) || article.content.contains(query, ignoreCase = true)
+            article.title.contains(query, ignoreCase = true) || article.content.contains(
+                query,
+                ignoreCase = true
+            )
         }
+    }
+
+    override suspend fun getLatestArticles(): ArticlesResult {
+        val latestArticles: MutableList<Article> = mutableListOf()
+        return try {
+            val querySnapshot =
+                firestoreDb.collection("articles").orderBy("publishDate").limit(5).get().await()
+            for (document in querySnapshot.documents) {
+                val article = Article(
+                    id = document.id,
+                    title = document.getString("title") ?: "",
+                    content = document.getString("content") ?: "",
+                    publishDate = document.getDate("publishDate") ?: Date()
+                )
+                latestArticles.add(article)
+            }
+            if (latestArticles.isNotEmpty()) {
+                ArticlesResult(latestArticles)
+            } else {
+                ArticlesResult(errorMessage = "No articles found")
+            }
+
+
+
+        } catch (e: Exception) {
+            ArticlesResult(errorMessage = e.message)
+        }
+
+
     }
 }

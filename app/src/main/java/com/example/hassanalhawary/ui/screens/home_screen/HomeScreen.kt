@@ -15,11 +15,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.domain.model.Audio
 import com.example.hassanalhawary.domain.model.Question
@@ -46,8 +49,13 @@ val sampleQOTD =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
+    onNavigateToDetailArticle: (articleId: String) -> Unit = {}
 ) {
+
+
+    val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
 
     val sampleQuestion = Question(
         id = "qotd123",
@@ -89,12 +97,15 @@ fun HomeScreen(
 
             LatestArticleAudioLazyRow(
                 title = "Latest Articles",
-                items = sampleArticles,
+                showLoading = homeScreenUiState.loadingLatestArticles,
+                items = homeScreenUiState.latestArticles,
                 itemKey = { article -> article.id }, // Provide a key
                 itemContent = { article ->
                     ArticleCard(
                         article = article,
-                        onClick = { /* navigate to article detail for article.id */ }
+                        onClick = { articleId ->
+                            onNavigateToDetailArticle(articleId)
+                        }
                     )
                 }
             )
@@ -106,6 +117,7 @@ fun HomeScreen(
                 itemSpacing = 8.dp,
                 contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
                 title = "Latest Audios",
+                showLoading = false,
                 items = sampleAudios,
                 itemKey = { audio -> audio.id }, // Provide a key
                 itemContent = { audio ->

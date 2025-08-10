@@ -158,7 +158,10 @@ fun MainAppContent(
 
             composable("home_screen") {
                 HomeScreen(
-
+                    onNavigateToDetailArticle = {articleId ->
+                        navController.navigate("detail_article_screen/$articleId")
+                        
+                    }
                 )
             }
             composable("articles_screen")  {

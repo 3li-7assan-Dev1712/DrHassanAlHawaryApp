@@ -31,7 +31,6 @@ class ArticlesViewModel @Inject constructor(
 
 
     private val _rawSearchInput = MutableStateFlow("")
-
     private val _debouncedSearchQuery = MutableStateFlow("")
 
     init {
