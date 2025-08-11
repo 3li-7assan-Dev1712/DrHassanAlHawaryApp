@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val getLatestArticlesUseCase: GetLatestArticlesUseCase
+    private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
 ) : ViewModel() {
 
 
@@ -22,6 +22,7 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         loadLatestArticles()
+
     }
 
 

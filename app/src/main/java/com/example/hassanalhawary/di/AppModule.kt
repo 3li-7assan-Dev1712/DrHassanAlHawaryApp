@@ -14,6 +14,7 @@ import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
 import com.example.hassanalhawary.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,6 +29,13 @@ object AppModule {
     @Singleton
     @Provides
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Singleton
+    @Provides
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+
+
+
 
     @Singleton
     @Provides
@@ -62,8 +70,10 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideAudiosRepository(): AudiosRepository {
-        return AudiosRepositoryImpl()
+    fun provideAudiosRepository(
+        firebaseStorage: FirebaseStorage
+    ): AudiosRepository {
+        return AudiosRepositoryImpl(firebaseStorage)
     }
 
 @Singleton

@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     // firebase storage
 //    implementation(libs.firebase.storage)
+    implementation(libs.firebase.storage)
 
 
     // auth credential

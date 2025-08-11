@@ -3,6 +3,7 @@ package com.example.hassanalhawary.ui.screens.audio_list_sceen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hassanalhawary.domain.use_cases.FilterAudiosUseCase
+import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class AudioListViewModel @Inject constructor(
 
 
-    private val filterAudiosUseCase: FilterAudiosUseCase
+    private val filterAudiosUseCase: FilterAudiosUseCase,
+    private val getAllAudiosUseCase: GetAllAudiosUseCase
 
 
 ) : ViewModel() {
@@ -36,7 +38,6 @@ class AudioListViewModel @Inject constructor(
     }
 
 
-
     private val _uiState = MutableStateFlow<AudioListUiState>(AudioListUiState.Loading())
     val uiState: StateFlow<AudioListUiState> = _uiState.asStateFlow()
 
@@ -46,7 +47,8 @@ class AudioListViewModel @Inject constructor(
                 .debounce(SEARCH_DEBOUNCE_MS) // Apply debounce
                 .distinctUntilChanged() // Only proceed if the query actually changed after debounce
                 .collectLatest { debouncedQuery -> // Use collectLatest to cancel previous filtering if a new query comes in
-                    _debouncedSearchQuery.value = debouncedQuery // Update the debounced query holder
+                    _debouncedSearchQuery.value =
+                        debouncedQuery // Update the debounced query holder
                     _uiState.update {
                         when (it) {
                             is AudioListUiState.Success -> {
@@ -57,6 +59,7 @@ class AudioListViewModel @Inject constructor(
                                     )
                                 )
                             }
+
                             else -> it
                         }
                     }
@@ -69,10 +72,20 @@ class AudioListViewModel @Inject constructor(
     fun loadAudios() {
 
         viewModelScope.launch {
-            _uiState.value = AudioListUiState.Success(
-                audios = sampleAudiosForListScreen,
-                searchQuery = _uiState.value.searchQuery
-            )
+            val audiosResult = getAllAudiosUseCase()
+
+            if (audiosResult.audios != null) {
+                _uiState.value = AudioListUiState.Success(
+                    audios = audiosResult.audios,
+                    searchQuery = _rawSearchInput.value
+                )
+            } else if (audiosResult.errorMessage != null) {
+                _uiState.value = AudioListUiState.Error(
+                    message = audiosResult.errorMessage,
+                    searchQuery = _rawSearchInput.value
+                )
+            }
+
 
         }
 
@@ -96,6 +109,7 @@ class AudioListViewModel @Inject constructor(
                             )
                         )
                     }
+
                     else -> it
                 }
             }
