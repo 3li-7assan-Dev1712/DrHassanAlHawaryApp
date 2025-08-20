@@ -1,7 +1,7 @@
 package com.example.hassanalhawary.ui.screens.audio_detail_screen
 
 data class AudioDetailUiState(
-    val audioId: String? = null,
+    val audioUrl: String? = null,
     val title: String = "Loading...",
     val description: String? = null,
 
@@ -13,6 +13,7 @@ data class AudioDetailUiState(
     val availablePlaybackSpeeds: List<Float> = listOf(0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 2.0f),
 
     val isBuffering: Boolean = false, // To show a specific loading state for player
+    val isPlaybackEnded: Boolean = false,
     val playbackErrorMessage: String? = null,
 
     val isFavorite: Boolean = false,

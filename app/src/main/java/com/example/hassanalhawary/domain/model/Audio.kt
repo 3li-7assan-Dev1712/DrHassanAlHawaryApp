@@ -1,7 +1,7 @@
 package com.example.hassanalhawary.domain.model
 
 data class Audio(
-    val id: String,
+    val audioUrl: String,
     val title: String,
     val duration: String = "",
 )

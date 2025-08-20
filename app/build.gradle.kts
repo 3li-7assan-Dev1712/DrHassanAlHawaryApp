@@ -37,6 +37,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
     }
     buildFeatures {
         compose = true
@@ -80,8 +81,12 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(libs.androidx.media3.exoplayer)
     kapt(libs.hilt.compiler)
+
+    // exo player and media session && ui
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
 
     // navigation
     implementation(libs.androidx.navigation.compose)

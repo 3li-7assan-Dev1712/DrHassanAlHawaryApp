@@ -10,4 +10,6 @@ interface AudiosRepository {
 
     suspend fun getAllAudios(): AudiosResult
 
+    suspend fun getLatestAudios(): AudiosResult
+
 }

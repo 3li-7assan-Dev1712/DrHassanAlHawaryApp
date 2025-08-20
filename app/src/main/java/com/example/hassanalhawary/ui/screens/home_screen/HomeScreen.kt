@@ -117,9 +117,9 @@ fun HomeScreen(
                 itemSpacing = 8.dp,
                 contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
                 title = "Latest Audios",
-                showLoading = false,
-                items = sampleAudios,
-                itemKey = { audio -> audio.id }, // Provide a key
+                showLoading = homeScreenUiState.loadingLatestAudios,
+                items = homeScreenUiState.latestAudios,
+                itemKey = { audio -> audio.audioUrl }, // Provide a key
                 itemContent = { audio ->
                     AudioCard(
                         modifier = Modifier

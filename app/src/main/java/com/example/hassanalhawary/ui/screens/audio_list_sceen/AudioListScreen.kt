@@ -109,10 +109,10 @@ fun AudioListComposeble(
                         ) {
                             items(
                                 uiState.displayedAudios,
-                                key = { it.id }) { audio ->
+                                key = { it.audioUrl }) { audio ->
                                 AudioListItem(
                                     audio = audio,
-                                    onClick = { onNavigateToAudioDetail(audio.id) }
+                                    onClick = { onNavigateToAudioDetail(audio.audioUrl) }
                                 )
                             }
                         }

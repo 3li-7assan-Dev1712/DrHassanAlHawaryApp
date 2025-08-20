@@ -1,5 +1,6 @@
 package com.example.hassanalhawary
 
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -19,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
@@ -177,15 +180,18 @@ fun MainAppContent(
             }
             composable("audio_list_screen") {
                 AudioListScreen(
-                    onNavigateToAudioDetail = { audioId ->
-                        navController.navigate("audio_detail_screen/$audioId")
+                    onNavigateToAudioDetail = { audioUrl ->
+                        val encodedUrl = Uri.encode(audioUrl)
+                        navController.navigate("audio_detail_screen/$encodedUrl")
                     }
                 )
             }
 
             composable(
-                route = "audio_detail_screen/{audioId}",
-                arguments = listOf()
+                route = "audio_detail_screen/{audioUrl}",
+                arguments = listOf(navArgument("audioUrl") {
+                    type = NavType.StringType
+                })
             ) {
                 AudioDetailRoute(
                     onNavigateUp = {
