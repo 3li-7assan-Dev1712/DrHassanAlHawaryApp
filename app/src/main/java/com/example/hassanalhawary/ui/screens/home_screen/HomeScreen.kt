@@ -27,7 +27,6 @@ import com.example.hassanalhawary.R
 import com.example.hassanalhawary.domain.model.Audio
 import com.example.hassanalhawary.domain.model.Question
 import com.example.hassanalhawary.domain.model.getFakeArticles
-import com.example.hassanalhawary.ui.components.SearchBar
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.LatestArticleAudioLazyRow
@@ -51,7 +50,9 @@ val sampleQOTD =
 fun HomeScreen(
     modifier: Modifier = Modifier,
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
-    onNavigateToDetailArticle: (articleId: String) -> Unit = {}
+    onNavigateToDetailArticle: (articleId: String) -> Unit = {},
+    onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit = { _, _ -> },
+    onNavigateToDetailQuestion: (questionId: String) -> Unit = {}
 ) {
 
 
@@ -77,13 +78,6 @@ fun HomeScreen(
                     },
                     windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
                 )
-                SearchBar(
-                    modifier = Modifier.padding(horizontal = 15.dp),
-                    searchQuery = "",
-                    onQueryChanged = {},
-                    hint = "Search"
-                )
-
             }
         }
     ) { contentPadding ->
@@ -96,7 +90,7 @@ fun HomeScreen(
                 })
 
             LatestArticleAudioLazyRow(
-                title = "Latest Articles",
+                title = stringResource(R.string.latest_articles),
                 showLoading = homeScreenUiState.loadingLatestArticles,
                 items = homeScreenUiState.latestArticles,
                 itemKey = { article -> article.id }, // Provide a key
@@ -116,7 +110,7 @@ fun HomeScreen(
             LatestArticleAudioLazyRow(
                 itemSpacing = 8.dp,
                 contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
-                title = "Latest Audios",
+                title = stringResource(R.string.latest_audios),
                 showLoading = homeScreenUiState.loadingLatestAudios,
                 items = homeScreenUiState.latestAudios,
                 itemKey = { audio -> audio.audioUrl }, // Provide a key
@@ -127,7 +121,12 @@ fun HomeScreen(
                             .width(180.dp)
                             .height(120.dp),
                         audio = audio,
-                        onClick = { /* navigate to audio detail for audio.id */ }
+                        onClick = {
+                            onNavigateToDetailAudio(
+                                audio.title,
+                                audio.audioUrl
+                            )
+                        }
                     )
                 }
             )

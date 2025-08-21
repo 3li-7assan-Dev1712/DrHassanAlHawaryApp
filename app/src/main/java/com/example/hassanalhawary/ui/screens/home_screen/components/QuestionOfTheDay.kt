@@ -27,9 +27,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.hassanalhawary.R
 import com.example.hassanalhawary.domain.model.Question
 import com.example.hassanalhawary.ui.theme.CairoTypography
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
@@ -70,7 +72,7 @@ fun QuestionOfTheDay(
                 )
                 Spacer(Modifier.size(12.dp))
                 Text(
-                    text = "Question of the Day",
+                    text = stringResource(R.string.question_of_the_day),
                     style = MaterialTheme.typography.labelLarge, // Or titleSmall
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer

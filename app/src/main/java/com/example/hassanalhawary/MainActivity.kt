@@ -164,7 +164,12 @@ fun MainAppContent(
                     onNavigateToDetailArticle = { articleId ->
                         navController.navigate("detail_article_screen/$articleId")
 
+                    },
+                    onNavigateToDetailAudio = { title, audioUrl ->
+                        val encodedUrl = Uri.encode(audioUrl)
+                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     }
+
                 )
             }
             composable("articles_screen") {

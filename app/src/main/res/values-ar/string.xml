@@ -33,4 +33,13 @@
     <string name="audio_detail_description_title">مقــــطع بعنــــوان</string>
 
     <string name="error_msg">حـــدث خــــطأ</string>
+
+
+
+    <string name="latest_articles">أحـــدث المــــقالات</string>
+    <string name="latest_audios">أحـــدث الصــــوتيات</string>
+
+    <string name="question_of_the_day">ســـؤال اليـــــوم</string>
+
+
 </resources>
