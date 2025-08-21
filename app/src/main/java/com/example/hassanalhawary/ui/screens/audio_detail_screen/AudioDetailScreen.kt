@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,8 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +49,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -192,6 +190,11 @@ private fun AudioDetailContent(
 
         Spacer(modifier = Modifier.height(8.dp)) // Reduced spacer
 
+        AudioDescriptionSection(onDownload, uiState)
+
+
+        Spacer(modifier = Modifier.weight(1f))
+
         // --- Player Controls Section ---
         ThemedPlayerControls(
             uiState = uiState, // Pass full uiState for theming potential
@@ -206,43 +209,21 @@ private fun AudioDetailContent(
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        // --- Download Button & Description ---
-        AudioDownloadDescriptionSection(onDownload, uiState)
-        Spacer(modifier = Modifier.height(24.dp)) // Bottom padding
     }
 }
 
 @Composable
-private fun AudioDownloadDescriptionSection(
+private fun AudioDescriptionSection(
     onDownload: () -> Unit,
     uiState: AudioDetailUiState
 ) {
     Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-        Button(
-            onClick = onDownload,
-            enabled = !uiState.isDownloaded,
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_download),
-                contentDescription = "Download",
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(if (uiState.isDownloaded) "Downloaded" else "Download Lesson")
-        }
 
         if (uiState.description != null) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "About this lesson",
+                text = stringResource(R.string.audio_detail_description_title),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

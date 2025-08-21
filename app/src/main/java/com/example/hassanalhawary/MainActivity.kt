@@ -119,7 +119,7 @@ fun MainAppContent(
     val routesWithoutBottomNav = remember {
         setOf(
             "detail_article_screen/{articleId}",
-            "audio_detail_screen/{audioId}" // Use the route pattern
+            "audio_detail_screen/{title}/{audioId}" // this is the audio url that will be used for playing the audio
         )
     }
 
@@ -161,13 +161,13 @@ fun MainAppContent(
 
             composable("home_screen") {
                 HomeScreen(
-                    onNavigateToDetailArticle = {articleId ->
+                    onNavigateToDetailArticle = { articleId ->
                         navController.navigate("detail_article_screen/$articleId")
-                        
+
                     }
                 )
             }
-            composable("articles_screen")  {
+            composable("articles_screen") {
 
                 ArticlesScreen { articleId ->
                     navController.navigate("detail_article_screen/$articleId")
@@ -180,18 +180,22 @@ fun MainAppContent(
             }
             composable("audio_list_screen") {
                 AudioListScreen(
-                    onNavigateToAudioDetail = { audioUrl ->
+                    onNavigateToAudioDetail = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$encodedUrl")
+                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     }
                 )
             }
 
             composable(
-                route = "audio_detail_screen/{audioUrl}",
-                arguments = listOf(navArgument("audioUrl") {
-                    type = NavType.StringType
-                })
+                route = "audio_detail_screen/{title}/{audioUrl}",
+                arguments = listOf(
+                    navArgument("title") {
+                        type = NavType.StringType
+                    },
+                    navArgument("audioUrl") {
+                        type = NavType.StringType
+                    })
             ) {
                 AudioDetailRoute(
                     onNavigateUp = {

@@ -28,5 +28,6 @@
     <string name="loading">Loading…</string>
     <string name="error_msg">Error occurred</string>
     <string name="navigate_back">Navigate back</string>
+    <string name="audio_detail_description_title">Audio With Title</string>
     <string name="no_audios_available">No Available Audios</string>
 </resources>

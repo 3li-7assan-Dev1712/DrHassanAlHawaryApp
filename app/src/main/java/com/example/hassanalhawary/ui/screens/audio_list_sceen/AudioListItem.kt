@@ -67,7 +67,7 @@ val sampleAudiosForListScreen = listOf(
 fun AudioListScreenPreview() {
     MaterialTheme { // Wrap with your app's theme or MaterialTheme for preview
         AudioListScreen(
-            onNavigateToAudioDetail = { audioId -> println("Navigate to detail for audio ID: $audioId") }
+            onNavigateToAudioDetail = { title, audioId -> println("Navigate to detail for audio ID: $audioId") }
 
         )
     }
@@ -78,7 +78,7 @@ fun AudioListScreenPreview() {
 fun AudioListScreenEmptyPreview() {
     MaterialTheme {
         AudioListScreen(
-            onNavigateToAudioDetail = { }
+            onNavigateToAudioDetail = { title, audioUrl -> }
         )
     }
 }

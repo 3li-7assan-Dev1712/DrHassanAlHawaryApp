@@ -37,6 +37,7 @@ class AudioDetailViewModel @Inject constructor(
     val player: ExoPlayer? get() = _player
 
     private val audioUrl: String = savedStateHandle.get<String>("audioUrl") ?: ""
+    private val audioTitle: String = savedStateHandle.get<String>("title") ?: ""
 
     private val _uiState = MutableStateFlow(AudioDetailUiState())
     val uiState = _uiState.asStateFlow()
@@ -63,8 +64,9 @@ class AudioDetailViewModel @Inject constructor(
             kotlinx.coroutines.delay(1000)
             _uiState.update {
                 it.copy(
-                    title = "The Importance of Sincerity in Islam",
-                    description = "An in-depth exploration of sincerity (Ikhlas) and its pivotal role in all acts of worship. Sheikh Hassan Al-Hawary discusses its meaning, virtues, and practical ways to cultivate it.",
+                    title = audioTitle,
+                    description = "Audio Title with: \n" +
+                            audioTitle,
                     totalDurationMillis = 2717000L, // approx 45:17
                     isLoadingDetails = false,
                     isFavorite = true // Sample

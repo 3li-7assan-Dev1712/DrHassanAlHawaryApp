@@ -31,7 +31,7 @@ import com.example.hassanalhawary.ui.components.SearchBar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioListScreen(
-    onNavigateToAudioDetail: (audioId: String) -> Unit,
+    onNavigateToAudioDetail: (title: String, audioId: String) -> Unit,
     modifier: Modifier = Modifier,
     audiosViewModel: AudioListViewModel = hiltViewModel()
 ) {
@@ -43,9 +43,12 @@ fun AudioListScreen(
         modifier = modifier,
         uiState = uiState,
         onSearchQueryChanged = audiosViewModel::onSearchQueryChanged,
-    ) {
-        onNavigateToAudioDetail(it)
-    }
+        onNavigateToAudioDetail = { title, audioUrl ->
+
+            onNavigateToAudioDetail(title, audioUrl)
+        })
+
+
 }
 
 
@@ -55,7 +58,7 @@ fun AudioListComposeble(
     modifier: Modifier = Modifier,
     uiState: AudioListUiState,
     onSearchQueryChanged: (String) -> Unit = {},
-    onNavigateToAudioDetail: (audioId: String) -> Unit = {}
+    onNavigateToAudioDetail: (title: String, audioId: String) -> Unit = { _, _ -> }
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -72,7 +75,7 @@ fun AudioListComposeble(
                 SearchBar(
                     searchQuery = uiState.searchQuery,
                     hint = stringResource(R.string.search_hint),
-                    onQueryChanged =  onSearchQueryChanged,
+                    onQueryChanged = onSearchQueryChanged,
                     onSearchClicked = {
                         focusManager.clearFocus() // Hide keyboard on search
                     })
@@ -112,7 +115,12 @@ fun AudioListComposeble(
                                 key = { it.audioUrl }) { audio ->
                                 AudioListItem(
                                     audio = audio,
-                                    onClick = { onNavigateToAudioDetail(audio.audioUrl) }
+                                    onClick = {
+                                        onNavigateToAudioDetail(
+                                            audio.title,
+                                            audio.audioUrl
+                                        )
+                                    }
                                 )
                             }
                         }
