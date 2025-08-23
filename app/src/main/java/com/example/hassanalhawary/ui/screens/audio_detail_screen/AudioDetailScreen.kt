@@ -2,6 +2,7 @@ package com.example.hassanalhawary.ui.screens.audio_detail_screen
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -257,12 +259,12 @@ private fun AudioTitleSection(
         contentAlignment = Alignment.Center
     ) {
 
-        /* Image(
-                        painter = painterResource(id = getThemedLessonImage(uiState.title)), // Helper to get a themed image
-                        contentDescription = uiState.title,
-                        contentScale = ContentScale.Crop, // Crop to fill bounds
-                        modifier = Modifier.fillMaxSize()
-                    )*/
+        Image(
+            painter = painterResource(id = R.drawable.dr_hassan_img),
+            contentDescription = uiState.title,
+            contentScale = ContentScale.Crop, // Crop to fill bounds
+            modifier = Modifier.fillMaxSize()
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -371,7 +373,11 @@ fun ThemedPlayerControls(
                 )
             )
             if (uiState.isBuffering && uiState.totalDurationMillis > 0) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.primary)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
 
@@ -381,8 +387,16 @@ fun ThemedPlayerControls(
                 .padding(horizontal = 12.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(formatDuration(uiState.currentPositionMillis), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(formatDuration(uiState.totalDurationMillis), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                formatDuration(uiState.currentPositionMillis),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                formatDuration(uiState.totalDurationMillis),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -397,8 +411,8 @@ fun ThemedPlayerControls(
                 onClick = onRewind,
                 enabled = !uiState.isBuffering,
                 // ** THEMED ICON EXAMPLE **
-                painter = painterResource(id = R.drawable.ic_rewind),
-                contentDescription = "Rewind 10 seconds",
+                painter = painterResource(id = R.drawable.round_backword_icon),
+                contentDescription = "Rewind 5 seconds",
                 iconSize = 32.dp
             )
 
@@ -408,7 +422,7 @@ fun ThemedPlayerControls(
                     ThemedControlButton(
                         onClick = onPlayPauseToggle,
                         enabled = !uiState.isBuffering && uiState.totalDurationMillis > 0,
-                        painter = painterResource(id = if (playing) R.drawable.ic_pause else R.drawable.ic_play),
+                        painter = painterResource(id = if (playing) R.drawable.round_pause_icon else R.drawable.round_play_icon),
                         contentDescription = if (playing) "Pause" else "Play",
                         iconSize = 68.dp, // Larger for main action
                         containerColor = Color.Transparent, // No background for the main button if icon is rich
@@ -423,21 +437,12 @@ fun ThemedPlayerControls(
             ThemedControlButton(
                 onClick = onForward,
                 enabled = !uiState.isBuffering,
-                painter = painterResource(id = R.drawable.ic_forward),
-                contentDescription = "Forward 10 seconds",
+                painter = painterResource(id = R.drawable.round_forward_icon),
+                contentDescription = "Forward 5 seconds",
                 iconSize = 32.dp
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // --- Playback Speed Control ---
-    /*    PlaybackSpeedControl(
-            currentSpeed = uiState.playbackSpeed,
-            availableSpeeds = uiState.availablePlaybackSpeeds,
-            onChangeSpeed = onChangeSpeed,
-            enabled = !uiState.isBuffering
-        )*/
     }
 }
 
@@ -472,7 +477,6 @@ fun ThemedControlButton(
         )
     }
 }
-
 
 
 // --- Previews ---

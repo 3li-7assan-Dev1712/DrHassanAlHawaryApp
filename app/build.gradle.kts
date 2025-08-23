@@ -91,6 +91,10 @@ dependencies {
     // navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // used in animations
+    implementation(libs.androidx.vectordrawable.animated)
+
     // test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
