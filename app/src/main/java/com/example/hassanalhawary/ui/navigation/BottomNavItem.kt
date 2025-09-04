@@ -39,10 +39,10 @@ sealed class BottomNavItem(
         unselectedIconResId = R.drawable.audio_icon
     )
 
-    object Questions : BottomNavItem(
-        route = "questions_screen",
-        titleResId = R.string.questions,
-        selectedIconResId = R.drawable.question_icon,
-        unselectedIconResId = R.drawable.question_icon
+    object StudentZone : BottomNavItem(
+        route = "student_zone_screen",
+        titleResId = R.string.student_zone,
+        selectedIconResId = R.drawable.student_icon,
+        unselectedIconResId = R.drawable.student_icon
     )
 }

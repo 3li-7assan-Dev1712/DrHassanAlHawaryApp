@@ -39,7 +39,7 @@ fun BottomNavigationBar(
         BottomNavItem.Home,
         BottomNavItem.Articles,
         BottomNavItem.Audios,
-        BottomNavItem.Questions
+        BottomNavItem.StudentZone
     )
 
     // Observe the current back stack entry to determine the selected route

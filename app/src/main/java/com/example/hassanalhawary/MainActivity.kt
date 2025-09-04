@@ -209,7 +209,7 @@ fun MainAppContent(
                 )
             }
 
-            composable("questions_screen") {
+            composable("student_zone_screen") {
 
             }
 
