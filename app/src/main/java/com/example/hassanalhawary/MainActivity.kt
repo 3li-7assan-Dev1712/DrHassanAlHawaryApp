@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
+import com.example.hassanalhawary.ui.screens.ask_question_screen.AskQuestionScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListScreen
 import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
@@ -119,7 +120,8 @@ fun MainAppContent(
     val routesWithoutBottomNav = remember {
         setOf(
             "detail_article_screen/{articleId}",
-            "audio_detail_screen/{title}/{audioId}" // this is the audio url that will be used for playing the audio
+            "audio_detail_screen/{title}/{audioId}", // this is the audio url that will be used for playing the audio
+            "ask_question_screen"
         )
     }
 
@@ -168,6 +170,9 @@ fun MainAppContent(
                     onNavigateToDetailAudio = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                    },
+                    onNavigateToDetailQuestion = {
+                        navController.navigate("ask_question_screen")
                     }
 
                 )
@@ -213,6 +218,19 @@ fun MainAppContent(
 
             }
 
+            composable("ask_question_screen") {
+                AskQuestionScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onBrowseExistingQuestions = {
+
+                    },
+                    onSubmitQuestion = { questionText, category ->
+
+                    }
+                )
+            }
 
         }
     }

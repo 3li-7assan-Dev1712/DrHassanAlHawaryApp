@@ -87,6 +87,7 @@ fun HomeScreen(
             QuestionOfTheDay(
                 question = sampleQuestion, onNavigateToDetail = { questionId ->
                     println("Navigate to detail for question ID: $questionId")
+                    onNavigateToDetailQuestion(questionId)
                 })
 
             LatestArticleAudioLazyRow(
