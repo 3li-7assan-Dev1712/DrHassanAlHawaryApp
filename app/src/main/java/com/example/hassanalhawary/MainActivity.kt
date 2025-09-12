@@ -28,7 +28,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
-import com.example.hassanalhawary.ui.screens.ask_question_screen.AskQuestionScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListScreen
 import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
@@ -63,7 +62,6 @@ class MainActivity : ComponentActivity() {
                 } else {
                     AuthNavHost(
                         onLoginSuccess = {
-
                         }
                     )
                 }
@@ -171,11 +169,9 @@ fun MainAppContent(
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     },
-                    onNavigateToDetailQuestion = {
-                        navController.navigate("ask_question_screen")
-                    }
 
-                )
+
+                    )
             }
             composable("articles_screen") {
 
@@ -218,19 +214,6 @@ fun MainAppContent(
 
             }
 
-            composable("ask_question_screen") {
-                AskQuestionScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onBrowseExistingQuestions = {
-
-                    },
-                    onSubmitQuestion = { questionText, category ->
-
-                    }
-                )
-            }
 
         }
     }

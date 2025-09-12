@@ -52,7 +52,6 @@ fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
     onNavigateToDetailArticle: (articleId: String) -> Unit = {},
     onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit = { _, _ -> },
-    onNavigateToDetailQuestion: (questionId: String) -> Unit = {}
 ) {
 
 
@@ -87,7 +86,7 @@ fun HomeScreen(
             QuestionOfTheDay(
                 question = sampleQuestion, onNavigateToDetail = { questionId ->
                     println("Navigate to detail for question ID: $questionId")
-                    onNavigateToDetailQuestion(questionId)
+
                 })
 
             LatestArticleAudioLazyRow(
