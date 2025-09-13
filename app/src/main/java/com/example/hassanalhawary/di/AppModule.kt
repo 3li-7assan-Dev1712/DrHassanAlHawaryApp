@@ -9,6 +9,9 @@ import com.example.hassanalhawary.domain.repository.AudiosRepository
 import com.example.hassanalhawary.domain.repository.AudiosRepositoryImpl
 import com.example.hassanalhawary.domain.repository.AuthRepository
 import com.example.hassanalhawary.domain.repository.AuthRepositoryImpl
+import com.example.hassanalhawary.domain.repository.WisdomRepository
+import com.example.hassanalhawary.domain.repository.WisdomRepositoryImpl
+import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
 import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
 import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
 import com.example.hassanalhawary.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
@@ -97,6 +100,17 @@ object AppModule {
         authRepository: AuthRepository
     ): LoginWithEmailAndPasswordUseCase {
         return LoginWithEmailAndPasswordUseCase(authRepository)
+    }
+
+    @Provides
+    fun provideWisdomRepository(): WisdomRepository {
+        return WisdomRepositoryImpl()
+    }
+    @Provides
+    fun provideGetWisdomOfTheDayUseCase(
+        wisdomRepository: WisdomRepository
+    ): GetWisdomOfTheDayUseCase {
+        return GetWisdomOfTheDayUseCase(wisdomRepository)
     }
 
     @Singleton

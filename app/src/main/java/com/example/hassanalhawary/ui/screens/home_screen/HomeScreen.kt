@@ -24,25 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.hassanalhawary.R
-import com.example.hassanalhawary.domain.model.Audio
-import com.example.hassanalhawary.domain.model.Question
-import com.example.hassanalhawary.domain.model.getFakeArticles
+import com.example.hassanalhawary.domain.model.Wisdom
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.LatestArticleAudioLazyRow
-import com.example.hassanalhawary.ui.screens.home_screen.components.QuestionOfTheDay
-
-
-val sampleArticles = getFakeArticles()
-
-val sampleAudios = listOf(
-    Audio("aud1", "Tafsir of Surah Al-Fatiha"),
-    Audio("aud2", "The Life of the Prophet Muhammad (PBUH) - Part 1"),
-    Audio("aud3", "Lessons from Surah Yusuf")
-)
-
-val sampleQOTD =
-    Question("q1", "What are the five pillars of Islam?", "Shahada, Salat, Zakat, Sawm, Hajj")
+import com.example.hassanalhawary.ui.screens.home_screen.components.WisdomOfTheDay
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,10 +43,9 @@ fun HomeScreen(
 
     val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
 
-    val sampleQuestion = Question(
+    val sampleQuestion = Wisdom(
         id = "qotd123",
-        question = "What is the primary virtue emphasized during the month of Ramadan?",
-        answer = "Patience (Sabr) and Taqwa (God-consciousness) are among the primary virtues emphasized."
+        wisdomText = "What is the primary virtue emphasized during the month of Ramadan?"
     )
 
     Scaffold(
@@ -83,11 +68,10 @@ fun HomeScreen(
 
         Column(modifier = Modifier.padding(contentPadding)) {
 
-            QuestionOfTheDay(
-                question = sampleQuestion, onNavigateToDetail = { questionId ->
-                    println("Navigate to detail for question ID: $questionId")
-
-                })
+            WisdomOfTheDay(
+                wisdom = homeScreenUiState.wotd,
+                isLoadings = homeScreenUiState.loadingWotd
+            )
 
             LatestArticleAudioLazyRow(
                 title = stringResource(R.string.latest_articles),

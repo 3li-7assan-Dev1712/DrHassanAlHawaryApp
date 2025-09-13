@@ -32,6 +32,6 @@
     <string name="latest_articles">Latest Articles</string>
     <string name="latest_audios">Latest Audios</string>
     <string name="audio_detail_description_title">Audio With Title</string>
-    <string name="question_of_the_day">Question of the Day</string>
+    <string name="wisdom_of_the_day">Quote of the Day</string>
     <string name="no_audios_available">No Available Audios</string>
 </resources>

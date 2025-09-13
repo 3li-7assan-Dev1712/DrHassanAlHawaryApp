@@ -81,6 +81,7 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.firebase.database)
     kapt(libs.hilt.compiler)
 
     // exo player and media session && ui

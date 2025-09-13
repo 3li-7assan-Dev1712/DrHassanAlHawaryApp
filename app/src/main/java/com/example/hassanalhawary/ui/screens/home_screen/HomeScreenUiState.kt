@@ -6,10 +6,10 @@ import com.example.hassanalhawary.domain.model.Audio
 data class HomeScreenUiState(
 
 
-    val loadingQOTDay: Boolean = true,
+    val loadingWotd: Boolean = true, // loading the wisdom of the day (is loading show progress otherwise hide it)
     val loadingLatestArticles: Boolean = true,
     val loadingLatestAudios: Boolean = true,
-    val qotd: String? = null, // the question of the day
+    val wotd: String = "", // the wisdom of the day
     val latestArticles: List<Article> = emptyList(),
     val latestAudios: List<Audio> = emptyList(),
     val searchQuery: String = "",

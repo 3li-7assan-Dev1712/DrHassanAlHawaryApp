@@ -1,8 +1,7 @@
 package com.example.hassanalhawary.domain.model
 
-data class Question(
+data class Wisdom(
     val id: String,
-    val question: String,
-    val answer: String
+    val wisdomText: String
 
 )

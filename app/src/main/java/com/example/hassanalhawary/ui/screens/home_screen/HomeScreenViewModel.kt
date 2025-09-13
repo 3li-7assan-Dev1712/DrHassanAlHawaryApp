@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
 import com.example.hassanalhawary.domain.use_cases.GetLatestArticlesUseCase
+import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
-    private val getLatestAudiosUseCase: GetAllAudiosUseCase
+    private val getLatestAudiosUseCase: GetAllAudiosUseCase,
+    private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase
 ) : ViewModel() {
 
 
@@ -25,8 +27,19 @@ class HomeScreenViewModel @Inject constructor(
     init {
         loadLatestArticles()
         loadLatestAudios()
+        loadWisdomOfTheDay()
 
 
+    }
+
+    private fun loadWisdomOfTheDay() {
+        viewModelScope.launch {
+            val wisdomResult = getWisdomOfTheDayUseCase()
+            _homeScreenUiState.value = _homeScreenUiState.value.copy(
+                wotd = wisdomResult,
+                loadingWotd = false
+            )
+        }
     }
 
 
