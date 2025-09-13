@@ -34,6 +34,7 @@ import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticle
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
+import com.example.hassanalhawary.ui.screens.splash_screen.SplashScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
+
 
 
                 LaunchedEffect(key1 = mainActivityState.navigateTo) {
@@ -119,7 +121,8 @@ fun MainAppContent(
         setOf(
             "detail_article_screen/{articleId}",
             "audio_detail_screen/{title}/{audioId}", // this is the audio url that will be used for playing the audio
-            "ask_question_screen"
+            "ask_question_screen",
+            "splash_screen"
         )
     }
 
@@ -154,10 +157,21 @@ fun MainAppContent(
 
         NavHost(
             navController,
-            startDestination = "home_screen",
+            startDestination = "splash_screen",
             modifier = Modifier.padding(innerPadding)
         ) {
 
+            composable("splash_screen") {
+                SplashScreen(
+                    onShowSplashScreenTimeEnd = {
+                        navController.navigate("home_screen") {
+                            popUpTo("splash_screen") {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
 
             composable("home_screen") {
                 HomeScreen(
