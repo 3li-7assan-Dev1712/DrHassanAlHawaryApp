@@ -3,6 +3,7 @@ package com.example.hassanalhawary.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import com.example.hassanalhawary.core.util.GoogleAuthUiClient
+import com.example.hassanalhawary.core.util.NetworkMonitor
 import com.example.hassanalhawary.domain.repository.ArticlesRepository
 import com.example.hassanalhawary.domain.repository.ArticlesRepositoryImpl
 import com.example.hassanalhawary.domain.repository.AudiosRepository
@@ -38,12 +39,16 @@ object AppModule {
     fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 
 
-
+    // provide the network monitor class
+    @Singleton
+    @Provides
+    fun provideNetworkMonitor(
+        @ApplicationContext context: Context
+    ): NetworkMonitor = NetworkMonitor(context)
 
     @Singleton
     @Provides
     fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
-
 
 
     @Singleton
@@ -79,7 +84,7 @@ object AppModule {
         return AudiosRepositoryImpl(firebaseStorage)
     }
 
-@Singleton
+    @Singleton
     @Provides
     fun provideArticlesRepository(
         firebaseDb: FirebaseFirestore
@@ -94,6 +99,7 @@ object AppModule {
     ): LoginWithGoogleUseCase {
         return LoginWithGoogleUseCase(authRepository)
     }
+
     @Singleton
     @Provides
     fun provideLoginWithEmailAndPasswordUseCase(
@@ -106,11 +112,13 @@ object AppModule {
     fun provideWisdomRepository(): WisdomRepository {
         return WisdomRepositoryImpl()
     }
+
     @Provides
     fun provideGetWisdomOfTheDayUseCase(
-        wisdomRepository: WisdomRepository
+        wisdomRepository: WisdomRepository,
+        networkMonitor: NetworkMonitor
     ): GetWisdomOfTheDayUseCase {
-        return GetWisdomOfTheDayUseCase(wisdomRepository)
+        return GetWisdomOfTheDayUseCase(wisdomRepository, networkMonitor)
     }
 
     @Singleton

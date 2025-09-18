@@ -36,7 +36,7 @@ class HomeScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val wisdomResult = getWisdomOfTheDayUseCase()
             _homeScreenUiState.value = _homeScreenUiState.value.copy(
-                wotd = wisdomResult,
+                wotdResult = wisdomResult,
                 loadingWotd = false
             )
         }

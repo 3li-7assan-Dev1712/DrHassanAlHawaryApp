@@ -26,9 +26,9 @@ import com.example.hassanalhawary.R
 
 @Composable
 fun WisdomOfTheDay(
+    modifier: Modifier = Modifier,
     wisdom: String,
-    isLoadings: Boolean = true,
-    modifier: Modifier = Modifier
+    isLoadings: Boolean = true
 ) {
 
     Card(

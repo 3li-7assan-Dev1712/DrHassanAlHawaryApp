@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -18,7 +17,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -89,21 +87,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun Greeting(name: String, modifier: Modifier = Modifier) {
-        Text(
-            text = "Hello $name!",
-            modifier = modifier
-        )
-    }
 
-    @Preview(showBackground = true)
-    @Composable
-    fun GreetingPreview() {
-        HassanAlHawaryTheme {
-            Greeting("Android")
-        }
-    }
 }
 
 @Composable
@@ -240,18 +224,26 @@ fun AuthNavHost(
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = "login_screen"
+        startDestination = "splash_screen"
     ) {
+
+
+        composable("splash_screen") {
+            SplashScreen(
+                onShowSplashScreenTimeEnd = {
+                    navController.navigate("login_screen") {
+                        popUpTo("splash_screen") {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
 
         composable(route = "login_screen") {
             LoginScreen(
 
                 onRegisterClick = {
-//                    Toast.makeText(
-//                        context =  LocalContext.current,
-//                        text = "Navigate to register screen",
-//                        duration  =Toast.LENGTH_LONG
-//                    ).show()
                     navController.navigate("register_screen")
                     navController.clearBackStack("login_screen")
                 },
