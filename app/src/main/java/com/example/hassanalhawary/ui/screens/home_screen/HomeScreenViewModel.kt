@@ -2,7 +2,9 @@ package com.example.hassanalhawary.ui.screens.home_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hassanalhawary.core.util.NetworkStatus
 import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
+import com.example.hassanalhawary.domain.use_cases.GetCurrentNetworkStatusUseCase
 import com.example.hassanalhawary.domain.use_cases.GetLatestArticlesUseCase
 import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +19,8 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
     private val getLatestAudiosUseCase: GetAllAudiosUseCase,
-    private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase
+    private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase,
+    private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase
 ) : ViewModel() {
 
 
@@ -28,8 +31,24 @@ class HomeScreenViewModel @Inject constructor(
         loadLatestArticles()
         loadLatestAudios()
         loadWisdomOfTheDay()
+        checkCurrentNetworkStatus()
 
+    }
 
+    private fun checkCurrentNetworkStatus() {
+        viewModelScope.launch {
+            val currentNetworkStatus = getCurrentNetworkStatusUseCase()
+            if (currentNetworkStatus == NetworkStatus.Unavailable) {
+                _homeScreenUiState.value = _homeScreenUiState.value.copy(
+                    isInOfflineMode = true
+                )
+            } else {
+                _homeScreenUiState.value = _homeScreenUiState.value.copy(
+                    isInOfflineMode = false
+                )
+            }
+
+        }
     }
 
     private fun loadWisdomOfTheDay() {

@@ -1,11 +1,9 @@
 package com.example.hassanalhawary.domain.use_cases
 
 import com.example.hassanalhawary.core.util.NetworkMonitor
-import com.example.hassanalhawary.core.util.NetworkStatus
 import com.example.hassanalhawary.domain.model.Wisdom
 import com.example.hassanalhawary.domain.model.WisdomResult
 import com.example.hassanalhawary.domain.repository.WisdomRepository
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class GetWisdomOfTheDayUseCase @Inject constructor(
@@ -15,14 +13,13 @@ class GetWisdomOfTheDayUseCase @Inject constructor(
 ) {
 
 
-    suspend operator fun invoke(): WisdomResult<Wisdom, String> {
-        val currentNetworkStatus = networkMonitor.networkStatus.first()
-        return if (currentNetworkStatus == NetworkStatus.Unavailable) {
-            WisdomResult.Failure("No internet connection")
-        } else {
-            wisdomRepository.getWisdomOfTheDay()
-        }
-    }
+    suspend operator fun invoke(): WisdomResult<Wisdom, String> =
+        /* val currentNetworkStatus = networkMonitor.networkStatus.first()
+         return if (currentNetworkStatus == NetworkStatus.Unavailable) {
+             WisdomResult.Failure("No internet connection")
+         } else {
+         }*/
+        wisdomRepository.getWisdomOfTheDay()
 
 
 }

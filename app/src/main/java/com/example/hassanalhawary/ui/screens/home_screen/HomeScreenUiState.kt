@@ -16,6 +16,7 @@ data class HomeScreenUiState(
     val latestArticles: List<Article> = emptyList(),
     val latestAudios: List<Audio> = emptyList(),
     val searchQuery: String = "",
+    val isInOfflineMode: Boolean = false,
 
 
     )
