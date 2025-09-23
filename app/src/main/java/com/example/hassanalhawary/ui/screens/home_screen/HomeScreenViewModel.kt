@@ -1,5 +1,6 @@
 package com.example.hassanalhawary.ui.screens.home_screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hassanalhawary.core.util.NetworkStatus
@@ -11,6 +12,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,19 +40,20 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     private fun checkCurrentNetworkStatus() {
-        viewModelScope.launch {
-            val currentNetworkStatus = getCurrentNetworkStatusUseCase()
-            if (currentNetworkStatus == NetworkStatus.Unavailable) {
-                _homeScreenUiState.value = _homeScreenUiState.value.copy(
-                    isInOfflineMode = true
-                )
-            } else {
-                _homeScreenUiState.value = _homeScreenUiState.value.copy(
-                    isInOfflineMode = false
-                )
-            }
 
-        }
+        getCurrentNetworkStatusUseCase() // This should return Flow<NetworkStatus>
+            .onEach { currentNetworkStatus -> // .onEach is like .collect but better for chaining in ViewModel
+                _homeScreenUiState.update { currentState ->
+                    currentState.copy(
+                        isInOfflineMode = currentNetworkStatus == NetworkStatus.Unavailable
+
+                    )
+                }
+                Log.d("TAG", "Network Status Updated: ${!_homeScreenUiState.value.isInOfflineMode}")
+            }
+            .launchIn(viewModelScope) // Collect the flow within viewModelScope
+
+
     }
 
     private fun loadWisdomOfTheDay() {

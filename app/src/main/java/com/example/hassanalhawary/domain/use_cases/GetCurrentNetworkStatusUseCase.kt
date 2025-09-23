@@ -2,7 +2,7 @@ package com.example.hassanalhawary.domain.use_cases
 
 import com.example.hassanalhawary.core.util.NetworkMonitor
 import com.example.hassanalhawary.core.util.NetworkStatus
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetCurrentNetworkStatusUseCase @Inject constructor(
@@ -10,7 +10,7 @@ class GetCurrentNetworkStatusUseCase @Inject constructor(
 ) {
 
 
-    suspend operator fun invoke(): NetworkStatus =
-       networkMonitor.networkStatus.first()
+    operator fun invoke(): Flow<NetworkStatus> =
+       networkMonitor.networkStatus
 
 }
