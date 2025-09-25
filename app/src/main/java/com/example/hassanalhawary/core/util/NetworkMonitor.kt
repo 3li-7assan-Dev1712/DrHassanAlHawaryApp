@@ -16,6 +16,9 @@ import javax.inject.Inject
 /*
 The class below is helper class to monitor the connectivity status of Dr. Hassan app to realtime check
 the network availability and update the UI accordingly.
+
+the goal is whenever user's connectivity changes we want to show a message to the user.
+
  */
 enum class NetworkStatus {
     Available,

@@ -19,4 +19,5 @@ data class HomeScreenUiState(
     val isInOfflineMode: Boolean = false,
 
 
+    val audioErrorMessage: String? = null,
     )

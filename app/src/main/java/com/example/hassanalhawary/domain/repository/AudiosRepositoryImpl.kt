@@ -52,7 +52,8 @@ class AudiosRepositoryImpl
 
         } catch (e: Exception) {
             AudiosResult(errorMessage = e.message)
-        }
+            Log.d("AudiosRepositoryImpl", "getAllAudios: ${e.message}")
+        } as AudiosResult
     }
 
     override suspend fun getLatestAudios(): AudiosResult {

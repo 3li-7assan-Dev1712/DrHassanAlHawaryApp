@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.hassanalhawary.R
+import com.example.hassanalhawary.core.util.NetworkMessageEvent
 import com.example.hassanalhawary.domain.model.WisdomResult
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
@@ -48,6 +49,21 @@ fun HomeScreen(
 
     val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
+    // Handle one-time network messages
+    LaunchedEffect(key1 = Unit) { // Observe the event flow as long as HomeScreen is active
+        homeScreenViewModel.networkMessageEventFlow.collect { event ->
+            when (event) {
+                is NetworkMessageEvent.WentOffline -> {
+                    Toast.makeText(context, "You are now offline", Toast.LENGTH_SHORT).show()
+                }
+
+                is NetworkMessageEvent.BackOnline -> {
+                    Toast.makeText(context, "Back online!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -106,43 +122,42 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(16.dp)) // Space between sections
 
                     // Latest Audios Section
-                    LatestArticleAudioLazyRow(
-                        itemSpacing = 8.dp,
-                        contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
-                        title = stringResource(R.string.latest_audios),
-                        showLoading = homeScreenUiState.loadingLatestAudios,
-                        items = homeScreenUiState.latestAudios,
-                        itemKey = { audio -> audio.audioUrl }, // Provide a key
-                        itemContent = { audio ->
-                            AudioCard(
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .width(180.dp)
-                                    .height(120.dp),
-                                audio = audio,
-                                onClick = {
-                                    onNavigateToDetailAudio(
-                                        audio.title,
-                                        audio.audioUrl
-                                    )
-                                }
-                            )
-                        }
-                    )
+                    if (homeScreenUiState.audioErrorMessage != null) {
+                        Text(
+                            text = homeScreenUiState.audioErrorMessage!!,
+                            color = MaterialTheme.colorScheme.error
+                        )
+
+                    } else {
+
+                        LatestArticleAudioLazyRow(
+                            itemSpacing = 8.dp,
+                            contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
+                            title = stringResource(R.string.latest_audios),
+                            showLoading = homeScreenUiState.loadingLatestAudios,
+                            items = homeScreenUiState.latestAudios,
+                            itemKey = { audio -> audio.audioUrl }, // Provide a key
+                            itemContent = { audio ->
+                                AudioCard(
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .width(180.dp)
+                                        .height(120.dp),
+                                    audio = audio,
+                                    onClick = {
+                                        onNavigateToDetailAudio(
+                                            audio.title,
+                                            audio.audioUrl
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
             }
 
 
-        }
-        val context = LocalContext.current
-        // network status message
-        LaunchedEffect(homeScreenUiState.isInOfflineMode) {
-
-            if (homeScreenUiState.isInOfflineMode) {
-                Toast.makeText(context, "Offline mode!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "back online", Toast.LENGTH_SHORT).show()
-            }
         }
 
     }
