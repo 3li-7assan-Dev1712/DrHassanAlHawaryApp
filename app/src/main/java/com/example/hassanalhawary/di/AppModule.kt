@@ -2,8 +2,12 @@ package com.example.hassanalhawary.di
 
 import android.content.Context
 import androidx.credentials.CredentialManager
+import androidx.room.Room
 import com.example.hassanalhawary.core.util.GoogleAuthUiClient
 import com.example.hassanalhawary.core.util.NetworkMonitor
+import com.example.hassanalhawary.data.local.AppDatabase
+import com.example.hassanalhawary.data.local.AudioDao
+import com.example.hassanalhawary.data.remote.FirebaseAudioSource
 import com.example.hassanalhawary.domain.repository.ArticlesRepository
 import com.example.hassanalhawary.domain.repository.ArticlesRepositoryImpl
 import com.example.hassanalhawary.domain.repository.AudiosRepository
@@ -29,6 +33,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
 
     @Singleton
     @Provides
@@ -79,10 +84,17 @@ object AppModule {
     @Singleton
     @Provides
     fun provideAudiosRepository(
-        firebaseStorage: FirebaseStorage
+        firebaseStorage: FirebaseStorage,
+        audioDao: AudioDao,
+        firebaseAudioSource: FirebaseAudioSource
     ): AudiosRepository {
-        return AudiosRepositoryImpl(firebaseStorage)
+        return AudiosRepositoryImpl(firebaseStorage, audioDao, firebaseAudioSource)
     }
+
+    @Singleton
+    @Provides
+    fun provideFirebaseAudioSource(firebaseStorage: FirebaseStorage): FirebaseAudioSource =
+        FirebaseAudioSource(firebaseStorage)
 
     @Singleton
     @Provides
@@ -128,4 +140,23 @@ object AppModule {
     ): RegisterNewUserWithEmailPasswordUseCase {
         return RegisterNewUserWithEmailPasswordUseCase(authRepository)
     }
+
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "hassan_al_hawary_db"
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAudioDao(appDatabase: AppDatabase): AudioDao {
+        return appDatabase.audioDao()
+    }
+
+
 }

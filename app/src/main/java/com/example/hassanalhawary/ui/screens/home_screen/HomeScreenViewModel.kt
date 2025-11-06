@@ -117,23 +117,39 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     private fun loadLatestAudios() {
+
         viewModelScope.launch {
-            val audiosResult = getLatestAudiosUseCase()
 
-            if (audiosResult.audios != null) {
-                _homeScreenUiState.value = _homeScreenUiState.value.copy(
-                    latestAudios = audiosResult.audios,
-                    loadingLatestAudios = false
-                )
-            } else if (audiosResult.errorMessage != null) {
-                _homeScreenUiState.value = _homeScreenUiState.value.copy(
-                    audioErrorMessage = audiosResult.errorMessage,
-                    loadingLatestAudios = false
-                )
-
-                Log.d("HomeScreenViewModel", audiosResult.errorMessage)
-            }
-
+            getLatestAudiosUseCase()
+                .onEach { audioFromDb ->
+                    _homeScreenUiState.update {
+                        it.copy(
+                            latestAudios = audioFromDb,
+                            loadingLatestAudios = false,
+                            audioErrorMessage = null
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
         }
+
+
     }
+
+        /*if (audiosResult.audios != null) {
+            _homeScreenUiState.value = _homeScreenUiState.value.copy(
+                latestAudios = audiosResult.audios,
+                loadingLatestAudios = false
+            )
+        } else if (audiosResult.errorMessage != null) {
+            _homeScreenUiState.value = _homeScreenUiState.value.copy(
+                audioErrorMessage = audiosResult.errorMessage,
+                loadingLatestAudios = false
+            )
+
+            Log.d("HomeScreenViewModel", audiosResult.errorMessage)
+        }
+
+    }*/
+
 }

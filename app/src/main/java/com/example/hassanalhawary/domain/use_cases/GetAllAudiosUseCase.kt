@@ -1,7 +1,8 @@
 package com.example.hassanalhawary.domain.use_cases
 
-import com.example.hassanalhawary.domain.model.AudiosResult
+import com.example.hassanalhawary.domain.model.Audio
 import com.example.hassanalhawary.domain.repository.AudiosRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 
@@ -11,8 +12,8 @@ class GetAllAudiosUseCase @Inject constructor(
 ) {
 
 
-    suspend operator fun invoke(): AudiosResult {
-        return audiosRepository.getAllAudios()
+    suspend operator fun invoke(): Flow<List<Audio>> {
+        return audiosRepository.getAudios()
 
     }
 

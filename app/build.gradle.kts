@@ -3,9 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
-
     alias(libs.plugins.hilt)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -62,16 +61,12 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
-    // firestore
     implementation(libs.firebase.firestore.ktx)
-    // firebase storage
-//    implementation(libs.firebase.storage)
     implementation(libs.firebase.storage)
-
-
+    implementation(libs.firebase.database)
     // auth credential
-    implementation(libs.androidx.credentials.v130)
-    implementation(libs.androidx.credentials.play.services.auth.v130)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.play.services.auth)
 
     // ViewModel
@@ -81,9 +76,12 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
-    implementation(libs.firebase.database)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
 
+    //room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     // exo player and media session && ui
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
@@ -104,4 +102,18 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+configurations.all {
+    resolutionStrategy {
+        // This block will run for every configuration (implementation, testImplementation, ksp, etc.)
+        eachDependency {
+            // When Gradle sees a request for the old 'com.intellij:annotations' library...
+            if (requested.group == "com.intellij" && requested.name == "annotations") {
+                // ...replace it with the newer 'org.jetbrains:annotations' library.
+                useTarget("org.jetbrains:annotations:23.0.0")
+                // You can provide a reason for tracking purposes.
+                because("IntelliJ annotations are older and conflict with the newer JetBrains annotations used by Kotlin/Compose/Room.")
+            }
+        }
+    }
 }

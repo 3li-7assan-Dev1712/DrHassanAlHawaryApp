@@ -71,7 +71,7 @@ class AudioListViewModel @Inject constructor(
 
     fun loadAudios() {
 
-        viewModelScope.launch {
+       /* viewModelScope.launch {
             val audiosResult = getAllAudiosUseCase()
 
             if (audiosResult.audios != null) {
@@ -88,7 +88,7 @@ class AudioListViewModel @Inject constructor(
 
 
         }
-
+*/
 
     }
 
