@@ -1,9 +1,13 @@
 package com.example.hassanalhawary.domain.repository
 
 import android.util.Log
+import com.example.hassanalhawary.data.local.ArticleDao
+import com.example.hassanalhawary.data.local.model.toDomainModel
 import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.domain.model.ArticlesResult
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -11,7 +15,8 @@ import javax.inject.Inject
 
 class ArticlesRepositoryImpl
 @Inject constructor(
-    private val firestoreDb: FirebaseFirestore
+    private val firestoreDb: FirebaseFirestore,
+    private val articleDao: ArticleDao
 ) : ArticlesRepository {
     override suspend fun getAllArticles(): ArticlesResult {
 
@@ -111,5 +116,26 @@ class ArticlesRepositoryImpl
         }
 
 
+    }
+
+
+    override suspend fun getArticlesFromDb(): Flow<List<Article>> {
+        return articleDao.getArticlesFlow().map { entities ->
+            entities.map { it.toDomainModel() }
+        }
+    }
+
+    override suspend fun syncArticlesDbWithServer() {
+//        val querySnapshot =
+//            firestoreDb.collection("articles").orderBy("publishDate").get().await()
+//        for (document in querySnapshot.documents) {
+//            val article = Article(
+//                id = document.id,
+//                title = document.getString("title") ?: "",
+//                content = document.getString("content") ?: "",
+//                publishDate = document.getDate("publishDate") ?: Date()
+//            )
+//            latestArticles.add(article)
+//        }
     }
 }

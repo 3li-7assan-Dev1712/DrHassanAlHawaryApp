@@ -6,6 +6,7 @@ import androidx.room.Room
 import com.example.hassanalhawary.core.util.GoogleAuthUiClient
 import com.example.hassanalhawary.core.util.NetworkMonitor
 import com.example.hassanalhawary.data.local.AppDatabase
+import com.example.hassanalhawary.data.local.ArticleDao
 import com.example.hassanalhawary.data.local.AudioDao
 import com.example.hassanalhawary.data.remote.FirebaseAudioSource
 import com.example.hassanalhawary.domain.repository.ArticlesRepository
@@ -99,9 +100,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provideArticlesRepository(
-        firebaseDb: FirebaseFirestore
+        firebaseDb: FirebaseFirestore,
+        articleDao: ArticleDao
     ): ArticlesRepository {
-        return ArticlesRepositoryImpl(firebaseDb)
+        return ArticlesRepositoryImpl(firebaseDb, articleDao)
     }
 
     @Singleton
@@ -149,13 +151,21 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "hassan_al_hawary_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(true)
+            .build()
     }
 
     @Provides
     @Singleton
     fun provideAudioDao(appDatabase: AppDatabase): AudioDao {
         return appDatabase.audioDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideArticleDao(appDatabase: AppDatabase): ArticleDao {
+        return appDatabase.articleDao()
     }
 
 

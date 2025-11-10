@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.hassanalhawary.core.util.NetworkMessageEvent
 import com.example.hassanalhawary.core.util.NetworkStatus
 import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
+import com.example.hassanalhawary.domain.use_cases.GetArticlesFromDbUseCase
 import com.example.hassanalhawary.domain.use_cases.GetCurrentNetworkStatusUseCase
 import com.example.hassanalhawary.domain.use_cases.GetLatestArticlesUseCase
 import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
@@ -27,6 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
+    private val getArticlesFromDbUseCase: GetArticlesFromDbUseCase,
     private val getLatestAudiosUseCase: GetAllAudiosUseCase,
     private val syncAudiosUseCase: SyncAudiosUseCase,
     private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase,
@@ -48,7 +50,7 @@ class HomeScreenViewModel @Inject constructor(
     private var lastKnownNetworkStatus: NetworkStatus? = null // Store the last status processed
 
     init {
-        loadLatestArticles()
+        loadArticlesFromDb()
         loadLatestAudios()
         syncAudios()
         loadWisdomOfTheDay()
@@ -107,15 +109,17 @@ class HomeScreenViewModel @Inject constructor(
     }
 
 
-    private fun loadLatestArticles() {
+    private fun loadArticlesFromDb() {
         viewModelScope.launch {
-            val articlesResult = getLatestArticlesUseCase()
-            if (articlesResult.articles != null) {
-                _homeScreenUiState.value = _homeScreenUiState.value.copy(
-                    latestArticles = articlesResult.articles,
-                    loadingLatestArticles = false
-                )
-            }
+            val arts = getArticlesFromDbUseCase()
+            arts.onEach { artsFromDb ->
+                _homeScreenUiState.update {
+                    it.copy(
+                        latestArticles = artsFromDb,
+                        loadingLatestArticles = false
+                    )
+                }
+            }.launchIn(viewModelScope)
         }
     }
 
