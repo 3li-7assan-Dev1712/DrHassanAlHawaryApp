@@ -2,11 +2,14 @@ package com.example.hassanalhawary.domain.repository
 
 import android.util.Log
 import com.example.hassanalhawary.data.local.ArticleDao
+import com.example.hassanalhawary.data.local.model.ArticleEntity
 import com.example.hassanalhawary.data.local.model.toDomainModel
 import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.domain.model.ArticlesResult
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -110,7 +113,6 @@ class ArticlesRepositoryImpl
             }
 
 
-
         } catch (e: Exception) {
             ArticlesResult(errorMessage = e.message)
         }
@@ -126,16 +128,39 @@ class ArticlesRepositoryImpl
     }
 
     override suspend fun syncArticlesDbWithServer() {
-//        val querySnapshot =
-//            firestoreDb.collection("articles").orderBy("publishDate").get().await()
-//        for (document in querySnapshot.documents) {
-//            val article = Article(
-//                id = document.id,
-//                title = document.getString("title") ?: "",
-//                content = document.getString("content") ?: "",
-//                publishDate = document.getDate("publishDate") ?: Date()
-//            )
-//            latestArticles.add(article)
-//        }
+        val articlesCollection = firestoreDb.collection("articles")
+
+        // callbackFlow to convert a listener into a Flow.
+        callbackFlow {
+            val listenerRegistration = articlesCollection.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    // close when error
+//                    Os.close(1)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    // Map Firestore documents to our ArticleEntity
+//                    val articles = snapshot.toObjects(ArticleEntity::class.java)
+                    val articles = snapshot.map { documentSnapshot ->
+                        ArticleEntity(
+                            id = documentSnapshot.id,
+                            publishDate = documentSnapshot.getDate("publishDate")?.time ?: 0,
+                            title = documentSnapshot.getString("title") ?: "",
+                            content = documentSnapshot.getString("content") ?: ""
+                        )
+                    }
+                    // Send the fresh list of articles through the flow
+                    trySend(articles).isSuccess
+                }
+            }
+            // When the flow is cancelled, remove the listener.
+            awaitClose { listenerRegistration.remove() }
+        }.collect { articlesFromFirestore ->
+            // This 'collect' block runs ONLY when the listener sends a new list.
+            //  sync the fresh data to our Room database.
+            articleDao.syncArticles(articlesFromFirestore)
+        }
+
     }
 }

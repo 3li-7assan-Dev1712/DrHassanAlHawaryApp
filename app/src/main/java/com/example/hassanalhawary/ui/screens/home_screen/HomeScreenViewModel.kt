@@ -10,6 +10,7 @@ import com.example.hassanalhawary.domain.use_cases.GetArticlesFromDbUseCase
 import com.example.hassanalhawary.domain.use_cases.GetCurrentNetworkStatusUseCase
 import com.example.hassanalhawary.domain.use_cases.GetLatestArticlesUseCase
 import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
+import com.example.hassanalhawary.domain.use_cases.SyncArticlesDbWithServerUseCase
 import com.example.hassanalhawary.domain.use_cases.SyncAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -29,6 +30,7 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
     private val getArticlesFromDbUseCase: GetArticlesFromDbUseCase,
+    private val sycArticlesDbWithServerUseCase: SyncArticlesDbWithServerUseCase,
     private val getLatestAudiosUseCase: GetAllAudiosUseCase,
     private val syncAudiosUseCase: SyncAudiosUseCase,
     private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase,
@@ -51,11 +53,18 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         loadArticlesFromDb()
+        syncArticles()
         loadLatestAudios()
         syncAudios()
         loadWisdomOfTheDay()
         checkCurrentNetworkStatus()
 
+    }
+
+    private fun syncArticles() {
+        viewModelScope.launch {
+            sycArticlesDbWithServerUseCase()
+        }
     }
 
     private fun checkCurrentNetworkStatus() {
