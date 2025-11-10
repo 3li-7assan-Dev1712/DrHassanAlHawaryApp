@@ -9,6 +9,7 @@ import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
 import com.example.hassanalhawary.domain.use_cases.GetCurrentNetworkStatusUseCase
 import com.example.hassanalhawary.domain.use_cases.GetLatestArticlesUseCase
 import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
+import com.example.hassanalhawary.domain.use_cases.SyncAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,7 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
     private val getLatestAudiosUseCase: GetAllAudiosUseCase,
+    private val syncAudiosUseCase: SyncAudiosUseCase,
     private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase,
     private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase
 ) : ViewModel() {
@@ -48,6 +50,7 @@ class HomeScreenViewModel @Inject constructor(
     init {
         loadLatestArticles()
         loadLatestAudios()
+        syncAudios()
         loadWisdomOfTheDay()
         checkCurrentNetworkStatus()
 
@@ -134,6 +137,11 @@ class HomeScreenViewModel @Inject constructor(
         }
 
 
+    }
+    private fun syncAudios() {
+        viewModelScope.launch {
+            syncAudiosUseCase()
+        }
     }
 
         /*if (audiosResult.audios != null) {

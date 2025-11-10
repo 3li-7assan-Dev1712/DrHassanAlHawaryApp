@@ -43,16 +43,19 @@ class AudiosRepositoryImpl
         }
     }
 
+
     override suspend fun syncAudios() {
         try {
             val networkAudios = firebaseAudioSource.getAllAudiosFromFirebase()
             val audioEntities = networkAudios.map { audio ->
                 AudioEntity(audioUrl = audio.audioUrl, title = audio.title)
             }
+            Log.d("TAG", "syncAudios: number of audios is: ${audioEntities.size}")
             audioDao.saveAudios(audioEntities)
         } catch (e: Exception) {
             // Handle error (e.g., log it). The UI will still have the old data.
             e.printStackTrace()
+            Log.d("TAG", "syncAudios: error 1712")
         }
     }
     override suspend fun getLatestAudios(): AudiosResult {

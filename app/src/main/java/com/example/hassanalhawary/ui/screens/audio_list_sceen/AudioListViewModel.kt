@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -71,24 +73,17 @@ class AudioListViewModel @Inject constructor(
 
     fun loadAudios() {
 
-       /* viewModelScope.launch {
+
+        viewModelScope.launch {
             val audiosResult = getAllAudiosUseCase()
-
-            if (audiosResult.audios != null) {
+            audiosResult.onEach { audiosFromDb ->
                 _uiState.value = AudioListUiState.Success(
-                    audios = audiosResult.audios,
+                    audios = audiosFromDb,
                     searchQuery = _rawSearchInput.value
                 )
-            } else if (audiosResult.errorMessage != null) {
-                _uiState.value = AudioListUiState.Error(
-                    message = audiosResult.errorMessage,
-                    searchQuery = _rawSearchInput.value
-                )
-            }
-
+            }.launchIn(viewModelScope)
 
         }
-*/
 
     }
 
