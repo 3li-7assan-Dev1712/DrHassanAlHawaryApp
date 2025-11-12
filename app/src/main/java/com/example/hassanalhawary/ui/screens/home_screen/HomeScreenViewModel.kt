@@ -53,7 +53,7 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         loadArticlesFromDb()
-        syncArticles()
+//        syncArticles()
         loadLatestAudios()
         syncAudios()
         loadWisdomOfTheDay()

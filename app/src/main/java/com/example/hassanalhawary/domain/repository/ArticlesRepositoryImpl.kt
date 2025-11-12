@@ -4,13 +4,16 @@ import android.util.Log
 import com.example.hassanalhawary.data.local.ArticleDao
 import com.example.hassanalhawary.data.local.model.ArticleEntity
 import com.example.hassanalhawary.data.local.model.toDomainModel
+import com.example.hassanalhawary.di.ApplicationScope
 import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.domain.model.ArticlesResult
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -19,8 +22,21 @@ import javax.inject.Inject
 class ArticlesRepositoryImpl
 @Inject constructor(
     private val firestoreDb: FirebaseFirestore,
-    private val articleDao: ArticleDao
+    private val articleDao: ArticleDao,
+    @ApplicationScope private val externalScope: CoroutineScope
 ) : ArticlesRepository {
+
+
+
+    init {
+        externalScope.launch {
+            syncArticlesDbWithServer()
+        }
+    }
+
+
+
+
     override suspend fun getAllArticles(): ArticlesResult {
 
         val allArts: MutableList<Article> = mutableListOf()

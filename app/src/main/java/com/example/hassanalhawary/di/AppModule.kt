@@ -29,6 +29,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
 import javax.inject.Singleton
 
 @Module
@@ -101,9 +102,10 @@ object AppModule {
     @Provides
     fun provideArticlesRepository(
         firebaseDb: FirebaseFirestore,
-        articleDao: ArticleDao
+        articleDao: ArticleDao,
+        @ApplicationScope externalScope: CoroutineScope
     ): ArticlesRepository {
-        return ArticlesRepositoryImpl(firebaseDb, articleDao)
+        return ArticlesRepositoryImpl(firebaseDb, articleDao, externalScope)
     }
 
     @Singleton
