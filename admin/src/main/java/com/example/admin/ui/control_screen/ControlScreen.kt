@@ -19,13 +19,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.admin.ui.control_screen.components.ArticleUploadScreen
 import com.example.admin.ui.control_screen.components.AudioUploadScreen
 
 @ExperimentalMaterial3Api
 @Composable
 fun ControlScreen(
-
+    controlScreenViewModel: ControlScreenViewModel = hiltViewModel()
 ) {
     // 0 = Article, 1 = Audio
     var selectedTabIndex by remember { mutableIntStateOf(0) }

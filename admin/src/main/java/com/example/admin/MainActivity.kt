@@ -18,7 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.core_ui.splash_screen.SplashScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 @ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
