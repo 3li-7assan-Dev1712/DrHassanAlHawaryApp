@@ -94,6 +94,9 @@ dependencies {
     // used in animations
     implementation(libs.androidx.vectordrawable.animated)
 
+    // depend on the core-ui library for sharing the ui components
+    implementation(project(":core-ui"))
+
     // test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

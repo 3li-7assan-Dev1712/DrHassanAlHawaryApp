@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.core_ui.splash_screen.SplashScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
@@ -32,7 +33,6 @@ import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticle
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
-import com.example.hassanalhawary.ui.screens.splash_screen.SplashScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 

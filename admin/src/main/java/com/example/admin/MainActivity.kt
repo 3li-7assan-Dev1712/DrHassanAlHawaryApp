@@ -11,7 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
+import com.example.core_ui.splash_screen.SplashScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,10 +25,31 @@ class MainActivity : ComponentActivity() {
         setContent {
             HassanAlHawaryTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+
+                    val navController = rememberNavController()
+
+                    NavHost(
+                        navController,
+                        startDestination = "splash_screen",
                         modifier = Modifier.padding(innerPadding)
-                    )
+                    ) {
+
+                        composable("splash_screen") {
+                            SplashScreen(
+                                onShowSplashScreenTimeEnd = {
+                                    navController.navigate("control_screen") {
+                                        popUpTo("control_screen") {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable("control_screen") {
+                            ControlScreen(modifier = Modifier.fillMaxSize())
+                        }
+                    }
                 }
             }
         }

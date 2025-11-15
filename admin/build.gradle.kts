@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,9 +64,8 @@ dependencies {
 
 
 
-    // --- Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
+
+
 
     // firebase
     implementation(platform(libs.firebase.bom))
@@ -77,10 +77,32 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.database)
 
-    // --- Coroutines & ViewModel ---
+
+    // auth credential
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.play.services.auth)
+
+    // ViewModel
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.runtime.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    // navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+
+
+    // depend on the core-ui library for sharing the ui components
+    implementation(project(":core-ui"))
+
+
+
 
 
 

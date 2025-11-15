@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.screens.splash_screen
+package com.example.core_ui.splash_screen
 
 import android.view.animation.OvershootInterpolator
 import androidx.compose.animation.core.Animatable
@@ -13,9 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
-import com.example.hassanalhawary.R
+import com.example.core_ui.R
 import kotlinx.coroutines.delay
-
 @Composable
 fun SplashScreen(
     onShowSplashScreenTimeEnd: () -> Unit
@@ -38,9 +37,11 @@ fun SplashScreen(
 
     }
 
+
     Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+
     ) {
         Image(
             painter = painterResource(id = R.drawable.dr_hassan_logo),
@@ -48,4 +49,7 @@ fun SplashScreen(
             modifier = Modifier.scale(scale.value)
         )
     }
+
+
+
 }
