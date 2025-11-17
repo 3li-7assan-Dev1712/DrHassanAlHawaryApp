@@ -20,8 +20,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.domain.module.Article
 import com.example.hassanalhawary.R
-import com.example.hassanalhawary.domain.model.Article
 import java.util.Date
 
 

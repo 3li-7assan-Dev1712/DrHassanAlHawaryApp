@@ -1,6 +1,7 @@
 package com.example.hassanalhawary.ui.screens.articles_screen
 
-import com.example.hassanalhawary.domain.model.Article
+import com.example.domain.module.Article
+
 
 sealed interface ArticlesUiState {
 

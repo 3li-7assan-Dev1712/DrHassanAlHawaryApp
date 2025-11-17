@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.hassanalhawary.domain.model.Audio
+import com.example.domain.module.Audio
 import com.example.hassanalhawary.ui.theme.CairoTypography
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 

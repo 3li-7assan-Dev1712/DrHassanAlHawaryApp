@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.hassanalhawary.domain.model.Article
+import com.example.domain.module.Article
 import com.example.hassanalhawary.ui.theme.CairoTypography
 
 @Composable

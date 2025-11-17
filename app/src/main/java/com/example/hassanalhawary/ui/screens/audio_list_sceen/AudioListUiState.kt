@@ -1,6 +1,7 @@
 package com.example.hassanalhawary.ui.screens.audio_list_sceen
 
-import com.example.hassanalhawary.domain.model.Audio
+import com.example.domain.module.Audio
+
 
 sealed interface AudioListUiState {
 

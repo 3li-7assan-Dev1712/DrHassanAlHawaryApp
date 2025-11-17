@@ -2,8 +2,8 @@ package com.example.hassanalhawary.ui.screens.audio_list_sceen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hassanalhawary.domain.use_cases.FilterAudiosUseCase
-import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
+import com.example.domain.use_cases.FilterAudiosUseCase
+import com.example.domain.use_cases.GetAllAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow

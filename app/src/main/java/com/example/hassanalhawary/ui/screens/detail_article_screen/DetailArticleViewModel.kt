@@ -5,8 +5,8 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hassanalhawary.domain.model.getFakeArticles
-import com.example.hassanalhawary.domain.use_cases.GetArticleByIdUseCase
+import com.example.domain.module.getFakeArticles
+import com.example.domain.use_cases.GetArticleByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -2,8 +2,8 @@ package com.example.hassanalhawary.ui.screens.articles_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hassanalhawary.domain.use_cases.FilterArticlesUseCase
-import com.example.hassanalhawary.domain.use_cases.GetAllArticlesUseCase
+import com.example.domain.use_cases.FilterArticlesUseCase
+import com.example.domain.use_cases.GetAllArticlesUseCase
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListViewModel.Companion.SEARCH_DEBOUNCE_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -63,7 +63,7 @@ class ArticlesViewModel @Inject constructor(
         viewModelScope.launch {
             val articlesResult = getAllArticlesUseCase()
             if (articlesResult.articles != null) {
-                _articlesUiState.value = ArticlesUiState.Success(articlesResult.articles)
+                _articlesUiState.value = ArticlesUiState.Success(articlesResult.articles!!)
             } else {
                 _articlesUiState.value = ArticlesUiState.Error(articlesResult.errorMessage)
             }

@@ -96,6 +96,8 @@ dependencies {
 
     // depend on the core-ui library for sharing the ui components
     implementation(project(":core-ui"))
+    implementation(project(":domain"))
+    implementation(project(":data"))
 
     // test
     testImplementation(libs.junit)

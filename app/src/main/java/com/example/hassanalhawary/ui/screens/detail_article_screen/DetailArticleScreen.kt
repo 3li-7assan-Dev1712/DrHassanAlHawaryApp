@@ -38,9 +38,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.domain.module.Article
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.util.formatDate
-import com.example.hassanalhawary.domain.model.Article
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import java.util.Date
 

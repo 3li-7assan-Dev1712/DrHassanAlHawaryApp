@@ -28,9 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.domain.module.WisdomResult
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.util.NetworkMessageEvent
-import com.example.hassanalhawary.domain.model.WisdomResult
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.LatestArticleAudioLazyRow

@@ -3,15 +3,15 @@ package com.example.hassanalhawary.ui.screens.home_screen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.module.NetworkStatus
+import com.example.domain.use_cases.GetAllAudiosUseCase
+import com.example.domain.use_cases.GetArticlesFromDbUseCase
+import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
+import com.example.domain.use_cases.GetLatestArticlesUseCase
+import com.example.domain.use_cases.GetWisdomOfTheDayUseCase
+import com.example.domain.use_cases.SyncArticlesDbWithServerUseCase
+import com.example.domain.use_cases.SyncAudiosUseCase
 import com.example.hassanalhawary.core.util.NetworkMessageEvent
-import com.example.hassanalhawary.core.util.NetworkStatus
-import com.example.hassanalhawary.domain.use_cases.GetAllAudiosUseCase
-import com.example.hassanalhawary.domain.use_cases.GetArticlesFromDbUseCase
-import com.example.hassanalhawary.domain.use_cases.GetCurrentNetworkStatusUseCase
-import com.example.hassanalhawary.domain.use_cases.GetLatestArticlesUseCase
-import com.example.hassanalhawary.domain.use_cases.GetWisdomOfTheDayUseCase
-import com.example.hassanalhawary.domain.use_cases.SyncArticlesDbWithServerUseCase
-import com.example.hassanalhawary.domain.use_cases.SyncAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,7 +53,7 @@ class HomeScreenViewModel @Inject constructor(
 
     init {
         loadArticlesFromDb()
-//        syncArticles()
+        syncArticles()
         loadLatestAudios()
         syncAudios()
         loadWisdomOfTheDay()

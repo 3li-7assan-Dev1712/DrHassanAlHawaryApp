@@ -1,6 +1,11 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+
+
+//    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -33,6 +38,24 @@ android {
 }
 
 dependencies {
+
+
+
+
+    implementation(project(":data-local"))
+    implementation(project(":data-firebase"))
+    implementation(project(":domain"))
+
+
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.firebase.auth)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+//    kapt(libs.hilt.compiler)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

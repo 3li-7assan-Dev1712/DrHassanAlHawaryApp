@@ -2,10 +2,10 @@ package com.example.hassanalhawary.ui.components
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.hassanalhawary.domain.use_cases.LoginWithEmailAndPasswordUseCase
-import com.example.hassanalhawary.domain.use_cases.LoginWithGoogleUseCase
-import com.example.hassanalhawary.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
-import com.example.hassanalhawary.ui.screens.login_screen.LoginResult
+import com.example.domain.module.LoginResult
+import com.example.domain.use_cases.LoginWithEmailAndPasswordUseCase
+import com.example.domain.use_cases.LoginWithGoogleUseCase
+import com.example.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

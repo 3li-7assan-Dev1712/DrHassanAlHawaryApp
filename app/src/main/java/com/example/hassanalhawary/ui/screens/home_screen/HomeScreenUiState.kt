@@ -1,11 +1,10 @@
 package com.example.hassanalhawary.ui.screens.home_screen
 
-import com.example.hassanalhawary.domain.model.Article
-import com.example.hassanalhawary.domain.model.Audio
-import com.example.hassanalhawary.domain.model.Wisdom
-import com.example.hassanalhawary.domain.model.WisdomResult
-import com.example.hassanalhawary.domain.model.fakeWisdom
-
+import com.example.domain.module.Article
+import com.example.domain.module.Audio
+import com.example.domain.module.Wisdom
+import com.example.domain.module.WisdomResult
+import com.example.domain.module.fakeWisdom
 data class HomeScreenUiState(
 
 
