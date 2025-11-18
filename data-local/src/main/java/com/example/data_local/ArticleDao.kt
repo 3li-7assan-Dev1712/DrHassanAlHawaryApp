@@ -25,4 +25,7 @@ interface ArticleDao {
         clearAll()
         upsertAll(articles)
     }
+
+    @Query("SELECT * FROM articles WHERE id = :articleId ")
+    fun getArticleById(articleId: String): Flow<ArticleEntity>
 }

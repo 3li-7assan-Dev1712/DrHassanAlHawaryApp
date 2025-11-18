@@ -39,18 +39,12 @@ class DetailArticleViewModel @Inject constructor(
         viewModelScope.launch {
 
             try {
-                val articleResult = getArticleByIdUseCase(articleId).article
-                if (articleResult != null) {
-                    Log.d(TAG, "fetchArticleDetailsById: article full content ${articleResult.content}")
+                getArticleByIdUseCase(articleId).collect { art ->
+
                     _uiState.value = DetailArticleUiState.Success(
-                        article = articleResult
-                    )
-                } else {
-                    _uiState.value = DetailArticleUiState.Error(
-                        message = "Article not found"
+                        article = art
                     )
                 }
-
 
             } catch (e: Exception) {
                 _uiState.value = DetailArticleUiState.Error(

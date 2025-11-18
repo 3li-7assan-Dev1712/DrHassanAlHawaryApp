@@ -12,7 +12,7 @@ interface ArticlesRepository {
 
     suspend fun syncArticlesDbWithServer()
 
-    suspend fun getArticleById(articleId: String): ArticlesResult
+    suspend fun getArticleById(articleId: String): Flow<Article>
 
     fun filterArticles(articles: List<Article>, query: String): List<Article>
 

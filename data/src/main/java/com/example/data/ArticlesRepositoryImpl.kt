@@ -37,9 +37,12 @@ class ArticlesRepositoryImpl
 
 
 
-    override suspend fun getArticleById(articleId: String): ArticlesResult {
+    override suspend fun getArticleById(articleId: String): Flow<Article> {
 
-        return firebaseArticlesSource.getArticleById(articleId)
+
+        return articleDao.getArticleById(articleId).map { art ->
+            art.toDomainModel()
+        }
 
     }
 
