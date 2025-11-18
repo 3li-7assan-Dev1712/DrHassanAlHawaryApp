@@ -3,7 +3,7 @@ package com.example.hassanalhawary.ui.screens.articles_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.FilterArticlesUseCase
-import com.example.domain.use_cases.GetAllArticlesUseCase
+import com.example.domain.use_cases.GetArticlesFromDbUseCase
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListViewModel.Companion.SEARCH_DEBOUNCE_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
-    private val getAllArticlesUseCase: GetAllArticlesUseCase,
+    private val getAllArticlesFromDbUseCase: GetArticlesFromDbUseCase,
     private val filterArticlesUseCase: FilterArticlesUseCase
 ) : ViewModel() {
 
@@ -61,11 +61,10 @@ class ArticlesViewModel @Inject constructor(
 
         }
         viewModelScope.launch {
-            val articlesResult = getAllArticlesUseCase()
-            if (articlesResult.articles != null) {
-                _articlesUiState.value = ArticlesUiState.Success(articlesResult.articles!!)
-            } else {
-                _articlesUiState.value = ArticlesUiState.Error(articlesResult.errorMessage)
+            getAllArticlesFromDbUseCase().collect { arts ->
+
+                _articlesUiState.value = ArticlesUiState.Success(arts)
+
             }
         }
     }
