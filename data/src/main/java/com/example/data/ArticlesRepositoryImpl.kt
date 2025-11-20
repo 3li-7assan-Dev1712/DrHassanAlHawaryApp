@@ -39,7 +39,6 @@ class ArticlesRepositoryImpl
     }
 
 
-
     override suspend fun getArticleById(articleId: String): Flow<Article> {
 
 
@@ -49,20 +48,6 @@ class ArticlesRepositoryImpl
 
     }
 
-
-    override fun filterArticles(
-        articles: List<Article>, query: String
-    ): List<Article> {
-        if (query.isBlank()) {
-            return articles
-        }
-        return articles.filter { article ->
-            article.title.contains(query, ignoreCase = true) || article.content.contains(
-                query,
-                ignoreCase = true
-            )
-        }
-    }
 
     override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {
 
@@ -105,6 +90,7 @@ class ArticlesRepositoryImpl
         }
     }
 
+
     override suspend fun syncArticlesDbWithServer() {
         firebaseArticlesSource.syncArticlesDbWithServer()
             .map { articles ->
@@ -119,10 +105,10 @@ class ArticlesRepositoryImpl
                 }
             }
             .collect { articlesFromFirestore ->
-            // This 'collect' block runs ONLY when the listener sends a new list.
-            //  sync the fresh data to our Room database.
-            articleDao.syncArticles(articlesFromFirestore)
-        }
+                // This 'collect' block runs ONLY when the listener sends a new list.
+                //  sync the fresh data to our Room database.
+                articleDao.syncArticles(articlesFromFirestore)
+            }
 
     }
 }

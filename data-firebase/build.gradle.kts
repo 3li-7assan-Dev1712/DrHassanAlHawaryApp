@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.database)
+//    implementation(libs.firebase.database.ktx)
 
     // Hilt
     implementation(libs.hilt.android)

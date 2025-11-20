@@ -2,8 +2,6 @@ package com.example.data_local.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.domain.module.Audio
-
 
 
 @Entity(tableName = "audios")
@@ -11,17 +9,15 @@ data class AudioEntity(
 
 
     @PrimaryKey(autoGenerate = false)
+    val id: String,
+    val title: String,
     val audioUrl: String,
-    val title: String
-
+    val durationInMillis: Long,
+    val publishDate: Long,
+    //User-Specific
+    val isFavorite: Boolean = false,
+    val localFilePath: String? = null,
+    val lastPlayedTimestamp: Long? = null // will be used to play from the last position
 )
 
-/**
- * Convert AudioEntity to Audio domain model
- */
-fun AudioEntity.toDomainModel(): Audio =
-    Audio(
-        title = this.title,
-        audioUrl = this.audioUrl
-    )
 

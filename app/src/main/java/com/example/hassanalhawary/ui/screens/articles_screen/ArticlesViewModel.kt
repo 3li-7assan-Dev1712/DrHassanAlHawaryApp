@@ -6,14 +6,12 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.data.ArticlesRepositoryImpl
 import com.example.domain.module.Article
-import com.example.domain.use_cases.FilterArticlesUseCase
 import com.example.domain.use_cases.GetArticlesFromDbUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -26,13 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
     private val getAllArticlesFromDbUseCase: GetArticlesFromDbUseCase,
-    private val filterArticlesUseCase: FilterArticlesUseCase,
     articlesRepository: ArticlesRepositoryImpl
 ) : ViewModel() {
-
-
-    private val _articlesUiState = MutableStateFlow(ArticlesUiState(""))
-    val articlesUiState: StateFlow<ArticlesUiState> = _articlesUiState.asStateFlow()
 
 
     private val _rawSearchInput = MutableStateFlow("")

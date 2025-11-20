@@ -12,8 +12,6 @@ interface ArticlesRepository {
 
     suspend fun getArticleById(articleId: String): Flow<Article>
 
-    fun filterArticles(articles: List<Article>, query: String): List<Article>
-
     suspend fun getLatestArticlesFromDb(): Flow<List<Article>>
 
 

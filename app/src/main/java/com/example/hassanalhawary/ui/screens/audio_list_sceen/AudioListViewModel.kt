@@ -2,19 +2,24 @@ package com.example.hassanalhawary.ui.screens.audio_list_sceen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.example.data.AudiosRepositoryImpl
+import com.example.domain.module.Audio
 import com.example.domain.use_cases.FilterAudiosUseCase
 import com.example.domain.use_cases.GetAllAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,13 +30,17 @@ class AudioListViewModel @Inject constructor(
 
 
     private val filterAudiosUseCase: FilterAudiosUseCase,
-    private val getAllAudiosUseCase: GetAllAudiosUseCase
+    private val getAllAudiosUseCase: GetAllAudiosUseCase,
+    private val audiosRepository: AudiosRepositoryImpl
 
 
 ) : ViewModel() {
 
 
+
     private val _rawSearchInput = MutableStateFlow("")
+    val rawSearchInput = _rawSearchInput.asStateFlow()
+
 
     private val _debouncedSearchQuery = MutableStateFlow("")
 
@@ -43,8 +52,21 @@ class AudioListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AudioListUiState>(AudioListUiState.Loading())
     val uiState: StateFlow<AudioListUiState> = _uiState.asStateFlow()
 
+
+
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val audios: Flow<PagingData<Audio>> = _rawSearchInput
+        .debounce(300L) // Debounce to avoid querying on every keystroke
+        .distinctUntilChanged() // Only query if the text actually changed
+        .flatMapLatest { query -> //  flatMapLatest to switch to the new Flow from the use case
+            audiosRepository.getAudiosPagingData(query)
+        }
+        .cachedIn(viewModelScope)
+
+
     init {
-        viewModelScope.launch {
+        /*viewModelScope.launch {
             _rawSearchInput
                 .debounce(SEARCH_DEBOUNCE_MS) // Apply debounce
                 .distinctUntilChanged() // Only proceed if the query actually changed after debounce
@@ -67,7 +89,7 @@ class AudioListViewModel @Inject constructor(
                     }
                 }
         }
-        loadAudios()
+        loadAudios()*/
     }
 
 
@@ -93,7 +115,7 @@ class AudioListViewModel @Inject constructor(
 
             _rawSearchInput.value = query
 
-            _uiState.update {
+            /*_uiState.update {
                 when (it) {
                     is AudioListUiState.Success -> {
                         it.copy(
@@ -107,7 +129,7 @@ class AudioListViewModel @Inject constructor(
 
                     else -> it
                 }
-            }
+            }*/
         }
 
     }

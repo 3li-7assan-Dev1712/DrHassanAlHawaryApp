@@ -1,7 +1,26 @@
 package com.example.domain.module
 
+import java.util.Date
+
 data class Audio(
-    val audioUrl: String,
+
+
+
+    // for server
+    val id: String,
     val title: String,
-    val duration: String = "",
-)
+    val audioUrl: String,
+    val durationInMillis: Long,
+    val publishDate: Date,
+
+    // for user and local cache
+    val isFavorite: Boolean = false,
+    val isDownloaded: Boolean = false,
+    val lastPlayedTimestamp: Long?,
+
+    // for ui state play/pause
+    val isPlaying: Boolean = false,
+
+    val localFilePath: String?,
+
+    )

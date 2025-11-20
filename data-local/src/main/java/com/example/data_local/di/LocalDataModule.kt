@@ -22,7 +22,7 @@ object LocalDataModule {
             context,
             AppDatabase::class.java,
             "hassan_al_hawary_db"
-        ).build()
+        ).fallbackToDestructiveMigration(true).build()
     }
 
     @Provides

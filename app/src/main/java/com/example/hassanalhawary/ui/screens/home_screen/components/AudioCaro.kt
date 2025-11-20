@@ -20,12 +20,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.domain.module.Audio
+import com.example.hassanalhawary.core.util.formatDate
 import com.example.hassanalhawary.ui.theme.CairoTypography
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
+import java.util.Date
 
 @Composable
 fun AudioCard(
@@ -60,15 +63,15 @@ fun AudioCard(
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
-            audio.duration?.let { duration ->
-                Text(
-                    text = duration,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = formatDate(
+                    Date(audio.durationInMillis)
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -77,7 +80,18 @@ fun AudioCard(
 @Composable
 fun PreviewAudioCard() {
     val sampleAudio =
-        Audio("aud1", "Understanding the Essence of Patience in Islam", "45:22")
+        Audio(
+            "aud1",
+            "Understanding the Essence of Patience in Islam",
+            durationInMillis = 1343403943,
+            audioUrl = "45:22",
+            publishDate = Date(320932),
+            isFavorite = false,
+            isDownloaded = false,
+            lastPlayedTimestamp = 132954843,
+            isPlaying = false,
+            localFilePath = null,
+        )
     HassanAlHawaryTheme {
         Surface(
             modifier = Modifier

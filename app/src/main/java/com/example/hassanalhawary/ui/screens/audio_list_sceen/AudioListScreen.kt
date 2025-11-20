@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +24,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import com.example.domain.module.Audio
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.ui.components.SearchBar
 
@@ -37,10 +42,16 @@ fun AudioListScreen(
 ) {
 
 
+
+
+    val audios = audiosViewModel.audios.collectAsLazyPagingItems()
+
+
     val uiState by audiosViewModel.uiState.collectAsStateWithLifecycle()
 
     AudioListComposeble(
         modifier = modifier,
+        audios = audios,
         uiState = uiState,
         onSearchQueryChanged = audiosViewModel::onSearchQueryChanged,
         onNavigateToAudioDetail = { title, audioUrl ->
@@ -56,6 +67,7 @@ fun AudioListScreen(
 @Composable
 fun AudioListComposeble(
     modifier: Modifier = Modifier,
+    audios: LazyPagingItems<Audio>,
     uiState: AudioListUiState,
     onSearchQueryChanged: (String) -> Unit = {},
     onNavigateToAudioDetail: (title: String, audioId: String) -> Unit = { _, _ -> }
@@ -88,19 +100,29 @@ fun AudioListComposeble(
                 .padding(contentPadding)
                 .fillMaxSize()
         ) {
-            when (uiState) {
-                is AudioListUiState.Loading -> {
+            when (val refreshState = audios.loadState.refresh) {
+                is LoadState.Loading -> {
+                    // Full screen loading indicator for initial load
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-
-                is AudioListUiState.Success -> {
-                    if (uiState.displayedAudios.isEmpty()) {
+                is LoadState.Error -> {
+                    // Show a generic error message
+                    Text(
+                        text = stringResource(R.string.error_msg),
+                        modifier = Modifier.align(Alignment.Center),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+                is LoadState.NotLoading -> {
+                    if (audios.itemCount == 0) {
+                        // Handle empty list after a successful load
                         Text(
                             text = stringResource(R.string.no_audios_available),
                             modifier = Modifier.align(Alignment.Center),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     } else {
+                        // 4. Use the LazyPagingItems in LazyColumn
                         LazyColumn(
                             contentPadding = PaddingValues(
                                 start = 16.dp,
@@ -111,27 +133,36 @@ fun AudioListComposeble(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
-                                uiState.displayedAudios,
-                                key = { it.audioUrl }) { audio ->
-                                AudioListItem(
-                                    audio = audio,
-                                    onClick = {
-                                        onNavigateToAudioDetail(
-                                            audio.title,
-                                            audio.audioUrl
-                                        )
+                                count = audios.itemCount,
+                                key = audios.itemKey { it.id }
+
+                            ) { audioIndex ->
+                                val audio = audios[audioIndex]
+                                if (audio != null) {
+                                    AudioListItem(
+                                        audio = audio,
+                                        onClick = {
+                                            onNavigateToAudioDetail(
+                                                audio.title,
+                                                audio.id
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+
+                            // Handle loading state for the next page (APPEND)
+                            item {
+                                if (audios.loadState.append is LoadState.Loading) {
+                                    Box(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)) {
+                                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                                     }
-                                )
+                                }
                             }
                         }
                     }
-                }
-
-                is AudioListUiState.Error -> {
-                    Text(
-                        text = stringResource(R.string.error_msg),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
                 }
             }
         }

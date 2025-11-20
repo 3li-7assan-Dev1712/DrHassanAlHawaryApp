@@ -1,10 +1,16 @@
 package com.example.data
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.example.data.mappers.toDomainModel
+import com.example.data.mappers.toEntity
+import com.example.data.util.AudioRemoteMediator
 import com.example.data_firebase.FirebaseAudioSource
-import com.example.data_local.AudioDao
-import com.example.data_local.model.AudioEntity
-import com.example.data_local.model.toDomainModel
+import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
 import com.example.domain.repository.AudiosRepository
@@ -15,11 +21,39 @@ import javax.inject.Inject
 
 class AudiosRepositoryImpl
 @Inject constructor(
-
-
-    private val audioDao: AudioDao,
+    private val appDatabase: AppDatabase,
     private val firebaseAudioSource: FirebaseAudioSource
     ) : AudiosRepository {
+
+
+    private val audioDao = appDatabase.audioDao()
+
+    @OptIn(ExperimentalPagingApi::class)
+    fun getAudiosPagingData(query: String): Flow<PagingData<Audio>> {
+        return Pager(
+            config = PagingConfig(
+                // Set a page size. This is passed to your RemoteMediator's 'state'.
+                pageSize = 1,
+                enablePlaceholders = false
+            ),
+            remoteMediator = AudioRemoteMediator(
+                appDatabase = appDatabase,
+                firebaseAudioSource = firebaseAudioSource
+                // when add search, I will pass the query here
+            ),
+            // The PagingSourceFactory ALWAYS points to the local database (Room).
+            // The RemoteMediator will fill this database for the PagingSource to read.
+            pagingSourceFactory = {
+                audioDao.getAudiosPagingSource(query)
+            }
+        ).flow.map { pagingData ->
+            // The data from the PagingSource is ArticleEntity, so we map it to the domain model
+            pagingData.map { articleEntity ->
+                articleEntity.toDomainModel()
+            }
+        }
+    }
+
 
 
     override fun filterAudios(audios: List<Audio>, query: String): List<Audio> {
@@ -45,10 +79,10 @@ class AudiosRepositoryImpl
         try {
             val networkAudios = firebaseAudioSource.getAllAudiosFromRealTimeDb()
             val audioEntities = networkAudios.map { audio ->
-                AudioEntity(audioUrl = audio.audioUrl, title = audio.title)
+                audio.toEntity()
             }
             Log.d("TAG", "syncAudios: number of audios is: ${audioEntities.size}")
-            audioDao.saveAudios(audioEntities)
+            audioDao.upsertAll(audioEntities)
         } catch (e: Exception) {
             // Handle error (e.g., log it). The UI will still have the old data.
             e.printStackTrace()

@@ -16,6 +16,8 @@ import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.domain.module.Audio
+import com.example.hassanalhawary.core.util.formatDate
+import java.util.Date
 
 
 @Composable
@@ -45,7 +47,7 @@ fun AudioListItem(
                 maxLines = 2
             )
             Text(
-                text = audio.duration,
+                text = formatDate(Date(audio.durationInMillis)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -53,14 +55,6 @@ fun AudioListItem(
     }
 }
 
-// --- Preview ---
-val sampleAudiosForListScreen = listOf(
-    Audio("aud1", "Understanding Surah Al-Baqarah - Part 1", "45:30"),
-    Audio("aud2", "The Seerah: Makkan Period", "1:12:15"),
-    Audio("aud3", "Principles of Islamic Jurisprudence", "58:02"),
-    Audio("aud4", "Tafsir of Juz Amma: An-Nas to An-Naba", "2:30:00"),
-    Audio("aud5", "The Virtues of Charity in Islam", "33:45")
-)
 
 @Preview(showBackground = true)
 @Composable
