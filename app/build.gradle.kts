@@ -94,6 +94,10 @@ dependencies {
     // used in animations
     implementation(libs.androidx.vectordrawable.animated)
 
+    // Paging 3
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+
     // depend on the core-ui library for sharing the ui components
     implementation(project(":core-ui"))
     implementation(project(":domain"))

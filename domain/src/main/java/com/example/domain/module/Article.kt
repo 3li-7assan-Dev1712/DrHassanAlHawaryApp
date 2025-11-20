@@ -12,7 +12,6 @@ data class Article(
 
 
 
-
 // Fake data generation
 fun getFakeArticles(): List<Article> {
     val calendar = Calendar.getInstance()

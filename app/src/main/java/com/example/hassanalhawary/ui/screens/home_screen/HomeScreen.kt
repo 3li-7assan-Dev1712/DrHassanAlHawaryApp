@@ -49,6 +49,7 @@ fun HomeScreen(
 
     val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
 
+
     val context = LocalContext.current
     // Handle one-time network messages
     LaunchedEffect(key1 = Unit) { // Observe the event flow as long as HomeScreen is active

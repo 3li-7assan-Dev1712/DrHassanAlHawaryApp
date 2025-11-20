@@ -4,16 +4,61 @@ import android.util.Log
 import com.example.domain.module.Article
 import com.example.domain.module.ArticlesResult
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.QuerySnapshot
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import javax.inject.Inject
 
 class FirebaseArticlesSource
-    constructor(
+    @Inject constructor(
         private val firestoreDb: FirebaseFirestore
     ){
+
+    suspend fun getArticles(lastDocumentId: String?, limit: Long): Pair<List<Article>, Boolean> {
+        try {
+            // dealy to test the loading
+//            delay(3000L)
+            // Base query to the "articles" collection, ordered by publishDate descending
+            val query = firestoreDb.collection("articles")
+                .orderBy("publishDate", Query.Direction.DESCENDING)
+                .limit(limit)
+
+            // If lastDocumentId is not null, find that document to use it as a cursor
+            val finalQuery = if (lastDocumentId != null) {
+                val lastDocumentSnapshot = firestoreDb.collection("articles").document(lastDocumentId).get().await()
+                query.startAfter(lastDocumentSnapshot)
+            } else {
+                query
+            }
+
+            // Execute the query
+            val snapshot: QuerySnapshot = finalQuery.get().await()
+            val articles = snapshot.map { document ->
+                Article(
+                    id = document.id,
+                    title = document.getString("title") ?: "No Title",
+                    content = document.getString("content") ?: "No Content",
+                    publishDate = document.getDate("publishDate") ?: Date()
+                )
+            }
+
+            // The end of pagination is reached if the number of fetched articles is less than the requested limit.
+            val endOfPaginationReached = articles.size < limit
+            Log.d("FirebaseArticlesSource", "Fetched ${articles.size} articles. End reached: $endOfPaginationReached")
+
+            return Pair(articles, endOfPaginationReached)
+
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error fetching articles: ${e.message}", e)
+            // In case of an error, return an empty list and assume the end is reached to prevent further loads.
+            return Pair(emptyList(), true)
+        }
+    }
+
     suspend fun getArticlesFromFirestore(): ArticlesResult {
         val allArts: MutableList<Article> = mutableListOf()
         firestoreDb.collection("articles").get().addOnSuccessListener { result ->

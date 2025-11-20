@@ -46,10 +46,13 @@ dependencies {
     implementation(project(":data-firebase"))
     implementation(project(":domain"))
 
-
+    implementation(libs.androidx.paging.common)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.firebase.auth)
+
+    // for room ktx
+    implementation(libs.room.ktx)
 
     // Hilt
     implementation(libs.hilt.android)

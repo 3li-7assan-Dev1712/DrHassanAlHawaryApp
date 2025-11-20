@@ -5,11 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.NetworkStatus
 import com.example.domain.use_cases.GetAllAudiosUseCase
-import com.example.domain.use_cases.GetArticlesFromDbUseCase
 import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
-import com.example.domain.use_cases.GetLatestArticlesUseCase
+import com.example.domain.use_cases.GetLatestArticlesFromDbUseCase
 import com.example.domain.use_cases.GetWisdomOfTheDayUseCase
-import com.example.domain.use_cases.SyncArticlesDbWithServerUseCase
 import com.example.domain.use_cases.SyncAudiosUseCase
 import com.example.hassanalhawary.core.util.NetworkMessageEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,13 +26,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    private val getLatestArticlesUseCase: GetLatestArticlesUseCase,
-    private val getArticlesFromDbUseCase: GetArticlesFromDbUseCase,
-    private val sycArticlesDbWithServerUseCase: SyncArticlesDbWithServerUseCase,
+    private val getLatestArticlesFromDbUseCase: GetLatestArticlesFromDbUseCase,
     private val getLatestAudiosUseCase: GetAllAudiosUseCase,
     private val syncAudiosUseCase: SyncAudiosUseCase,
     private val getWisdomOfTheDayUseCase: GetWisdomOfTheDayUseCase,
-    private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase
+    private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase,
 ) : ViewModel() {
 
 
@@ -51,9 +47,9 @@ class HomeScreenViewModel @Inject constructor(
     private var isInitialNetworkStatusProcessed = false
     private var lastKnownNetworkStatus: NetworkStatus? = null // Store the last status processed
 
+
     init {
         loadArticlesFromDb()
-        syncArticles()
         loadLatestAudios()
         syncAudios()
         loadWisdomOfTheDay()
@@ -61,11 +57,6 @@ class HomeScreenViewModel @Inject constructor(
 
     }
 
-    private fun syncArticles() {
-        viewModelScope.launch {
-            sycArticlesDbWithServerUseCase()
-        }
-    }
 
     private fun checkCurrentNetworkStatus() {
 
@@ -120,15 +111,14 @@ class HomeScreenViewModel @Inject constructor(
 
     private fun loadArticlesFromDb() {
         viewModelScope.launch {
-            val arts = getArticlesFromDbUseCase()
-            arts.onEach { artsFromDb ->
+            getLatestArticlesFromDbUseCase().collect { articles ->
                 _homeScreenUiState.update {
                     it.copy(
-                        latestArticles = artsFromDb,
+                        latestArticles = articles,
                         loadingLatestArticles = false
                     )
                 }
-            }.launchIn(viewModelScope)
+            }
         }
     }
 

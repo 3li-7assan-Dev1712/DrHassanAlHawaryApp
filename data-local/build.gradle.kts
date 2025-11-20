@@ -37,6 +37,11 @@ android {
 dependencies {
 
 
+    // paging
+//    implementation(libs.androidx.paging.common.jvm)
+//    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.room.paging)
+
     //room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

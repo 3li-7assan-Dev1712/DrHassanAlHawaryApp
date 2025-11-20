@@ -1,16 +1,23 @@
 package com.example.data
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.example.data.di.ApplicationScope
+import com.example.data.mappers.toDomainModel
+import com.example.data.util.ArticleRemoteMediator
 import com.example.data_firebase.FirebaseArticlesSource
+import com.example.data_local.AppDatabase
 import com.example.data_local.ArticleDao
 import com.example.data_local.model.ArticleEntity
-import com.example.data_local.model.toDomainModel
 import com.example.domain.module.Article
-import com.example.domain.module.ArticlesResult
 import com.example.domain.repository.ArticlesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,20 +26,16 @@ import javax.inject.Inject
 class ArticlesRepositoryImpl
 @Inject constructor(
     private val firebaseArticlesSource: FirebaseArticlesSource,
-    private val articleDao: ArticleDao,
+    private val appDatabase: AppDatabase,
     @ApplicationScope private val externalScope: CoroutineScope
 ) : ArticlesRepository {
 
-
+    private val articleDao: ArticleDao = appDatabase.articleDao()
 
     init {
         externalScope.launch {
             syncArticlesDbWithServer()
         }
-    }
-
-    override suspend fun getArticlesFromServer(): ArticlesResult {
-        return firebaseArticlesSource.getArticlesFromFirestore()
     }
 
 
@@ -61,39 +64,44 @@ class ArticlesRepositoryImpl
         }
     }
 
-//    override suspend fun getLatestArticles(): ArticlesResult {
-//        val latestArticles: MutableList<Article> = mutableListOf()
-//        return try {
-//            val querySnapshot =
-//                firestoreDb.collection("articles").orderBy("publishDate").limit(5).get().await()
-//            for (document in querySnapshot.documents) {
-//                val article = Article(
-//                    id = document.id,
-//                    title = document.getString("title") ?: "",
-//                    content = document.getString("content") ?: "",
-//                    publishDate = document.getDate("publishDate") ?: Date()
-//                )
-//                latestArticles.add(article)
-//            }
-//            if (latestArticles.isNotEmpty()) {
-//                ArticlesResult(latestArticles)
-//            } else {
-//                ArticlesResult(errorMessage = "No articles found")
-//            }
-//
-//
-//        } catch (e: Exception) {
-//            ArticlesResult(errorMessage = e.message)
-//        }
+    override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {
+
+        return articleDao.getLatestArticles().map {
+            it.map { articleEntity ->
+                articleEntity.toDomainModel()
+            }
+        }
+    }
 
 
-//    }
+    override suspend fun getPagingArticlesFromDb(query: String): Flow<List<Article>> {
+        return flowOf()
+    }
 
 
-    override suspend fun getArticlesFromDb(): Flow<List<Article>> {
-        return articleDao.getArticlesFlow().map { entities ->
-            Log.d("ArtReopImpl", "getArticlesFromDb: num is : ${entities.size}")
-            entities.map { it.toDomainModel() }
+    @OptIn(ExperimentalPagingApi::class)
+    fun getArticlesPagingData(query: String): Flow<PagingData<Article>> {
+        return Pager(
+            config = PagingConfig(
+                // Set a page size. This is passed to your RemoteMediator's 'state'.
+                pageSize = 5,
+                enablePlaceholders = false
+            ),
+            remoteMediator = ArticleRemoteMediator(
+                appDatabase = appDatabase,
+                firebaseArticlesSource = firebaseArticlesSource
+                // when add search, I will pass the query here
+            ),
+            // The PagingSourceFactory ALWAYS points to the local database (Room).
+            // The RemoteMediator will fill this database for the PagingSource to read.
+            pagingSourceFactory = {
+                articleDao.getArticlesPagingSource(query)
+            }
+        ).flow.map { pagingData ->
+            // The data from the PagingSource is ArticleEntity, so we map it to the domain model
+            pagingData.map { articleEntity ->
+                articleEntity.toDomainModel()
+            }
         }
     }
 
