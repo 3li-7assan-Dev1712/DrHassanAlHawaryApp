@@ -1,5 +1,6 @@
 package com.example.hassanalhawary.ui.screens.audio_list_sceen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,8 +40,6 @@ fun AudioListScreen(
     modifier: Modifier = Modifier,
     audiosViewModel: AudioListViewModel = hiltViewModel()
 ) {
-
-
 
 
     val audios = audiosViewModel.audios.collectAsLazyPagingItems()
@@ -100,71 +98,64 @@ fun AudioListComposeble(
                 .padding(contentPadding)
                 .fillMaxSize()
         ) {
-            when (val refreshState = audios.loadState.refresh) {
-                is LoadState.Loading -> {
-                    // Full screen loading indicator for initial load
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+
+            val isMediatorRefreshing = audios.loadState.mediator?.refresh is LoadState.Loading
+
+            Log.d("Ali 1712", "AudioListComposeble: val: $isMediatorRefreshing")
+            Log.d("Ali 1712", "Load type: val: ${audios.loadState.refresh}")
+            if (isMediatorRefreshing) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-                is LoadState.Error -> {
-                    // Show a generic error message
-                    Text(
-                        text = stringResource(R.string.error_msg),
-                        modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                is LoadState.NotLoading -> {
-                    if (audios.itemCount == 0) {
-                        // Handle empty list after a successful load
-                        Text(
-                            text = stringResource(R.string.no_audios_available),
-                            modifier = Modifier.align(Alignment.Center),
-                            style = MaterialTheme.typography.bodyLarge
+            }else {
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 8.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(
+                    count = audios.itemCount,
+                    key = audios.itemKey { it.id }
+
+                ) { audioIndex ->
+                    val audio = audios[audioIndex]
+                    if (audio != null) {
+                        AudioListItem(
+                            audio = audio,
+                            onClick = {
+                                onNavigateToAudioDetail(
+                                    audio.title,
+                                    audio.id
+                                )
+                            }
                         )
-                    } else {
-                        // 4. Use the LazyPagingItems in LazyColumn
-                        LazyColumn(
-                            contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
-                                top = 8.dp,
-                                bottom = 8.dp
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                    }
+                }
+
+                // Handle loading state for the next page (APPEND)
+                item {
+                    if (audios.loadState.append is LoadState.Loading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            items(
-                                count = audios.itemCount,
-                                key = audios.itemKey { it.id }
-
-                            ) { audioIndex ->
-                                val audio = audios[audioIndex]
-                                if (audio != null) {
-                                    AudioListItem(
-                                        audio = audio,
-                                        onClick = {
-                                            onNavigateToAudioDetail(
-                                                audio.title,
-                                                audio.id
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-
-                            // Handle loading state for the next page (APPEND)
-                            item {
-                                if (audios.loadState.append is LoadState.Loading) {
-                                    Box(modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp)) {
-                                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                    }
-                                }
-                            }
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                         }
                     }
                 }
             }
+
+
+        }
+
         }
     }
 }

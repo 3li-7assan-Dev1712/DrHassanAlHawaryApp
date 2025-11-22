@@ -18,10 +18,48 @@ class FirebaseArticlesSource
         private val firestoreDb: FirebaseFirestore
     ){
 
+
+
+    /**
+     * Uploads a new article to the "articles" collection in Firestore.
+     * @param article The Article domain model object to be uploaded.
+     */
+    suspend fun uploadArticle(article: Article) {
+        try {
+
+            val newArticleRef = firestoreDb.collection("articles").document()
+            val articleId = newArticleRef.id
+            // Create a map of the data to upload from the Article object
+            val articleData = hashMapOf(
+                "id" to articleId,
+                "title" to article.title,
+                "content" to article.content,
+                "publishDate" to article.publishDate // The Article model already has a Date object
+            )
+
+            // Add a new document with a generated ID to the "articles" collection
+            firestoreDb.collection("articles")
+                .add(articleData)
+                .await() // .await() waits for the operation to complete
+
+            Log.d("FirebaseArticlesSource", "Article uploaded successfully: ${article.title}")
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error uploading article: ${e.message}", e)
+            // Re-throw the exception so the UseCase/ViewModel can catch it and show an error to the user
+            throw e
+        }
+    }
+
+
+
+
+
+
     suspend fun getArticles(lastDocumentId: String?, limit: Long): Pair<List<Article>, Boolean> {
         try {
             // dealy to test the loading
 //            delay(3000L)
+            Log.d("Ali ", "getArticles: network call")
             // Base query to the "articles" collection, ordered by publishDate descending
             val query = firestoreDb.collection("articles")
                 .orderBy("publishDate", Query.Direction.DESCENDING)

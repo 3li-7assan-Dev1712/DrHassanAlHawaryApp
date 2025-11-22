@@ -13,8 +13,7 @@ interface ArticlesRepository {
     suspend fun getArticleById(articleId: String): Flow<Article>
 
     suspend fun getLatestArticlesFromDb(): Flow<List<Article>>
-
-
+    suspend fun uploadArticle(article: Article)
 
 
 }

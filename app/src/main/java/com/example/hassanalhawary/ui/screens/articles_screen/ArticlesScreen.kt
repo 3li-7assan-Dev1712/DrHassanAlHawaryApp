@@ -1,5 +1,6 @@
 package com.example.hassanalhawary.ui.screens.articles_screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,7 +88,7 @@ private fun ArticlesScreenContent(
 
         val isMediatorRefreshing = articles.loadState.mediator?.refresh is LoadState.Loading
 
-
+        Log.d("Ali 1712", "Articles: val: $isMediatorRefreshing" )
         if (isMediatorRefreshing) {
             Box(
                 modifier = Modifier.fillMaxSize(),

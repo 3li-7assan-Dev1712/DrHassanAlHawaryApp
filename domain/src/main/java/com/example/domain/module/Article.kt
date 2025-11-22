@@ -4,7 +4,7 @@ import java.util.Calendar
 import java.util.Date
 
 data class Article(
-    val id: String,
+    val id: String = "",
     val title: String = "",
     val publishDate: Date = Date(),
     val content: String = "",

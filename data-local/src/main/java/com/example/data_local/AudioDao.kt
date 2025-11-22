@@ -30,4 +30,8 @@ interface AudioDao {
     @Query("SELECT * FROM audios WHERE id IN (:serverAudioIds)")
     fun getAudiosByIds(serverAudioIds: List<String>): List<AudioEntity>
 
+
+    @Query("SELECT EXISTS(SELECT 1 FROM audios LIMIT 1)")
+    suspend fun isCacheEmpty(): Boolean
+
 }

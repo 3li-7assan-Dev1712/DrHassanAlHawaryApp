@@ -6,9 +6,16 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+abstract class AppModule {
 
 
+/*
 
+    @Binds
+    @Singleton
+    abstract fun bindArticlesRepository(
+        articlesRepositoryImpl: ArticlesRepositoryImpl
+    ): ArticlesRepository
+*/
 
 }

@@ -20,8 +20,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.ui.control_screen.components.ArticleUploadScreen
 import com.example.admin.ui.control_screen.components.AudioUploadScreen
+import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
 
 @ExperimentalMaterial3Api
 @Composable
@@ -62,7 +62,9 @@ fun ControlScreen(
 
             // Content changes based on the selected tab
             when (selectedTabIndex) {
-                0 -> ArticleUploadScreen()
+                0 -> ArticleUploadScreen {
+
+                }
                 1 -> AudioUploadScreen()
             }
         }

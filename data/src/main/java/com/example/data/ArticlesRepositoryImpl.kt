@@ -38,7 +38,21 @@ class ArticlesRepositoryImpl
         }
     }
 
+    // uploading (admin usage)
 
+    override suspend fun uploadArticle(article: Article) {
+        firebaseArticlesSource.uploadArticle(article)
+    }
+
+
+
+
+
+
+
+
+
+    // fetching (user usage)
     override suspend fun getArticleById(articleId: String): Flow<Article> {
 
 

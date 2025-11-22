@@ -21,7 +21,6 @@ class FirebaseAudioSource @Inject constructor(
 
     /**
      * Fetches a single page of audios for pagination.
-     *
      * @param startAfterKey The key of the last item from the previous page. If null, fetches the first page.
      * @param limit The maximum number of items to fetch for the page.
      * @return A list of Audio domain models for the requested page.
@@ -30,6 +29,7 @@ class FirebaseAudioSource @Inject constructor(
         // Start building the query, ordering by key is essential for stable pagination.
         val query = audiosRef.orderByKey()
 
+        Log.d(TAG, "fetchAudioPage: called from firebase")
         val finalQuery = if (startAfterKey == null) {
             // This is the first page load (or a refresh).
             // Fetch the first `limit` items.

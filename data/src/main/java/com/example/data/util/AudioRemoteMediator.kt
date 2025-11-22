@@ -1,5 +1,6 @@
 package com.example.data.util
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -16,15 +17,19 @@ import javax.inject.Inject
 
 class AudioRemoteMediator @Inject  constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseAudioSource: FirebaseAudioSource
+    private val firebaseAudioSource: FirebaseAudioSource,
 ): RemoteMediator<Int, AudioEntity>() {
 
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, AudioEntity>
     ): MediatorResult {
+        Log.d("Ali 1712", "load: load type: $loadType")
         return try {
-            // 1. Determine the key of the last item to start fetching from.
+
+
+
+            //  Determine the key of the last item to start fetching from.
             val lastItemKey = when (loadType) {
                 LoadType.REFRESH -> {
                     // For a refresh, we start from the beginning. No key needed.
@@ -43,12 +48,13 @@ class AudioRemoteMediator @Inject  constructor(
                 }
             }
 
-            // 2. Fetch a page of audios from Firebase Realtime Database.
+
+            //  Fetch a page of audios from Firebase Realtime Database.
             val audiosFromServer = firebaseAudioSource.fetchAudioPage(
                 startAfterKey = lastItemKey,
                 limit = state.config.pageSize
             )
-            // 3. The critical "Read-Merge-Write" transaction to preserve user data.
+            // The critical "Read-Merge-Write" transaction to preserve user data.
             appDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {
                     // On refresh, clear previous data.
@@ -87,14 +93,16 @@ class AudioRemoteMediator @Inject  constructor(
                 appDatabase.audioDao().upsertAll(mergedEntities)
             }
 
-            // 4. Return the result. The end of pagination is reached if the fetch returned fewer items than requested.
+            // Return the result. The end of pagination is reached if the fetch returned fewer items than requested.
             MediatorResult.Success(
                 endOfPaginationReached = audiosFromServer.size < state.config.pageSize
             )
 
         } catch (e: IOException) {
+            Log.d("TAG", "load: Ali 1712 ${e.message}")
             MediatorResult.Error(e)
         } catch (e: Exception) {
+            Log.d("TAG", "load: Ali 1712 ${e.message}")
             // Catches other exceptions, including potential Firebase errors.
             MediatorResult.Error(e)
         }
