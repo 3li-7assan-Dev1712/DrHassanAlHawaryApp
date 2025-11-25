@@ -14,6 +14,7 @@ import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
 import com.example.domain.repository.AudiosRepository
+import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -33,7 +34,7 @@ class AudiosRepositoryImpl
         return Pager(
             config = PagingConfig(
                 // Set a page size. This is passed to your RemoteMediator's 'state'.
-                pageSize = 1,
+                pageSize = 10 ,
                 enablePlaceholders = false
             ),
             remoteMediator = AudioRemoteMediator(
@@ -93,6 +94,20 @@ class AudiosRepositoryImpl
     override suspend fun getAudiosFromServer(): AudiosResult {
         return AudiosResult(emptyList())
     }
+
+    override suspend fun uploadAudio(
+        title: String,
+        uriString: String,
+        durationInMillis: Long
+    ): Flow<UploadResult> {
+
+
+        return firebaseAudioSource.uploadAudio(title, uriString, durationInMillis)
+
+
+
+    }
+
 
     /*override suspend fun syncAudios() {
         try {

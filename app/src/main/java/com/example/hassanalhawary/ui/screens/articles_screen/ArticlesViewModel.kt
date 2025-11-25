@@ -24,8 +24,10 @@ import javax.inject.Inject
 @HiltViewModel
 class ArticlesViewModel @Inject constructor(
     private val getAllArticlesFromDbUseCase: GetArticlesFromDbUseCase,
+
     articlesRepository: ArticlesRepositoryImpl
 ) : ViewModel() {
+
 
 
     private val _rawSearchInput = MutableStateFlow("")

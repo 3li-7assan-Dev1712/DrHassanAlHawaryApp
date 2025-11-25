@@ -29,9 +29,13 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseAudioSource(database: FirebaseDatabase): FirebaseAudioSource {
+    fun provideFirebaseAudioSource(
+        database: FirebaseDatabase,
+        storage: FirebaseStorage,
+        @ApplicationContext context: Context
+    ): FirebaseAudioSource {
         // Hilt provides the FirebaseDatabase instance from the function above
-        return FirebaseAudioSource(database)
+        return FirebaseAudioSource(realTimeDb = database, storage = storage, context)
     }
 
     @Singleton
@@ -48,8 +52,7 @@ object FirebaseModule {
 
     @Singleton
     @Provides
-    fun provideFirebaseArticlesSource(firestore: FirebaseFirestore): FirebaseArticlesSource
-    {
+    fun provideFirebaseArticlesSource(firestore: FirebaseFirestore): FirebaseArticlesSource {
         return FirebaseArticlesSource(firestore)
     }
 

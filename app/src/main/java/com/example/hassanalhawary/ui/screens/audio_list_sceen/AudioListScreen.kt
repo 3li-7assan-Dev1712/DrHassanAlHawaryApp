@@ -132,7 +132,7 @@ fun AudioListComposeble(
                             onClick = {
                                 onNavigateToAudioDetail(
                                     audio.title,
-                                    audio.id
+                                    audio.audioUrl
                                 )
                             }
                         )

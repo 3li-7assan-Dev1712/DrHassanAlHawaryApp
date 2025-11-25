@@ -44,6 +44,7 @@ class AudioDetailViewModel @Inject constructor(
 
 
     init {
+        Log.d("Ali 1712", "audio url is $audioUrl: ")
         if (audioUrl.isNotBlank()) {
             _uiState.update { it.copy(audioUrl = audioUrl) }
             initializePlayer(audioUrl)
