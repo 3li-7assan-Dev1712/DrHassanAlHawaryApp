@@ -1,5 +1,7 @@
 package com.example.hassanalhawary.ui.screens.audio_detail_screen
 
+import android.content.ComponentName
+import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -42,7 +44,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +54,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,8 +64,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.util.formatDuration
+import com.example.hassanalhawary.player.PlaybackService
+import com.google.common.util.concurrent.ListenableFuture
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +81,27 @@ fun AudioDetailRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 
+    val context = LocalContext.current
+    val sessionToken = remember {
+        SessionToken(context, ComponentName(context, PlaybackService::class.java))
+    }
+
+    val controllerFuture: ListenableFuture<MediaController> = remember {
+        MediaController.Builder(context, sessionToken).buildAsync()
+    }
+
+    LaunchedEffect(controllerFuture) {
+        viewModel.mediaControllerFuture = controllerFuture
+    }
+
+    LaunchedEffect(Unit) {
+        val serviceIntent = Intent(context, PlaybackService::class.java)
+        context.startService(serviceIntent)
+
+        /*onDepose {
+             context.stopService(serviceIntent)
+        }*/
+    }
 
     AudioDetailScreen(
         uiState = uiState,
@@ -104,6 +134,10 @@ fun AudioDetailScreen(
     onDownload: () -> Unit,
     onShare: () -> Unit
 ) {
+
+
+
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(

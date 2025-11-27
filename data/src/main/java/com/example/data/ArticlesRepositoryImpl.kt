@@ -38,7 +38,7 @@ class ArticlesRepositoryImpl
         }
     }
 
-    // uploading (admin usage)
+    
 
     override suspend fun uploadArticle(article: Article) {
         firebaseArticlesSource.uploadArticle(article)

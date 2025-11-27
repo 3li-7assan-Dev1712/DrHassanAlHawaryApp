@@ -6,10 +6,13 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.example.hassanalhawary.domain.model.AudioPlayerController
+import androidx.media3.session.MediaController
+import com.example.hassanalhawary.player.AudioPlayerController
+import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -17,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,6 +46,14 @@ class AudioDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AudioDetailUiState())
     val uiState = _uiState.asStateFlow()
 
+    var mediaControllerFuture: ListenableFuture<MediaController>? = null
+        set(value) {
+            field = value
+            value?.let { listenToController(it) } // Keep this to get updates
+        }
+
+
+    // You will get this from the UI
 
     init {
         Log.d("Ali 1712", "audio url is $audioUrl: ")
@@ -168,18 +180,38 @@ class AudioDetailViewModel @Inject constructor(
 
     // --- Player Event Handlers ---
     fun onPlayPauseToggle() {
-//         audioPlayerController.playPause()
-        _player?.let {
-            if (it.isPlaying) {
-                it.pause()
-            } else {
-                if (it.playbackState == Player.STATE_ENDED) {
-                    it.seekTo(0) // Restart if ended
-                }
-                it.play()
+        viewModelScope.launch {
+            val controller = mediaControllerFuture?.await() ?: return@launch
+
+            // Logic 1: If it's already playing, just pause it.
+            if (controller.isPlaying) {
+                controller.pause()
+                return@launch
             }
+
+            // Logic 2: If it's paused, just resume playing.
+            // We check the media item to see if it's already loaded.
+            if (controller.currentMediaItem != null) {
+                controller.play()
+                return@launch
+            }
+
+            // Logic 3: If nothing is loaded (first play), prepare and play.
+            // This happens only the very first time you press the play button.
+            val metadata = MediaMetadata.Builder()
+                .setTitle(audioTitle)
+                // You can add more metadata like artist, artwork URI, etc.
+                .build()
+
+            val mediaItem = MediaItem.Builder()
+                .setUri(audioUrl)
+                .setMediaMetadata(metadata)
+                .build()
+
+            controller.setMediaItem(mediaItem)
+            controller.prepare()
+            controller.play()
         }
-        _uiState.update { it.copy(isPlaying = !it.isPlaying) } // Simplified
     }
 
     fun onSeek(positionFraction: Float) {
@@ -225,7 +257,7 @@ class AudioDetailViewModel @Inject constructor(
         // Handle download logic
     }
 
-    //     --- Observe Player State (Example) ---
+
     private fun observePlayerState() {
         viewModelScope.launch {
             audioPlayerController.playerStateFlow.collect { playerState ->
@@ -243,8 +275,68 @@ class AudioDetailViewModel @Inject constructor(
         }
     }
 
+
+    fun playAudio() {
+        viewModelScope.launch {
+
+            val controller = mediaControllerFuture?.await() ?: return@launch
+
+            // Create a MediaItem and send it to the service
+            val mediaItem = MediaItem.fromUri(audioUrl)
+            controller.setMediaItem(mediaItem)
+            controller.prepare()
+            controller.play()
+        }
+    }
+
+    fun pauseAudio() {
+        viewModelScope.launch {
+            mediaControllerFuture?.await()?.pause()
+        }
+    }
+
+    private fun listenToController(controllerFuture: ListenableFuture<MediaController>) {
+        viewModelScope.launch {
+            val controller = controllerFuture.await()
+            controller.addListener(object : Player.Listener {
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    _uiState.update { it.copy(isPlaying = isPlaying) }
+                }
+
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    _uiState.update {
+                        it.copy(
+                            isBuffering = playbackState == Player.STATE_BUFFERING,
+                            isPlaybackEnded = playbackState == Player.STATE_ENDED
+                        )
+                    }
+                    if (playbackState == Player.STATE_READY) {
+                        _uiState.update { it.copy(totalDurationMillis = controller.duration) }
+                    }
+                }
+            })
+
+            // Progress updater
+            launch {
+                while (isActive) {
+                    _uiState.update {
+                        it.copy(
+                            currentPositionMillis = controller.currentPosition,
+                        )
+                    }
+                    delay(300)
+                }
+            }
+        }
+    }
+
+
+
     override fun onCleared() {
         audioPlayerController.release()
+        mediaControllerFuture?.let {
+            MediaController.releaseFuture(it)
+        }
         super.onCleared()
     }
 }

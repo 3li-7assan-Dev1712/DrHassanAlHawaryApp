@@ -1,7 +1,11 @@
-package com.example.hassanalhawary.domain.model
+package com.example.hassanalhawary.player
 
 import android.content.Context
+import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.DEFAULT_MEDIA_ID
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +41,7 @@ class AudioPlayerController @Inject constructor(
     private fun initializePlayer() {
         if (player == null) {
             player = ExoPlayer.Builder(context).build().apply {
-                addListener(object : androidx.media3.common.Player.Listener {
+                addListener(object : Player.Listener {
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
                         _playerStateFlow.update { it.copy(isPlaying = isPlaying) }
                         if (isPlaying) {
@@ -50,22 +54,22 @@ class AudioPlayerController @Inject constructor(
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         _playerStateFlow.update {
                             it.copy(
-                                isBuffering = playbackState == androidx.media3.common.Player.STATE_BUFFERING,
+                                isBuffering = playbackState == Player.STATE_BUFFERING,
                                 // Update duration when ready or media item changes
                                 totalDuration = if (duration > 0) duration else it.totalDuration
                             )
                         }
-                        if (playbackState == androidx.media3.common.Player.STATE_READY && _playerStateFlow.value.totalDuration == 0L && duration > 0) {
+                        if (playbackState == Player.STATE_READY && _playerStateFlow.value.totalDuration == 0L && duration > 0) {
                             _playerStateFlow.update { it.copy(totalDuration = duration) }
                         }
-                        if (playbackState == androidx.media3.common.Player.STATE_ENDED) {
+                        if (playbackState == Player.STATE_ENDED) {
                             // Handle playback completion
                             _playerStateFlow.update { it.copy(currentPosition = 0L) } // Reset position
 
                         }
                     }
 
-                    override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    override fun onPlayerError(error: PlaybackException) {
                         _playerStateFlow.update {
                             it.copy(
                                 error = error.message ?: "Unknown player error"
@@ -74,7 +78,7 @@ class AudioPlayerController @Inject constructor(
                     }
 
                     override fun onMediaItemTransition(
-                        mediaItem: androidx.media3.common.MediaItem?,
+                        mediaItem: MediaItem?,
                         reason: Int
                     ) {
                         super.onMediaItemTransition(mediaItem, reason)
@@ -89,7 +93,7 @@ class AudioPlayerController @Inject constructor(
                         }
                     }
 
-                    override fun onPlaybackParametersChanged(playbackParameters: androidx.media3.common.PlaybackParameters) {
+                    override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
                         _playerStateFlow.update { it.copy(currentSpeed = playbackParameters.speed) }
                     }
                 })
@@ -100,7 +104,7 @@ class AudioPlayerController @Inject constructor(
     fun prepareAndPlay(audioUrl: String, mediaId: String = DEFAULT_MEDIA_ID) {
         if (player == null) initializePlayer()
         player?.let { exoPlayer ->
-            val mediaItem = androidx.media3.common.MediaItem.Builder()
+            val mediaItem = MediaItem.Builder()
                 .setUri(audioUrl)
                 .setMediaId(mediaId)
                 .build()
@@ -116,7 +120,7 @@ class AudioPlayerController @Inject constructor(
             if (it.isPlaying) {
                 it.pause()
             } else {
-                if (it.playbackState == androidx.media3.common.Player.STATE_ENDED) { // Re-play if ended
+                if (it.playbackState == Player.STATE_ENDED) { // Re-play if ended
                     it.seekTo(0)
                     it.playWhenReady = true
                 } else {
@@ -149,7 +153,7 @@ class AudioPlayerController @Inject constructor(
     fun setPlaybackSpeed(speed: Float) {
         player?.let {
             val currentPitch = it.playbackParameters.pitch
-            it.setPlaybackParameters(androidx.media3.common.PlaybackParameters(speed, currentPitch))
+            it.setPlaybackParameters(PlaybackParameters(speed, currentPitch))
         }
     }
 

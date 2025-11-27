@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.domain.model
+package com.example.hassanalhawary.player
 
 // Data class to represent the player's state
 data class PlayerState(

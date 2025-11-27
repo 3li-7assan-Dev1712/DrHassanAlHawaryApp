@@ -98,6 +98,10 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
+    // guava
+    implementation(libs.kotlinx.coroutines.guava)
+
+
     // depend on the core-ui library for sharing the ui components
     implementation(project(":core-ui"))
     implementation(project(":domain"))
