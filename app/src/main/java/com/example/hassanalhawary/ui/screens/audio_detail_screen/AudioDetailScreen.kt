@@ -2,6 +2,7 @@ package com.example.hassanalhawary.ui.screens.audio_detail_screen
 
 import android.content.ComponentName
 import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -92,13 +93,14 @@ fun AudioDetailRoute(
 
     LaunchedEffect(controllerFuture) {
         viewModel.mediaControllerFuture = controllerFuture
+        Log.d("TAG", "AudioDetailRoute: created media controller and start listener")
     }
 
     LaunchedEffect(Unit) {
         val serviceIntent = Intent(context, PlaybackService::class.java)
         context.startService(serviceIntent)
-
-        /*onDepose {
+        Log.d("TAG", "AudioDetailRoute: Start intent")
+       /* onDepose {
              context.stopService(serviceIntent)
         }*/
     }

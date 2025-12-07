@@ -2,6 +2,7 @@ package com.example.hassanalhawary.player
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -20,10 +21,10 @@ import com.example.hassanalhawary.R
 class PlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
 
-    // The service is being created.
     @OptIn(UnstableApi::class)
     override fun onCreate() {
-        super.onCreate()
+
+        Log.d("TAG", "onCreate: created in service")
 
 
         val player = ExoPlayer.Builder(this)
@@ -49,9 +50,9 @@ class PlaybackService : MediaSessionService() {
         val notificationProvider = DefaultMediaNotificationProvider(this)
         notificationProvider.setSmallIcon(R.drawable.dr_hassan_photo)
         setMediaNotificationProvider(notificationProvider)
+        super.onCreate()
     }
 
-    // Return the MediaSession to link with controllers (like your UI).
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
         return mediaSession
     }
