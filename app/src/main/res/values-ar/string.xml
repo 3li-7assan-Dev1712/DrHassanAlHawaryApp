@@ -19,6 +19,7 @@
     <string name="favorite_lectures">المحاضـــرات المفضلـــة</string>
     <string name="questions">الإسئلــــة</string>
     <string name="videos">الفيديوهــــات</string>
+    <string name="audios">الصـــوتيات</string>
     <string name="lectures">المحاضــــرات</string>
     <string name="summary">ملخــــص</string>
     <string name="main_screen">الشاشـــة الرئيــــسة</string>
@@ -35,11 +36,13 @@
     <string name="error_msg">حـــدث خــــطأ</string>
 
 
-    <string name="student_zone">منطـــقة الطـــــالب</string>">
-    <string name="latest_articles">أحـــدث المــــقالات</string>
-    <string name="latest_audios">أحـــدث الصــــوتيات</string>
+    <string name="student_zone">منطقة الطالب</string>">
+    <string name="latest_articles">آخــر المــــقالات</string>
+    <string name="latest_audios">آخــر الصــــوتيات</string>
 
     <string name="wisdom_of_the_day">رسالــــة اليـــــوم</string>
-
-
+    <string name="khotab_aljumah">خــطب الجـــمعة</string>
+    <string name="war">نـــوازل الحـــرب</string>
+    <string name="most_important">أهـــم المســـائل</string>
+    <string name="lessons">الــمـحـــتويات</string>
 </resources>

@@ -28,7 +28,6 @@ class AudioRemoteMediator @Inject  constructor(
         return try {
 
 
-
             //  Determine the key of the last item to start fetching from.
             val lastItemKey = when (loadType) {
                 LoadType.REFRESH -> {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,7 +34,9 @@ import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.util.NetworkMessageEvent
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
+import com.example.hassanalhawary.ui.screens.home_screen.components.Category
 import com.example.hassanalhawary.ui.screens.home_screen.components.LatestArticleAudioLazyRow
+import com.example.hassanalhawary.ui.screens.home_screen.components.LessonsByCategory
 import com.example.hassanalhawary.ui.screens.home_screen.components.WisdomOfTheDay
 
 
@@ -86,6 +89,15 @@ fun HomeScreen(
 
         Column(modifier = Modifier.padding(contentPadding)) {
 
+            val mockCategories = listOf(
+                Category("1", stringResource(R.string.articles), R.drawable.articles_icon),
+                Category("2", stringResource(R.string.audios),  R.drawable.audios_icon),
+                Category("3", stringResource(R.string.videos),  R.drawable.videos_icon),
+                Category("4", stringResource(R.string.khotab_aljumah),  R.drawable.jummah_icon),
+                Category("5", stringResource(R.string.war),  R.drawable.war_icon),
+                Category("6", stringResource(R.string.most_important),  R.drawable.most_important_icon)
+
+            )
             // check the network connectivity
             when (homeScreenUiState.wotdResult) {
                 is WisdomResult.Failure -> {
@@ -101,60 +113,74 @@ fun HomeScreen(
                 }
 
                 is WisdomResult.Success -> {
-                    WisdomOfTheDay(
-                        wisdom = (homeScreenUiState.wotdResult as WisdomResult.Success).value.wisdomText,
-                        isLoadings = homeScreenUiState.loadingWotd
-                    )
-                    LatestArticleAudioLazyRow(
-                        title = stringResource(R.string.latest_articles),
-                        showLoading = homeScreenUiState.loadingLatestArticles,
-                        items = homeScreenUiState.latestArticles,
-                        itemKey = { article -> article.id }, // Provide a key
-                        itemContent = { article ->
-                            ArticleCard(
-                                article = article,
-                                onClick = { articleId ->
-                                    onNavigateToDetailArticle(articleId)
+                    LazyColumn {
+                        item {
+
+                            WisdomOfTheDay(
+                                wisdom = (homeScreenUiState.wotdResult as WisdomResult.Success).value.wisdomText,
+                                isLoadings = homeScreenUiState.loadingWotd
+                            )
+                        }
+                        item {
+
+                            LessonsByCategory(mockCategories) { }
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            LatestArticleAudioLazyRow(
+                                title = stringResource(R.string.latest_articles),
+                                showLoading = homeScreenUiState.loadingLatestArticles,
+                                items = homeScreenUiState.latestArticles,
+                                itemKey = { article -> article.id }, // Provide a key
+                                itemContent = { article ->
+                                    ArticleCard(
+                                        article = article,
+                                        onClick = { articleId ->
+                                            onNavigateToDetailArticle(articleId)
+                                        }
+                                    )
                                 }
                             )
                         }
-                    )
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp)) // Space between sections
 
-                    Spacer(modifier = Modifier.height(16.dp)) // Space between sections
+                            // Latest Audios Section
+                            if (homeScreenUiState.audioErrorMessage != null) {
+                                Text(
+                                    text = homeScreenUiState.audioErrorMessage!!,
+                                    color = MaterialTheme.colorScheme.error
+                                )
 
-                    // Latest Audios Section
-                    if (homeScreenUiState.audioErrorMessage != null) {
-                        Text(
-                            text = homeScreenUiState.audioErrorMessage!!,
-                            color = MaterialTheme.colorScheme.error
-                        )
+                            } else {
 
-                    } else {
-
-                        LatestArticleAudioLazyRow(
-                            itemSpacing = 8.dp,
-                            contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
-                            title = stringResource(R.string.latest_audios),
-                            showLoading = homeScreenUiState.loadingLatestAudios,
-                            items = homeScreenUiState.latestAudios,
-                            itemKey = { audio -> audio.audioUrl }, // Provide a key
-                            itemContent = { audio ->
-                                AudioCard(
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .width(180.dp)
-                                        .height(120.dp),
-                                    audio = audio,
-                                    onClick = {
-                                        onNavigateToDetailAudio(
-                                            audio.title,
-                                            audio.audioUrl
+                                LatestArticleAudioLazyRow(
+                                    itemSpacing = 8.dp,
+                                    contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
+                                    title = stringResource(R.string.latest_audios),
+                                    showLoading = homeScreenUiState.loadingLatestAudios,
+                                    items = homeScreenUiState.latestAudios,
+                                    itemKey = { audio -> audio.audioUrl }, // Provide a key
+                                    itemContent = { audio ->
+                                        AudioCard(
+                                            modifier = Modifier
+                                                .padding(4.dp)
+                                                .width(180.dp)
+                                                .height(120.dp),
+                                            audio = audio,
+                                            onClick = {
+                                                onNavigateToDetailAudio(
+                                                    audio.title,
+                                                    audio.audioUrl
+                                                )
+                                            }
                                         )
                                     }
                                 )
                             }
-                        )
+                        }
                     }
+
                 }
             }
 
