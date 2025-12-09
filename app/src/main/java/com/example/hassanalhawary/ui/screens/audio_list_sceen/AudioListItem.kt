@@ -27,6 +27,9 @@ fun AudioListItem(
     modifier: Modifier = Modifier
 ) {
     Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
@@ -59,9 +62,11 @@ fun AudioListItem(
 @Preview(showBackground = true)
 @Composable
 fun AudioListScreenPreview() {
-    MaterialTheme { // Wrap with your app's theme or MaterialTheme for preview
+    MaterialTheme {
         AudioListScreen(
-            onNavigateToAudioDetail = { title, audioId -> println("Navigate to detail for audio ID: $audioId") }
+            onNavigateToAudioDetail = { title, audioId -> println("Navigate to detail for audio ID: $audioId")
+            },
+            onNavigateBack = {}
 
         )
     }
@@ -72,7 +77,8 @@ fun AudioListScreenPreview() {
 fun AudioListScreenEmptyPreview() {
     MaterialTheme {
         AudioListScreen(
-            onNavigateToAudioDetail = { title, audioUrl -> }
+            onNavigateToAudioDetail = { title, audioUrl -> },
+            onNavigateBack = {}
         )
     }
 }

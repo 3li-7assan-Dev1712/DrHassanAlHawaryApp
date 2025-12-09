@@ -30,6 +30,7 @@ import com.example.domain.module.WisdomResult
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.core.util.NetworkMessageEvent
 import com.example.hassanalhawary.ui.components.TopAppBar
+import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.Category
@@ -45,6 +46,7 @@ fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
     onNavigateToDetailArticle: (articleId: String) -> Unit = {},
     onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit = { _, _ -> },
+    onCategoryClick: (route: String) -> Unit = {}
 ) {
 
 
@@ -84,15 +86,15 @@ fun HomeScreen(
 
         Column(modifier = Modifier.padding(contentPadding)) {
 
-            val mockCategories = listOf(
-                Category("1", stringResource(R.string.articles), R.drawable.articles_icon),
-                Category("2", stringResource(R.string.audios),  R.drawable.audios_icon),
-                Category("3", stringResource(R.string.videos),  R.drawable.videos_icon),
-                Category("4", stringResource(R.string.khotab_aljumah),  R.drawable.jummah_icon),
-                Category("5", stringResource(R.string.war),  R.drawable.war_icon),
-                Category("6", stringResource(R.string.most_important),  R.drawable.most_important_icon)
-
+            val categories = listOf(
+                Category(Routes.ARTICLES_SCREEN, stringResource(R.string.articles), R.drawable.articles_icon),
+                Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), R.drawable.audios_icon),
+                Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), R.drawable.videos_icon),
+                Category(Routes.KHOTAB_SCREEN, stringResource(R.string.khotab_aljumah), R.drawable.jummah_icon),
+                Category(Routes.WAR_QUESTIONS_SCREEN, stringResource(R.string.war), R.drawable.war_icon),
+                Category(Routes.IMPORTANT_QUESTIONS_SCREEN, stringResource(R.string.most_important), R.drawable.most_important_icon)
             )
+
             // check the network connectivity
             when (homeScreenUiState.wotdResult) {
                 is WisdomResult.Failure -> {
@@ -115,8 +117,8 @@ fun HomeScreen(
                         }
                         item {
 
-                            LessonsByCategory(mockCategories) {
-
+                            LessonsByCategory(categories) { route ->
+                                onCategoryClick(route)
                             }
                         }
                         item {

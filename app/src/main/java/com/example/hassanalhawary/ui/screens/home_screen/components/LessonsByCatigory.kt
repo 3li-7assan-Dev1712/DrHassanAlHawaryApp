@@ -25,25 +25,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.hassanalhawary.R
+import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 
 
 data class Category(
-    val id: String,
+    val route: String,
     val name: String,
     val iconRes: Int
 )
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryCard(
     category: Category,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: (String) -> Unit
 ) {
     Card(
-        onClick = onClick,
-        modifier = modifier.aspectRatio(1f), // Makes the card a perfect square
+        onClick = { onClick(category.route) },
+        modifier = modifier.aspectRatio(1f),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
@@ -103,7 +106,7 @@ fun LessonsByCategory(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         category = category,
-                        onClick = { onCategoryClick(category.id) }
+                        onClick = { onCategoryClick(category.route) }
                     )
                 }
             }
@@ -116,7 +119,7 @@ fun LessonsByCategory(
                     CategoryCard(
                         modifier = Modifier.weight(1f),
                         category = category,
-                        onClick = { onCategoryClick(category.id) }
+                        onClick = { onCategoryClick(category.route) }
                     )
                 }
             }
@@ -129,13 +132,12 @@ fun LessonsByCategory(
 fun LessonsByCategoryShelfPreview() {
     // Create mock data for the preview
     val mockCategories = listOf(
-        Category("1", stringResource(R.string.articles), R.drawable.articles_icon),
-        Category("2", stringResource(R.string.audios), R.drawable.audios_icon),
-        Category("3", stringResource(R.string.videos), R.drawable.videos_icon),
-        Category("4", stringResource(R.string.khotab_aljumah), R.drawable.jummah_icon),
-        Category("5", stringResource(R.string.war), R.drawable.war_icon),
-        Category("6", stringResource(R.string.most_important), R.drawable.most_important_icon)
-
+        Category(Routes.ARTICLES_SCREEN, stringResource(R.string.articles), R.drawable.articles_icon),
+        Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), R.drawable.audios_icon),
+        Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), R.drawable.videos_icon),
+        Category(Routes.KHOTAB_SCREEN, stringResource(R.string.khotab_aljumah), R.drawable.jummah_icon),
+        Category(Routes.WAR_QUESTIONS_SCREEN, stringResource(R.string.war), R.drawable.war_icon),
+        Category(Routes.IMPORTANT_QUESTIONS_SCREEN, stringResource(R.string.most_important), R.drawable.most_important_icon)
     )
 
     HassanAlHawaryTheme {

@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
+import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListScreen
@@ -105,13 +106,14 @@ fun MainAppContent(
     val routesWithoutBottomNav = remember {
         setOf(
             "detail_article_screen/{articleId}",
-            "audio_detail_screen/{title}/{audioId}", // this is the audio url that will be used for playing the audio
+            "audio_detail_screen/{title}/{audioId}",
             "ask_question_screen",
-            "splash_screen"
+            "splash_screen",
+            Routes.ARTICLES_SCREEN,
+            Routes.AUDIO_LIST_SCREEN
         )
     }
 
-    // More robust check for pattern routes like "audio_detail_screen/{audioId}"
     val shouldShowBottomNav = remember(currentRoute) {
         derivedStateOf {
             currentRoute != null && routesWithoutBottomNav.none { routePattern ->
@@ -169,6 +171,9 @@ fun MainAppContent(
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     },
+                    onCategoryClick = { route ->
+                        navController.navigate(route)
+                    }
 
 
                     )
@@ -183,9 +188,14 @@ fun MainAppContent(
 
             composable("articles_screen") {
 
-                ArticlesScreen { articleId ->
-                    navController.navigate("detail_article_screen/$articleId")
-                }
+                ArticlesScreen(
+                    onNavigateToArticleDetail = { articleId ->
+                        navController.navigate("detail_article_screen/$articleId")
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
             composable("detail_article_screen/{articleId}") {
                 DetailArticleScreen {
@@ -197,6 +207,9 @@ fun MainAppContent(
                     onNavigateToAudioDetail = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                    },
+                    onNavigateBack = {
+                        navController.popBackStack()
                     }
                 )
             }
@@ -258,6 +271,7 @@ fun AuthNavHost(
                     navController.clearBackStack("login_screen")
                 },
                 onSuccessfulLogin = {
+                    navController.navigate("home_screen")
                     // go to home screen
                     /*Toast.makeText(
                         ,
@@ -274,6 +288,7 @@ fun AuthNavHost(
                     navController.popBackStack()
                 },
                 onSuccessfulRegister = {
+                    navController.navigate("home_screen")
                     // go to home screen
                     /*  Toast.makeText(
                           applicationContext,
