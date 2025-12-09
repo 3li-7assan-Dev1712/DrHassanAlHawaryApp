@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +34,8 @@ import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticle
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
+import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
+import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -129,6 +132,7 @@ fun MainAppContent(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         bottomBar = {
             if (shouldShowBottomNav) {
                 BottomNavigationBar(
@@ -173,6 +177,7 @@ fun MainAppContent(
             }
             composable("search_screen") {
 
+                SearchScreen()
             }
             composable("profile_screen") {
 
@@ -216,7 +221,7 @@ fun MainAppContent(
             }
 
             composable("study_zone_screen") {
-
+                StudyZoneScreen()
             }
 
 

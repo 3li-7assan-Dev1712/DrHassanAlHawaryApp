@@ -41,14 +41,17 @@ fun AudioCard(
         onClick = onClick,
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
-            verticalArrangement = Arrangement.Center, // Center content vertically
-            horizontalAlignment = Alignment.CenterHorizontally // Center content horizontally
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
@@ -67,7 +70,7 @@ fun AudioCard(
             )
             Text(
                 text = formatDate(
-                    Date(audio.durationInMillis)
+                    audio.publishDate
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -83,12 +86,12 @@ fun PreviewAudioCard() {
         Audio(
             "aud1",
             "Understanding the Essence of Patience in Islam",
-            durationInMillis = 1343403943,
-            audioUrl = "45:22",
-            publishDate = Date(320932),
+            durationInMillis = 2722000, // Example: 45 minutes 22 seconds
+            audioUrl = "https://example.com/audio.mp3",
+            publishDate = Date(), // Use current date for preview
             isFavorite = false,
             isDownloaded = false,
-            lastPlayedTimestamp = 132954843,
+            lastPlayedTimestamp = 0,
             isPlaying = false,
             localFilePath = null,
         )
@@ -97,7 +100,7 @@ fun PreviewAudioCard() {
             modifier = Modifier
                 .padding(16.dp)
                 .width(180.dp)
-                .height(120.dp)
+                .height(160.dp) // Adjusted height for better preview
         ) {
             AudioCard(audio = sampleAudio, onClick = {})
         }

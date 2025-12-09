@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,8 +19,9 @@ import androidx.compose.ui.unit.dp
 import com.example.domain.module.Article
 import com.example.hassanalhawary.ui.theme.CairoTypography
 
+
 @Composable
-fun ArticleCard( // This remains largely the same
+fun ArticleCard(
     article: Article,
     onClick: (articleId: String) -> Unit,
     modifier: Modifier = Modifier
@@ -28,12 +30,17 @@ fun ArticleCard( // This remains largely the same
         onClick = { onClick(article.id) },
         modifier = modifier
             .width(280.dp)
-            .height(200.dp)
+            .height(200.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 4.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-
         Column(
             modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -44,15 +51,14 @@ fun ArticleCard( // This remains largely the same
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = article.content,
                 style = CairoTypography.bodySmall,
-                maxLines = 6,
+                maxLines = 5,
                 overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-
     }
 }

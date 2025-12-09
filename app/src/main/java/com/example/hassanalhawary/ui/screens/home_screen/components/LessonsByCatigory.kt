@@ -46,7 +46,7 @@ fun CategoryCard(
         modifier = modifier.aspectRatio(1f), // Makes the card a perfect square
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 8.dp
+            defaultElevation = 4.dp
         ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface // Use surface color for a clean white/black background

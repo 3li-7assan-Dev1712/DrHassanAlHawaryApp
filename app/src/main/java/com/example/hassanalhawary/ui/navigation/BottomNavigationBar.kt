@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +47,7 @@ fun BottomNavigationBar(
 
     NavigationBar(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface, // Or surfaceVariant, primaryContainer
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         items.forEach { screen ->
@@ -93,7 +92,6 @@ fun BottomNavigationBar(
 
 
             NavigationBarItem(
-                modifier = Modifier.padding(vertical = itemPadding),
                 icon = {
                     Box(
                         contentAlignment = Alignment.Center,
