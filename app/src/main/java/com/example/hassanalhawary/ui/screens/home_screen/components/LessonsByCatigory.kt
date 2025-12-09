@@ -136,7 +136,7 @@ fun LessonsByCategoryShelfPreview() {
         Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), R.drawable.audios_icon),
         Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), R.drawable.videos_icon),
         Category(Routes.KHOTAB_SCREEN, stringResource(R.string.khotab_aljumah), R.drawable.jummah_icon),
-        Category(Routes.WAR_QUESTIONS_SCREEN, stringResource(R.string.war), R.drawable.war_icon),
+        Category(Routes.IMAGES_SCREEN, stringResource(R.string.war), R.drawable.war_icon),
         Category(Routes.IMPORTANT_QUESTIONS_SCREEN, stringResource(R.string.most_important), R.drawable.most_important_icon)
     )
 
