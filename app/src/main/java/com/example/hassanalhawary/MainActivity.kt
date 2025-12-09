@@ -82,8 +82,6 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-//                val navHost =
-
 
             }
 

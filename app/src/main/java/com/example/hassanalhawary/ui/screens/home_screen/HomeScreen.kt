@@ -33,9 +33,9 @@ import com.example.hassanalhawary.ui.components.TopAppBar
 import com.example.hassanalhawary.ui.screens.home_screen.components.ArticleCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.AudioCard
 import com.example.hassanalhawary.ui.screens.home_screen.components.Category
+import com.example.hassanalhawary.ui.screens.home_screen.components.ImageCarousel
 import com.example.hassanalhawary.ui.screens.home_screen.components.LatestArticleAudioLazyRow
 import com.example.hassanalhawary.ui.screens.home_screen.components.LessonsByCategory
-import com.example.hassanalhawary.ui.screens.home_screen.components.WisdomOfTheDay
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,14 +111,13 @@ fun HomeScreen(
                     LazyColumn {
                         item {
 
-                            WisdomOfTheDay(
-                                wisdom = (homeScreenUiState.wotdResult as WisdomResult.Success).value.wisdomText,
-                                isLoadings = homeScreenUiState.loadingWotd
-                            )
+                            ImageCarousel()
                         }
                         item {
 
-                            LessonsByCategory(mockCategories) { }
+                            LessonsByCategory(mockCategories) {
+
+                            }
                         }
                         item {
                             Spacer(modifier = Modifier.height(16.dp))

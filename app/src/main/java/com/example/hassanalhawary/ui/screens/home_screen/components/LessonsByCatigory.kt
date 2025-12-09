@@ -93,15 +93,15 @@ fun LessonsByCategory(
 
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp) // Space between the two rows
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp) // Space between cards
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 categories.take(3).forEach { category ->
                     CategoryCard(
-                        modifier = Modifier.weight(1f), // <-- THE MAGIC IS HERE
+                        modifier = Modifier.weight(1f),
                         category = category,
                         onClick = { onCategoryClick(category.id) }
                     )
@@ -114,7 +114,7 @@ fun LessonsByCategory(
             ) {
                 categories.drop(3).take(3).forEach { category ->
                     CategoryCard(
-                        modifier = Modifier.weight(1f), // <-- THE MAGIC IS HERE
+                        modifier = Modifier.weight(1f),
                         category = category,
                         onClick = { onCategoryClick(category.id) }
                     )
