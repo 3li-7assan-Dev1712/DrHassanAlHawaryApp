@@ -37,9 +37,9 @@ fun BottomNavigationBar(
 ) {
     val items = listOf(
         BottomNavItem.Home,
-        BottomNavItem.Articles,
-        BottomNavItem.Audios,
-        BottomNavItem.StudentZone
+        BottomNavItem.Search,
+        BottomNavItem.StudyZone,
+        BottomNavItem.Profile
     )
 
     // Observe the current back stack entry to determine the selected route

@@ -25,23 +25,23 @@ sealed class BottomNavItem(
         unselectedIconResId = R.drawable.home_icon
     )
 
-    object Articles : BottomNavItem(
-        route = "articles_screen",
-        titleResId = R.string.articles,
-        selectedIconResId = R.drawable.filled_article_icon,
-        unselectedIconResId = R.drawable.article_icon
+    object Search : BottomNavItem(
+        route = "search_screen",
+        titleResId = R.string.search_hint,
+        selectedIconResId = R.drawable.search_icon,
+        unselectedIconResId = R.drawable.search_icon
     )
 
-    object Audios : BottomNavItem(
-        route = "audio_list_screen",
-        titleResId = R.string.lectures,
-        selectedIconResId = R.drawable.filled_audio_icon,
-        unselectedIconResId = R.drawable.audio_icon
+    object StudyZone : BottomNavItem(
+        route = "study_zone_screen",
+        titleResId = R.string.study_zone,
+        selectedIconResId = R.drawable.study_zone_filled_icon,
+        unselectedIconResId = R.drawable.study_zone_icon
     )
 
-    object StudentZone : BottomNavItem(
-        route = "student_zone_screen",
-        titleResId = R.string.student_zone,
+    object Profile : BottomNavItem(
+        route = "profile_screen",
+        titleResId = R.string.profile,
         selectedIconResId = R.drawable.student_icon,
         unselectedIconResId = R.drawable.student_icon
     )

@@ -171,6 +171,13 @@ fun MainAppContent(
 
                     )
             }
+            composable("search_screen") {
+
+            }
+            composable("profile_screen") {
+
+            }
+
             composable("articles_screen") {
 
                 ArticlesScreen { articleId ->
@@ -208,7 +215,7 @@ fun MainAppContent(
                 )
             }
 
-            composable("student_zone_screen") {
+            composable("study_zone_screen") {
 
             }
 
