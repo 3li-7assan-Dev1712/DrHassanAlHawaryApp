@@ -29,7 +29,7 @@ object Routes {
     // --- Detail Screens ---
      const val ARTICLE_DETAIL_SCREEN = "article_detail_screen"
     const val AUDIO_DETAIL_SCREEN = "audio_detail_screen"
-    const val VIDEO_DETAIL_SCREEN = "video_detail_screen"
+    const val VIDEO_PLAYER_SCREEN = "video_player_screen"
     const val KHOTAB_DETAIL_SCREEN = "khotab_detail_screen"
     const val IMAGE_DETAIL_SCREEN = "image_detail_screen"
 

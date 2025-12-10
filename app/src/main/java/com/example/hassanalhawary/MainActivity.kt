@@ -41,6 +41,9 @@ import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
 import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
+import com.example.hassanalhawary.ui.screens.video_player_screen.VideoPlayerScreen
+import com.example.hassanalhawary.ui.screens.videos_screen.VideosScreen
+import com.example.hassanalhawary.ui.screens.videos_screen.components.Video
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -87,7 +90,6 @@ class MainActivity : ComponentActivity() {
                 }
 
 
-
             }
 
         }
@@ -116,7 +118,10 @@ fun MainAppContent(
             Routes.ARTICLES_SCREEN,
             Routes.AUDIO_LIST_SCREEN,
             Routes.IMAGES_SCREEN,
-            Routes.IMAGE_DETAIL_SCREEN
+            Routes.IMAGE_DETAIL_SCREEN,
+            Routes.KHOTAB_SCREEN,
+            Routes.VIDEO_PLAYER_SCREEN,
+            Routes.VIDEOS_SCREEN,
         )
     }
 
@@ -182,7 +187,7 @@ fun MainAppContent(
                     }
 
 
-                    )
+                )
             }
             composable("search_screen") {
 
@@ -307,6 +312,110 @@ fun MainAppContent(
                 )
             }
             composable(Routes.CV_SCREEN) {
+
+            }
+            composable(Routes.VIDEOS_SCREEN) {
+                val mockVideos = remember {
+                    listOf(
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+                        Video(
+                            "1",
+                            "The Principles of Islamic Jurisprudence",
+                            "A deep dive into Usool Al-Fiqh.",
+                            "45:12",
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            R.drawable.design_2
+                        ),
+
+                        )
+                }
+                VideosScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToVideo = { videoUrl ->
+                        val encodedUrl = Uri.encode(videoUrl)
+                        navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
+                    },
+                    videos = mockVideos
+                )
+            }
+            composable(
+
+                route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}",
+                arguments = listOf(
+                    navArgument("videoUrl") {
+                        type = NavType.StringType
+                    })
+
+            ) {
+                val videoUrl = it.arguments?.getString("videoUrl")
+                if (videoUrl != null) {
+                    VideoPlayerScreen(
+                        videoUrl = videoUrl,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+            }
+            composable(Routes.KHOTAB_SCREEN) {
 
             }
 
