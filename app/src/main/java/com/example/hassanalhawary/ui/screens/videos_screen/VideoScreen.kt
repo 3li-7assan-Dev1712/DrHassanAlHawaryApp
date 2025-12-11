@@ -1,6 +1,5 @@
 package com.example.hassanalhawary.ui.screens.videos_screen
 
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import com.example.hassanalhawary.R
 import com.example.hassanalhawary.ui.screens.videos_screen.components.Video
 import com.example.hassanalhawary.ui.screens.videos_screen.components.VideoCard
@@ -68,9 +66,9 @@ fun VideosScreen(
                     video = video,
                     onVideoClick = { videoUrl ->
                         // The simplest way to play a video is to launch a YouTube/web intent
-                        val intent = Intent(Intent.ACTION_VIEW, videoUrl.toUri())
-                        context.startActivity(intent)
-//                        onNavigateToVideo(videoUrl)
+//                        val intent = Intent(Intent.ACTION_VIEW, videoUrl.toUri())
+//                        context.startActivity(intent)
+                        onNavigateToVideo(videoUrl)
                     }
                 )
             }

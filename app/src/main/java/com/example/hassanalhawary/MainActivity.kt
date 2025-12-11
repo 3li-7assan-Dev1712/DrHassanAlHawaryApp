@@ -67,13 +67,14 @@ class MainActivity : ComponentActivity() {
 
                 if (isLoggedIn) {
                     MainAppContent(
-                        onLogout = { }
-                    )
+                        onLogout = {
+
+                        })
                 } else {
                     AuthNavHost(
                         onLoginSuccess = {
-                        }
-                    )
+//                            rootNavController.navigate("home_screen")
+                        })
                 }
 
 
@@ -81,9 +82,7 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(key1 = mainActivityState.navigateTo) {
                     if (mainActivityState.navigateTo != null) {
                         Toast.makeText(
-                            applicationContext,
-                            "Sign in successful",
-                            Toast.LENGTH_LONG
+                            applicationContext, "Sign in successful", Toast.LENGTH_LONG
                         ).show()
                         mainActivityViewModel.hideProgressBar()
                     }
@@ -120,7 +119,7 @@ fun MainAppContent(
             Routes.IMAGES_SCREEN,
             Routes.IMAGE_DETAIL_SCREEN,
             Routes.KHOTAB_SCREEN,
-            Routes.VIDEO_PLAYER_SCREEN,
+            "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}",
             Routes.VIDEOS_SCREEN,
         )
     }
@@ -147,12 +146,10 @@ fun MainAppContent(
         bottomBar = {
             if (shouldShowBottomNav) {
                 BottomNavigationBar(
-                    modifier = Modifier.fillMaxWidth(),
-                    navController = navController
+                    modifier = Modifier.fillMaxWidth(), navController = navController
                 )
             }
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
 
         NavHost(
             navController,
@@ -168,23 +165,19 @@ fun MainAppContent(
                                 inclusive = true
                             }
                         }
-                    }
-                )
+                    })
             }
 
             composable("home_screen") {
-                HomeScreen(
-                    onNavigateToDetailArticle = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId")
+                HomeScreen(onNavigateToDetailArticle = { articleId ->
+                    navController.navigate("detail_article_screen/$articleId")
 
-                    },
-                    onNavigateToDetailAudio = { title, audioUrl ->
-                        val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
-                    },
-                    onCategoryClick = { route ->
-                        navController.navigate(route)
-                    }
+                }, onNavigateToDetailAudio = { title, audioUrl ->
+                    val encodedUrl = Uri.encode(audioUrl)
+                    navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                }, onCategoryClick = { route ->
+                    navController.navigate(route)
+                }
 
 
                 )
@@ -199,14 +192,11 @@ fun MainAppContent(
 
             composable("articles_screen") {
 
-                ArticlesScreen(
-                    onNavigateToArticleDetail = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId")
-                    },
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
+                ArticlesScreen(onNavigateToArticleDetail = { articleId ->
+                    navController.navigate("detail_article_screen/$articleId")
+                }, onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
             composable("detail_article_screen/{articleId}") {
                 DetailArticleScreen {
@@ -214,32 +204,26 @@ fun MainAppContent(
                 }
             }
             composable("audio_list_screen") {
-                AudioListScreen(
-                    onNavigateToAudioDetail = { title, audioUrl ->
-                        val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
-                    },
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
+                AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
+                    val encodedUrl = Uri.encode(audioUrl)
+                    navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                }, onNavigateBack = {
+                    navController.popBackStack()
+                })
             }
 
             composable(
                 route = "audio_detail_screen/{title}/{audioUrl}",
-                arguments = listOf(
-                    navArgument("title") {
-                        type = NavType.StringType
-                    },
-                    navArgument("audioUrl") {
-                        type = NavType.StringType
-                    })
+                arguments = listOf(navArgument("title") {
+                    type = NavType.StringType
+                }, navArgument("audioUrl") {
+                    type = NavType.StringType
+                })
             ) {
                 AudioDetailRoute(
                     onNavigateUp = {
                         navController.popBackStack()
-                    }
-                )
+                    })
             }
 
             composable("study_zone_screen") {
@@ -248,46 +232,35 @@ fun MainAppContent(
 
             composable(Routes.IMAGES_SCREEN) {
                 val mockGroup1 = DesignGroup(
-                    id = "1",
-                    title = "من فقه نوازل الحروب",
-                    designs = listOf(
+                    id = "1", title = "من فقه نوازل الحروب", designs = listOf(
                         Design("d1", R.drawable.design_1),
                         Design("d1", R.drawable.design_2),
 
                         )
                 )
                 val mockGroup2 = DesignGroup(
-                    id = "2",
-                    title = "احكام التعامل مع العملات الرقمـــية",
-                    designs = listOf(
+                    id = "2", title = "احكام التعامل مع العملات الرقمـــية", designs = listOf(
                         Design("d1", R.drawable.design_3),
                         Design("d1", R.drawable.design_4),
                     )
                 )
                 val mockGroup3 = DesignGroup(
-                    id = "3",
-                    title = "مسائل في احكـــام الاضـــحية",
-                    designs = listOf(
+                    id = "3", title = "مسائل في احكـــام الاضـــحية", designs = listOf(
 
-                        Design("d1", R.drawable.design_5),
-                        Design("d2", R.drawable.design_7)
+                        Design("d1", R.drawable.design_5), Design("d2", R.drawable.design_7)
                     )
                 )
                 WarScreen(
                     onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onNavigateToGallery = { groupId ->
-                        navController.navigate(Routes.IMAGE_DETAIL_SCREEN)
-                    },
-                    designGroups = listOf(mockGroup3, mockGroup2, mockGroup1)
+                    navController.popBackStack()
+                }, onNavigateToGallery = { groupId ->
+                    navController.navigate(Routes.IMAGE_DETAIL_SCREEN)
+                }, designGroups = listOf(mockGroup3, mockGroup2, mockGroup1)
                 )
             }
             composable(Routes.IMAGE_DETAIL_SCREEN) {
                 val mockGroup2 = DesignGroup(
-                    id = "2",
-                    title = "احكام التعامل مع العملات الرقمـــية",
-                    designs = listOf(
+                    id = "2", title = "احكام التعامل مع العملات الرقمـــية", designs = listOf(
                         Design("d1", R.drawable.design_3),
                         Design("d1", R.drawable.design_4),
                         Design("d1", R.drawable.design_3),
@@ -307,8 +280,7 @@ fun MainAppContent(
                 GalleryScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    },
-                    group = mockGroup2
+                    }, group = mockGroup2
                 )
             }
             composable(Routes.CV_SCREEN) {
@@ -319,86 +291,46 @@ fun MainAppContent(
                     listOf(
                         Video(
                             "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            "A Public Nature Video",
+                            "This video is public and will play correctly.",
+                            "10:00",
+                            // Use a public video URL for testing
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&pp=ygUO2KfZhNmH2YjYp9ix2Yo%3D",
                             R.drawable.design_2
                         ),
                         Video(
                             "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            "A Public Nature Video",
+                            "This video is public and will play correctly.",
+                            "10:00",
+                            // Use a public video URL for testing
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&pp=ygUO2KfZhNmH2YjYp9ix2Yo%3D",
                             R.drawable.design_2
                         ),
                         Video(
                             "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "The Principles of Islamic Jurisprudence",
-                            "A deep dive into Usool Al-Fiqh.",
-                            "45:12",
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&t=999s",
+                            "A Public Nature Video",
+                            "This video is public and will play correctly.",
+                            "10:00",
+                            // Use a public video URL for testing
+                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&pp=ygUO2KfZhNmH2YjYp9ix2Yo%3D",
                             R.drawable.design_2
                         ),
 
-                        )
+                    )
                 }
                 VideosScreen(
                     onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onNavigateToVideo = { videoUrl ->
-                        val encodedUrl = Uri.encode(videoUrl)
-                        navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
-                    },
-                    videos = mockVideos
+                    navController.popBackStack()
+                }, onNavigateToVideo = { videoUrl ->
+                    val encodedUrl = Uri.encode(videoUrl)
+                    navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
+                }, videos = mockVideos
                 )
             }
             composable(
 
-                route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}",
-                arguments = listOf(
+                route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}", arguments = listOf(
                     navArgument("videoUrl") {
                         type = NavType.StringType
                     })
@@ -407,11 +339,9 @@ fun MainAppContent(
                 val videoUrl = it.arguments?.getString("videoUrl")
                 if (videoUrl != null) {
                     VideoPlayerScreen(
-                        videoUrl = videoUrl,
-                        onNavigateBack = {
+                        videoUrl = videoUrl, onNavigateBack = {
                             navController.popBackStack()
-                        }
-                    )
+                        })
                 }
 
             }
@@ -430,8 +360,7 @@ fun AuthNavHost(
 ) {
     val navController = rememberNavController()
     NavHost(
-        navController = navController,
-        startDestination = "splash_screen"
+        navController = navController, startDestination = "splash_screen"
     ) {
 
 
@@ -443,8 +372,7 @@ fun AuthNavHost(
                             inclusive = true
                         }
                     }
-                }
-            )
+                })
         }
 
         composable(route = "login_screen") {
@@ -453,34 +381,28 @@ fun AuthNavHost(
                 onRegisterClick = {
                     navController.navigate("register_screen")
                     navController.clearBackStack("login_screen")
-                },
-                onSuccessfulLogin = {
-                    navController.navigate("home_screen")
+                }, onSuccessfulLogin = {
+//                    navController.navigate("home_screen")
                     // go to home screen
                     /*Toast.makeText(
                         ,
                         "Login successful",
                         Toast.LENGTH_LONG
                     ).show()*/
-                }
-            )
+                })
         }
         composable("register_screen") {
-            RegisterScreen(
-                modifier = Modifier.fillMaxSize(),
-                onLoginClick = {
-                    navController.popBackStack()
-                },
-                onSuccessfulRegister = {
-                    navController.navigate("home_screen")
-                    // go to home screen
-                    /*  Toast.makeText(
-                          applicationContext,
-                          "Register successful",
-                          Toast.LENGTH_LONG
-                      ).show()*/
-                }
-            )
+            RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
+                navController.popBackStack()
+            }, onSuccessfulRegister = {
+                onLoginSuccess()
+                // go to home screen
+                /*  Toast.makeText(
+                      applicationContext,
+                      "Register successful",
+                      Toast.LENGTH_LONG
+                  ).show()*/
+            })
         }
     }
 
