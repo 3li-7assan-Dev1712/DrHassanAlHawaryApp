@@ -3,11 +3,13 @@ package com.example.data.di
 import com.example.data.ArticlesRepositoryImpl
 import com.example.data.AudiosRepositoryImpl
 import com.example.data.AuthRepositoryImpl
+import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
 import com.example.data.WisdomRepositoryImpl
 import com.example.domain.repository.ArticlesRepository
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.repository.AuthRepository
+import com.example.domain.repository.ImagesRepository
 import com.example.domain.repository.NetworkRepository
 import com.example.domain.repository.WisdomRepository
 import dagger.Binds
@@ -47,6 +49,12 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindNetworkRepository(impl: NetworkRepositoryImpl): NetworkRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindImagesRepository(
+        imagesRepositoryImpl: ImagesRepositoryImpl
+    ): ImagesRepository
 }
 
 

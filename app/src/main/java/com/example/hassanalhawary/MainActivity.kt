@@ -32,11 +32,8 @@ import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListScreen
 import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
-import com.example.hassanalhawary.ui.screens.gallery_screen.Design
-import com.example.hassanalhawary.ui.screens.gallery_screen.DesignGroup
-import com.example.hassanalhawary.ui.screens.gallery_screen.GalleryScreen
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
-import com.example.hassanalhawary.ui.screens.images_screen.WarScreen
+import com.example.hassanalhawary.ui.screens.image_groups_screen.ImagesGroupsScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
@@ -231,57 +228,18 @@ fun MainAppContent(
             }
 
             composable(Routes.IMAGES_SCREEN) {
-                val mockGroup1 = DesignGroup(
-                    id = "1", title = "من فقه نوازل الحروب", designs = listOf(
-                        Design("d1", R.drawable.design_1),
-                        Design("d1", R.drawable.design_2),
 
-                        )
-                )
-                val mockGroup2 = DesignGroup(
-                    id = "2", title = "احكام التعامل مع العملات الرقمـــية", designs = listOf(
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                    )
-                )
-                val mockGroup3 = DesignGroup(
-                    id = "3", title = "مسائل في احكـــام الاضـــحية", designs = listOf(
+                ImagesGroupsScreen(
 
-                        Design("d1", R.drawable.design_5), Design("d2", R.drawable.design_7)
-                    )
-                )
-                WarScreen(
-                    onNavigateBack = {
-                    navController.popBackStack()
-                }, onNavigateToGallery = { groupId ->
-                    navController.navigate(Routes.IMAGE_DETAIL_SCREEN)
-                }, designGroups = listOf(mockGroup3, mockGroup2, mockGroup1)
                 )
             }
             composable(Routes.IMAGE_DETAIL_SCREEN) {
-                val mockGroup2 = DesignGroup(
-                    id = "2", title = "احكام التعامل مع العملات الرقمـــية", designs = listOf(
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                        Design("d1", R.drawable.design_3),
-                        Design("d1", R.drawable.design_4),
-                    )
-                )
+                /*
                 GalleryScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     }, group = mockGroup2
-                )
+                )*/
             }
             composable(Routes.CV_SCREEN) {
 
@@ -317,15 +275,15 @@ fun MainAppContent(
                             R.drawable.design_2
                         ),
 
-                    )
+                        )
                 }
                 VideosScreen(
                     onNavigateBack = {
-                    navController.popBackStack()
-                }, onNavigateToVideo = { videoUrl ->
-                    val encodedUrl = Uri.encode(videoUrl)
-                    navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
-                }, videos = mockVideos
+                        navController.popBackStack()
+                    }, onNavigateToVideo = { videoUrl ->
+                        val encodedUrl = Uri.encode(videoUrl)
+                        navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
+                    }, videos = mockVideos
                 )
             }
             composable(

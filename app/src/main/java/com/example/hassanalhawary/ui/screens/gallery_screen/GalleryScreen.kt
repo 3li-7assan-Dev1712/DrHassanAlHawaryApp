@@ -1,45 +1,9 @@
 package com.example.hassanalhawary.ui.screens.gallery_screen
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-
-data class Design(
-    val id: String,
-    @DrawableRes val imageRes: Int
-)
-
-data class DesignGroup(
-    val id: String,
-    val title: String,
-    val designs: List<Design>
-)
-
+import com.example.domain.module.ImageGroup
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -47,11 +11,10 @@ data class DesignGroup(
 fun GalleryScreen(
     onNavigateBack: () -> Unit,
     // This would be fetched from a ViewModel based on groupId
-    group: DesignGroup?
+    group: ImageGroup?
 ) {
-    val pagerState = rememberPagerState(pageCount = { group?.designs?.size ?: 0 })
+    /*val pagerState = rememberPagerState(pageCount = { group?.designs?.size ?: 0 })
 
-    // Optional: A side-effect to mark an image as "viewed" when the user lands on it
     LaunchedEffect(pagerState.currentPage) {
         // Here you would call viewModel.markAsViewed(group.designs[pagerState.currentPage].id)
     }
@@ -85,11 +48,13 @@ fun GalleryScreen(
                         .fillMaxWidth()
                         .weight(1f)
                 ) { pageIndex ->
-                    Image(
-                        painter = painterResource(id = group.designs[pageIndex].imageRes),
+                    AsyncImage(
+                        model = "https://firebasestorage.googleapis.com/v0/b/dr-hassan-al-hawary.appspot.com/o/images%2Fdr_hassan_photo.jpg?alt=media&token=793f5fef-9807-44a1-af29-e8b47819e3c8",
                         contentDescription = "Design ${pageIndex + 1}",
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        placeholder = painterResource(R.drawable.ic_launcher_background),
+                        error = painterResource(R.drawable.cv_icon)
                     )
                 }
                 // Pager position indicator text
@@ -103,5 +68,5 @@ fun GalleryScreen(
                 )
             }
         }
-    }
+    }*/
 }

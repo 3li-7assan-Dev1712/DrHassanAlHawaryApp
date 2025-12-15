@@ -99,6 +99,8 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    // coil
+    implementation(libs.coil.compose)
 
 
     // depend on the core-ui library for sharing the ui components

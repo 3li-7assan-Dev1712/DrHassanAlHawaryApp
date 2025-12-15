@@ -6,9 +6,11 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.example.data_firebase.model.AudioDto
 import com.example.domain.module.Audio
+import com.example.domain.module.ImageGroup
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.getValue
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -19,7 +21,7 @@ import java.util.Date
 import javax.inject.Inject
 
 
-class FirebaseAudioSource @Inject constructor(
+class FirebaseMediaSource @Inject constructor(
     realTimeDb: FirebaseDatabase,
     private val storage: FirebaseStorage,
     @ApplicationContext private val context: Context
@@ -27,7 +29,7 @@ class FirebaseAudioSource @Inject constructor(
 
 
     private val audiosRef = realTimeDb.getReference("audios")
-    private val storageRef = storage.getReference("audios")
+    val imagesRef = realTimeDb.getReference("images")
 
     /**
      * Fetches a single page of audios for pagination.
@@ -175,4 +177,136 @@ class FirebaseAudioSource @Inject constructor(
     suspend fun getAllAudiosFromRealTimeDb(): List<Audio> {
         return emptyList()
     }
+
+
+
+
+    /**
+     * Uploads a new design group to Firebase, providing progress updates.
+     * 1. Uploads multiple images to Firebase Storage.
+     * 2. Saves metadata to Realtime Database upon completion.
+     * @return A Flow that emits UploadResult states (Progress, Success, or Error).
+     */
+    fun uploadImageGroup(title: String, imageUris: List<String>): Flow<UploadResult> = callbackFlow {
+        // --- 1. Preparation ---
+        val newImageRef = imagesRef.push()
+        val categoryId = newImageRef.key
+        if (categoryId == null) {
+            trySend(UploadResult.Error("Failed to generate a key from Realtime Database."))
+            close()
+            return@callbackFlow
+        }
+
+        // --- 2. Create and Monitor Upload Tasks ---
+        val uploadTasks = imageUris.mapIndexed { index, uriString ->
+            val uri = uriString.toUri()
+            val imageRef = storage.reference.child("images/$categoryId/image_$index.jpg")
+            imageRef.putFile(uri)
+        }
+
+        var totalBytes = 0L
+        var bytesTransferred = 0L
+
+        // Attach listeners to each task to aggregate progress
+        uploadTasks.forEach { task ->
+            task.addOnProgressListener { snapshot ->
+                // This listener gets called for each individual file's progress
+                // To get total progress, you need to know the total size of all files first.
+                // For simplicity and immediate feedback, we can average the progress.
+                // A more accurate way would be to sum total bytes of all files.
+            }
+        }
+
+        // A simpler way to show overall progress: update after each file completes.
+        val uploadedImageUrls = mutableListOf<String>()
+        trySend(UploadResult.Progress(0))
+
+        uploadTasks.forEachIndexed { index, task ->
+            try {
+                // Wait for the current file to finish uploading
+                val snapshot = task.await()
+                val downloadUrl = snapshot.storage.downloadUrl.await().toString()
+                uploadedImageUrls.add(downloadUrl)
+
+                // Calculate and emit progress based on how many files are done
+                val progress = (((index + 1).toFloat() / imageUris.size) * 100).toInt()
+                trySend(UploadResult.Progress(progress))
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to upload image #${index + 1}", e)
+                trySend(UploadResult.Error("Failed to upload image #${index + 1}: ${e.message}"))
+                close() // Abort on the first failure
+                return@callbackFlow
+            }
+        }
+
+        // --- 3. Save Metadata after all uploads are successful ---
+        try {
+            val designGroup = hashMapOf(
+                "id" to categoryId,
+                "title" to title,
+                "publishDate" to System.currentTimeMillis(),
+                "previewImageUrl" to uploadedImageUrls.firstOrNull()
+            )
+            newImageRef.setValue(designGroup).await()
+
+            val imagesMap = uploadedImageUrls.mapIndexed { index, url ->
+                mapOf(
+                    "imageUrl" to url,
+                    "orderIndex" to index
+                )
+            }
+            newImageRef.child("images").setValue(imagesMap).await()
+
+            trySend(UploadResult.Success)
+            close() // Successfully completed and closed the flow
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save metadata to Realtime DB after upload", e)
+            trySend(UploadResult.Error("Failed to save metadata: ${e.message}"))
+            close()
+        }
+
+        awaitClose {
+            // Cancel any ongoing uploads if the collector cancels the flow
+            uploadTasks.filter { it.isInProgress }.forEach { it.cancel() }
+        }
+    }
+
+
+
+    /**
+     * Fetches all design groups from the Realtime Database.
+     * @return A list of ImageGroup domain models.
+     */
+    suspend fun fetchImageGroups(): List<ImageGroup> {
+        return try {
+            // Get all data under the "designs" node.
+            val dataSnapshot = imagesRef.get().await()
+            if (!dataSnapshot.exists()) {
+                return emptyList()
+            }
+
+            // Map each child node to an ImageGroup domain model.
+            dataSnapshot.children.mapNotNull { snapshot ->
+                val groupData = snapshot.getValue<Map<String, Any>>()
+                if (groupData != null) {
+                    ImageGroup(
+                        id = groupData["id"] as? String ?: snapshot.key ?: "",
+                        title = groupData["title"] as? String ?: "No Title",
+                        previewImageUrl = groupData["previewImageUrl"] as? String ?: "",
+                        publishDate = Date(groupData["publishDate"] as? Long ?: 0L)
+                    )
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch image groups from Realtime DB", e)
+            emptyList() // Return an empty list on failure to prevent crashes.
+        }
+    }
+
+
+
 }

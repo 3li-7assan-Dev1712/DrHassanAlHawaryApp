@@ -8,6 +8,7 @@ data class Audio(
 
     // for server
     val id: String,
+    val categoryId: String = "",
     val title: String,
     val audioUrl: String,
     val durationInMillis: Long,

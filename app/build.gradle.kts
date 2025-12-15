@@ -1,3 +1,4 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -104,6 +105,9 @@ dependencies {
 
     // youtube player
     implementation(libs.youtube.player)
+
+    // coil
+    implementation(libs.coil.compose)
 
 
     // depend on the core-ui library for sharing the ui components

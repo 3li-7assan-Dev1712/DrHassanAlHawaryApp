@@ -9,7 +9,7 @@ import androidx.paging.map
 import com.example.data.mappers.toDomainModel
 import com.example.data.mappers.toEntity
 import com.example.data.util.AudioRemoteMediator
-import com.example.data_firebase.FirebaseAudioSource
+import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseAudioSource: FirebaseAudioSource
+    private val firebaseMediaSource: FirebaseMediaSource
     ) : AudiosRepository {
 
 
@@ -39,7 +39,7 @@ class AudiosRepositoryImpl
             ),
             remoteMediator = AudioRemoteMediator(
                 appDatabase = appDatabase,
-                firebaseAudioSource = firebaseAudioSource
+                firebaseMediaSource = firebaseMediaSource
                 // when add search, I will pass the query here
             ),
             // The PagingSourceFactory ALWAYS points to the local database (Room).
@@ -78,7 +78,7 @@ class AudiosRepositoryImpl
 
     override suspend fun syncAudiosDbWithServer() {
         try {
-            val networkAudios = firebaseAudioSource.getAllAudiosFromRealTimeDb()
+            val networkAudios = firebaseMediaSource.getAllAudiosFromRealTimeDb()
             val audioEntities = networkAudios.map { audio ->
                 audio.toEntity()
             }
@@ -102,7 +102,7 @@ class AudiosRepositoryImpl
     ): Flow<UploadResult> {
 
 
-        return firebaseAudioSource.uploadAudio(title, uriString, durationInMillis)
+        return firebaseMediaSource.uploadAudio(title, uriString, durationInMillis)
 
 
 

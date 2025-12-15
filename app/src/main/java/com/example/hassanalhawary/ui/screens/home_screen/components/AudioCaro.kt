@@ -94,6 +94,7 @@ fun PreviewAudioCard() {
             lastPlayedTimestamp = 0,
             isPlaying = false,
             localFilePath = null,
+            title = "Title"
         )
     HassanAlHawaryTheme {
         Surface(
