@@ -276,6 +276,53 @@ class FirebaseMediaSource @Inject constructor(
 
 
     /**
+     * Fetches a single page of image groups from Firebase Realtime Database.
+     *
+     * @param startAfterKey The key of the last item from the previous page. Null for the first page.
+     * @param limit The maximum number of items to fetch for this page.
+     * @return A list of ImageGroup objects for the requested page.
+     */
+    suspend fun fetchImageGroupsPage(startAfterKey: String?, limit: Int): List<ImageGroup> {
+
+        // Order by key is essential for reliable pagination
+        val query = imagesRef.orderByKey()
+
+        val finalQuery = if (startAfterKey == null) {
+            // First page: Start from the beginning and get the first 'limit' items
+            query.limitToFirst(limit)
+        } else {
+            // Subsequent pages: Start after the last key and get the next 'limit' items
+            query.startAfter(startAfterKey).limitToFirst(limit)
+        }
+
+        return try {
+            val dataSnapshot = finalQuery.get().await()
+            if (!dataSnapshot.exists()) {
+                return emptyList()
+            }
+
+            dataSnapshot.children.mapNotNull { snapshot ->
+                // Use your existing logic to map the snapshot to an ImageGroup
+                val groupData = snapshot.getValue<Map<String, Any>>()
+                if (groupData != null) {
+                    ImageGroup(
+                        id = groupData["id"] as String,
+                        title = groupData["title"] as String,
+                        publishDate = Date(groupData["publishDate"] as Long),
+                        previewImageUrl = groupData["previewImageUrl"] as String
+                    )
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("FirebaseMediaSource", "Failed to fetch image groups page", e)
+            emptyList()
+        }
+    }
+
+
+    /**
      * Fetches all design groups from the Realtime Database.
      * @return A list of ImageGroup domain models.
      */
@@ -306,7 +353,6 @@ class FirebaseMediaSource @Inject constructor(
             emptyList() // Return an empty list on failure to prevent crashes.
         }
     }
-
 
 
 }

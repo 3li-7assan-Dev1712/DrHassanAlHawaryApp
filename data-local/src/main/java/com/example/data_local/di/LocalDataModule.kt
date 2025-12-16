@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.data_local.AppDatabase
 import com.example.data_local.AudioDao
+import com.example.data_local.ImageGroupRemoteKeysDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,5 +36,14 @@ object LocalDataModule {
     @Singleton
     fun provideArticleDao(appDatabase: AppDatabase) = appDatabase.articleDao()
 
+    @Provides
+    @Singleton
+    fun provideImageDao(appDatabase: AppDatabase) = appDatabase.imageDao()
 
+
+    @Provides
+    @Singleton
+    fun provideImageGroupRemoteKeysDao(appDatabase: AppDatabase): ImageGroupRemoteKeysDao {
+        return appDatabase.imageGroupRemoteKeysDao()
+    }
 }

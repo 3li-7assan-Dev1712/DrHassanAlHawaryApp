@@ -230,7 +230,12 @@ fun MainAppContent(
             composable(Routes.IMAGES_SCREEN) {
 
                 ImagesGroupsScreen(
+                    onNavigateBack = {
 
+                    },
+                    onGroupClick = { groupId ->
+//                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                    }
                 )
             }
             composable(Routes.IMAGE_DETAIL_SCREEN) {
