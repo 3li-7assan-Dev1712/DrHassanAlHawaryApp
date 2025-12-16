@@ -35,4 +35,8 @@ interface AudioDao {
     @Query("SELECT EXISTS(SELECT 1 FROM audios LIMIT 1)")
     suspend fun isCacheEmpty(): Boolean
 
+    @Query("SELECT COUNT(*) FROM audios")
+    suspend fun count(): Int
+
+
 }

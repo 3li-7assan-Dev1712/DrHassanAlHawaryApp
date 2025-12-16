@@ -20,4 +20,12 @@ interface ImageDao {
 
     @Query("DELETE FROM image_groups")
     suspend fun clearAll()
+
+
+
+
+    @Query("SELECT COUNT(*) FROM image_groups")
+    suspend fun count(): Int
+
+
 }

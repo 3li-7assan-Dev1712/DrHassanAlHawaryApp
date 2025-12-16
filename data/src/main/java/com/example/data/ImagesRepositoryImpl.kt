@@ -20,7 +20,8 @@ import javax.inject.Inject
 
 class ImagesRepositoryImpl @Inject constructor(
     private val firebaseMediaSource: FirebaseMediaSource,
-    private val appDatabase: AppDatabase
+    private val appDatabase: AppDatabase,
+    private val imageRemoteMediator: ImageGroupRemoteMediator
 ) : ImagesRepository {
 
 
@@ -48,10 +49,7 @@ class ImagesRepositoryImpl @Inject constructor(
                 pageSize = 20, // Define how many items to load at once
                 enablePlaceholders = false
             ),
-            remoteMediator = ImageGroupRemoteMediator(
-                firebaseMediaSource = firebaseMediaSource,
-                appDatabase = appDatabase
-            ),
+            remoteMediator = imageRemoteMediator,
             pagingSourceFactory = pagingSourceFactory
         ).flow.map { pagingData ->
             pagingData.map { it.toDomainModel() } // Map from Entity to Domain model

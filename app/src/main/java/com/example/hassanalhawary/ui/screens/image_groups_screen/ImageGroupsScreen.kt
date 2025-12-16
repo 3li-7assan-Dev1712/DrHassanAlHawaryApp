@@ -82,49 +82,49 @@ fun ImagesGroupsScreen(
                     )
                 }
                 is LoadState.NotLoading -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(minSize = 160.dp),
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(
-                            count = lazyPagingItems.itemCount,
-                            key = lazyPagingItems.itemKey { it.id } // Use the item's ID as a stable key
-                        ) { index ->
-                            val group = lazyPagingItems[index]
-                            if (group != null) {
-                                ImageGroupCard(
-                                    group = group,
-                                    onClick = { onGroupClick(group.id) }
-                                )
-                            }
-                        }
-
-                        // Optional: Show a loading spinner at the bottom when appending new items
-                        if (lazyPagingItems.loadState.append is LoadState.Loading) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            }
-                        }
-                    }
-                    /*if (lazyPagingItems.itemCount == 0) {
+                    if (lazyPagingItems.itemCount == 0) {
                         Text(
                             text = "No design groups found.",
                             textAlign = TextAlign.Center,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(minSize = 160.dp),
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(
+                                count = lazyPagingItems.itemCount,
+                                key = lazyPagingItems.itemKey { it.id } // Use the item's ID as a stable key
+                            ) { index ->
+                                val group = lazyPagingItems[index]
+                                if (group != null) {
+                                    ImageGroupCard(
+                                        group = group,
+                                        onClick = { onGroupClick(group.id) }
+                                    )
+                                }
+                            }
+
+                            // Optional: Show a loading spinner at the bottom when appending new items
+                            if (lazyPagingItems.loadState.append is LoadState.Loading) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                }
+                            }
+                        }
                         // 3. Display the data in a LazyVerticalGrid
-                    }*/
+                    }
                 }
             }
         }

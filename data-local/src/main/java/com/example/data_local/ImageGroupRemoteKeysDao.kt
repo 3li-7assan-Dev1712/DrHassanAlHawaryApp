@@ -17,4 +17,15 @@ interface ImageGroupRemoteKeysDao {
 
     @Query("DELETE FROM image_group_remote_keys")
     suspend fun clearRemoteKeys()
+
+
+    /**
+     * This gets the last remote key that was saved to the database.
+     * We use `ROWID` which is a hidden, auto-incrementing column in Room,
+     * guaranteeing we get the last one inserted.
+     */
+    @Query("SELECT * FROM image_group_remote_keys ORDER BY ROWID DESC LIMIT 1")
+    suspend fun getLastRemoteKey(): ImageGroupRemoteKeysEntity?
+
+
 }

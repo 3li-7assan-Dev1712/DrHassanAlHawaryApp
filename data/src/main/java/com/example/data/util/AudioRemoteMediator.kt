@@ -10,6 +10,9 @@ import com.example.data.mappers.toEntity
 import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.AudioEntity
+import com.example.domain.module.NetworkStatus
+import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
+import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
 
@@ -18,7 +21,30 @@ import javax.inject.Inject
 class AudioRemoteMediator @Inject  constructor(
     private val appDatabase: AppDatabase,
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val networkStatusUseCase: GetCurrentNetworkStatusUseCase
 ): RemoteMediator<Int, AudioEntity>() {
+
+    private val audioDao = appDatabase.audioDao()
+
+    private val TAG = "AudioRemoteMediator"
+
+    override suspend fun initialize(): InitializeAction {
+        //
+        // This is the key. On first launch, check if we have data.
+        // If we do, don't launch a remote refresh. Show cache first.
+        // If the database is empty, then launch a remote refresh.
+
+        return if (audioDao.count() > 0) {
+            Log.d(TAG, "DB has data. Skipping remote refresh on launch.")
+            InitializeAction.SKIP_INITIAL_REFRESH
+        } else {
+            Log.d(TAG, "DB is empty. Launching remote refresh on launch.")
+            InitializeAction.LAUNCH_INITIAL_REFRESH
+        }
+    }
+
+
+
 
     override suspend fun load(
         loadType: LoadType,
@@ -41,6 +67,9 @@ class AudioRemoteMediator @Inject  constructor(
                 LoadType.APPEND -> {
                     // For appending, get the last item loaded from the PagingState.
                     // Its ID (which is the Firebase key) will be our cursor.
+                    if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
                     val lastItem = state.lastItemOrNull()
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
                     lastItem.id
@@ -53,6 +82,8 @@ class AudioRemoteMediator @Inject  constructor(
                 startAfterKey = lastItemKey,
                 limit = state.config.pageSize
             )
+
+            val endOfPaginationReached = audiosFromServer.isEmpty()
             // The critical "Read-Merge-Write" transaction to preserve user data.
             appDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {
@@ -94,7 +125,7 @@ class AudioRemoteMediator @Inject  constructor(
 
             // Return the result. The end of pagination is reached if the fetch returned fewer items than requested.
             MediatorResult.Success(
-                endOfPaginationReached = audiosFromServer.size < state.config.pageSize
+                endOfPaginationReached = endOfPaginationReached
             )
 
         } catch (e: IOException) {

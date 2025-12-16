@@ -23,7 +23,8 @@ import javax.inject.Inject
 class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseMediaSource: FirebaseMediaSource
+    private val firebaseMediaSource: FirebaseMediaSource,
+    private val audioRemoteMediator: AudioRemoteMediator
     ) : AudiosRepository {
 
 
@@ -37,11 +38,7 @@ class AudiosRepositoryImpl
                 pageSize = 10 ,
                 enablePlaceholders = false
             ),
-            remoteMediator = AudioRemoteMediator(
-                appDatabase = appDatabase,
-                firebaseMediaSource = firebaseMediaSource
-                // when add search, I will pass the query here
-            ),
+            remoteMediator = audioRemoteMediator,
             // The PagingSourceFactory ALWAYS points to the local database (Room).
             // The RemoteMediator will fill this database for the PagingSource to read.
             pagingSourceFactory = {

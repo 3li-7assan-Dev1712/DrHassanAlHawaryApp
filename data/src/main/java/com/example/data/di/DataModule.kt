@@ -55,6 +55,8 @@ abstract class DataModule {
     abstract fun bindImagesRepository(
         imagesRepositoryImpl: ImagesRepositoryImpl
     ): ImagesRepository
+
+
 }
 
 
