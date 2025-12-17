@@ -65,8 +65,11 @@ class AudioRemoteMediator @Inject  constructor(
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
                 LoadType.APPEND -> {
+
+                    val lastLocalItem = audioDao.getLastAudio()
+
+                    Log.d(TAG, "load: last audio id: ${lastLocalItem?.id} ,,, title: ${lastLocalItem?.title} ")
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        val lastLocalItem = state.lastItemOrNull()
                         if (lastLocalItem == null) {
                             // Offline AND local data is fully loaded. Stop everything.
                             Log.d(TAG, "Offline and local data is fully loaded.")
@@ -78,18 +81,8 @@ class AudioRemoteMediator @Inject  constructor(
                         }
                     }
 
+                    lastLocalItem?.id
 
-                    // Step 2: If we reach here, we are ONLINE.
-                    // We MUST attempt a network fetch to check for new data.
-                    // The only piece of information we need from the local state
-                    // is the ID of the last item to know WHERE to start fetching from.
-                    Log.d(TAG, "Online, determining next key for network fetch.")
-                    val lastItem = state.lastItemOrNull()
-
-                    // If lastItem is null, it means we've scrolled past all local data.
-                    // We pass `null` as the key, and the server will return the next page of data.
-                    // We DO NOT stop here.
-                    lastItem?.id
                 }
             }
 
@@ -127,7 +120,6 @@ class AudioRemoteMediator @Inject  constructor(
                             isFavorite = localAudio.isFavorite,
                             lastPlayedTimestamp = localAudio.lastPlayedTimestamp,
                             localFilePath = localAudio.localFilePath,
-
                         )
                     } else {
                         // This is a brand new audio not seen before.

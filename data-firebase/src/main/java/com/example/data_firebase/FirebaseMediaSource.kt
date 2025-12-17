@@ -1,6 +1,5 @@
 package com.example.data_firebase
 
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import androidx.core.net.toUri
@@ -28,6 +27,7 @@ class FirebaseMediaSource @Inject constructor(
 ) {
 
 
+    private val TAG = "FirebaseMediaSource"
     private val audiosRef = realTimeDb.getReference("audios")
     val imagesRef = realTimeDb.getReference("images")
 

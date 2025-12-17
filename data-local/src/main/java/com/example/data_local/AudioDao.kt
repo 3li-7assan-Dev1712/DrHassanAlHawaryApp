@@ -39,4 +39,8 @@ interface AudioDao {
     suspend fun count(): Int
 
 
+    @Query("SELECT * FROM audios ORDER BY id DESC LIMIT 1")
+    suspend fun getLastAudio(): AudioEntity?
+
+
 }
