@@ -65,14 +65,31 @@ class AudioRemoteMediator @Inject  constructor(
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
                 LoadType.APPEND -> {
-                    // For appending, get the last item loaded from the PagingState.
-                    // Its ID (which is the Firebase key) will be our cursor.
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        return MediatorResult.Success(endOfPaginationReached = true)
+                        val lastLocalItem = state.lastItemOrNull()
+                        if (lastLocalItem == null) {
+                            // Offline AND local data is fully loaded. Stop everything.
+                            Log.d(TAG, "Offline and local data is fully loaded.")
+                            return MediatorResult.Success(endOfPaginationReached = true)
+                        } else {
+                            // Offline, but there is still local data. Let Room take over.
+                            Log.d(TAG, "Offline, allowing local paging to continue.")
+                            return MediatorResult.Success(endOfPaginationReached = false)
+                        }
                     }
+
+
+                    // Step 2: If we reach here, we are ONLINE.
+                    // We MUST attempt a network fetch to check for new data.
+                    // The only piece of information we need from the local state
+                    // is the ID of the last item to know WHERE to start fetching from.
+                    Log.d(TAG, "Online, determining next key for network fetch.")
                     val lastItem = state.lastItemOrNull()
-                        ?: return MediatorResult.Success(endOfPaginationReached = true)
-                    lastItem.id
+
+                    // If lastItem is null, it means we've scrolled past all local data.
+                    // We pass `null` as the key, and the server will return the next page of data.
+                    // We DO NOT stop here.
+                    lastItem?.id
                 }
             }
 
@@ -83,7 +100,7 @@ class AudioRemoteMediator @Inject  constructor(
                 limit = state.config.pageSize
             )
 
-            val endOfPaginationReached = audiosFromServer.isEmpty()
+            val endOfPaginationReached = audiosFromServer.size < state.config.pageSize
             // The critical "Read-Merge-Write" transaction to preserve user data.
             appDatabase.withTransaction {
                 if (loadType == LoadType.REFRESH) {

@@ -63,26 +63,35 @@ class ImageGroupRemoteMediator @Inject constructor(
                 // This is the main logic for scrolling down
                 LoadType.APPEND -> {
                     // --- Start of Refactored APPEND Block ---
+                    val lastItem = state.lastItemOrNull()
 
-                    // Guard Clause 1: Check for network connection first.
+
+                    // Step 1: Handle the OFFLINE case first and exit.
                     if (networkRepositoryUseCase().first() == NetworkStatus.Unavailable) {
-                        Log.d(TAG, "Device is offline. Halting APPEND.")
-                        return MediatorResult.Success(endOfPaginationReached = true)
+                        val lastItem = state.lastItemOrNull()
+                        // If offline, pagination ends only if the local PagingSource (Room) is also empty.
+                        if (lastItem == null) {
+                            Log.d(TAG, "Offline and local data is fully loaded.")
+                            return MediatorResult.Success(endOfPaginationReached = true)
+                        } else {
+                            Log.d(TAG, "Offline, allowing local paging to continue.")
+                            return MediatorResult.Success(endOfPaginationReached = false)
+                        }
                     }
 
-                    // If we reach here, we are ONLINE.
-                    Log.d(TAG, "Device is online. Checking for next pagination key.")
-
-                    // Guard Clause 2: Get the last remote key from our database.
+                    // Step 2: If we reach here, we are ONLINE. Get the key for the next network page.
+                    Log.d(TAG, "Online, determining next key for network fetch.")
                     val lastRemoteKey = imageGroupRemoteKeysDao.getLastRemoteKey()
-                        ?: return MediatorResult.Success(endOfPaginationReached = true) // No keys means nothing to append to.
 
-                    // Guard Clause 3: Check if the last key has a 'nextKey'. If not, we've reached the end.
-                    lastRemoteKey.nextKey
-                        ?: return MediatorResult.Success(endOfPaginationReached = true).also {
-                            Log.d(TAG, "End of pagination reached according to database keys.")
-                        }
+                    // If the last key is null or its nextKey is null, it might be because the cache is stale.
+                    // This is NOT a reason to stop. It just means the next fetch should start from the last known item.
+                    // We return the nextKey, which might be null, but the fetch logic will handle it.
+                    if (lastRemoteKey?.nextKey == null) {
+                        Log.d(TAG, "End of LOCAL keys reached. Will attempt network fetch to check for new data.")
+                    }
 
+                    // Return the key for the next page. If the key is null, the server will return the next page after the last known item.
+                    lastRemoteKey?.nextKey
                 }
             }
 

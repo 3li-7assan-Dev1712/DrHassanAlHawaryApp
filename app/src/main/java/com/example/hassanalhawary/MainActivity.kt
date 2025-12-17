@@ -231,7 +231,7 @@ fun MainAppContent(
 
                 ImagesGroupsScreen(
                     onNavigateBack = {
-
+                        navController.popBackStack()
                     },
                     onGroupClick = { groupId ->
 //                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
