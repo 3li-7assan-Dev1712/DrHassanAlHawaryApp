@@ -5,12 +5,14 @@ import com.example.data.AudiosRepositoryImpl
 import com.example.data.AuthRepositoryImpl
 import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
+import com.example.data.VideosRepositoryImpl
 import com.example.data.WisdomRepositoryImpl
 import com.example.domain.repository.ArticlesRepository
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.repository.AuthRepository
 import com.example.domain.repository.ImagesRepository
 import com.example.domain.repository.NetworkRepository
+import com.example.domain.repository.VideosRepository
 import com.example.domain.repository.WisdomRepository
 import dagger.Binds
 import dagger.Module
@@ -55,6 +57,12 @@ abstract class DataModule {
     abstract fun bindImagesRepository(
         imagesRepositoryImpl: ImagesRepositoryImpl
     ): ImagesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindVideoRepository(
+        videosRepositoryImpl: VideosRepositoryImpl
+    ): VideosRepository
 
 
 }

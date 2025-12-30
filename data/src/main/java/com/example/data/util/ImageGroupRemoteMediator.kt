@@ -18,6 +18,15 @@ import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
 
+/**
+ * ImageGroupRemoteMediator will load data from database when there is a cache data
+ * when user scrolls down the Mediator will call the server (fireaase firestore) to get new data,
+ * store in room then update the UI accordingly.
+ *
+ * @param firebaseMediaSource a helper class to read data from firebase
+ * @param appDatabase the room database containing the images data
+ * @param networkRepositoryUseCase a use case to get the internet status (AVAILABLE OR NOT)
+ */
 @OptIn(ExperimentalPagingApi::class)
 class ImageGroupRemoteMediator @Inject constructor(
     private val firebaseMediaSource: FirebaseMediaSource,

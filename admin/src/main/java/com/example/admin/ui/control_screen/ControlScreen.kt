@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
 import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
 import com.example.admin.ui.upload_images_screen.UploadImagesScreen
+import com.example.admin.ui.upload_video_screen.UploadVideoScreen
 
 @ExperimentalMaterial3Api
 @Composable
@@ -31,7 +32,7 @@ fun ControlScreen(
 ) {
     // 0 = Article, 1 = Audio
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("New Article", "New Audio", "New Images")
+    val tabs = listOf("New Article", "New Audio", "New Images", "New Video")
 
     Scaffold(
         topBar = {
@@ -71,6 +72,11 @@ fun ControlScreen(
                 }
                 2 -> {
                     UploadImagesScreen()
+                }
+                3 -> {
+                    UploadVideoScreen {
+
+                    }
                 }
             }
         }

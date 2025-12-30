@@ -27,17 +27,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentDataType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.domain.module.Article
 import com.example.hassanalhawary.R
@@ -155,12 +159,19 @@ fun ArticleContent(
 
         Log.d("Detail Screen", "ArticleContent: full content: ${article.content}")
         // Full Article Content
-        Text(
-            text = article.content,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                lineHeight = 24.sp
+        CompositionLocalProvider(
+            LocalLayoutDirection provides LayoutDirection.Rtl
+        ) {
+            Text(
+                text = article.content,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    lineHeight = 1.8.em
+                ),
+
+                textAlign = TextAlign.Justify
+
             )
-        )
+        }
         Spacer(modifier = Modifier.height(64.dp))
     }
 }
@@ -214,7 +225,9 @@ fun DetailArticleScreenPreview_Success() {
             }
         ) { padding ->
             Box(Modifier.padding(padding)) {
-                ArticleContent(article = previewArticle, formatDate = { date -> formatDate(date) })
+                ArticleContent(
+                    article = previewArticle,
+                    formatDate = { date -> formatDate(date) })
             }
         }
     }

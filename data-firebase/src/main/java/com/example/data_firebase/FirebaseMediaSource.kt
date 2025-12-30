@@ -6,6 +6,7 @@ import androidx.core.net.toUri
 import com.example.data_firebase.model.AudioDto
 import com.example.domain.module.Audio
 import com.example.domain.module.ImageGroup
+import com.example.domain.module.Video
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.FirebaseDatabase
@@ -16,10 +17,20 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 
+/**
+ * This class is help working with the remote database (firebase firestore) by providing
+ * primary function like uploadAudioFile (used by admin app) or download audioFile (used by users app)
+ *
+ * @param realTimeDb the firebase real time database to store audios metadata like duration and file name
+ * @param storage Firebase Storge to store media like audios, videos and images
+ *
+ */
 class FirebaseMediaSource @Inject constructor(
     realTimeDb: FirebaseDatabase,
     private val storage: FirebaseStorage,
@@ -30,6 +41,88 @@ class FirebaseMediaSource @Inject constructor(
     private val TAG = "FirebaseMediaSource"
     private val audiosRef = realTimeDb.getReference("audios")
     val imagesRef = realTimeDb.getReference("images")
+    private val videosRef = realTimeDb.getReference("videos")
+
+
+    suspend fun fetchVideoPage(startAfterKey: String?, limit: Int): List<Video> {
+        val query = videosRef.orderByKey()
+
+        val finalQuery = if (startAfterKey == null) {
+            query.limitToFirst(limit)
+        } else {
+            query.startAfter(startAfterKey).limitToFirst(limit)
+        }
+
+        return try {
+            val dataSnapshot = finalQuery.get().await()
+            dataSnapshot.children.mapNotNull { snapshot ->
+                val title = snapshot.child("title").getValue(String::class.java) ?: ""
+                val url = snapshot.child("videoUrl").getValue(String::class.java) ?: ""
+                val timestamp = snapshot.child("publishDate").getValue(Long::class.java) ?: 0L
+                val videoId = snapshot.child("videoYoutubeId").getValue(String::class.java) ?: ""
+
+
+                Video(
+                    id = snapshot.key ?: "",
+                    title = title,
+                    videoUrl = url,
+                    publishDate = (Date(timestamp)),
+                    youtubeVideoId = videoId
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun getYoutubeVideoId(url: String): String? {
+        val pattern = "(?<=watch\\?v=|/videos/|embed/|youtu.be/|/v/|/e/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%2F|youtu.be%2F|%2Fv%2F)[^#&?\\n]*"
+        val compiledPattern = java.util.regex.Pattern.compile(pattern)
+        val matcher = compiledPattern.matcher(url)
+        return if (matcher.find()) matcher.group() else null
+    }
+
+
+    fun uploadVideo(
+        title: String,
+        videoUrl: String,
+        publishDate: Long = System.currentTimeMillis()
+    ): Flow<UploadResult> = callbackFlow {
+
+        trySend(UploadResult.Progress(0))
+
+        val youtubeId = getYoutubeVideoId(videoUrl)
+        if (youtubeId == null) {
+            trySend(UploadResult.Error("Invalid YouTube URL. Please check the link."))
+            close()
+            return@callbackFlow
+        }
+
+        // Create the data map to send to Firebase
+        val videoData = hashMapOf(
+            "title" to title,
+            "videoUrl" to videoUrl,
+            "videoYoutubeId" to youtubeId,
+            "publishDate" to publishDate
+        )
+
+        // Push to "videos" node
+        videosRef.push().setValue(videoData)
+            .addOnSuccessListener {
+                Log.d(TAG, "Successfully uploaded video metadata: $title")
+                trySend(UploadResult.Progress(100))
+                trySend(UploadResult.Success)
+                close()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to upload video metadata", e)
+                trySend(UploadResult.Error("Database Error: ${e.message}"))
+                close()
+            }
+
+        awaitClose { /* No task to cancel as this is a simple DB write */ }
+    }
+
 
     /**
      * Fetches a single page of audios for pagination.
@@ -78,7 +171,7 @@ class FirebaseMediaSource @Inject constructor(
         val firebaseDto = this.getValue(AudioDto::class.java)
 
         return firebaseDto?.let { dto ->
-            Audio(
+                 Audio(
                 id = this.key ?: return null, // The node's key is the unique ID.
                 title = dto.title,
                 audioUrl = dto.audioUrl,
@@ -353,6 +446,19 @@ class FirebaseMediaSource @Inject constructor(
             emptyList() // Return an empty list on failure to prevent crashes.
         }
     }
+
+
+
+    fun formatDate(
+        date: Date,
+        pattern: String = "dd MMM, yyyy",
+        locale: Locale = Locale.getDefault() // Use java.util.Locale here
+    ): String {
+        // SimpleDateFormat requires java.util.Locale
+        val formatter = SimpleDateFormat(pattern, locale)
+        return formatter.format(date)
+    }
+
 
 
 }

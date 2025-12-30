@@ -40,7 +40,6 @@ import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
 import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
 import com.example.hassanalhawary.ui.screens.video_player_screen.VideoPlayerScreen
 import com.example.hassanalhawary.ui.screens.videos_screen.VideosScreen
-import com.example.hassanalhawary.ui.screens.videos_screen.components.Video
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -250,45 +249,14 @@ fun MainAppContent(
 
             }
             composable(Routes.VIDEOS_SCREEN) {
-                val mockVideos = remember {
-                    listOf(
-                        Video(
-                            "1",
-                            "A Public Nature Video",
-                            "This video is public and will play correctly.",
-                            "10:00",
-                            // Use a public video URL for testing
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&pp=ygUO2KfZhNmH2YjYp9ix2Yo%3D",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "A Public Nature Video",
-                            "This video is public and will play correctly.",
-                            "10:00",
-                            // Use a public video URL for testing
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&pp=ygUO2KfZhNmH2YjYp9ix2Yo%3D",
-                            R.drawable.design_2
-                        ),
-                        Video(
-                            "1",
-                            "A Public Nature Video",
-                            "This video is public and will play correctly.",
-                            "10:00",
-                            // Use a public video URL for testing
-                            "https://www.youtube.com/watch?v=_-6I2j5nP1M&pp=ygUO2KfZhNmH2YjYp9ix2Yo%3D",
-                            R.drawable.design_2
-                        ),
 
-                        )
-                }
                 VideosScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     }, onNavigateToVideo = { videoUrl ->
                         val encodedUrl = Uri.encode(videoUrl)
                         navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
-                    }, videos = mockVideos
+                    }
                 )
             }
             composable(

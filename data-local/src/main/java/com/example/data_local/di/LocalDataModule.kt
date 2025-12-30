@@ -40,6 +40,10 @@ object LocalDataModule {
     @Singleton
     fun provideImageDao(appDatabase: AppDatabase) = appDatabase.imageDao()
 
+    @Provides
+    @Singleton
+    fun provideVideoDao(appDatabase: AppDatabase) = appDatabase.videoDao()
+
 
     @Provides
     @Singleton
