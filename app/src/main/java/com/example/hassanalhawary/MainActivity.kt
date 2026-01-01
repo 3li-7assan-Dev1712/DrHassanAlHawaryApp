@@ -28,6 +28,7 @@ import androidx.navigation.navArgument
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
+import com.example.hassanalhawary.ui.screens.about_dr_hassan_screen.AboutDrHassanScreen
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
 import com.example.hassanalhawary.ui.screens.audio_detail_screen.AudioDetailRoute
 import com.example.hassanalhawary.ui.screens.audio_list_sceen.AudioListScreen
@@ -117,6 +118,7 @@ fun MainAppContent(
             Routes.KHOTAB_SCREEN,
             "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}",
             Routes.VIDEOS_SCREEN,
+            Routes.CV_SCREEN
         )
     }
 
@@ -246,7 +248,9 @@ fun MainAppContent(
                 )*/
             }
             composable(Routes.CV_SCREEN) {
-
+                AboutDrHassanScreen {
+                    navController.popBackStack()
+                }
             }
             composable(Routes.VIDEOS_SCREEN) {
 
