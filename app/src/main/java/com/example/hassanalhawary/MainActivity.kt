@@ -36,6 +36,7 @@ import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticle
 import com.example.hassanalhawary.ui.screens.home_screen.HomeScreen
 import com.example.hassanalhawary.ui.screens.image_groups_screen.ImagesGroupsScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
+import com.example.hassanalhawary.ui.screens.profile_screen.ProfileScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
 import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
@@ -282,6 +283,14 @@ fun MainAppContent(
             }
             composable(Routes.KHOTAB_SCREEN) {
 
+            }
+            composable(Routes.PROFILE_SCREEN) {
+                ProfileScreen(
+                    onLogout = onLogout,
+                    onNavigateToAboutApp = {
+                        navController.navigate("cv_screen")
+                    }
+                )
             }
 
 
