@@ -42,9 +42,9 @@ dependencies {
 
 
 
-    implementation(project(":data-local"))
-    implementation(project(":data-firebase"))
-    implementation(project(":domain"))
+    implementation(project(":core:core-database"))
+    implementation(project(":core:core-network"))
+    implementation(project(":core:core-domain"))
 
     implementation(libs.androidx.paging.common)
 

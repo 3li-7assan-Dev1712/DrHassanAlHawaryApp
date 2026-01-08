@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Dr. Hassan Al-Hawary</string>
+    <string name="web_client_id" translatable="false">513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com</string>
+    <string name="login">Login</string>
+    <string name="enter_email">E-mail</string>
+    <string name="name">Name</string>
+    <string name="articles">Articles</string>
+    <string name="read_more">Read more…</string>
+    <string name="enter_password">Password</string>
+    <string name="register">Register</string>
+    <string name="login_question">already have an account?</string>
+    <string name="register_question">don\'t have an account?</string>
+    <string name="register_using">Register using Google</string>
+    <string name="login_using">Login using Google</string>
+    <string name="facebook_app_id" translatable="false">1962082974176203</string>
+    <string name="favorite_articles">Favorite Articles</string>
+    <string name="favorite_lectures">Favorite Lectures</string>
+    <string name="questions">Questions</string>
+    <string name="study_zone">Study Zone</string>">
+    <string name="videos">Videos</string>
+    <string name="lectures">Lectures</string>
+    <string name="summary">Summary</string>
+    <string name="main_screen">Main screen</string>
+    <string name="favorites">Favorites</string>
+    <string name="profile">Profile</string>
+    <string name="enter_name">Name</string>
+    <string name="home">Home</string>
+    <string name="search_hint">Search</string>
+    <string name="loading">Loading…</string>
+    <string name="error_msg">Error occurred</string>
+    <string name="navigate_back">Navigate back</string>
+    <string name="latest_articles">Latest Articles</string>
+    <string name="latest_audios">Latest Audios</string>
+    <string name="audio_detail_description_title">Audio With Title</string>
+    <string name="wisdom_of_the_day">Quote of the Day</string>
+    <string name="no_audios_available">No Available Audios</string>
+    <string name="khotab_aljumah">Khotab Al Jumah</string>
+    <string name="war">War</string>
+    <string name="most_important">Most Important</string>
+    <string name="audios">Audios</string>
+    <string name="lessons">Lessons</string>
+    <string name="images">Images</string>
+    <string name="shaikh_hassan_cv">About</string>
+    <string name="search_illustration_description">Search to find any content you love</string>
+    <string name="study_zone_description">Enter you data to join to the study zone</string>
+
+
+</resources>

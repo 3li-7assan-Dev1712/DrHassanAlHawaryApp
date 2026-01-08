@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">الشيــخ د. حســن الهــواري</string>
+    <string name="web_client_id" translatable="false">513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com</string>
+    <string name="login">تسجيل الدخول</string>
+    <string name="enter_email">الإيميل</string>
+    <string name="name">الإســـم</string>
+    <string name="articles">المـــقالات</string>
+    <string name="read_more">قراءة المــزيد…</string>
+    <string name="enter_password">كلمـــة المــرور</string>
+    <string name="register">إنشـــاء حســـاب</string>
+    <string name="login_question">لديــك حســـاب قديـــم؟</string>
+    <string name="register_question">ليس لديـــك حســـاب</string>
+    <string name="register_using">تسجيـــل الدخول عن طريـــق قوقـــل</string>
+    <string name="login_using">تسجيــــل الدخول عن طريـــق</string>
+    <string name="facebook_app_id" translatable="false">1962082974176203</string>
+    <string name="favorite_articles">المقالات المفضلــة</string>
+    <string name="favorite_lectures">المحاضـــرات المفضلـــة</string>
+    <string name="questions">الإسئلــــة</string>
+    <string name="videos">الفيديوهــــات</string>
+    <string name="audios">الصـــوتيات</string>
+    <string name="lectures">المحاضــــرات</string>
+    <string name="summary">ملخــــص</string>
+    <string name="main_screen">الشاشـــة الرئيــــسة</string>
+    <string name="favorites">المفضــــلات</string>
+    <string name="enter_name">الإســم</string>
+    <string name="profile">الملـــف الشخصـــي</string>
+    <string name="home">الرئيسية</string>
+    <string name="search_hint">بحـــث…</string>
+    <string name="loading">يتم التحميل…</string>
+    <string name="navigate_back">الرجوع للخلف</string>
+    <string name="no_audios_available">لا تــوجــــد صــــوتــيات متاحــــة الآن</string>
+    <string name="audio_detail_description_title">مقــــطع بعنــــوان</string>
+
+    <string name="error_msg">حـــدث خــــطأ</string>
+    <string name="shaikh_hassan_cv">عن الشيــخ</string>
+
+    <string name="study_zone">المعهـــد</string>">
+    <string name="latest_articles">آخــر المــــقالات</string>
+    <string name="latest_audios">آخــر الصــــوتيات</string>
+    <string name="images">الصـــور</string>
+    <string name="wisdom_of_the_day">رسالــــة اليـــــوم</string>
+    <string name="khotab_aljumah">خــطب الجـــمعة</string>
+    <string name="war">نـــوازل الحـــرب</string>
+    <string name="most_important">أهـــم المســـائل</string>
+    <string name="lessons">الــمـحـــتويات</string>
+    <string name="study_zone_description">اكتب بياناتك للدخول إلى دروس المعهد</string>
+    <string name="search_illustration_description">اكتب كلمة للعثور على الدرس أو الخطبة</string>
+</resources>

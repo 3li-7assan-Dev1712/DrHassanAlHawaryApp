@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="articles">المـــقالات</string>
+    <string name="read_more">قراءة المــزيد…</string>
+    <string name="favorite_articles">المقالات المفضلــة</string>
+    <string name="favorite_lectures">المحاضـــرات المفضلـــة</string>
+    <string name="questions">الإسئلــــة</string>
+    <string name="videos">الفيديوهــــات</string>
+    <string name="audios">الصـــوتيات</string>
+    <string name="lectures">المحاضــــرات</string>
+    <string name="main_screen">الشاشـــة الرئيــــسة</string>
+    <string name="home">الرئيسية</string>
+    <string name="loading">يتم التحميل…</string>
+    <string name="navigate_back">الرجوع للخلف</string>
+    <string name="no_audios_available">لا تــوجــــد صــــوتــيات متاحــــة الآن</string>
+
+    <string name="error_msg">حـــدث خــــطأ</string>
+    <string name="shaikh_hassan_cv">عن الشيــخ</string>
+
+    <string name="latest_articles">آخــر المــــقالات</string>
+    <string name="latest_audios">آخــر الصــــوتيات</string>
+    <string name="images">الصـــور</string>
+    <string name="khotab_aljumah">خــطب الجـــمعة</string>
+    <string name="war">نـــوازل الحـــرب</string>
+    <string name="most_important">أهـــم المســـائل</string>
+    <string name="lessons">الــمـحـــتويات</string>
+</resources>
