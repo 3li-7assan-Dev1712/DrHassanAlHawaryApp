@@ -113,6 +113,7 @@ dependencies {
     // depend on the core-ui library for sharing the ui components
     implementation(project(":feature:feature-splash-screen"))
     implementation(project(":feature:feature-home"))
+    implementation(project(":feature:feature-image"))
     implementation(project(":core:core-domain"))
     implementation(project(":data"))
 
