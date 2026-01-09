@@ -4,14 +4,15 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.data_local.model.ArticleEntity
 import com.example.data_local.model.AudioEntity
+import com.example.data_local.model.ImageEntity
 import com.example.data_local.model.ImageGroupEntity
 import com.example.data_local.model.ImageGroupRemoteKeysEntity
 import com.example.data_local.model.VideoEntity
 
 
 @Database(
-    entities = [AudioEntity::class, ArticleEntity::class, ImageGroupEntity::class, ImageGroupRemoteKeysEntity::class, VideoEntity::class],
-    version = 6,
+    entities = [AudioEntity::class, ArticleEntity::class, ImageEntity::class, ImageGroupEntity::class, ImageGroupRemoteKeysEntity::class, VideoEntity::class],
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.home.presentation.HomeScreen
+import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
@@ -236,17 +237,24 @@ fun MainAppContent(
                         navController.popBackStack()
                     },
                     onGroupClick = { groupId ->
-//                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
                     }
                 )
             }
-            composable(Routes.IMAGE_DETAIL_SCREEN) {
-                /*
-                GalleryScreen(
+            composable(
+                route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}",
+                arguments = listOf(
+                    navArgument("groupId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
+                ImageScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    }, group = mockGroup2
-                )*/
+                    }
+                )
+
             }
             composable(Routes.CV_SCREEN) {
                 AboutDrHassanScreen {

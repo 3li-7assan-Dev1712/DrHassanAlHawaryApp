@@ -7,7 +7,7 @@ import com.example.feature.home.domain.model.ImageFeed
 data class HomeScreenUiState(
 
 
-    val loadingWotd: Boolean = true, // loading the wisdom of the day (is loading show progress otherwise hide it)
+    val loadingImages: Boolean = true,
     val loadingLatestArticles: Boolean = true,
     val loadingLatestAudios: Boolean = true,
     val latestImages: List<ImageFeed> = emptyList(),
@@ -15,7 +15,5 @@ data class HomeScreenUiState(
     val latestAudios: List<AudioFeed> = emptyList(),
     val searchQuery: String = "",
     val isInOfflineMode: Boolean = false,
-
-
-    val audioErrorMessage: String? = null,
+    val errorMessage: String? = null,
 )

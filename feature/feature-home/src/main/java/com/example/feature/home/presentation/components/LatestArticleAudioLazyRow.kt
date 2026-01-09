@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,17 +45,7 @@ fun <T> LatestArticleAudioLazyRow(
             CircularProgressIndicator()
         }
 
-    } else if (items.isEmpty()) {
-        Box(
-            modifier = modifier
-                .padding(4.dp)
-                .width(180.dp)
-                .height(120.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = "No data available", style = MaterialTheme.typography.bodyMedium)
-        }
-    } else {
+    } else if (items.isNotEmpty()){
 
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
@@ -66,7 +54,7 @@ fun <T> LatestArticleAudioLazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp, bottom = 8.dp) // Give title some top padding
+                    .padding(top = 16.dp, bottom = 8.dp)
             )
             LazyRow(
                 contentPadding = contentPadding,

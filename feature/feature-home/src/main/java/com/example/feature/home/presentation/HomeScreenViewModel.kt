@@ -103,7 +103,7 @@ class HomeScreenViewModel @Inject constructor(
 
                _homeScreenUiState.value = _homeScreenUiState.value.copy(
                    latestImages = images,
-                   loadingWotd = false
+                   loadingImages = false
                )
 
            }
@@ -133,7 +133,7 @@ class HomeScreenViewModel @Inject constructor(
                         it.copy(
                             latestAudios = audioFromDb,
                             loadingLatestAudios = false,
-                            audioErrorMessage = null
+                            errorMessage = null
                         )
                     }
                 }

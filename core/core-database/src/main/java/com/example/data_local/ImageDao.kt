@@ -3,8 +3,12 @@ package com.example.data_local
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Upsert
+import com.example.data_local.model.ImageEntity
 import com.example.data_local.model.ImageGroupEntity
+import com.example.data_local.model.ImageGroupWithImages
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ImageDao {
@@ -25,9 +29,18 @@ interface ImageDao {
 /*    @Query("SELECT * FROM image_groups ORDER BY publishDate DESC LIMIT 5")
     fun getLatestImages(): Flow<List<ImageEntity>>*/
 
+    @Upsert
+    fun upsertImages(images: List<ImageEntity>)
 
     @Query("SELECT COUNT(*) FROM image_groups")
     suspend fun count(): Int
 
+    @Transaction
+    @Query("SELECT * FROM image_groups WHERE id = :groupId")
+    suspend fun getImageGroupWithImages(groupId: String): ImageGroupWithImages?
+
+    @Transaction
+    @Query("SELECT * FROM image_groups WHERE id = :groupId")
+    fun getObservableGroupWithImages(groupId: String): Flow<ImageGroupWithImages?>
 
 }

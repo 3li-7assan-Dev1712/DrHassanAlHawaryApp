@@ -137,9 +137,9 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(16.dp)) // Space between sections
 
                     // Latest Audios Section
-                    if (homeScreenUiState.audioErrorMessage != null) {
+                    if (homeScreenUiState.errorMessage != null) {
                         Text(
-                            text = homeScreenUiState.audioErrorMessage!!,
+                            text = homeScreenUiState.errorMessage!!,
                             color = MaterialTheme.colorScheme.error
                         )
 
