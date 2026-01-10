@@ -3,7 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.compose)
 }
+
 
 android {
     namespace = "com.example.feature.video"
@@ -43,10 +45,34 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    implementation(project(":core:core-domain"))
+    implementation(project(":core:core-database"))
+    implementation(project(":core:core-network"))
+    implementation(project(":core:core-ui"))
 
     // Hilt for injection
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    // ViewModel
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.runtime.compose)
+
+    // navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // coil
+    implementation(libs.coil.compose)
+
+    // youtube player
+    implementation(libs.youtube.player)
+
+    // exo player and media session && ui
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
 
 
 

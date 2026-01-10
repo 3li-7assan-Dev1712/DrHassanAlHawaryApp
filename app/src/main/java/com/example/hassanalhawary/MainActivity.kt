@@ -29,6 +29,8 @@ import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
+import com.example.feature.video.presentation.detail.VideoPlayerScreen
+import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.screens.about_dr_hassan_screen.AboutDrHassanScreen
@@ -41,8 +43,6 @@ import com.example.hassanalhawary.ui.screens.profile_screen.ProfileScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
 import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
-import com.example.hassanalhawary.ui.screens.video_player_screen.VideoPlayerScreen
-import com.example.hassanalhawary.ui.screens.videos_screen.VideosScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
