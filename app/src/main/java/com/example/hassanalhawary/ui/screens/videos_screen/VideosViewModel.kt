@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VideosViewModel @Inject constructor(
-    private val videosRepository: VideosRepositoryImpl
+    videosRepository: VideosRepositoryImpl
 ) : ViewModel() {
 
 

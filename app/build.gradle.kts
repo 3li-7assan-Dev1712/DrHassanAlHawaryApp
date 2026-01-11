@@ -115,6 +115,7 @@ dependencies {
     implementation(project(":feature:feature-home"))
     implementation(project(":feature:feature-image"))
     implementation(project(":feature:feature-video"))
+    implementation(project(":feature:feature-audio"))
     implementation(project(":core:core-domain"))
     implementation(project(":data"))
 

@@ -12,7 +12,7 @@ import com.example.data_local.model.VideoEntity
 
 @Database(
     entities = [AudioEntity::class, ArticleEntity::class, ImageEntity::class, ImageGroupEntity::class, ImageGroupRemoteKeysEntity::class, VideoEntity::class],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

@@ -14,6 +14,7 @@ data class AudioEntity(
     val audioUrl: String,
     val durationInMillis: Long,
     val publishDate: Long,
+    val isDownloaded: Boolean = false,
     //User-Specific
     val isFavorite: Boolean = false,
     val localFilePath: String? = null,
