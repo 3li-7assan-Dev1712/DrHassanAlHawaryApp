@@ -2,6 +2,8 @@ package com.example.feature.audio.di
 
 import com.example.feature.audio.data.AudioRepositoryImpl
 import com.example.feature.audio.domain.repository.AudioRepository
+import com.example.feature.audio.player.AudioPlayerManager
+import com.example.feature.audio.player.AudioPlayerManagerImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -19,6 +21,12 @@ abstract class VideoModule {
         audioRepository: AudioRepositoryImpl
     ): AudioRepository
 
+
+    @Binds
+    @Singleton
+    abstract fun bindAudioPlayerManager(
+        audioPlayerManagerImpl: AudioPlayerManagerImpl
+    ): AudioPlayerManager
 
 
 }

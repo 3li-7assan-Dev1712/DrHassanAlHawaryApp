@@ -49,6 +49,13 @@ dependencies {
     implementation(project(":core:core-network"))
     implementation(project(":core:core-ui"))
 
+    // exo player and media session && ui
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+
+    // guava
+    implementation(libs.kotlinx.coroutines.guava)
 
     // ViewModel
     implementation(libs.lifecycle.viewmodel.compose)
