@@ -26,6 +26,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.core_ui.splash_screen.SplashScreen
+import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.home.presentation.HomeScreen
@@ -37,7 +38,6 @@ import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.screens.about_dr_hassan_screen.AboutDrHassanScreen
 import com.example.hassanalhawary.ui.screens.articles_screen.ArticleListScreen
-import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.profile_screen.ProfileScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
@@ -199,7 +199,7 @@ fun MainAppContent(
                 })
             }
             composable("detail_article_screen/{articleId}") {
-                DetailArticleScreen {
+                ArticleDetailScreen {
                     navController.popBackStack()
                 }
             }
