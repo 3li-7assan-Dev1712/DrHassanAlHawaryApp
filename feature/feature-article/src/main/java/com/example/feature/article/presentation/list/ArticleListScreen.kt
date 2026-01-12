@@ -35,23 +35,23 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.example.core.ui.R
 import com.example.domain.module.Article
-import com.example.hassanalhawary.R
-import com.example.hassanalhawary.core.util.formatDate
-import com.example.hassanalhawary.ui.components.SearchBar
+import com.example.feature.article.data.util.formatDate
+import com.example.feature.article.presentation.components.SearchBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ArticlesScreen(
-    articleListViewModel: ArticleListViewModel = hiltViewModel(),
+fun ArticleListScreen(
+    articlesViewModel: ArticleListViewModel = hiltViewModel(),
     onNavigateToArticleDetail: (articleId: String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
 
 
-    val articles = articleListViewModel.articles.collectAsLazyPagingItems()
-    val searchQuery by articleListViewModel.rawSearchInput.collectAsState()
+    val articles = articlesViewModel.articles.collectAsLazyPagingItems()
+    val searchQuery by articlesViewModel.rawSearchInput.collectAsState()
 
 //    val articles by articlesViewModel.filteredArticles.collectAsState()
     val focusManager = LocalFocusManager.current
@@ -59,7 +59,7 @@ fun ArticlesScreen(
     ArticlesScreenContent(
         articles,
         searchQuery,
-        articleListViewModel,
+        articlesViewModel,
         focusManager,
         onNavigateToArticleDetail,
         onNavigateBack

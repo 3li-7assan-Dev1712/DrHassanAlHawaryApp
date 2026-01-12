@@ -26,7 +26,7 @@ import javax.inject.Singleton
 class AudioPlayerController @Inject constructor(
     @param:ApplicationContext private val context: Context // Application context
 ) {
-    private var player: ExoPlayer? = null // Using ExoPlayer
+    private var player: ExoPlayer? = null
 
     private val _playerStateFlow = MutableStateFlow(PlayerState())
     val playerStateFlow: StateFlow<PlayerState> = _playerStateFlow.asStateFlow()

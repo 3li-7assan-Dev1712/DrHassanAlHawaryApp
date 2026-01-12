@@ -12,12 +12,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
-
+ 
 class FirebaseArticlesSource
-    @Inject constructor(
-        private val firestoreDb: FirebaseFirestore
-    ){
-
+@Inject constructor(
+    private val firestoreDb: FirebaseFirestore
+) {
 
 
     /**
@@ -51,10 +50,6 @@ class FirebaseArticlesSource
     }
 
 
-
-
-
-
     suspend fun getArticles(lastDocumentId: String?, limit: Long): Pair<List<Article>, Boolean> {
         try {
             // dealy to test the loading
@@ -67,7 +62,8 @@ class FirebaseArticlesSource
 
             // If lastDocumentId is not null, find that document to use it as a cursor
             val finalQuery = if (lastDocumentId != null) {
-                val lastDocumentSnapshot = firestoreDb.collection("articles").document(lastDocumentId).get().await()
+                val lastDocumentSnapshot =
+                    firestoreDb.collection("articles").document(lastDocumentId).get().await()
                 query.startAfter(lastDocumentSnapshot)
             } else {
                 query
@@ -86,7 +82,10 @@ class FirebaseArticlesSource
 
             // The end of pagination is reached if the number of fetched articles is less than the requested limit.
             val endOfPaginationReached = articles.size < limit
-            Log.d("FirebaseArticlesSource", "Fetched ${articles.size} articles. End reached: $endOfPaginationReached")
+            Log.d(
+                "FirebaseArticlesSource",
+                "Fetched ${articles.size} articles. End reached: $endOfPaginationReached"
+            )
 
             return Pair(articles, endOfPaginationReached)
 
@@ -124,7 +123,6 @@ class FirebaseArticlesSource
     }
 
 
-
     suspend fun getArticleById(articleId: String): ArticlesResult {
 
         return try {
@@ -152,7 +150,6 @@ class FirebaseArticlesSource
         }
 
     }
-
 
 
     fun syncArticlesDbWithServer(): Flow<List<Article>> {
@@ -190,11 +187,6 @@ class FirebaseArticlesSource
         }
 
     }
-
-
-
-
-
 
 
 }

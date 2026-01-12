@@ -36,7 +36,7 @@ import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.screens.about_dr_hassan_screen.AboutDrHassanScreen
-import com.example.hassanalhawary.ui.screens.articles_screen.ArticlesScreen
+import com.example.hassanalhawary.ui.screens.articles_screen.ArticleListScreen
 import com.example.hassanalhawary.ui.screens.detail_article_screen.DetailArticleScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.profile_screen.ProfileScreen
@@ -192,7 +192,7 @@ fun MainAppContent(
 
             composable("articles_screen") {
 
-                ArticlesScreen(onNavigateToArticleDetail = { articleId ->
+                ArticleListScreen(onNavigateToArticleDetail = { articleId ->
                     navController.navigate("detail_article_screen/$articleId")
                 }, onNavigateBack = {
                     navController.popBackStack()
