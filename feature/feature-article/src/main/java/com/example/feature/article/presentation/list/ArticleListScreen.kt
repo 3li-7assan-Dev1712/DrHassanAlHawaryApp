@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.screens.articles_screen
+package com.example.feature.article.presentation.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,12 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,7 +34,7 @@ import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.domain.module.Article
 import com.example.feature.article.data.util.formatDate
-import com.example.feature.article.presentation.components.SearchBar
+import com.example.hassanalhawary.ui.screens.articles_screen.ArticleItem
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,16 +47,9 @@ fun ArticleListScreen(
 
 
     val articles = articlesViewModel.articles.collectAsLazyPagingItems()
-    val searchQuery by articlesViewModel.rawSearchInput.collectAsState()
-
-//    val articles by articlesViewModel.filteredArticles.collectAsState()
-    val focusManager = LocalFocusManager.current
 
     ArticlesScreenContent(
         articles,
-        searchQuery,
-        articlesViewModel,
-        focusManager,
         onNavigateToArticleDetail,
         onNavigateBack
     )
@@ -70,9 +59,6 @@ fun ArticleListScreen(
 @Composable
 private fun ArticlesScreenContent(
     articles: LazyPagingItems<Article>,
-    searchQuery: String,
-    articleListViewModel: ArticleListViewModel,
-    focusManager: FocusManager,
     onNavigateToArticleDetail: (String) -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
@@ -102,14 +88,6 @@ private fun ArticlesScreenContent(
                     },
                     windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
                 )
-                SearchBar(
-                    searchQuery = searchQuery,
-                    hint = stringResource(R.string.search_hint),
-                    onQueryChanged = { articleListViewModel.onSearchQueryChanged(it) },
-                    onSearchClicked = {
-                        focusManager.clearFocus() // Hide keyboard on search
-                        //c can trigger a more explicit search action here if debounce wasn't enough
-                    })
             }
         }
     ) { innerPadding ->

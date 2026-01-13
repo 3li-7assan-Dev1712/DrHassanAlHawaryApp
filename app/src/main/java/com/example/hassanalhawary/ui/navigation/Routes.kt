@@ -16,7 +16,7 @@ object Routes {
     const val SEARCH_SCREEN = "search_screen"
     const val STUDY_ZONE_SCREEN = "study_zone_screen"
     const val PROFILE_SCREEN = "profile_screen"
-    const val CV_SCREEN = "cv_screen"
+    const val ABOUT_DR_HASSAN_SCREEN = "about_dr_hassan"
 
     // --- Category (Lessons) Routes ---
     const val ARTICLES_SCREEN = "articles_screen"

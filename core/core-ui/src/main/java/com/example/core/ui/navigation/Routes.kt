@@ -1,4 +1,5 @@
-package com.example.feature.home.presentation.navigation
+package com.example.core.ui.navigation
+
 
 /**
  * A centralized object to hold all navigation route constants for the app.
@@ -16,7 +17,7 @@ object Routes {
     const val SEARCH_SCREEN = "search_screen"
     const val STUDY_ZONE_SCREEN = "study_zone_screen"
     const val PROFILE_SCREEN = "profile_screen"
-    const val CV_SCREEN = "cv_screen"
+    const val ABOUT_DR_HASSAN_SCREEN = "about_dr_hassan"
 
     // --- Category (Lessons) Routes ---
     const val ARTICLES_SCREEN = "articles_screen"
@@ -27,7 +28,7 @@ object Routes {
 
     const val IMPORTANT_QUESTIONS_SCREEN = "important_questions_screen"
     // --- Detail Screens ---
-     const val ARTICLE_DETAIL_SCREEN = "article_detail_screen"
+    const val ARTICLE_DETAIL_SCREEN = "article_detail_screen"
     const val AUDIO_DETAIL_SCREEN = "audio_detail_screen"
     const val VIDEO_PLAYER_SCREEN = "video_player_screen"
     const val KHOTAB_DETAIL_SCREEN = "khotab_detail_screen"

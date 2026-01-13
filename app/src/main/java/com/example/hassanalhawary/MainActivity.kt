@@ -26,7 +26,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.core_ui.splash_screen.SplashScreen
+import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
+import com.example.feature.article.presentation.list.ArticleListScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.home.presentation.HomeScreen
@@ -36,8 +38,6 @@ import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
-import com.example.hassanalhawary.ui.screens.about_dr_hassan_screen.AboutDrHassanScreen
-import com.example.hassanalhawary.ui.screens.articles_screen.ArticleListScreen
 import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.profile_screen.ProfileScreen
 import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
@@ -120,7 +120,7 @@ fun MainAppContent(
             Routes.KHOTAB_SCREEN,
             "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}",
             Routes.VIDEOS_SCREEN,
-            Routes.CV_SCREEN
+            Routes.ABOUT_DR_HASSAN_SCREEN
         )
     }
 
@@ -256,7 +256,7 @@ fun MainAppContent(
                 )
 
             }
-            composable(Routes.CV_SCREEN) {
+            composable(Routes.ABOUT_DR_HASSAN_SCREEN) {
                 AboutDrHassanScreen {
                     navController.popBackStack()
                 }
@@ -296,7 +296,7 @@ fun MainAppContent(
                 ProfileScreen(
                     onLogout = onLogout,
                     onNavigateToAboutApp = {
-                        navController.navigate("cv_screen")
+//                        navController.navigate("cv_screen")
                     }
                 )
             }

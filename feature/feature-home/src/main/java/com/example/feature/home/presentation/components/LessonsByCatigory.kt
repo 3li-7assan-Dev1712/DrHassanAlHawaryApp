@@ -24,9 +24,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.core.ui.navigation.Routes
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.feature.home.R
-import com.example.feature.home.presentation.navigation.Routes
 
 
 data class Category(

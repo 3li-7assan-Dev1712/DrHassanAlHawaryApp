@@ -3,7 +3,6 @@ package com.example.feature.audio.presentation.list
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,14 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -37,7 +33,6 @@ import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.feature.audio.domain.model.Audio
 import com.example.feature.audio.presentation.components.AudioListItem
-import com.example.feature.audio.presentation.components.SearchBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,14 +47,9 @@ fun AudioListScreen(
 
     val audios = audiosViewModel.audios.collectAsLazyPagingItems()
 
-
-    val uiState by audiosViewModel.uiState.collectAsStateWithLifecycle()
-
-    AudioListComposeble(
+    AudioListComposable(
         modifier = modifier,
         audios = audios,
-        uiState = uiState,
-        onSearchQueryChanged = audiosViewModel::onSearchQueryChanged,
         onNavigateToAudioDetail = { title, audioUrl ->
 
             onNavigateToAudioDetail(title, audioUrl)
@@ -73,48 +63,35 @@ fun AudioListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AudioListComposeble(
+fun AudioListComposable(
     modifier: Modifier = Modifier,
     audios: LazyPagingItems<Audio>,
-    uiState: AudioListUiState,
-    onSearchQueryChanged: (String) -> Unit = {},
     onNavigateToAudioDetail: (title: String, audioId: String) -> Unit = { _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
-    val focusManager = LocalFocusManager.current
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         topBar = {
-            Column {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                title = {
+                    Text(
+                        text = stringResource(R.string.audios),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
 
-                TopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    title = {
-                        Text(
-                            text = stringResource(R.string.audios),
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
-                        }
-                    },
-                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-                )
-                SearchBar(
-                    searchQuery = uiState.searchQuery,
-                    hint = stringResource(R.string.search_hint),
-                    onQueryChanged = onSearchQueryChanged,
-                    onSearchClicked = {
-                        focusManager.clearFocus() // Hide keyboard on search
-                    })
-            }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                    }
+                },
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+            )
         },
         modifier = modifier.fillMaxSize()
     ) { contentPadding ->

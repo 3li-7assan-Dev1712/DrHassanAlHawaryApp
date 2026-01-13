@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.ui.navigation.Routes
 import com.example.domain.module.NetworkMessageEvent
 import com.example.feature.home.R
 import com.example.feature.home.presentation.components.ArticleCard
@@ -31,7 +32,6 @@ import com.example.feature.home.presentation.components.Category
 import com.example.feature.home.presentation.components.ImageCarousel
 import com.example.feature.home.presentation.components.LatestArticleAudioLazyRow
 import com.example.feature.home.presentation.components.LessonsByCategory
-import com.example.feature.home.presentation.navigation.Routes
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,8 +100,8 @@ fun HomeScreen(
                     R.drawable.images_icon
                 ),
                 Category(
-                    Routes.CV_SCREEN,
-                    stringResource(R.string.shaikh_hassan_cv),
+                    Routes.ABOUT_DR_HASSAN_SCREEN,
+                    stringResource(R.string.about_dr_hassan),
                     R.drawable.audios_icon
                 )
             )
