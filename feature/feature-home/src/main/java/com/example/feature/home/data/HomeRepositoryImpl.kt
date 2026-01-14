@@ -8,7 +8,6 @@ import com.example.feature.home.domain.model.AudioFeed
 import com.example.feature.home.domain.model.ImageFeed
 import com.example.feature.home.domain.repository.HomeRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -47,17 +46,13 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override fun getLatestImages(): Flow<List<ImageFeed>> {
-        /*return imageDao.getLatestImages().map {
-            it.map { image ->
+        return imageDao.getLastImageGroup().map { imageGroup ->
+            imageGroup.images.map { imageEntity ->
                 ImageFeed(
-                    imageUrl = image.imageUrl
+                    imageUrl = imageEntity.imageUrl,
                 )
             }
-        }*/
-        return listOf<ImageFeed>(
-            ImageFeed(
-                imageUrl = ""
-            )
-        ).asFlow().map { listOf(it) }
+        }
+
     }
 }

@@ -19,7 +19,7 @@ interface ImageDao {
      * Retrieves a PagingSource of all image groups from the database, ordered by title.
      * The Paging library will use this to asynchronously load pages of data.
      */
-    @Query("SELECT * FROM image_groups ORDER BY publishDate ASC")
+    @Query("SELECT * FROM image_groups ORDER BY publishDate DESC")
     fun pagingSource(): PagingSource<Int, ImageGroupEntity>
 
     @Query("DELETE FROM image_groups")
@@ -39,6 +39,9 @@ interface ImageDao {
     @Query("SELECT * FROM image_groups WHERE id = :groupId")
     suspend fun getImageGroupWithImages(groupId: String): ImageGroupWithImages?
 
+    @Transaction
+    @Query("SELECT * FROM image_groups ORDER BY publishDate DESC LIMIT 1")
+    fun getLastImageGroup(): Flow<ImageGroupWithImages>
     @Transaction
     @Query("SELECT * FROM image_groups WHERE id = :groupId")
     fun getObservableGroupWithImages(groupId: String): Flow<ImageGroupWithImages?>

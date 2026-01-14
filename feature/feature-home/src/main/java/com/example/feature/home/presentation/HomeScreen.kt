@@ -47,6 +47,8 @@ fun HomeScreen(
 
     val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
 
+    val images = homeScreenUiState.latestImages
+    val isLoadingImages = homeScreenUiState.loadingImages
 
     val context = LocalContext.current
     // Handle one-time network messages
@@ -108,7 +110,7 @@ fun HomeScreen(
             LazyColumn {
                 item {
 
-                    ImageCarousel()
+                    ImageCarousel(imageList = images, isLoadingImages = isLoadingImages)
                 }
                 item {
 
