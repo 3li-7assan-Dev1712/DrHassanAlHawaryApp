@@ -46,10 +46,10 @@ import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
-import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
-import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import com.example.profile.presentation.profile.ProfileScreen
+import com.example.search.presentation.SearchScreen
+import com.example.study.presentation.StudyScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -258,7 +258,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 composable("study_zone_screen") {
-                    StudyZoneScreen()
+                    StudyScreen()
                 }
 
                 composable(Routes.IMAGES_SCREEN) {
