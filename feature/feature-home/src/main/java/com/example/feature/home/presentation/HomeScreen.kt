@@ -102,7 +102,7 @@ fun HomeScreen(
                 Category(
                     Routes.ABOUT_DR_HASSAN_SCREEN,
                     stringResource(R.string.about_dr_hassan),
-                    R.drawable.audios_icon
+                    R.drawable.cv_icon
                 )
             )
             LazyColumn {

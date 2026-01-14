@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val IsUserLoggedInUseCase: IsUserLoggedInUseCase
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainActivityState())
@@ -38,11 +38,20 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    isUserLoggedIn = IsUserLoggedInUseCase()
+                    isUserLoggedIn = isUserLoggedInUseCase()
                 )
             }
         }
     }
 
+    fun loginSuccess() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isUserLoggedIn = true
+                )
+            }
+        }
+    }
 
 }

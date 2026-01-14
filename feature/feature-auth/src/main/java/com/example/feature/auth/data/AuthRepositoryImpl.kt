@@ -1,14 +1,15 @@
-package com.example.data
+package com.example.feature.auth.data
 
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.domain.module.LoginResult
 import com.example.domain.module.UserData
-import com.example.domain.repository.AuthRepository
+import com.example.feature.auth.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.tasks.await
+
 import javax.inject.Inject
 
 

@@ -31,6 +31,8 @@ import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
+import com.example.feature.auth.presentation.login.LoginScreen
+import com.example.feature.auth.presentation.register.RegisterScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
@@ -38,9 +40,7 @@ import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
-import com.example.hassanalhawary.ui.screens.login_screen.LoginScreen
 import com.example.hassanalhawary.ui.screens.profile_screen.ProfileScreen
-import com.example.hassanalhawary.ui.screens.register_screen.RegisterScreen
 import com.example.hassanalhawary.ui.screens.search_screen.SearchScreen
 import com.example.hassanalhawary.ui.screens.study_zone_screen.StudyZoneScreen
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     AuthNavHost(
                         onLoginSuccess = {
-//                            rootNavController.navigate("home_screen")
+                            mainActivityViewModel.loginSuccess()
                         })
                 }
 
@@ -95,6 +95,8 @@ class MainActivity : ComponentActivity() {
 
 
 }
+
+
 
 @Composable
 fun MainAppContent(
@@ -334,13 +336,7 @@ fun AuthNavHost(
                     navController.navigate("register_screen")
                     navController.clearBackStack("login_screen")
                 }, onSuccessfulLogin = {
-//                    navController.navigate("home_screen")
-                    // go to home screen
-                    /*Toast.makeText(
-                        ,
-                        "Login successful",
-                        Toast.LENGTH_LONG
-                    ).show()*/
+                    onLoginSuccess()
                 })
         }
         composable("register_screen") {
@@ -348,12 +344,6 @@ fun AuthNavHost(
                 navController.popBackStack()
             }, onSuccessfulRegister = {
                 onLoginSuccess()
-                // go to home screen
-                /*  Toast.makeText(
-                      applicationContext,
-                      "Register successful",
-                      Toast.LENGTH_LONG
-                  ).show()*/
             })
         }
     }
