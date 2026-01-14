@@ -1,5 +1,6 @@
 package com.example.feature.auth.data
 
+import android.util.Log
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.domain.module.LoginResult
 import com.example.domain.module.UserData
@@ -20,6 +21,7 @@ class AuthRepositoryImpl @Inject constructor(
 )
 
     : AuthRepository {
+    val TAG = "AuthRepositoryImpl"
     override suspend fun loginWithGoogle(): LoginResult {
         return googleAuthUiClient.login()
     }
@@ -112,6 +114,7 @@ class AuthRepositoryImpl @Inject constructor(
                 ), errorMessage = null
             )
         } else {
+            Log.d(TAG, "getLoggedInUser: user is null")
             null
         }
     }

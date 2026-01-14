@@ -114,6 +114,7 @@ dependencies {
     implementation(project(":feature:feature-splash-screen"))
     implementation(project(":feature:feature-home"))
     implementation(project(":feature:feature-auth"))
+    implementation(project(":feature:feature-profile"))
     implementation(project(":feature:feature-image"))
     implementation(project(":feature:feature-video"))
     implementation(project(":feature:feature-article"))

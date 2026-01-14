@@ -38,7 +38,8 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update {
                 it.copy(
-                    isUserLoggedIn = isUserLoggedInUseCase()
+                    isUserLoggedIn = isUserLoggedInUseCase(),
+                    isLoading = false
                 )
             }
         }
@@ -49,6 +50,15 @@ class MainActivityViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     isUserLoggedIn = true
+                )
+            }
+        }
+    }
+    fun logoutSuccess() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isUserLoggedIn = false
                 )
             }
         }

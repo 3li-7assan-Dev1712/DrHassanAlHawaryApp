@@ -4,5 +4,6 @@ data class MainActivityState(
     val showProgressBar: Boolean = false,
     val errorMessage: String? = null,
     val navigateTo: String? = null,
-    val isUserLoggedIn: Boolean = false
+    val isUserLoggedIn: Boolean = false,
+    val isLoading: Boolean = true
 )

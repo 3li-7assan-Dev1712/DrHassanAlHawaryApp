@@ -47,7 +47,8 @@ fun LoginScreen(
     val context = LocalContext.current
 
     LaunchedEffect(state.isSignInSuccessful) {
-        onSuccessfulLogin()
+        if (state.isSignInSuccessful)
+            onSuccessfulLogin()
     }
     LaunchedEffect(key1 = state.errorMessage) {
         state.errorMessage?.let { error ->
