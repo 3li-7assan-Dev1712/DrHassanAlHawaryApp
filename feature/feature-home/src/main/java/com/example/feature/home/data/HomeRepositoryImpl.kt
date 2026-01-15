@@ -66,8 +66,8 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun syncLatestArticles(limit: Int) {
-        val latestArticlesFromApi = firebaseArticlesSource.getArticles(null, 1).first
+    override suspend fun syncLatestArticles(limit: Long) {
+        val latestArticlesFromApi = firebaseArticlesSource.getArticles(null, limit).first
         // You'll need a mapper to convert Network DTOs to DB Entities
         val articleEntities = latestArticlesFromApi.map {
             ArticleEntity(
@@ -96,39 +96,35 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncLatestImageGroup() {
-        val latestImageGroupFromApi = firebaseMediaSource.fetchImageGroupsPage(null, 2)
-        val group = latestImageGroupFromApi.firstOrNull()
+        val group = firebaseMediaSource.fetchLatestImageGroup() ?: return
+//        val group = group.firstOrNull()
         Log.d("syncLatestImageGroup", "syncLatestImageGroup: group == $group")
-        if (group == null)
-            return
-        val groupId = latestImageGroupFromApi.firstOrNull()?.id
-        if (groupId != null) {
-            // saving group
-            val imageGroupEntity = ImageGroupEntity(
-                id = groupId,
-                title = group.title,
-                publishDate = group.publishDate.time,
-                previewImageUrl = group.previewImageUrl
-            )
-            imageDao.upsertImageGroups(listOf(imageGroupEntity))
-            // saving images
-            val remoteImages = firebaseMediaSource.fetchImagesForGroup(groupId)
-            Log.d("syncLatestImageGroup", "syncLatestImageGroup: images count = ${remoteImages.size}")
-            if (remoteImages.isNotEmpty()) {
-                val imageEntities = remoteImages.map {
-                    ImageEntity(
-                        id = it.id.ifBlank { it.imageUrl },
-                        groupId = groupId,
-                        orderIndex = it.orderIndex,
-                        imageUrl = it.imageUrl
-                    )
-                }
-                imageDao.upsertImages(imageEntities)
+        /*if (group == null)
+            return*/
+        val groupId = group.id
+        // saving group
+        val imageGroupEntity = ImageGroupEntity(
+            id = groupId,
+            title = group.title,
+            publishDate = group.publishDate.time,
+            previewImageUrl = group.previewImageUrl
+        )
+        imageDao.upsertImageGroups(listOf(imageGroupEntity))
+        // saving images
+        val remoteImages = firebaseMediaSource.fetchImagesForGroup(groupId)
+        Log.d("syncLatestImageGroup", "syncLatestImageGroup: images count = ${remoteImages.size}")
+        if (remoteImages.isNotEmpty()) {
+            val imageEntities = remoteImages.map {
+                ImageEntity(
+                    id = it.id.ifBlank { it.imageUrl },
+                    groupId = groupId,
+                    orderIndex = it.orderIndex,
+                    imageUrl = it.imageUrl
+                )
             }
-
-
-
-
+            imageDao.upsertImages(imageEntities)
         }
+
+
     }
 }

@@ -10,8 +10,8 @@ class GetPaginatedArticlesUseCase @Inject constructor(
     private val articleRepository: ArticleRepository
 ) {
 
-    operator fun invoke(query: String): Flow<PagingData<Article>> {
-        return articleRepository.getPaginatedArticles(query)
+    operator fun invoke(query: String, limit: Int = 15): Flow<PagingData<Article>> {
+        return articleRepository.getPaginatedArticles(query, limit)
 
     }
 

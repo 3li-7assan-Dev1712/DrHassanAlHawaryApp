@@ -367,6 +367,56 @@ class FirebaseMediaSource @Inject constructor(
 
 
     /**
+     * Fetches the single most recent image group from Firebase Realtime Database.
+     * This is useful for syncing only the latest data for the home screen.
+     * @return The latest ImageGroup, or null if none exist or an error occurs.
+     */
+
+    suspend fun fetchLatestImageGroup(): ImageGroup? {
+
+        val query = imagesRef.orderByKey().limitToLast(1)
+
+        return try {
+            val dataSnapshot = query.get().await()
+            if (!dataSnapshot.exists()) {
+                Log.d(TAG, "fetchLatestImageGroup: No image groups found in the database.")
+                return null
+            }
+
+
+            val latestGroupSnapshot = dataSnapshot.children.first()
+
+            // The 'id' is the key of the snapshot, not a field inside it.
+            val groupId = latestGroupSnapshot.key
+            if (groupId.isNullOrBlank()) {
+                Log.e(TAG, "fetchLatestImageGroup: Fetched group has a null or blank key.")
+                return null
+            }
+
+            // Now, get the rest of the data from the snapshot's value.
+            val groupData = latestGroupSnapshot.getValue<Map<String, Any>>()
+
+
+            Log.d(TAG, "fetchLatestImageGroup: successfully fetched group data: $groupData")
+            // Construct the ImageGroup using the key as the ID.
+            if (groupData != null) {
+                ImageGroup(
+                    id = groupData["id"] as String,
+                    title = groupData["title"] as String,
+                    publishDate = Date(groupData["publishDate"] as Long),
+                    previewImageUrl = groupData["previewImageUrl"] as String
+                )
+            } else {
+                Log.e(TAG, "fetchLatestImageGroup: Failed to parse group data for key $groupId.")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to execute fetchLatestImageGroup query", e)
+            null // Return null on any exception to prevent crashes.
+        }
+    }
+
+    /**
      * Fetches a single page of image groups from Firebase Realtime Database.
      *
      * @param startAfterKey The key of the last item from the previous page. Null for the first page.

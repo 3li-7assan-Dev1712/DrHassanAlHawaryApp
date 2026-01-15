@@ -26,12 +26,12 @@ class ArticleRepositoryImpl
     private val articleDao: ArticleDao = appDatabase.articleDao()
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun getPaginatedArticles(query: String): Flow<PagingData<Article>> {
+    override fun getPaginatedArticles(query: String, limit: Int): Flow<PagingData<Article>> {
 
         return Pager(
             config = PagingConfig(
                 // Set a page size. This is passed to your RemoteMediator's 'state'.
-                pageSize = 5,
+                pageSize = limit,
                 enablePlaceholders = false
             ),
             remoteMediator = ArticleRemoteMediator(

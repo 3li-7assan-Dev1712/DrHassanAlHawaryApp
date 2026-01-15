@@ -8,7 +8,7 @@ interface ArticleRepository {
 
 
 
-    fun getPaginatedArticles(query: String): Flow<PagingData<Article>>
+    fun getPaginatedArticles(query: String, limit: Int = 15): Flow<PagingData<Article>>
 
 
 }

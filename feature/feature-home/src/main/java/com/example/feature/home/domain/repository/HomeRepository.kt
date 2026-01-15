@@ -16,7 +16,7 @@ interface HomeRepository {
 
 
     // sync data in room database with firebase
-    suspend fun syncLatestArticles(limit: Int)
+    suspend fun syncLatestArticles(limit: Long)
     suspend fun syncLatestAudios(limit: Int)
     suspend fun syncLatestImageGroup()
 

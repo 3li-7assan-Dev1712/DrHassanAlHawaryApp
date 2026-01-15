@@ -10,8 +10,8 @@ class SyncLatestDataUseCase @Inject constructor(
     suspend operator fun invoke() {
         try {
             // It calls the repository methods that handle fetching AND saving.
-            homeRepository.syncLatestArticles(limit = 10)
-            homeRepository.syncLatestAudios(limit = 3)
+            homeRepository.syncLatestArticles(limit = 5)
+            homeRepository.syncLatestAudios(limit = 5)
             homeRepository.syncLatestImageGroup()
             Log.d("SyncLatestData", "Sync completed successfully.")
         } catch (e: Exception) {
