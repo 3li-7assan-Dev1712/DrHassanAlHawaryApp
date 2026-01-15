@@ -9,6 +9,7 @@ import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
 import com.example.feature.home.domain.use_cases.GetLatestArticlesUseCase
 import com.example.feature.home.domain.use_cases.GetLatestAudiosUseCase
 import com.example.feature.home.domain.use_cases.GetLatestImagesUseCase
+import com.example.feature.home.domain.use_cases.SyncLatestDataUseCase
 
 
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +31,7 @@ class HomeScreenViewModel @Inject constructor(
     private val getLatestArticlesFromDbUseCase: GetLatestArticlesUseCase,
     private val getLatestAudiosUseCase: GetLatestAudiosUseCase,
     private val getLatestImagesUseCase: GetLatestImagesUseCase,
+    private val syncLatestDataUseCase: SyncLatestDataUseCase,
     private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase,
 ) : ViewModel() {
 
@@ -51,11 +53,29 @@ class HomeScreenViewModel @Inject constructor(
     init {
         loadArticlesFromDb()
         loadLatestAudios()
-        loadLatestImages()
+
         checkCurrentNetworkStatus()
+        syncLatestData()
 
     }
 
+
+    private fun syncLatestData() {
+        viewModelScope.launch {
+
+            _homeScreenUiState.update {
+                it.copy(
+                    loadingLatestArticles = true,
+                    loadingLatestAudios = true,
+                    loadingImages = true
+                )
+            }
+            syncLatestDataUseCase()
+            loadLatestImages()
+
+
+        }
+    }
 
     private fun checkCurrentNetworkStatus() {
 

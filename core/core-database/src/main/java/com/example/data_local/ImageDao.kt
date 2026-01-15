@@ -30,7 +30,7 @@ interface ImageDao {
     fun getLatestImages(): Flow<List<ImageEntity>>*/
 
     @Upsert
-    fun upsertImages(images: List<ImageEntity>)
+    suspend fun upsertImages(images: List<ImageEntity>)
 
     @Query("SELECT COUNT(*) FROM image_groups")
     suspend fun count(): Int

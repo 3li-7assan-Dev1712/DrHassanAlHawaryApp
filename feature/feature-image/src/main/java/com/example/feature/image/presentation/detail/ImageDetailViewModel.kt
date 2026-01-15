@@ -54,4 +54,33 @@ class ImageDetailViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = null
             )*/
+
+    /*
+
+    private fun loadImageGroupDetails() {
+        viewModelScope.launch {
+            getImageGroupDetailsUseCase(groupId)
+                .map { imageGroup ->
+                    // When data arrives, update the state to show it
+                    _state.update {
+                        it.copy(isLoading = false, imageGroup = imageGroup)
+                    }
+                }
+                .catch { throwable ->
+                    // If an error occurs in the flow, you can represent it
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = throwable.message ?: "Unknown error"
+                        )
+                    }
+                }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = ImageDetailUiState(isLoading = true)
+                )
+        }
+    }
+     */
 }

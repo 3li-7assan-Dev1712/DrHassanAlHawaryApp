@@ -1,5 +1,6 @@
 package com.example.feature.home.presentation.components
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,9 +44,11 @@ fun ImageCarousel(
     // For this example, we'll use a predefined list of drawable resources.
     // Later, you can load these from a ViewModel.
 
+    val TAG = "ImageCarousel"
 
     val pagerState = rememberPagerState(pageCount = { imageList.size })
 
+    Log.d(TAG, "ImageCarousel: count: ${imageList.size}")
     // Auto-scroll effect
     LaunchedEffect(pagerState.pageCount) {
         if (pagerState.pageCount > 0) {
@@ -70,7 +73,7 @@ fun ImageCarousel(
                     .align(Alignment.Center)
                     .size(24.dp)
             )
-        } else {
+        } else if (imageList.isNotEmpty()){
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
