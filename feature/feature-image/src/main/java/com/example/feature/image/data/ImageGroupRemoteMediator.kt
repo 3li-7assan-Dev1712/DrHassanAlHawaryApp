@@ -8,6 +8,7 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.ImageGroupEntity
 import com.example.data_local.model.ImageGroupRemoteKeysEntity
@@ -29,6 +30,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalPagingApi::class)
 class ImageGroupRemoteMediator @Inject constructor(
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val imageFirestoreSource: ImageFirestoreSource,
     private val appDatabase: AppDatabase,
     private val networkRepositoryUseCase: GetCurrentNetworkStatusUseCase
 ) : RemoteMediator<Int, ImageGroupEntity>() {
@@ -107,10 +109,10 @@ class ImageGroupRemoteMediator @Inject constructor(
             Log.d(TAG, "Proceeding to fetch from network with key: $loadKey")
 
             // 2. Fetch the page of data from Firebase
-            val fetchedImageGroupsPage = firebaseMediaSource.fetchImageGroupsPage(
+            val fetchedImageGroupsPage = imageFirestoreSource.fetchImageGroupsPage(
                 startAfterKey = loadKey,
                 limit = state.config.pageSize
-            )
+            ).first
 
             val endOfPaginationReached = fetchedImageGroupsPage.size < state.config.pageSize
 

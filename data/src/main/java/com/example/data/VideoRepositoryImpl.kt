@@ -8,6 +8,7 @@ import androidx.paging.map
 import com.example.data.mappers.toDomainModel
 import com.example.data.util.VideoRemoteMediator
 import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.VideoFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Video
 import com.example.domain.repository.VideosRepository
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class VideosRepositoryImpl @Inject constructor(
     private val appDatabase: AppDatabase,
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val videoFirestoreSource: VideoFirestoreSource,
     private val videoRemoteMediator: VideoRemoteMediator
 ) : VideosRepository {
 
@@ -49,7 +51,7 @@ class VideosRepositoryImpl @Inject constructor(
         youtubeUrl: String,
     ): Flow<UploadResult> {
 
-        return firebaseMediaSource.uploadVideo(title, youtubeUrl)
+        return videoFirestoreSource.uploadVideo(title, youtubeUrl)
 
     }
 }

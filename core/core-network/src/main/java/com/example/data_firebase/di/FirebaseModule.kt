@@ -2,9 +2,12 @@ package com.example.data_firebase.di
 
 import android.content.Context
 import androidx.credentials.CredentialManager
+import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_firebase.GoogleAuthUiClient
+import com.example.data_firebase.ImageFirestoreSource
+import com.example.data_firebase.VideoFirestoreSource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
@@ -36,6 +39,33 @@ object FirebaseModule {
     ): FirebaseMediaSource {
         // Hilt provides the FirebaseDatabase instance from the function above
         return FirebaseMediaSource(realTimeDb = database, storage = storage, context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAudioFirestoreSource(
+        firestore: FirebaseFirestore,
+        storage: FirebaseStorage,
+    ): AudioFirestoreSource {
+        return AudioFirestoreSource(firestore, storage)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseImageFirestoreSource(
+        firestore: FirebaseFirestore,
+        storage: FirebaseStorage,
+    ): ImageFirestoreSource {
+        return ImageFirestoreSource(firestore, storage)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideFirebaseVideoFirestoreSource(
+        firestore: FirebaseFirestore,
+    ): VideoFirestoreSource {
+        return VideoFirestoreSource(firestore)
     }
 
     @Singleton

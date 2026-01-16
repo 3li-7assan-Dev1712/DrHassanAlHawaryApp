@@ -3,6 +3,7 @@ package com.example.feature.home.data
 import android.util.Log
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.ArticleDao
 import com.example.data_local.AudioDao
 import com.example.data_local.ImageDao
@@ -23,6 +24,7 @@ class HomeRepositoryImpl @Inject constructor(
     private val audioDao: AudioDao,
     private val imageDao: ImageDao,
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val imageFirestoreSource: ImageFirestoreSource,
     private val firebaseArticlesSource: FirebaseArticlesSource
 ) : HomeRepository {
 
@@ -96,7 +98,8 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncLatestImageGroup() {
-        val group = firebaseMediaSource.fetchLatestImageGroup() ?: return
+//        val group = firebaseMediaSource.fetchLatestImageGroup() ?: return
+        val group = imageFirestoreSource.fetchLatestImageGroup() ?: return
 //        val group = group.firstOrNull()
         Log.d("syncLatestImageGroup", "syncLatestImageGroup: group == $group")
         /*if (group == null)
@@ -111,7 +114,7 @@ class HomeRepositoryImpl @Inject constructor(
         )
         imageDao.upsertImageGroups(listOf(imageGroupEntity))
         // saving images
-        val remoteImages = firebaseMediaSource.fetchImagesForGroup(groupId)
+        val remoteImages = imageFirestoreSource.fetchImagesForGroup(groupId)
         Log.d("syncLatestImageGroup", "syncLatestImageGroup: images count = ${remoteImages.size}")
         if (remoteImages.isNotEmpty()) {
             val imageEntities = remoteImages.map {

@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.core.ui.components.shimmer
 import com.example.feature.home.R
 import com.example.feature.home.domain.model.ImageFeed
 import kotlinx.coroutines.delay
@@ -65,15 +65,12 @@ fun ImageCarousel(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp) // Adjust height as needed
+            .height(200.dp)
+            .padding(horizontal = 8.dp)
+            .shimmer(cornerRadius = 16.dp, isLoadingImages),
+    // Adjust height as needed
     ) {
-        if (isLoadingImages) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(24.dp)
-            )
-        } else if (imageList.isNotEmpty()){
+        if (imageList.isNotEmpty() && !isLoadingImages){
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()

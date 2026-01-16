@@ -7,6 +7,7 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.example.data.util.ImageGroupRemoteMediator
 import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.toDomainModel
 import com.example.domain.module.ImageGroup
@@ -20,6 +21,7 @@ import javax.inject.Inject
 
 class ImagesRepositoryImpl @Inject constructor(
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val imageFirestoreSource: ImageFirestoreSource,
     private val appDatabase: AppDatabase,
     private val imageRemoteMediator: ImageGroupRemoteMediator
 ) : ImagesRepository {
@@ -29,7 +31,7 @@ class ImagesRepositoryImpl @Inject constructor(
         title: String,
         imageUris: List<String>
     ): Flow<UploadResult> {
-        return firebaseMediaSource.uploadImageGroup(title, imageUris)
+        return imageFirestoreSource.uploadImageGroup(title, imageUris)
 
     }
 

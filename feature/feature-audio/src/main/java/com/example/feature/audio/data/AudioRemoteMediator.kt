@@ -6,6 +6,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
+import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.AudioEntity
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class AudioRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val firestoreSource: AudioFirestoreSource,
     private val networkStatusUseCase: GetCurrentNetworkStatusUseCase
 ) : RemoteMediator<Int, AudioEntity>() {
 
@@ -91,7 +93,7 @@ class AudioRemoteMediator @Inject constructor(
 
 
             //  Fetch a page of audios from Firebase Realtime Database.
-            val audiosFromServer = firebaseMediaSource.fetchAudioPage(
+            val audiosFromServer = firestoreSource.fetchAudioPage(
                 startAfterKey = lastItemKey,
                 limit = state.config.pageSize
             )

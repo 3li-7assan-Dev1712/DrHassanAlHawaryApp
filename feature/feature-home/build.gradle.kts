@@ -56,6 +56,7 @@ dependencies {
     implementation(project(":core:core-ui"))
 
 
+
     // ViewModel
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.viewmodel)
@@ -71,6 +72,7 @@ dependencies {
 
     // coil
     implementation(libs.coil.compose)
+
 
 
 

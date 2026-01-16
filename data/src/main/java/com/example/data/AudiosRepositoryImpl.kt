@@ -9,6 +9,7 @@ import androidx.paging.map
 import com.example.data.mappers.toDomainModel
 import com.example.data.mappers.toEntity
 import com.example.data.util.AudioRemoteMediator
+import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
@@ -24,6 +25,7 @@ class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
     private val firebaseMediaSource: FirebaseMediaSource,
+    private val audioFirestoreSource: AudioFirestoreSource,
     private val audioRemoteMediator: AudioRemoteMediator
     ) : AudiosRepository {
 
@@ -99,7 +101,7 @@ class AudiosRepositoryImpl
     ): Flow<UploadResult> {
 
 
-        return firebaseMediaSource.uploadAudio(title, uriString, durationInMillis)
+        return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis)
 
 
 
