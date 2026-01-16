@@ -7,7 +7,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.ImageEntity
@@ -27,7 +26,6 @@ import javax.inject.Inject
 class ImageRepositoryImpl @Inject constructor(
     private val appDatabase: AppDatabase,
     private val imageRemoteMediator: ImageGroupRemoteMediator,
-    private val firebaseMediaSource: FirebaseMediaSource,
     private val imageFirestoreSource: ImageFirestoreSource
 ) : ImageRepository {
 
@@ -69,13 +67,19 @@ class ImageRepositoryImpl @Inject constructor(
 
             val localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
 
-            Log.d("ImageRepositoryImpl", "getImageGroupWithImages: count: ${localData?.images?.size}")
+            Log.d(
+                "ImageRepositoryImpl",
+                "getImageGroupWithImages: count: ${localData?.images?.size}"
+            )
             if (localData != null && localData.images.isEmpty()) {
                 try {
 //                    val remoteImages = firebaseMediaSource.fetchImagesForGroup(groupId)
                     val remoteImages = imageFirestoreSource.fetchImagesForGroup(groupId)
 
-                    Log.d("ImageRepositoryImpl", "getImageGroupWithImages: count rem: ${remoteImages.size}")
+                    Log.d(
+                        "ImageRepositoryImpl",
+                        "getImageGroupWithImages: count rem: ${remoteImages.size}"
+                    )
                     if (remoteImages.isNotEmpty()) {
                         val imageEntities = remoteImages.map {
                             ImageEntity(

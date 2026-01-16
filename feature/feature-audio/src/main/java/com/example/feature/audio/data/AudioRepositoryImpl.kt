@@ -5,7 +5,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
-import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.feature.audio.data.mapper.toDomain
 import com.example.feature.audio.domain.model.Audio
@@ -17,8 +16,7 @@ import javax.inject.Inject
 
 class AudioRepositoryImpl
 @Inject constructor(
-    private val appDatabase: AppDatabase,
-    private val firebaseMediaSource: FirebaseMediaSource,
+    appDatabase: AppDatabase,
     private val audioRemoteMediator: AudioRemoteMediator
 ) : AudioRepository {
 

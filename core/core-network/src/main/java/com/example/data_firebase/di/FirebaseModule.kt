@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_firebase.FirebaseArticlesSource
-import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_firebase.VideoFirestoreSource
@@ -30,16 +29,6 @@ object FirebaseModule {
         return FirebaseDatabase.getInstance("https://dr-hassan-al-hawary-default-rtdb.firebaseio.com/")
     }
 
-    @Provides
-    @Singleton
-    fun provideFirebaseAudioSource(
-        database: FirebaseDatabase,
-        storage: FirebaseStorage,
-        @ApplicationContext context: Context
-    ): FirebaseMediaSource {
-        // Hilt provides the FirebaseDatabase instance from the function above
-        return FirebaseMediaSource(realTimeDb = database, storage = storage, context)
-    }
 
     @Provides
     @Singleton

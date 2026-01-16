@@ -7,7 +7,6 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.example.data_firebase.AudioFirestoreSource
-import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.AudioEntity
 import com.example.domain.module.NetworkStatus
@@ -21,7 +20,6 @@ import javax.inject.Inject
 
 class AudioRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseMediaSource: FirebaseMediaSource,
     private val firestoreSource: AudioFirestoreSource,
     private val networkStatusUseCase: GetCurrentNetworkStatusUseCase
 ) : RemoteMediator<Int, AudioEntity>() {

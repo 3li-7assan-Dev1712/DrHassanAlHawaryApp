@@ -1,8 +1,8 @@
 package com.example.feature.home.data
 
 import android.util.Log
+import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_firebase.FirebaseArticlesSource
-import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.ArticleDao
 import com.example.data_local.AudioDao
@@ -23,7 +23,7 @@ class HomeRepositoryImpl @Inject constructor(
     private val articleDao: ArticleDao,
     private val audioDao: AudioDao,
     private val imageDao: ImageDao,
-    private val firebaseMediaSource: FirebaseMediaSource,
+    private val audioFirestoreSource: AudioFirestoreSource,
     private val imageFirestoreSource: ImageFirestoreSource,
     private val firebaseArticlesSource: FirebaseArticlesSource
 ) : HomeRepository {
@@ -84,7 +84,7 @@ class HomeRepositoryImpl @Inject constructor(
 
     override suspend fun syncLatestAudios(limit: Int) {
         val latestAudiosFromFirebase =
-            firebaseMediaSource.fetchAudioPage(startAfterKey = null, limit)
+            audioFirestoreSource.fetchAudioPage(startAfterKey = null, limit)
         val audioEntities = latestAudiosFromFirebase.map {
             AudioEntity(
                 id = it.id,

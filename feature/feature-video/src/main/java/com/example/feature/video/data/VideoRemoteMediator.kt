@@ -7,7 +7,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.VideoFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.VideoEntity
 import com.example.domain.module.NetworkStatus
@@ -19,7 +19,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalPagingApi::class)
 class VideoRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseMediaSource: FirebaseMediaSource,
+    private val videoFirestoreSource: VideoFirestoreSource,
     private val networkStatusUseCase: GetCurrentNetworkStatusUseCase,
 ) : RemoteMediator<Int, VideoEntity>() {
 
@@ -66,7 +66,7 @@ class VideoRemoteMediator @Inject constructor(
             }
 
             // Fetch from Firebase
-            val videosFromServer = firebaseMediaSource.fetchVideoPage(
+            val videosFromServer = videoFirestoreSource.fetchVideoPage(
                 startAfterKey = lastItemKey,
                 limit = state.config.pageSize
             )

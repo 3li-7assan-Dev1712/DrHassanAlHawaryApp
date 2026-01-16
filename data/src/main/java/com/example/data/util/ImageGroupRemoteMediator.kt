@@ -8,7 +8,7 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.example.data.mappers.toEntity
-import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.ImageGroupEntity
 import com.example.data_local.model.ImageGroupRemoteKeysEntity
@@ -29,7 +29,7 @@ import javax.inject.Inject
  */
 @OptIn(ExperimentalPagingApi::class)
 class ImageGroupRemoteMediator @Inject constructor(
-    private val firebaseMediaSource: FirebaseMediaSource,
+    private val imageFirestoreSource: ImageFirestoreSource,
     private val appDatabase: AppDatabase,
     private val networkRepositoryUseCase: GetCurrentNetworkStatusUseCase
 ) : RemoteMediator<Int, ImageGroupEntity>() {
@@ -39,7 +39,6 @@ class ImageGroupRemoteMediator @Inject constructor(
     private val imageGroupRemoteKeysDao = appDatabase.imageGroupRemoteKeysDao()
 
     private val TAG = ImageGroupRemoteMediator::class.simpleName
-
 
 
     override suspend fun initialize(): InitializeAction {
@@ -96,7 +95,10 @@ class ImageGroupRemoteMediator @Inject constructor(
                     // This is NOT a reason to stop. It just means the next fetch should start from the last known item.
                     // We return the nextKey, which might be null, but the fetch logic will handle it.
                     if (lastRemoteKey?.nextKey == null) {
-                        Log.d(TAG, "End of LOCAL keys reached. Will attempt network fetch to check for new data.")
+                        Log.d(
+                            TAG,
+                            "End of LOCAL keys reached. Will attempt network fetch to check for new data."
+                        )
                     }
 
                     // Return the key for the next page. If the key is null, the server will return the next page after the last known item.
@@ -109,10 +111,10 @@ class ImageGroupRemoteMediator @Inject constructor(
             Log.d(TAG, "Proceeding to fetch from network with key: $loadKey")
 
             // 2. Fetch the page of data from Firebase
-            val fetchedImageGroupsPage = firebaseMediaSource.fetchImageGroupsPage(
+            val fetchedImageGroupsPage = imageFirestoreSource.fetchImageGroupsPage(
                 startAfterKey = loadKey,
                 limit = state.config.pageSize
-            )
+            ).first
 
             val endOfPaginationReached = fetchedImageGroupsPage.size < state.config.pageSize
 

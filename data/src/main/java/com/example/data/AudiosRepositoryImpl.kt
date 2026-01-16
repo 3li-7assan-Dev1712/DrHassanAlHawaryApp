@@ -1,16 +1,13 @@
 package com.example.data
 
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
 import com.example.data.mappers.toDomainModel
-import com.example.data.mappers.toEntity
 import com.example.data.util.AudioRemoteMediator
 import com.example.data_firebase.AudioFirestoreSource
-import com.example.data_firebase.FirebaseMediaSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
@@ -24,10 +21,9 @@ import javax.inject.Inject
 class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseMediaSource: FirebaseMediaSource,
     private val audioFirestoreSource: AudioFirestoreSource,
     private val audioRemoteMediator: AudioRemoteMediator
-    ) : AudiosRepository {
+) : AudiosRepository {
 
 
     private val audioDao = appDatabase.audioDao()
@@ -37,7 +33,7 @@ class AudiosRepositoryImpl
         return Pager(
             config = PagingConfig(
                 // Set a page size. This is passed to your RemoteMediator's 'state'.
-                pageSize = 10 ,
+                pageSize = 10,
                 enablePlaceholders = false
             ),
             remoteMediator = audioRemoteMediator,
@@ -53,7 +49,6 @@ class AudiosRepositoryImpl
             }
         }
     }
-
 
 
     override fun filterAudios(audios: List<Audio>, query: String): List<Audio> {
@@ -75,20 +70,6 @@ class AudiosRepositoryImpl
         }
     }
 
-    override suspend fun syncAudiosDbWithServer() {
-        try {
-            val networkAudios = firebaseMediaSource.getAllAudiosFromRealTimeDb()
-            val audioEntities = networkAudios.map { audio ->
-                audio.toEntity()
-            }
-            Log.d("TAG", "syncAudios: number of audios is: ${audioEntities.size}")
-            audioDao.upsertAll(audioEntities)
-        } catch (e: Exception) {
-            // Handle error (e.g., log it). The UI will still have the old data.
-            e.printStackTrace()
-            Log.d("TAG", "syncAudios: error 1712")
-        }
-    }
 
     override suspend fun getAudiosFromServer(): AudiosResult {
         return AudiosResult(emptyList())
@@ -102,7 +83,6 @@ class AudiosRepositoryImpl
 
 
         return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis)
-
 
 
     }

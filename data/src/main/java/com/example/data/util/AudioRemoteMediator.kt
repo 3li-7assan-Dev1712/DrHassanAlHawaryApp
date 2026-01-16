@@ -7,7 +7,7 @@ import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.example.data.mappers.toEntity
-import com.example.data_firebase.FirebaseMediaSource
+import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.AudioEntity
 import com.example.domain.module.NetworkStatus
@@ -18,11 +18,11 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
 
-class AudioRemoteMediator @Inject  constructor(
+class AudioRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseMediaSource: FirebaseMediaSource,
+    private val audioFirestoreSource: AudioFirestoreSource,
     private val networkStatusUseCase: GetCurrentNetworkStatusUseCase
-): RemoteMediator<Int, AudioEntity>() {
+) : RemoteMediator<Int, AudioEntity>() {
 
     private val audioDao = appDatabase.audioDao()
 
@@ -44,8 +44,6 @@ class AudioRemoteMediator @Inject  constructor(
     }
 
 
-
-
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, AudioEntity>
@@ -60,15 +58,20 @@ class AudioRemoteMediator @Inject  constructor(
                     // For a refresh, we start from the beginning. No key needed.
                     null
                 }
+
                 LoadType.PREPEND -> {
                     // We don't support loading data backward in this model.
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
+
                 LoadType.APPEND -> {
 
                     val lastLocalItem = audioDao.getLastAudio()
 
-                    Log.d(TAG, "load: last audio id: ${lastLocalItem?.id} ,,, title: ${lastLocalItem?.title} ")
+                    Log.d(
+                        TAG,
+                        "load: last audio id: ${lastLocalItem?.id} ,,, title: ${lastLocalItem?.title} "
+                    )
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
                         if (lastLocalItem == null) {
                             // Offline AND local data is fully loaded. Stop everything.
@@ -88,7 +91,7 @@ class AudioRemoteMediator @Inject  constructor(
 
 
             //  Fetch a page of audios from Firebase Realtime Database.
-            val audiosFromServer = firebaseMediaSource.fetchAudioPage(
+            val audiosFromServer = audioFirestoreSource.fetchAudioPage(
                 startAfterKey = lastItemKey,
                 limit = state.config.pageSize
             )
@@ -104,13 +107,15 @@ class AudioRemoteMediator @Inject  constructor(
                 // Get the IDs of the audios we just fetched from the server.
                 val serverAudioIds = audiosFromServer.map { it.id }
                 // Read the existing local audios that match these IDs.
-                val localAudiosMap = appDatabase.audioDao().getAudiosByIds(serverAudioIds).associateBy { it.id }
+                val localAudiosMap =
+                    appDatabase.audioDao().getAudiosByIds(serverAudioIds).associateBy { it.id }
 
                 // Merge server data with local user data.
                 val mergedEntities = audiosFromServer.map { serverAudio ->
                     val localAudio = localAudiosMap[serverAudio.id]
 
-                    val serverEntity = serverAudio.toEntity() // Convert server model to a base entity.
+                    val serverEntity =
+                        serverAudio.toEntity() // Convert server model to a base entity.
 
                     if (localAudio != null) {
                         // This audio already exists locally.

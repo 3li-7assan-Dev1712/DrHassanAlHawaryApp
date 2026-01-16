@@ -12,8 +12,6 @@ interface AudiosRepository {
 
     suspend fun getAudiosFromDb(): Flow<List<Audio>>
 
-    suspend fun syncAudiosDbWithServer()
-
     suspend fun getAudiosFromServer(): AudiosResult
 
     suspend fun uploadAudio(
