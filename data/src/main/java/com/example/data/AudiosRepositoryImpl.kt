@@ -1,12 +1,6 @@
 package com.example.data
 
-import androidx.paging.ExperimentalPagingApi
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.map
 import com.example.data.mappers.toDomainModel
-import com.example.data.util.AudioRemoteMediator
 import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
@@ -20,35 +14,12 @@ import javax.inject.Inject
 
 class AudiosRepositoryImpl
 @Inject constructor(
-    private val appDatabase: AppDatabase,
+    appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
-    private val audioRemoteMediator: AudioRemoteMediator
 ) : AudiosRepository {
 
 
     private val audioDao = appDatabase.audioDao()
-
-    @OptIn(ExperimentalPagingApi::class)
-    fun getAudiosPagingData(query: String): Flow<PagingData<Audio>> {
-        return Pager(
-            config = PagingConfig(
-                // Set a page size. This is passed to your RemoteMediator's 'state'.
-                pageSize = 10,
-                enablePlaceholders = false
-            ),
-            remoteMediator = audioRemoteMediator,
-            // The PagingSourceFactory ALWAYS points to the local database (Room).
-            // The RemoteMediator will fill this database for the PagingSource to read.
-            pagingSourceFactory = {
-                audioDao.getAudiosPagingSource(query)
-            }
-        ).flow.map { pagingData ->
-            // The data from the PagingSource is ArticleEntity, so we map it to the domain model
-            pagingData.map { articleEntity ->
-                articleEntity.toDomainModel()
-            }
-        }
-    }
 
 
     override fun filterAudios(audios: List<Audio>, query: String): List<Audio> {

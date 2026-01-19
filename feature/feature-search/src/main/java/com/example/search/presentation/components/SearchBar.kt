@@ -76,6 +76,14 @@ fun SearchBar(
                 )
             }
         }
+        if (searchQuery.isNotEmpty()) {
+            IconButton(onClick = { onSearchClicked() }) { // Clear the query
+                Icon(
+                    imageVector = Icons.Default.Search, // Or Icons.Filled.Clear
+                    contentDescription = "search content"
+                )
+            }
+        }
     }
 }
 

@@ -16,8 +16,6 @@ import dagger.hilt.android.scopes.ViewModelScoped
 object AppModule {
 
 
-
-
     @Provides
     @ViewModelScoped
     fun provideVideoPlayer(app: Application): Player {

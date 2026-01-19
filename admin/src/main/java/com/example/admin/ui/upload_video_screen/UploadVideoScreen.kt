@@ -45,7 +45,9 @@ fun UploadVideoScreen(
                 val error = (uploadState as UploadResult.Error).message
                 Toast.makeText(context, error, Toast.LENGTH_LONG).show()
             }
-            else -> {}
+            else -> {
+
+            }
         }
     }
 

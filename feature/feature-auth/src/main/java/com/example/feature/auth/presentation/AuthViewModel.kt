@@ -1,5 +1,6 @@
 package com.example.feature.auth.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.LoginResult
@@ -22,6 +23,7 @@ class AuthViewModel
 ) : ViewModel() {
     private val _state = MutableStateFlow(AuthScreenState())
 
+    val TAG = "AuthViewModel"
     val state = _state.asStateFlow()
 
     fun loginWithGoogle() {
@@ -37,6 +39,7 @@ class AuthViewModel
                 val loginResult = loginWithGoogleUseCase()
                 onSignInResult(loginResult)
             } catch (e: Exception) {
+                Log.d(TAG, "loginWithGoogle: ${e.message}")
                 e.printStackTrace()
                 _state.update {
                     it.copy(
