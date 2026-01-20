@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">الشيــخ د. حســن الهــواري</string>
-    <string name="web_client_id" translatable="false">513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com</string>
     <string name="login">تسجيل الدخول</string>
     <string name="enter_email">الإيميل</string>
     <string name="name">الإســـم</string>

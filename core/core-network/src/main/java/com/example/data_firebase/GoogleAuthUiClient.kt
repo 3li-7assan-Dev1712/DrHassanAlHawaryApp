@@ -28,7 +28,7 @@ class GoogleAuthUiClient
 ) {
 
     val googleIdOption =
-        GetGoogleIdOption.Builder().setServerClientId(context.getString(R.string.web_client_id))
+        GetGoogleIdOption.Builder().setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT)
             .setFilterByAuthorizedAccounts(false).build()
     val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
 
