@@ -27,12 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
-import com.example.search.presentation.components.ArticleResultItem
-import com.example.search.presentation.components.AudioResultItem
+import com.example.search.presentation.components.ArticleResultCard
+import com.example.search.presentation.components.AudioResultCard
+import com.example.search.presentation.components.DefaultResultCard
 import com.example.search.presentation.components.IdleStateScreen
+import com.example.search.presentation.components.MediaResultCard
 import com.example.search.presentation.components.SearchBar
-import com.example.search.presentation.components.VideoResultItem
-import com.example.search.presentation.components.parseHit
+import com.example.search.presentation.mapper.parseHit
+import com.example.search.presentation.model.SearchUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +43,6 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     var query by remember { mutableStateOf("") }
-    var active by remember { mutableStateOf(false) }
 
     val state by viewModel.uiState.collectAsState()
 
@@ -60,8 +61,6 @@ fun SearchScreen(
             searchQuery = query,
             onQueryChanged = { query = it },
             onSearchClicked = {
-                // Handle search submission
-                active = false
                 viewModel.search(query)
             },
             hint = stringResource(R.string.search_hint),
@@ -106,13 +105,14 @@ fun SearchScreen(
 
                                 // Decide which UI component to show based on the 'type' attribute
                                 when (parsedHit.type) {
-                                    "article" -> ArticleResultItem(hit = parsedHit)
-                                    "video" -> VideoResultItem(hit = parsedHit)
-                                    "audio" -> AudioResultItem(hit = parsedHit)
+                                    "article" -> ArticleResultCard(hit = parsedHit)
+                                    "video" -> MediaResultCard(hit = parsedHit)
+                                    "audio" -> AudioResultCard(hit = parsedHit)
+                                    "image_group" -> MediaResultCard(hit = parsedHit)
                                     // You can add "image" here later
                                     else -> {
                                         // A fallback for unknown types or items without a type
-                                        Text(text = "Unsupported item: ${parsedHit.title}")
+                                        DefaultResultCard(hit = parsedHit)
                                     }
                                 }
                             }

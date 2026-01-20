@@ -1,7 +1,6 @@
-package com.example.search.presentation
+package com.example.search.presentation.model
 
 import com.algolia.search.model.response.ResponseSearch
-
 
 /**
  * Represents the different states the search UI can be in.

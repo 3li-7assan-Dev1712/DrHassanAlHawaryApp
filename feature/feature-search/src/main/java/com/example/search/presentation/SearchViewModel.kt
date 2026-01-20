@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.algolia.instantsearch.searcher.hits.HitsSearcher
+import com.example.search.presentation.model.SearchUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,16 +18,13 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
 
     val TAG = "SearchViewModel"
+
     // This is the state that your UI will observe. It's private to the ViewModel.
     private val _uiState = MutableStateFlow<SearchUiState>(SearchUiState.Idle)
 
-    // This is the public, read-only version for the UI.
     val uiState = _uiState.asStateFlow()
 
     init {
-        // This is the most important part.
-        // We collect the searcher's response flow. Every time a new result
-        // comes in, this block will be executed.
         viewModelScope.launch {
             searcher.response.subscribe { res ->
                 // If the search was successful, update the UI state with the results
@@ -47,17 +45,15 @@ class SearchViewModel @Inject constructor(
             return
         }
 
-        // When a new search starts, set the state to Loading
         _uiState.value = SearchUiState.Loading
         searcher.setQuery(query)
 
-        // Trigger the search. The result will be collected by the `init` block.
 
         try {
             searcher.searchAsync()
 
         } catch (e: Exception) {
-            // If the search fails, update the UI state to Error
+            Log.d(TAG, "search: error: ${e.message}")
             _uiState.value = SearchUiState.Error(e)
         }
 
