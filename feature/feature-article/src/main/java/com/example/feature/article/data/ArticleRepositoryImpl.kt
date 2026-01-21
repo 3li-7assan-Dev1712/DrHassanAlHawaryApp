@@ -1,4 +1,4 @@
-package com.example.data
+package com.example.feature.article.data
 
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -9,7 +9,6 @@ import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.ArticleDao
 import com.example.domain.module.Article
-import com.example.feature.article.data.ArticleRemoteMediator
 import com.example.feature.article.data.mapper.toDomainModel
 import com.example.feature.article.domain.repository.ArticleRepository
 import kotlinx.coroutines.flow.Flow

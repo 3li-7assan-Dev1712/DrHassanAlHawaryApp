@@ -1,6 +1,7 @@
 package com.example.search.presentation.components
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,13 +20,24 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.core.ui.R
+import com.example.domain.module.SearchResultMetaData
 import com.example.search.presentation.model.SearchHit
 
 
 @Composable
-fun MediaResultCard(hit: SearchHit, modifier: Modifier = Modifier) {
+fun MediaResultCard(hit: SearchHit, modifier: Modifier = Modifier, onItemClick: (SearchResultMetaData) -> Unit) {
     Card(
-        modifier = modifier,
+        modifier = modifier
+            .clickable {
+                onItemClick(
+                    SearchResultMetaData(
+                        objectID = hit.objectID,
+                        title = hit.title,
+                        type = hit.type,
+                        url = hit.url
+                    )
+                )
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Log.d("ResultItems", "MediaResultCard: ${hit.youtubeVideoId}")

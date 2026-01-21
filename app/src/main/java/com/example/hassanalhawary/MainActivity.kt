@@ -219,7 +219,18 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("search_screen") {
 
-                    SearchScreen()
+                    SearchScreen { searchResultMetaData ->
+                        val encodedUrl = Uri.encode(searchResultMetaData.url)
+                        when (searchResultMetaData.type) {
+                            "article" -> navController.navigate("detail_article_screen/${searchResultMetaData.objectID}")
+                            "audio" -> navController.navigate("audio_detail_screen/${searchResultMetaData.title}/${encodedUrl}")
+                            "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
+                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}")
+                            else -> {
+
+                            }
+                        }
+                    }
                 }
                 composable("articles_screen") {
 

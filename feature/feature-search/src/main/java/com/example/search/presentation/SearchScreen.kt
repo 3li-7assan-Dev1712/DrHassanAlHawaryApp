@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.domain.module.SearchResultMetaData
 import com.example.search.presentation.components.ArticleResultCard
 import com.example.search.presentation.components.AudioResultCard
 import com.example.search.presentation.components.DefaultResultCard
@@ -40,7 +41,8 @@ import com.example.search.presentation.model.SearchUiState
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
-    viewModel: SearchViewModel = hiltViewModel()
+    viewModel: SearchViewModel = hiltViewModel(),
+    onNavigateToDetail: (SearchResultMetaData) -> Unit
 ) {
     var query by remember { mutableStateOf("") }
 
@@ -96,20 +98,24 @@ fun SearchScreen(
                         ) {
                             items(
                                 items = successState.results.hits,
-                                /*key = { hit ->
-                                    hit.keys
-                                }*/
+                                key = { hit ->
+                                    parseHit(hit).objectID
+                                }
                             ) { hit ->
                                 // Parse the raw JSON into our clean SearchHit data class
                                 val parsedHit = parseHit(hit)
 
                                 // Decide which UI component to show based on the 'type' attribute
                                 when (parsedHit.type) {
-                                    "article" -> ArticleResultCard(hit = parsedHit)
-                                    "video" -> MediaResultCard(hit = parsedHit)
-                                    "audio" -> AudioResultCard(hit = parsedHit)
-                                    "image_group" -> MediaResultCard(hit = parsedHit)
-                                    // You can add "image" here later
+                                    "article" -> ArticleResultCard(
+                                        hit = parsedHit,
+                                        modifier = Modifier,
+                                        onItemClick = onNavigateToDetail
+                                    )
+
+                                    "video" -> MediaResultCard(hit = parsedHit, onItemClick = onNavigateToDetail)
+                                    "audio" -> AudioResultCard(hit = parsedHit, onItemClick = onNavigateToDetail)
+                                    "image_group" -> MediaResultCard(hit = parsedHit, onItemClick = onNavigateToDetail)
                                     else -> {
                                         // A fallback for unknown types or items without a type
                                         DefaultResultCard(hit = parsedHit)
@@ -135,6 +141,8 @@ fun SearchScreen(
 @Composable
 private fun SearchScreenPreview() {
     HassanAlHawaryTheme {
-        SearchScreen()
+        SearchScreen(
+            onNavigateToDetail = {}
+        )
     }
 }

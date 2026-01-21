@@ -1,6 +1,6 @@
 package com.example.feature.article.di
 
-import com.example.data.ArticleRepositoryImpl
+import com.example.feature.article.data.ArticleRepositoryImpl
 import com.example.feature.article.domain.repository.ArticleRepository
 import dagger.Binds
 import dagger.Module

@@ -1,6 +1,7 @@
 package com.example.search.presentation.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -17,13 +18,27 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.R
+import com.example.domain.module.SearchResultMetaData
 import com.example.search.presentation.model.SearchHit
 
 
 @Composable
-fun AudioResultCard(hit: SearchHit, modifier: Modifier = Modifier) {
+fun AudioResultCard(
+    hit: SearchHit,
+    modifier: Modifier = Modifier,
+    onItemClick: (SearchResultMetaData) -> Unit
+) {
     Card(
-        modifier = modifier,
+        modifier = modifier.clickable {
+            onItemClick(
+                SearchResultMetaData(
+                    objectID = hit.objectID,
+                    title = hit.title,
+                    type = hit.type,
+                    url = hit.url
+                )
+            )
+        },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
