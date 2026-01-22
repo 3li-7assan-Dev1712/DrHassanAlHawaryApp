@@ -54,14 +54,14 @@ fun ArticleResultCard(
                 modifier = Modifier.size(40.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = hit.highlightedTitle ?: buildAnnotatedString {
-                        append(hit.title ?: "No Title")
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (hit.highlightedTitle != null) {
+                    Text(
+                        text = hit.highlightedTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = hit.highlightedContent ?: buildAnnotatedString {
@@ -69,7 +69,6 @@ fun ArticleResultCard(
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }

@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
         // routes where the bottom nav should be hidden
         val routesWithoutBottomNav = remember {
             setOf(
-                "detail_article_screen/{articleId}",
+                "detail_article_screen/{articleId}/{paragraphIndex}",
                 "audio_detail_screen/{title}/{audioId}",
                 "ask_question_screen",
                 "splash_screen",
@@ -205,7 +205,7 @@ class MainActivity : ComponentActivity() {
 
                 composable("home_screen") {
                     HomeScreen(onNavigateToDetailArticle = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId")
+                        navController.navigate("detail_article_screen/$articleId/-1")
 
                     }, onNavigateToDetailAudio = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
@@ -222,7 +222,24 @@ class MainActivity : ComponentActivity() {
                     SearchScreen { searchResultMetaData ->
                         val encodedUrl = Uri.encode(searchResultMetaData.url)
                         when (searchResultMetaData.type) {
-                            "article" -> navController.navigate("detail_article_screen/${searchResultMetaData.objectID}")
+                            "article" -> {
+
+                                val objectID = searchResultMetaData.objectID
+                                val articleId = if (objectID.contains("_")) {
+                                    objectID.substringBeforeLast("_")
+                                } else {
+                                    objectID
+                                }
+                                val paragraphIndex = if (objectID.contains("_")) {
+                                    objectID.substringAfterLast("_")
+                                } else {
+                                    objectID
+                                }
+                                val route = "detail_article_screen/$articleId/$paragraphIndex"
+                                Log.d(TAG, "MainAppContent: route")
+                                navController.navigate(route)
+                            }
+
                             "audio" -> navController.navigate("audio_detail_screen/${searchResultMetaData.title}/${encodedUrl}")
                             "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
                             "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}")
@@ -235,15 +252,26 @@ class MainActivity : ComponentActivity() {
                 composable("articles_screen") {
 
                     ArticleListScreen(onNavigateToArticleDetail = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId")
+                        navController.navigate("detail_article_screen/$articleId/-1")
                     }, onNavigateBack = {
                         navController.popBackStack()
                     })
                 }
-                composable("detail_article_screen/{articleId}") {
-                    ArticleDetailScreen {
-                        navController.popBackStack()
-                    }
+                composable(
+                    // Update the route to include an optional parameter
+                    route = "detail_article_screen/{articleId}/{paragraphIndex}",
+                    arguments = listOf(
+                        navArgument("articleId") { type = NavType.StringType },
+                        navArgument("paragraphIndex") {
+                            type = NavType.IntType
+                            defaultValue = -1
+                        }
+                    )
+                ) { backStackEntry ->
+                    ArticleDetailScreen(
+//                        paragraphIndex = backStackEntry.arguments?.getInt("paragraphIndex")?.takeIf { it != -1 },
+                        onNavigateBack = { navController.popBackStack() }
+                    )
                 }
                 composable("audio_list_screen") {
                     AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->

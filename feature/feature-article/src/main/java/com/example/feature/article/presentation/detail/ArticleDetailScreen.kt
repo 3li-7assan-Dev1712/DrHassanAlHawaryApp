@@ -2,17 +2,16 @@ package com.example.feature.article.presentation.detail
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
@@ -28,8 +27,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentDataType
@@ -53,12 +54,15 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleDetailScreen(
+//    paragraphIndex: Int?,
     viewModel: DetailArticleViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val lazyListState = rememberLazyListState()
 
+    val paragraphIndex = viewModel.index
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -94,7 +98,8 @@ fun ArticleDetailScreen(
                         shareArticle(
                             context,
                             article.title,
-                            "Check out this article: ${article.title}"
+                            // Share the full article content
+                            "Check out this article: ${article.content}"
                         )
                     },
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -128,8 +133,23 @@ fun ArticleDetailScreen(
                 }
 
                 is DetailArticleUiState.Success -> {
+                    val paragraphs = remember(state.article.content) {
+                        state.article.content.split("\n").filter { it.isNotBlank() }
+                    }
+
+                    LaunchedEffect(paragraphs, paragraphIndex) {
+                        if (paragraphIndex >= 0 && paragraphIndex < paragraphs.size) {
+                            // Use animateScrollToItem for a smooth scroll.
+                            // The paragraphIndex corresponds directly to the item index in the LazyColumn.
+                            // We add 1 to the index to account for the header Text composable.
+                            lazyListState.animateScrollToItem(index = paragraphIndex)
+                        }
+                    }
+
                     ArticleContent(
                         article = state.article,
+                        paragraphs = paragraphs,
+                        lazyListState = lazyListState,
                         formatDate = { date -> formatDate(date) }
                     )
                 }
@@ -141,38 +161,42 @@ fun ArticleDetailScreen(
 @Composable
 fun ArticleContent(
     article: Article,
+    paragraphs: List<String>,
+    lazyListState: LazyListState,
     formatDate: (Date) -> String,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // Important for scrollable content
-            .padding(16.dp)
+    LazyColumn(
+        state = lazyListState,
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 72.dp)
     ) {
-        Text(
-            text = "Published: ${formatDate(article.publishDate)}",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        Log.d("Detail Screen", "ArticleContent: full content: ${article.content}")
-        // Full Article Content
-        CompositionLocalProvider(
-            LocalLayoutDirection provides LayoutDirection.Rtl
-        ) {
+        // First item is the header
+        item {
             Text(
-                text = article.content,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 1.8.em
-                ),
-
-                textAlign = TextAlign.Justify
-
+                text = "Published: ${formatDate(article.publishDate)}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 16.dp, bottom = 12.dp)
             )
         }
-        Spacer(modifier = Modifier.height(64.dp))
+
+        items(
+            items = paragraphs,
+        ) { paragraph ->
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Rtl
+            ) {
+                Text(
+                    text = paragraph,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        lineHeight = 1.8.em
+                    ),
+                    textAlign = TextAlign.Justify,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+        }
     }
 }
 
@@ -227,6 +251,8 @@ fun DetailArticleScreenPreview_Success() {
             Box(Modifier.padding(padding)) {
                 ArticleContent(
                     article = previewArticle,
+                    listOf(),
+                    rememberLazyListState(),
                     formatDate = { date -> formatDate(date) })
             }
         }
