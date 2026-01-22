@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -188,9 +189,10 @@ fun ArticleContent(
                 LocalLayoutDirection provides LayoutDirection.Rtl
             ) {
                 Text(
-                    text = paragraph,
+                    text = "\u200F" + paragraph.trim(),
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        lineHeight = 1.8.em
+                        lineHeight = 1.8.em,
+                        textDirection = TextDirection.Rtl
                     ),
                     textAlign = TextAlign.Justify,
                     modifier = Modifier.padding(bottom = 16.dp)
