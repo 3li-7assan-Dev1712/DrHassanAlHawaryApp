@@ -16,6 +16,8 @@ class MainActivityViewModel @Inject constructor(
     private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ) : ViewModel() {
 
+    val TAG = "MainActivityViewModel"
+
     private val _state = MutableStateFlow(MainActivityState())
 
     val state = _state.asStateFlow()
@@ -54,6 +56,7 @@ class MainActivityViewModel @Inject constructor(
             }
         }
     }
+
     fun logoutSuccess() {
         viewModelScope.launch {
             _state.update {
@@ -64,4 +67,13 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
+    fun updateShowSplashVal(show: Boolean) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    showSplashScreen = show
+                )
+            }
+        }
+    }
 }

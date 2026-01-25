@@ -1,69 +1,100 @@
 package com.example.study.presentation
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.core.ui.R
+import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.study.presentation.components.GuestContent
+import com.example.study.presentation.components.StudentDashboardContent
+import com.example.study.presentation.model.StudyScreenUiState
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudyScreen(modifier: Modifier = Modifier) {
-    // This is the main container for the screen content
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center // This centers the content vertically and horizontally
-    ) {
-
-        Image(
-            // We can reuse the study zone icon or use a new, larger illustration
-            painter = painterResource(id = R.drawable.student_zone_illustration),
-            contentDescription = "Study Zone Illustration",
-            modifier = Modifier.size(150.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
+fun StudyScreen(
+    viewModel: StudyViewModel = hiltViewModel(),
+    onNavigateToLogin: () -> Unit // Callback to trigger the Telegram login flow
+) {
 
 
-        Text(
-            text = stringResource(id = R.string.study_zone),
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center
-        )
 
-        Spacer(modifier = Modifier.height(8.dp))
+    val uiState by viewModel.uiState.collectAsState()
 
-        Text(
-            text = stringResource(id = R.string.study_zone_description),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("My Study Dashboard") })
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            when (val state = uiState) {
+                is StudyScreenUiState.Loading -> CircularProgressIndicator()
+                is StudyScreenUiState.Error -> Text(
+                    text = state.message,
+                    color = MaterialTheme.colorScheme.error
+                )
+
+                is StudyScreenUiState.StudentDashboard -> {
+                    // Show the rich dashboard for students
+                    StudentDashboardContent(
+                        studentData = state.studentData,
+                        onDisconnect = { viewModel.onDisconnectTelegram() }
+                    )
+                }
+
+                is StudyScreenUiState.Guest -> {
+                    // Show the simple connect button for guests
+                    GuestContent(onConnect = onNavigateToLogin)
+                }
+            }
+        }
     }
 }
+
+@Composable
+fun TelegramLoginButton() {
+
+    val context = LocalContext.current
+    val telegramLoginUrl =
+        "https://oauth.telegram.org/auth?bot_id=8255460260&origin=https://dr-hassan-al-hawary.web.app&return_to=https://dr-hassan-al-hawary.web.app/telegram-callback.html&request_access=write"
+
+    Button(onClick = {
+        val builder = CustomTabsIntent.Builder()
+        val customTabsIntent = builder.build()
+        customTabsIntent.launchUrl(context, telegramLoginUrl.toUri())
+    }) {
+        Text("Connect to Telegram")
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
 private fun StudyZoneScreenPreview() {
     HassanAlHawaryTheme {
-        StudyScreen()
+        StudyScreen(
+        ) {
+
+        }
     }
 }

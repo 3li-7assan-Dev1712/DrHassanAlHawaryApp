@@ -66,7 +66,11 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
 
+    // to connect to telegram via a browser
+    implementation(libs.androidx.browser)
 
+    // coil
+    implementation(libs.coil.compose)
 
 
 

@@ -47,6 +47,9 @@ dependencies {
     api(libs.androidx.material3)
     api(libs.androidx.paging.compose)
     api(libs.androidx.paging.runtime)
+    api(libs.androidx.material.icons.extended.android) // extended icons
+
+
     //  internal UI LIBRARIES (Only used inside this module)
     implementation(libs.androidx.activity.compose)
 

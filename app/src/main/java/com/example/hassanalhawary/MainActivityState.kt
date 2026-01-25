@@ -5,5 +5,6 @@ data class MainActivityState(
     val errorMessage: String? = null,
     val navigateTo: String? = null,
     val isUserLoggedIn: Boolean = false,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val showSplashScreen: Boolean = true
 )

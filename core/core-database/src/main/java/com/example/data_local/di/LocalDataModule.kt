@@ -47,6 +47,11 @@ object LocalDataModule {
 
     @Provides
     @Singleton
+    fun provideStudentDao(appDatabase: AppDatabase) = appDatabase.studentDao()
+
+
+    @Provides
+    @Singleton
     fun provideImageGroupRemoteKeysDao(appDatabase: AppDatabase): ImageGroupRemoteKeysDao {
         return appDatabase.imageGroupRemoteKeysDao()
     }

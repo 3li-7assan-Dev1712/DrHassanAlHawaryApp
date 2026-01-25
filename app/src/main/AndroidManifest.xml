@@ -18,6 +18,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HassanAlHawary">
         <activity
+            android:name=".ui.telegram_verification.TelegramVerificationActivity"
+            android:exported="true">
+
+
+        </activity>
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
@@ -27,8 +33,33 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+
+                <data
+                    android:scheme="com.example.hassanalhawary"
+                    android:host="telegram-login" />
+            </intent-filter>
+
+      <!--      <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="dr-hassan-al-hawary.web.app"
+                    android:pathPrefix="/telegram-login"
+                    android:scheme="https" />
+            </intent-filter>-->
+
+        </activity>
 
         <service
             android:name="com.example.feature.audio.player.PlaybackService"
@@ -38,7 +69,6 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
-
     </application>
 
 </manifest>

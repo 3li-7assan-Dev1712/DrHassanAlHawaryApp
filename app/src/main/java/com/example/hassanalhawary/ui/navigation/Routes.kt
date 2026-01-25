@@ -14,7 +14,7 @@ object Routes {
     const val MAIN_GRAPH = "main_graph"
     const val HOME_SCREEN = "home_screen"
     const val SEARCH_SCREEN = "search_screen"
-    const val STUDY_ZONE_SCREEN = "study_zone_screen"
+    const val STUDY_SCREEN = "study_screen"
     const val PROFILE_SCREEN = "profile_screen"
     const val ABOUT_DR_HASSAN_SCREEN = "about_dr_hassan"
 
@@ -34,4 +34,11 @@ object Routes {
     const val IMAGE_DETAIL_SCREEN = "image_detail_screen"
 
 
+}
+
+object StudyRoute {
+    const val routeName = Routes.STUDY_SCREEN
+    const val deepLinkArg = "data"
+    // The route is "study" but can optionally have "?data=..." appended
+    val routeDefinition = "$routeName?$deepLinkArg={$deepLinkArg}"
 }

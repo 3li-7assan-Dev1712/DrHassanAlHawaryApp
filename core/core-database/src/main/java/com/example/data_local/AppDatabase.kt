@@ -7,12 +7,20 @@ import com.example.data_local.model.AudioEntity
 import com.example.data_local.model.ImageEntity
 import com.example.data_local.model.ImageGroupEntity
 import com.example.data_local.model.ImageGroupRemoteKeysEntity
+import com.example.data_local.model.StudentEntity
 import com.example.data_local.model.VideoEntity
 
 
 @Database(
-    entities = [AudioEntity::class, ArticleEntity::class, ImageEntity::class, ImageGroupEntity::class, ImageGroupRemoteKeysEntity::class, VideoEntity::class],
-    version = 12,
+    entities = [AudioEntity::class,
+        ArticleEntity::class,
+        ImageEntity::class,
+        ImageGroupEntity::class,
+        ImageGroupRemoteKeysEntity::class,
+        VideoEntity::class,
+        StudentEntity::class],
+
+    version = 13,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,5 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun imageGroupRemoteKeysDao(): ImageGroupRemoteKeysDao
 
     abstract fun videoDao(): VideoDao
+
+    abstract fun studentDao(): StudentDao
 
 }

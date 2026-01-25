@@ -19,9 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
@@ -72,9 +71,10 @@ class MainActivity : ComponentActivity() {
                 val rootNavController =
                     rememberNavController() // Single NavController for switching graphs
 
-                var showSplashScreen by remember { mutableStateOf(true) }
-                if (showSplashScreen) {
-                    SplashScreen(onShowSplashScreenTimeEnd = { showSplashScreen = false })
+                if (false) {
+                    SplashScreen(onShowSplashScreenTimeEnd = {
+                        mainActivityViewModel.updateShowSplashVal(false)
+                    })
                 } else {
                     // After the splash screen, we decide which graph to show based on the login state.
                     val isLoggedIn = mainActivityState.isUserLoggedIn
@@ -107,8 +107,6 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-
-
                     }
 
 
@@ -296,8 +294,25 @@ class MainActivity : ComponentActivity() {
                         })
                 }
 
-                composable("study_zone_screen") {
-                    StudyScreen()
+                composable(
+                    route = "telegram_login?data={data}",
+                    arguments = listOf(
+                        navArgument("data") {
+                            type = NavType.StringType
+                            nullable = true
+                        }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern =
+                                "com.example.hassanalhawary://telegram-login?data={data}"
+                        }
+                    )
+                ) {
+
+                    StudyScreen() {
+
+                    }
                 }
 
                 composable(Routes.IMAGES_SCREEN) {

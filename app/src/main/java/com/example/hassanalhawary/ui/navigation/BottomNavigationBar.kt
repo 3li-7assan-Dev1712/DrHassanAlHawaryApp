@@ -24,7 +24,7 @@ fun BottomNavigationBar(
     val items = listOf(
         BottomNavItem.Home,
         BottomNavItem.Search,
-        BottomNavItem.StudyZone,
+        BottomNavItem.StudyScreen,
         BottomNavItem.Profile
     )
 

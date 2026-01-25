@@ -32,8 +32,8 @@ sealed class BottomNavItem(
         unselectedIconResId = R.drawable.search_icon
     )
 
-    object StudyZone : BottomNavItem(
-        route = "study_zone_screen",
+    object StudyScreen : BottomNavItem(
+        route = "telegram_login",
         titleResId = R.string.study_zone,
         selectedIconResId = R.drawable.study_zone_filled_icon,
         unselectedIconResId = R.drawable.study_zone_icon
