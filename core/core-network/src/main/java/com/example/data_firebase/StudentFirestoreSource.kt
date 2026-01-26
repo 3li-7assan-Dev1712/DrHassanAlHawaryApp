@@ -16,7 +16,7 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun storeStudent(studentDto: StudentDto) {
         try {
             // Using the telegramId as the document ID for easy lookups and to prevent duplicates
-            studentsCollection.document(studentDto.telegramId.toString()).set(studentDto).await()
+            studentsCollection.document(studentDto.id.toString()).set(studentDto).await()
         } catch (e: Exception) {
             Log.e(TAG, "Error storing student data in Firestore", e)
             throw e // Re-throw the exception to be handled by the repository
@@ -27,7 +27,15 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun getStudentByTelegramId(telegramId: Long): StudentDto? {
         return try {
             val document = studentsCollection.document(telegramId.toString()).get().await()
-            document.toObject(StudentDto::class.java)
+            StudentDto(
+                id = document.getLong("id") ?: 0,
+                firstName = document.getString("firstName") ?: "",
+                lastName = document.getString("lastName") ?: "",
+                username = document.getString("username") ?: "",
+                photoUrl = document.getString("photoUrl") ?: "",
+                isChannelMember = document.getBoolean("isChannelMember") ?: false,
+                isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Error getting student by telegramId: $telegramId", e)
             null // Return null on error so the app doesn't crash
