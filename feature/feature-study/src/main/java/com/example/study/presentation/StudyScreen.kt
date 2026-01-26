@@ -29,17 +29,19 @@ import com.example.study.presentation.model.StudyScreenUiState
 @Composable
 fun StudyScreen(
     viewModel: StudyViewModel = hiltViewModel(),
-    onNavigateToLogin: () -> Unit // Callback to trigger the Telegram login flow
+    onNavigateToLogin: () -> Unit
 ) {
-
 
 
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
+
         topBar = {
-            TopAppBar(title = { Text("My Study Dashboard") })
+            if (uiState !is StudyScreenUiState.StudentDashboard)
+                TopAppBar(title = { Text("My Study Dashboard") })
         }
+
     ) { paddingValues ->
         Box(
             modifier = Modifier
