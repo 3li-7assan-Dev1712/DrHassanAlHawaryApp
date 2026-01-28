@@ -31,6 +31,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        compose = true
+    }
 }
 
 dependencies {
@@ -49,6 +52,9 @@ dependencies {
     api(libs.androidx.paging.runtime)
     api(libs.androidx.material.icons.extended.android) // extended icons
 
+    // Compose UI Tooling
+    debugApi(libs.androidx.ui.tooling)
+    debugApi(libs.androidx.ui.tooling.preview)
 
     //  internal UI LIBRARIES (Only used inside this module)
     implementation(libs.androidx.activity.compose)

@@ -33,6 +33,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    buildFeatures {
+        compose = true
+    }
+
 }
 
 dependencies {
@@ -71,9 +75,9 @@ dependencies {
 
     // coil
     implementation(libs.coil.compose)
-
-
-
+    // Compose UI Tooling
+    debugApi(libs.androidx.ui.tooling)
+    debugApi(libs.androidx.ui.tooling.preview)
 
 
 }

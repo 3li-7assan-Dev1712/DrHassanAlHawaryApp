@@ -49,6 +49,7 @@ import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import com.example.profile.presentation.profile.ProfileScreen
 import com.example.search.presentation.SearchScreen
 import com.example.study.presentation.StudyScreen
+import com.example.study.presentation.components.LessonsPlaylistScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -310,11 +311,20 @@ class MainActivity : ComponentActivity() {
                     )
                 ) {
 
-                    StudyScreen() {
-
-                    }
+                    StudyScreen(
+                        onLevelClick = { levelId ->
+                            navController.navigate(Routes.LESSONS_PLAYLIST_SCREEN)
+                        },
+                        onNavigateToLogin = {
+                        }
+                    )
                 }
 
+                composable(Routes.LESSONS_PLAYLIST_SCREEN) {
+                    LessonsPlaylistScreen(onNavigateBack = {
+                        navController.popBackStack()
+                    })
+                }
                 composable(Routes.IMAGES_SCREEN) {
 
                     ImagesGroupsScreen(
