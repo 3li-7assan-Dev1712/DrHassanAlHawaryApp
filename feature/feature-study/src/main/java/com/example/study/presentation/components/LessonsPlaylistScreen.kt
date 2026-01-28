@@ -40,7 +40,8 @@ import com.example.study.domain.model.LessonPlaylist
 @Composable
 fun LessonsPlaylistScreen(
     modifier: Modifier = Modifier,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onPlaylistClick: (String) -> Unit
 ) {
 
     // fake data
@@ -77,7 +78,7 @@ fun LessonsPlaylistScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(playlists) { playlist ->
-                LessonPlaylistItem(playlist = playlist, onClick = { /* TODO: Handle click */ })
+                LessonPlaylistItem(playlist = playlist, onClick = { onPlaylistClick(playlist.id) })
             }
         }
     }
@@ -136,5 +137,5 @@ fun LessonPlaylistItem(
 @Preview
 @Composable
 private fun LessonsPlaylistScreenPreview() {
-    LessonsPlaylistScreen(onNavigateBack = {})
+    LessonsPlaylistScreen(onNavigateBack = {}, onPlaylistClick = {})
 }

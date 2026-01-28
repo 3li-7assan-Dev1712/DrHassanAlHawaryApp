@@ -48,7 +48,10 @@ import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import com.example.profile.presentation.profile.ProfileScreen
 import com.example.search.presentation.SearchScreen
+import com.example.study.domain.model.Lesson
 import com.example.study.presentation.StudyScreen
+import com.example.study.presentation.components.LessonDetailScreen
+import com.example.study.presentation.components.LessonsListScreen
 import com.example.study.presentation.components.LessonsPlaylistScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -321,10 +324,48 @@ class MainActivity : ComponentActivity() {
                 }
 
                 composable(Routes.LESSONS_PLAYLIST_SCREEN) {
-                    LessonsPlaylistScreen(onNavigateBack = {
-                        navController.popBackStack()
-                    })
+                    LessonsPlaylistScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onPlaylistClick = { playlistId ->
+                            navController.navigate(Routes.LESSONS_SCREEN)
+                        }
+                    )
                 }
+                composable(Routes.LESSONS_SCREEN) {
+
+                    LessonsListScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onLessonClick = { lessonId ->
+                            navController.navigate(Routes.LESSON_DETAIL_SCREEN)
+                        }
+                    )
+
+                }
+
+                composable(Routes.LESSON_DETAIL_SCREEN) {
+
+                    LessonDetailScreen(
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onPlayAudioClick = {
+
+                        }, onOpenPdfClick = {
+
+                        }, lesson = Lesson(
+                            id = "1",
+                            title = "Introduction to Islamic Beliefs",
+                            audioUrl = "",
+                            pdfUrl = ""
+                        )
+                    )
+
+                }
+
                 composable(Routes.IMAGES_SCREEN) {
 
                     ImagesGroupsScreen(
