@@ -21,9 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.study.presentation.components.GuestContent
-import com.example.study.presentation.components.StudentDashboardContent
-import com.example.study.presentation.components.StudyTopAppBar
+import com.example.study.presentation.dashboard.GuestContent
+import com.example.study.presentation.dashboard.StudentDashboardContent
+import com.example.study.presentation.dashboard.StudyTopAppBar
 import com.example.study.presentation.model.StudyScreenUiState
 
 @OptIn(ExperimentalMaterial3Api::class)

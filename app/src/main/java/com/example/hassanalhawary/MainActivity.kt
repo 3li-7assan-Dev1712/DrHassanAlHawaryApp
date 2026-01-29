@@ -50,9 +50,9 @@ import com.example.profile.presentation.profile.ProfileScreen
 import com.example.search.presentation.SearchScreen
 import com.example.study.domain.model.Lesson
 import com.example.study.presentation.StudyScreen
-import com.example.study.presentation.components.LessonDetailScreen
-import com.example.study.presentation.components.LessonsListScreen
-import com.example.study.presentation.components.LessonsPlaylistScreen
+import com.example.study.presentation.detail.LessonDetailScreen
+import com.example.study.presentation.lessons.LessonsListScreen
+import com.example.study.presentation.playlist.LessonsPlaylistScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

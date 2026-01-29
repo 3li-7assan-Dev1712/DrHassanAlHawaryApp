@@ -1,4 +1,4 @@
-package com.example.study.presentation.components
+package com.example.study.presentation.lessons
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

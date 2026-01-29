@@ -2,7 +2,9 @@ package com.example.study.data
 
 import android.util.Log
 import com.example.data_firebase.StudentFirestoreSource
+import com.example.data_local.PlaylistDao
 import com.example.data_local.StudentDao
+import com.example.domain.module.Playlist
 import com.example.study.data.mappers.toDomain
 import com.example.study.data.mappers.toEntity
 import com.example.study.domain.model.Student
@@ -14,7 +16,8 @@ import javax.inject.Inject
 
 class StudyRepositoryImpl @Inject constructor(
     private val studentFirestoreSource: StudentFirestoreSource,
-    private val studentDao: StudentDao
+    private val studentDao: StudentDao,
+    private val playlistDao: PlaylistDao
 ) : StudyRepository {
 
 
@@ -47,6 +50,21 @@ class StudyRepositoryImpl @Inject constructor(
             throw NullPointerException("Student data is null")
         }
 
+
+    }
+
+    override fun getPlaylistsForLevel(level: Int): Flow<List<Playlist>?> {
+
+        return playlistDao.getPlaylistsForLevel(level).map { playlistsEntities ->
+            playlistsEntities?.map { playlistEntity ->
+                playlistEntity.toDomain()
+            }
+        }
+    }
+
+    override suspend fun syncPlaylists(level: Int) {
+        val playlists = studentFirestoreSource.getPlaylistForLevel(level)
+        playlistDao.storePlaylists(playlists.map { it.toEntity() })
 
     }
 }

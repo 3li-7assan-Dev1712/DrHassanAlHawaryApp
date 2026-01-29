@@ -1,4 +1,4 @@
-package com.example.domain.module
+package com.example.study.presentation.model
 
 data class Level(
     val id: Int,

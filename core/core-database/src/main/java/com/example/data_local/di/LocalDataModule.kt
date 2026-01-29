@@ -49,6 +49,10 @@ object LocalDataModule {
     @Singleton
     fun provideStudentDao(appDatabase: AppDatabase) = appDatabase.studentDao()
 
+    @Provides
+    @Singleton
+    fun providePlaylistDao(appDatabase: AppDatabase) = appDatabase.playlistDao()
+
 
     @Provides
     @Singleton

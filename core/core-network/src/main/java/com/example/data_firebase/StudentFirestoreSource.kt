@@ -1,13 +1,15 @@
 package com.example.data_firebase
 
 import android.util.Log
+import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.StudentDto
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
-    firestore: FirebaseFirestore
+    val firestore: FirebaseFirestore
 ) {
 
     private val TAG = "StudentFirestoreSource"
@@ -53,5 +55,17 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getPlaylistForLevel(level: Int): List<PlaylistDto> {
+        return try {
+            val levelCollection = firestore.collection("Level $level")
+            val snapshot = levelCollection.get().await()
+            snapshot.mapNotNull { document ->
+                document.toObject<PlaylistDto>()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting playlists for level: $level", e)
+            emptyList() // Return an empty list on error
+        }
+    }
 
 }

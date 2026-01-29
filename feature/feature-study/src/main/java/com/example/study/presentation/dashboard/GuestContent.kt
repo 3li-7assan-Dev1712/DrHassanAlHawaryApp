@@ -1,4 +1,4 @@
-package com.example.study.presentation.components
+package com.example.study.presentation.dashboard
 
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Arrangement
