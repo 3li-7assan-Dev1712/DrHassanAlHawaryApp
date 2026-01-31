@@ -20,9 +20,7 @@ object LocalDataModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "hassan_al_hawary_db"
+            context, AppDatabase::class.java, "hassan_al_hawary_db"
         ).fallbackToDestructiveMigration(true).build()
     }
 
@@ -52,6 +50,10 @@ object LocalDataModule {
     @Provides
     @Singleton
     fun providePlaylistDao(appDatabase: AppDatabase) = appDatabase.playlistDao()
+
+    @Provides
+    @Singleton
+    fun provideLevelDao(appDatabase: AppDatabase) = appDatabase.levelDao()
 
 
     @Provides

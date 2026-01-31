@@ -6,20 +6,23 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 
-@Entity( tableName = "playlists",
+@Entity( tableName = "lessons",
     foreignKeys = [
         ForeignKey(
-            entity = LevelEntity::class,
+            entity = PlaylistEntity::class,
             parentColumns = ["id"],
-            childColumns = ["levelId"]
+            childColumns = ["playlistId"]
         )
     ],
-    indices = [Index("levelId")]
+    indices = [Index("playlistId")]
 )
-data class PlaylistEntity(
+data class LessonEntity(
     @PrimaryKey val id: String,
+    val playlistId: String,
     val title: String,
-    val levelId: String,
-    val thumbnailUrl: String,
+    val audioUrl: String,
+    val audioFilePath: String?,
+    val duration: Long,
+    val pdfUrl: String,
     val updatedAt: Long
 )

@@ -7,6 +7,7 @@ import com.example.data_local.model.AudioEntity
 import com.example.data_local.model.ImageEntity
 import com.example.data_local.model.ImageGroupEntity
 import com.example.data_local.model.ImageGroupRemoteKeysEntity
+import com.example.data_local.model.LevelEntity
 import com.example.data_local.model.PlaylistEntity
 import com.example.data_local.model.StudentEntity
 import com.example.data_local.model.VideoEntity
@@ -20,9 +21,10 @@ import com.example.data_local.model.VideoEntity
         ImageGroupRemoteKeysEntity::class,
         VideoEntity::class,
         StudentEntity::class,
+        LevelEntity::class,
         PlaylistEntity::class],
 
-    version = 14,
+    version = 16,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -40,6 +42,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun studentDao(): StudentDao
 
     abstract fun playlistDao(): PlaylistDao
+
+    abstract fun levelDao(): LevelsDao
 
 
 

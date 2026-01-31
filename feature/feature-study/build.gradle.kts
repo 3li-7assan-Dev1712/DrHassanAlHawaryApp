@@ -76,6 +76,10 @@ dependencies {
 
     // coil
     implementation(libs.coil.compose)
+
+    // datastore
+    implementation(libs.androidx.datastore.preferences)
+
     // Compose UI Tooling
     debugApi(libs.androidx.ui.tooling)
     debugApi(libs.androidx.ui.tooling.preview)

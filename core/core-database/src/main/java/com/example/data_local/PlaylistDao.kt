@@ -14,7 +14,7 @@ interface PlaylistDao {
     suspend fun storePlaylists(playlists: List<PlaylistEntity>)
 
 
-    @Query("SELECT * FROM playlists WHERE level = :level")
+    @Query("SELECT * FROM playlists WHERE levelId = :level")
     fun getPlaylistsForLevel(level: Int): Flow<List<PlaylistEntity>?>
 
 

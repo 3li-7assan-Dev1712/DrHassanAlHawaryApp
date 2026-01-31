@@ -1,6 +1,7 @@
 package com.example.data_firebase
 
 import android.util.Log
+import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.StudentDto
 import com.google.firebase.firestore.FirebaseFirestore
@@ -60,12 +61,40 @@ class StudentFirestoreSource @Inject constructor(
             val levelCollection = firestore.collection("Level $level")
             val snapshot = levelCollection.get().await()
             snapshot.mapNotNull { document ->
-                document.toObject<PlaylistDto>()
+
+                val dto = document.toObject<PlaylistDto>()
+                Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
+                dto
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error getting playlists for level: $level", e)
             emptyList() // Return an empty list on error
         }
+    }
+
+    suspend fun getRemoteLevels(): List<LevelDto> {
+        val levelsCollection = firestore.collection("levels")
+        val snapshot = levelsCollection.get().await()
+        return try {
+            snapshot.mapNotNull { document ->
+                Log.d(TAG, "getRemoteLevels: ${document.getString("title")}")
+//            document.toObject<LevelDto>()
+                val dto = LevelDto(
+                    id = document.getString("id") ?: "",
+                    title = document.getString("title") ?: "",
+                    order = document.getLong("order")?.toInt() ?: 0
+                )
+                dto
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting remote levels", e)
+            emptyList()
+        }
+    }
+
+    suspend fun getLevelsVersion(): Int {
+        val versionCollection = firestore.collection("metadata").document("content_versions").get().await()
+        return versionCollection.getLong("levelsVersion")?.toInt() ?: 0
     }
 
 }

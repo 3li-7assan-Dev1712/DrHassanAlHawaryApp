@@ -2,8 +2,10 @@ package com.example.study.data
 
 import android.util.Log
 import com.example.data_firebase.StudentFirestoreSource
+import com.example.data_local.LevelsDao
 import com.example.data_local.PlaylistDao
 import com.example.data_local.StudentDao
+import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.study.data.mappers.toDomain
 import com.example.study.data.mappers.toEntity
@@ -17,7 +19,9 @@ import javax.inject.Inject
 class StudyRepositoryImpl @Inject constructor(
     private val studentFirestoreSource: StudentFirestoreSource,
     private val studentDao: StudentDao,
-    private val playlistDao: PlaylistDao
+    private val versionStore: ContentVersionStore,
+    private val playlistDao: PlaylistDao,
+    private val levelsDao: LevelsDao
 ) : StudyRepository {
 
 
@@ -67,4 +71,25 @@ class StudyRepositoryImpl @Inject constructor(
         playlistDao.storePlaylists(playlists.map { it.toEntity() })
 
     }
+
+
+
+    override suspend fun syncLevels() {
+        val localLevelVersion = versionStore.getLevelsVersion()
+        val remoteLevelVersion = studentFirestoreSource.getLevelsVersion()
+        if (remoteLevelVersion > localLevelVersion) {
+            val levels = studentFirestoreSource.getRemoteLevels()
+            Log.d(TAG, "syncLevels: cout: ${levels.count()}")
+            levelsDao.storeLevels(levels.map { it.toEntity() })
+            versionStore.updateLevelsVersion(remoteLevelVersion.toLong())
+        }
+
+    }
+
+    override fun getLevels(): Flow<List<Level>> =
+        levelsDao.getLevels().map {
+            it?.map { levelEntity ->
+                levelEntity.toDomain()
+            } ?: emptyList()
+        }
 }

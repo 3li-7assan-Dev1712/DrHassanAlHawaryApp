@@ -31,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.core_ui.splash_screen.SplashScreen
+import com.example.domain.module.Lesson
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
@@ -48,7 +49,6 @@ import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import com.example.profile.presentation.profile.ProfileScreen
 import com.example.search.presentation.SearchScreen
-import com.example.study.domain.model.Lesson
 import com.example.study.presentation.StudyScreen
 import com.example.study.presentation.detail.LessonDetailScreen
 import com.example.study.presentation.lessons.LessonsListScreen
@@ -360,7 +360,8 @@ class MainActivity : ComponentActivity() {
                             id = "1",
                             title = "Introduction to Islamic Beliefs",
                             audioUrl = "",
-                            pdfUrl = ""
+                            pdfUrl = "",
+                            duration = "1.32"
                         )
                     )
 

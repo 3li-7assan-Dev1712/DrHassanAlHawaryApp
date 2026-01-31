@@ -23,7 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.study.domain.model.Lesson
+import com.example.domain.module.Lesson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +35,11 @@ fun LessonsListScreen(
     // Fake data for demonstration
     val lessons = remember {
         listOf(
-            Lesson("1", "Introduction to Islamic Beliefs", "audio_url_1", "pdf_url_1"),
-            Lesson("2", "The Pillars of Iman", "audio_url_2", "pdf_url_2"),
-            Lesson("3", "Understanding Tawhid", "audio_url_3", "pdf_url_3"),
-            Lesson("4", "The Concept of Prophethood", "audio_url_4", "pdf_url_4")
+            Lesson(
+                "1", "Introduction to Islamic Beliefs", "audio_url_1", "pdf_url_1",
+                duration = "1:23",
+            ),
+
         )
     }
 

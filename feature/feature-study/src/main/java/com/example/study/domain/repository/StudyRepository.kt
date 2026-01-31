@@ -1,5 +1,6 @@
 package com.example.study.domain.repository
 
+import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.study.domain.model.Student
 import kotlinx.coroutines.flow.Flow
@@ -19,8 +20,9 @@ interface StudyRepository {
     suspend fun syncPlaylists(level: Int)
 
 
+    suspend fun syncLevels()
 
-
+    fun getLevels(): Flow<List<Level>>
 
 
 }

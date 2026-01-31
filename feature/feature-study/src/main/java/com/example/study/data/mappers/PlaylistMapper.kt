@@ -7,8 +7,9 @@ import com.example.domain.module.Playlist
 fun PlaylistDto.toEntity(): PlaylistEntity = PlaylistEntity(
     id = id,
     title = title,
-    level = level,
-    thumbnailUrl = thumbnailUrl
+    levelId = levelId,
+    thumbnailUrl = thumbnailUrl,
+    updatedAt = updatedAt.time
 )
 
 fun PlaylistEntity.toDomain(): Playlist = Playlist(

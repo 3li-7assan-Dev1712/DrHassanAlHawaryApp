@@ -1,6 +1,7 @@
 package com.example.study.presentation.playlist
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,8 +16,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,7 +27,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,28 +36,38 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.core.ui.R
-import com.example.study.domain.model.LessonPlaylist
+import com.example.domain.module.Playlist
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LessonsPlaylistScreen(
     modifier: Modifier = Modifier,
+    viewModel: PlaylistViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onPlaylistClick: (String) -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsState()
 
-    // fake data
-    val playlists = remember {
-        listOf(
-            LessonPlaylist("p1", "أساسيات العقيدة الإسلامية", 12),
-            LessonPlaylist("p2", "شرح كتاب التوحيد", 25),
-            LessonPlaylist("p3", "مقدمات في علوم الحديث", 8),
-            LessonPlaylist("p4", "فقه العبادات", 30),
-        )
-    }
+    LessonsPlaylistContent(
+        modifier = modifier,
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onPlaylistClick = onPlaylistClick,
+        onRefresh = viewModel::onRefresh
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LessonsPlaylistContent(
+    modifier: Modifier = Modifier,
+    uiState: PlaylistUiState,
+    onNavigateBack: () -> Unit,
+    onPlaylistClick: (String) -> Unit,
+    onRefresh: () -> Unit
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -65,20 +79,49 @@ fun LessonsPlaylistScreen(
                             contentDescription = "Back"
                         )
                     }
+                },
+                actions = {
+                    IconButton(onClick = onRefresh) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh"
+                        )
+                    }
                 }
             )
         },
         modifier = modifier
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = 16.dp)
         ) {
-            items(playlists) { playlist ->
-                LessonPlaylistItem(playlist = playlist, onClick = { onPlaylistClick(playlist.id) })
+            when (uiState) {
+                is PlaylistUiState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                is PlaylistUiState.Success -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(uiState.playlists) { playlist ->
+                            LessonPlaylistItem(
+                                playlist = playlist,
+                                onClick = { onPlaylistClick(playlist.id) })
+                        }
+                    }
+                }
+
+                is PlaylistUiState.Error -> {
+                    Text(
+                        text = uiState.message,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
             }
         }
     }
@@ -86,7 +129,7 @@ fun LessonsPlaylistScreen(
 
 @Composable
 fun LessonPlaylistItem(
-    playlist: LessonPlaylist,
+    playlist: Playlist,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -100,7 +143,7 @@ fun LessonPlaylistItem(
         ) {
             // Thumbnail
             AsyncImage(
-                model = playlist.thumbnail,
+                model = playlist.thumbnailUrl,
                 contentDescription = playlist.title,
                 placeholder = painterResource(id = R.drawable.naqthm_lesson),
                 error = painterResource(id = R.drawable.naqthm_lesson),
@@ -114,11 +157,11 @@ fun LessonPlaylistItem(
             // Title and lesson count
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = playlist.title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    text = "${playlist.lessonCount} lessons",
+                /*Text(
+                    text = "${playlist.} lessons",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                )*/
             }
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -134,8 +177,20 @@ fun LessonPlaylistItem(
 }
 
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun LessonsPlaylistScreenPreview() {
-    LessonsPlaylistScreen(onNavigateBack = {}, onPlaylistClick = {})
+    val playlists = listOf(
+        Playlist("p1", "أساسيات العقيدة الإسلامية", "12"),
+        Playlist("p2", "شرح كتاب التوحيد",  ""),
+        Playlist("p3", "مقدمات في علوم الحديث",  ""),
+    )
+    MaterialTheme {
+        LessonsPlaylistContent(
+            uiState = PlaylistUiState.Success(playlists),
+            onNavigateBack = {},
+            onPlaylistClick = {},
+            onRefresh = {}
+        )
+    }
 }

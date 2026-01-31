@@ -37,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,20 +53,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.core.ui.R
+import com.example.domain.module.Level
 import com.example.study.domain.model.Student
 import com.example.study.presentation.model.DashboardSection
-import com.example.study.presentation.model.Level
+import com.example.study.presentation.model.DashboardUiState
 
 @Composable
 fun StudentDashboardContent(
     studentData: Student,
+    dashboardViewModel: DashboardViewModel = hiltViewModel(),
     onDisconnect: () -> Unit,
     onLevelClick: (Int) -> Unit,
 ) {
 
     var selectedSection by remember { mutableStateOf<DashboardSection>(DashboardSection.Study) }
+
+    val uiState by dashboardViewModel.uiState.collectAsState()
 
 
     LazyColumn(
@@ -99,13 +105,32 @@ fun StudentDashboardContent(
 
         item {
             // A Box to elegantly switch content based on the selected chip
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 when (selectedSection) {
                     DashboardSection.Study -> {
-                        LevelsContent(
-                            levels = sampleLevels,
-                            onLevelClick = onLevelClick
-                        )
+                        when (uiState) {
+                            is DashboardUiState.Success -> {
+                                val levels = (uiState as DashboardUiState.Success).levels
+                                LevelsContent(
+                                    levels = levels,
+                                    onLevelClick = onLevelClick
+                                )
+                            }
+
+                            is DashboardUiState.Loading -> {
+                                CircularProgressIndicator()
+                            }
+
+                            is DashboardUiState.Error -> {
+                                val msg = (uiState as DashboardUiState.Error).message
+                                Text(text = msg, style = MaterialTheme.typography.bodyMedium)
+                            }
+
+                        }
+
                     }
 
                     DashboardSection.TopStudents -> TopStudentsContent()
@@ -329,14 +354,6 @@ fun DashboardChips(
 }
 
 
-val sampleLevels = listOf(
-    Level(id = 1, title = "Level 1", isLocked = false),
-    Level(id = 2, title = "Level 2", isLocked = false),
-    Level(id = 3, title = "Level 3", isLocked = true),
-    Level(id = 4, title = "Level 4", isLocked = true),
-    Level(id = 5, title = "Level 5", isLocked = true)
-)
-
 /**
  * The main screen to display the list of levels.
  *
@@ -372,7 +389,7 @@ fun LevelsContent(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(levels.size) { index ->
-                    LevelItem(level = levels[index], onClick = { onLevelClick(levels[index].id) })
+                    LevelItem(level = levels[index], onClick = { onLevelClick(levels[index].id.toInt()) })
                 }
             }
         }
@@ -443,6 +460,11 @@ fun LevelItem(
     }
 }
 
+val sampleLevels = listOf(
+    Level("1", "Level 1", 1, true),
+    Level("2", "Level 2", 2, false),
+    Level("3", "Level 3", 3, false),
+)
 
 @Preview(showBackground = true)
 @Composable

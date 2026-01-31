@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.study.domain.model.Lesson
+import com.example.domain.module.Lesson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +72,9 @@ fun LessonDetailScreen(
 private fun LessonDetailScreenPreview() {
     MaterialTheme {
         LessonDetailScreen(
-            lesson = Lesson("1", "Introduction to Islamic Beliefs", "audio_url_1", "pdf_url_1"),
+            lesson = Lesson("1", "Introduction to Islamic Beliefs", "audio_url_1", duration = "2.43",
+                pdfUrl = "pdf_url_1"
+            ),
             onNavigateBack = {},
             onPlayAudioClick = {},
             onOpenPdfClick = {}
