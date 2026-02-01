@@ -9,6 +9,7 @@ fun PlaylistDto.toEntity(): PlaylistEntity = PlaylistEntity(
     title = title,
     levelId = levelId,
     thumbnailUrl = thumbnailUrl,
+    order = order,
     updatedAt = updatedAt.time
 )
 

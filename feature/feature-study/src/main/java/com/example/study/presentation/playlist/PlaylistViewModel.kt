@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.study.domain.use_case.GetPlaylistsForLevelUseCase
-import com.example.study.domain.use_case.SyncPlaylistsForLevelUseCase
+import com.example.study.domain.use_case.SyncPlaylistsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +15,14 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
     getPlaylistsForLevelUseCase: GetPlaylistsForLevelUseCase,
-    val syncPlaylistsUseCase: SyncPlaylistsForLevelUseCase,
+    val syncPlaylistsUseCase: SyncPlaylistsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     val TAG = "PlaylistViewModel"
 //    private val level: Int = checkNotNull(savedStateHandle["level"])
+
+    val levelId = savedStateHandle.get<String>("levelId")
 
     val _uiState = MutableStateFlow<PlaylistUiState>(PlaylistUiState.Loading)
 
@@ -41,14 +43,18 @@ class PlaylistViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             try {
-                getPlaylistsForLevelUseCase(1).collect { playlists ->
+                if (levelId != null) {
+                    syncPlaylistsUseCase()
+                    getPlaylistsForLevelUseCase(levelId).collect { playlists ->
 
-                    if (!playlists.isNullOrEmpty())
-                        _uiState.value = PlaylistUiState.Success(playlists)
-                    else
-                        _uiState.value = PlaylistUiState.Error("No playlists found")
+                        Log.d(TAG, "levelId is: $levelId")
+                        if (!playlists.isNullOrEmpty()) _uiState.value =
+                            PlaylistUiState.Success(playlists)
+                        else _uiState.value = PlaylistUiState.Error("No playlists found")
+                    }
+                } else {
+                    throw NullPointerException("levelId is null")
                 }
-
             } catch (e: Exception) {
                 Log.d(TAG, "onRefresh: ${e.message}")
             }
@@ -59,7 +65,11 @@ class PlaylistViewModel @Inject constructor(
     fun onRefresh() {
         viewModelScope.launch {
             try {
-                syncPlaylistsUseCase(1)
+                if (levelId != null) {
+                    syncPlaylistsUseCase()
+                } else {
+                    throw NullPointerException("levelId is null")
+                }
             } catch (e: Exception) {
                 Log.d(TAG, "onRefresh: ${e.message}")
                 // The UI will continue to show cached data.

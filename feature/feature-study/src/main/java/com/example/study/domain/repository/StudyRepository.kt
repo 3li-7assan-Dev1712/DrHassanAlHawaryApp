@@ -15,9 +15,9 @@ interface StudyRepository {
     suspend fun disconnectTelegram()
 
 
-    fun getPlaylistsForLevel(level: Int): Flow<List<Playlist>?>
+    fun getPlaylistsForLevel(levelId: String): Flow<List<Playlist>?>
 
-    suspend fun syncPlaylists(level: Int)
+    suspend fun syncPlaylists()
 
 
     suspend fun syncLevels()

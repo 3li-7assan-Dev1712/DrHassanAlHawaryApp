@@ -52,7 +52,7 @@ import com.example.search.presentation.SearchScreen
 import com.example.study.presentation.StudyScreen
 import com.example.study.presentation.detail.LessonDetailScreen
 import com.example.study.presentation.lessons.LessonsListScreen
-import com.example.study.presentation.playlist.LessonsPlaylistScreen
+import com.example.study.presentation.playlist.PlaylistScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -316,15 +316,22 @@ class MainActivity : ComponentActivity() {
 
                     StudyScreen(
                         onLevelClick = { levelId ->
-                            navController.navigate(Routes.LESSONS_PLAYLIST_SCREEN)
+                            navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
                         },
                         onNavigateToLogin = {
                         }
                     )
                 }
 
-                composable(Routes.LESSONS_PLAYLIST_SCREEN) {
-                    LessonsPlaylistScreen(
+                composable(
+
+                    route = "${Routes.PLAYLIST_SCREEN}/{levelId}",
+                    arguments = listOf(navArgument("levelId") {
+                        type = NavType.StringType
+                    })
+
+                ) {
+                    PlaylistScreen(
                         onNavigateBack = {
                             navController.popBackStack()
                         },

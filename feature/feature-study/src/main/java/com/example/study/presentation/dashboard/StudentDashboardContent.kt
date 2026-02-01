@@ -66,7 +66,7 @@ fun StudentDashboardContent(
     studentData: Student,
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     onDisconnect: () -> Unit,
-    onLevelClick: (Int) -> Unit,
+    onLevelClick: (String) -> Unit,
 ) {
 
     var selectedSection by remember { mutableStateOf<DashboardSection>(DashboardSection.Study) }
@@ -364,7 +364,7 @@ fun DashboardChips(
 @Composable
 fun LevelsContent(
     levels: List<Level>,
-    onLevelClick: (Int) -> Unit,
+    onLevelClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (levels.isEmpty()) {
@@ -389,7 +389,7 @@ fun LevelsContent(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(levels.size) { index ->
-                    LevelItem(level = levels[index], onClick = { onLevelClick(levels[index].id.toInt()) })
+                    LevelItem(level = levels[index], onClick = { onLevelClick(levels[index].id) })
                 }
             }
         }

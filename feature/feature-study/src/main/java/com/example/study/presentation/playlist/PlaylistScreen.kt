@@ -42,7 +42,7 @@ import com.example.core.ui.R
 import com.example.domain.module.Playlist
 
 @Composable
-fun LessonsPlaylistScreen(
+fun PlaylistScreen(
     modifier: Modifier = Modifier,
     viewModel: PlaylistViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,

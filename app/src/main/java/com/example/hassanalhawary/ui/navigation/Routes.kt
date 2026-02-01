@@ -15,7 +15,7 @@ object Routes {
     const val HOME_SCREEN = "home_screen"
     const val SEARCH_SCREEN = "search_screen"
     const val STUDY_SCREEN = "study_screen"
-    const val LESSONS_PLAYLIST_SCREEN = "lessons_playlist_screen"
+    const val PLAYLIST_SCREEN = "playlist_screen"
     const val LESSONS_SCREEN = "lessons_screen"
     const val LESSON_DETAIL_SCREEN = "lesson_detail_screen"
 

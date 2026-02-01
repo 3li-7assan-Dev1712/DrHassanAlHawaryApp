@@ -10,7 +10,7 @@ class GetPlaylistsForLevelUseCase @Inject constructor(
 ) {
 
 
-    operator fun invoke(level: Int): Flow<List<Playlist>?> {
-        return studyRepository.getPlaylistsForLevel(level)
+    operator fun invoke(levelId: String): Flow<List<Playlist>?> {
+        return studyRepository.getPlaylistsForLevel(levelId)
     }
 }

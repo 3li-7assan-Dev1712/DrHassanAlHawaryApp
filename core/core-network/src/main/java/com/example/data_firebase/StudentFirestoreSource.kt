@@ -5,8 +5,8 @@ import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.StudentDto
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
@@ -56,18 +56,24 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    suspend fun getPlaylistForLevel(level: Int): List<PlaylistDto> {
+    suspend fun getPlaylists(lastPlaylistSync: Long): List<PlaylistDto> {
         return try {
-            val levelCollection = firestore.collection("Level $level")
-            val snapshot = levelCollection.get().await()
+            val playlistsCollection = firestore.collection("playlists")/*.whereGreaterThan("updatedAt", lastPlaylistSync)*/
+            val snapshot = playlistsCollection.get().await()
             snapshot.mapNotNull { document ->
 
-                val dto = document.toObject<PlaylistDto>()
+                val dto = PlaylistDto(
+                    id = document.getString("id") ?: "",
+                    title = document.getString("title") ?: "",
+                    levelId = document.getString("levelId") ?:"",
+                    order = document.getLong("order")?.toInt() ?: 0,
+                    thumbnailUrl = document.getString("thumbnailUrl") ?: "",
+                    updatedAt = document.getDate("updatedAt") ?: Date()
+                )
                 Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
                 dto
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting playlists for level: $level", e)
             emptyList() // Return an empty list on error
         }
     }
@@ -92,9 +98,9 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    suspend fun getLevelsVersion(): Int {
+    suspend fun getLevelsVersion(): Long {
         val versionCollection = firestore.collection("metadata").document("content_versions").get().await()
-        return versionCollection.getLong("levelsVersion")?.toInt() ?: 0
+        return versionCollection.getLong("levelsVersion") ?: 0
     }
 
 }

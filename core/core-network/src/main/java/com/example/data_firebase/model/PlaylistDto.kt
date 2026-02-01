@@ -11,6 +11,7 @@ data class PlaylistDto(
     val id: String = "",
     val title: String = "",
     val levelId: String = "",
+    val order: Int = 0,
     val thumbnailUrl: String = "",
     val updatedAt: Date = Date()
 )

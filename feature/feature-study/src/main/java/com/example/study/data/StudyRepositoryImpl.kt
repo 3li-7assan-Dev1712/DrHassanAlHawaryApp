@@ -57,32 +57,45 @@ class StudyRepositoryImpl @Inject constructor(
 
     }
 
-    override fun getPlaylistsForLevel(level: Int): Flow<List<Playlist>?> {
+    override fun getPlaylistsForLevel(levelId: String): Flow<List<Playlist>?> {
 
-        return playlistDao.getPlaylistsForLevel(level).map { playlistsEntities ->
+        return playlistDao.getPlaylistsForLevel(levelId).map { playlistsEntities ->
             playlistsEntities?.map { playlistEntity ->
                 playlistEntity.toDomain()
             }
         }
     }
 
-    override suspend fun syncPlaylists(level: Int) {
-        val playlists = studentFirestoreSource.getPlaylistForLevel(level)
-        playlistDao.storePlaylists(playlists.map { it.toEntity() })
+    override suspend fun syncPlaylists() {
+        val lastPlaylistSync = versionStore.getLastPlaylistSync()
+        val playlists = studentFirestoreSource.getPlaylists(lastPlaylistSync)
+
+        Log.d(TAG, "syncPlaylists: ${playlists.size}")
+        if (playlists.isNotEmpty()) {
+            val entities = playlists.map { it.toEntity() }
+            playlistDao.upsertAll(entities)
+            versionStore.setLastPlaylistSync(
+                entities.maxOf { it.updatedAt }
+            )
+        }
 
     }
-
 
 
     override suspend fun syncLevels() {
         val localLevelVersion = versionStore.getLevelsVersion()
         val remoteLevelVersion = studentFirestoreSource.getLevelsVersion()
-        if (remoteLevelVersion > localLevelVersion) {
-            val levels = studentFirestoreSource.getRemoteLevels()
-            Log.d(TAG, "syncLevels: cout: ${levels.count()}")
-            levelsDao.storeLevels(levels.map { it.toEntity() })
-            versionStore.updateLevelsVersion(remoteLevelVersion.toLong())
-        }
+
+        val counts = levelsDao.count()
+        Log.d(TAG, "syncLevels: count: $counts")
+        if (remoteLevelVersion == localLevelVersion && counts > 0)
+            return
+
+        val levels = studentFirestoreSource.getRemoteLevels()
+        Log.d(TAG, "syncLevels: cout: ${levels.count()}")
+        levelsDao.storeLevels(levels.map { it.toEntity() })
+        versionStore.updateLevelsVersion(remoteLevelVersion)
+
 
     }
 

@@ -18,7 +18,8 @@ interface LevelsDao {
     @Query("SELECT * FROM levels ORDER BY `order`")
     fun getLevels(): Flow<List<LevelEntity>?>
 
-
+    @Query("SELECT COUNT(*) FROM levels")
+    suspend fun count(): Int
 
 
 

@@ -20,6 +20,7 @@ data class PlaylistEntity(
     @PrimaryKey val id: String,
     val title: String,
     val levelId: String,
+    val order: Int,
     val thumbnailUrl: String,
     val updatedAt: Long
 )

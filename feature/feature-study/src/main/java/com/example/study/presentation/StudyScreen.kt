@@ -31,7 +31,7 @@ import com.example.study.presentation.model.StudyScreenUiState
 fun StudyScreen(
     viewModel: StudyViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
-    onLevelClick: (Int) -> Unit
+    onLevelClick: (String) -> Unit
 ) {
 
 

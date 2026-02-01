@@ -16,6 +16,7 @@ import javax.inject.Singleton
 val Context.contentDataStore: DataStore<Preferences> by preferencesDataStore(name = "content_versions")
 
 private const val LEVELS_VERSION_KEY = "levels_version"
+private const val LAST_PLAYLIST_SYNC = "last_playlist_sync"
 
 @Singleton
 class ContentVersionStore @Inject constructor(
@@ -30,6 +31,20 @@ class ContentVersionStore @Inject constructor(
     suspend fun updateLevelsVersion(version: Long) {
         updateVersion(LEVELS_VERSION_KEY, version)
     }
+
+    suspend fun getLastPlaylistSync(): Long {
+        return dataStore.data.map {
+            it[longPreferencesKey(LAST_PLAYLIST_SYNC)] ?: 0
+        }.firstOrNull() ?: 0
+
+    }
+
+    suspend fun setLastPlaylistSync(timestamp: Long) {
+        dataStore.edit {
+            it[longPreferencesKey(LAST_PLAYLIST_SYNC)] = timestamp
+        }
+    }
+
 
     suspend fun updateVersion(key: String, version: Long) {
         val prefKey = longPreferencesKey(key)
