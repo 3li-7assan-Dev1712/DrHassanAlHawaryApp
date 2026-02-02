@@ -24,7 +24,7 @@ class StudyRepositoryImpl @Inject constructor(
     private val versionStore: ContentVersionStore,
     private val playlistDao: PlaylistDao,
     private val lessonDao: LessonDao,
-    private val levelsDao: LevelsDao
+    private val levelsDao: LevelsDao,
 ) : StudyRepository {
 
 
@@ -130,4 +130,14 @@ class StudyRepositoryImpl @Inject constructor(
 
         }
     }
+
+    override fun getLessonById(lessonId: String): Flow<Lesson?> =
+        lessonDao.getLessonById(lessonId).map {
+            it?.toDomain()
+        }
+
+
+
+
+
 }

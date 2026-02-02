@@ -24,6 +24,8 @@ interface LessonDao {
     )
     fun getLessonsForPlaylist(playlistId: String): Flow<List<LessonEntity>?>
 
+    @Query("SELECT * FROM lessons WHERE id = :lessonId")
+    fun getLessonById(lessonId: String): Flow<LessonEntity?>
 
     @Query("SELECT MAX(updatedAt) FROM lessons")
     suspend fun lastUpdatedAt(): Long?

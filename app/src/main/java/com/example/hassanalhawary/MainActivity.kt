@@ -31,7 +31,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.core_ui.splash_screen.SplashScreen
-import com.example.domain.module.Lesson
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
@@ -353,19 +352,25 @@ class MainActivity : ComponentActivity() {
                             navController.popBackStack()
                         },
                         onLessonClick = { lessonId ->
-                            navController.navigate(Routes.LESSON_DETAIL_SCREEN)
+                            navController.navigate("${Routes.LESSON_DETAIL_SCREEN}/$lessonId")
                         }
                     )
 
                 }
 
-                composable(Routes.LESSON_DETAIL_SCREEN) {
+                composable(
+                    route = "${Routes.LESSON_DETAIL_SCREEN}/{lessonId}",
+                    arguments = listOf(navArgument("lessonId") {
+                        type = NavType.StringType
+                    })
+
+                ) {
 
                     LessonDetailScreen(
                         onNavigateBack = {
                             navController.popBackStack()
                         },
-                        onPlayAudioClick = {
+                        /*onPlayAudioClick = {
 
                         }, onOpenPdfClick = {
 
@@ -375,7 +380,7 @@ class MainActivity : ComponentActivity() {
                             audioUrl = "",
                             pdfUrl = "",
                             duration = "1.32"
-                        )
+                        )*/
                     )
 
                 }

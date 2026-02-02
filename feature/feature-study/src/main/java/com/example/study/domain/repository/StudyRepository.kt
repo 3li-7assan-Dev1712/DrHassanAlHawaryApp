@@ -29,5 +29,8 @@ interface StudyRepository {
     fun getLessonsForPlaylist(playlistId: String): Flow<List<Lesson>>
 
 
+    fun getLessonById(lessonId: String): Flow<Lesson?>
+
+
     suspend fun syncLessons()
 }
