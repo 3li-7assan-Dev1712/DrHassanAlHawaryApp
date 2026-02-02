@@ -67,8 +67,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.example.core.player.PlaybackService
 import com.example.core.ui.R
-import com.example.feature.audio.player.PlaybackService
 import com.example.feature.audio.presentation.components.formatDuration
 import com.google.common.util.concurrent.ListenableFuture
 

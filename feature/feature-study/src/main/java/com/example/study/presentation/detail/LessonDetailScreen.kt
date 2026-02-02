@@ -1,6 +1,7 @@
 package com.example.study.presentation.detail
 
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -35,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -48,10 +50,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.example.core.player.PlaybackService
 import com.example.core.ui.R
 import com.example.domain.module.Lesson
 import java.util.concurrent.TimeUnit
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun LessonDetailScreen(
     modifier: Modifier = Modifier,
@@ -60,6 +67,16 @@ fun LessonDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    DisposableEffect(Unit) {
+        val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
+        viewModel.mediaControllerFuture = controllerFuture
+
+        onDispose {
+            MediaController.releaseFuture(controllerFuture)
+        }
+    }
 
     fun openPdf(url: String) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -149,6 +166,7 @@ fun LessonDetailContent(
 
                 PlayerControls(
                     isPlaying = uiState.isPlaying,
+                    isBuffering = uiState.isBuffering,
                     currentPosition = uiState.currentPosition,
                     totalDuration = uiState.totalDuration,
                     onPlayPauseClick = onPlayPauseClick,
@@ -164,6 +182,7 @@ fun LessonDetailContent(
 @Composable
 private fun PlayerControls(
     isPlaying: Boolean,
+    isBuffering: Boolean,
     currentPosition: Long,
     totalDuration: Long,
     onPlayPauseClick: () -> Unit,
@@ -200,13 +219,17 @@ private fun PlayerControls(
                 Icon(Icons.Default.FastRewind, "Rewind 5s", modifier = Modifier.size(36.dp))
             }
 
-            Card(shape = CircleShape, elevation = CardDefaults.cardElevation(4.dp)) {
-                IconButton(onClick = onPlayPauseClick, modifier = Modifier.size(64.dp)) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
-                        modifier = Modifier.size(48.dp)
-                    )
+            if (isBuffering) {
+                CircularProgressIndicator(modifier = Modifier.size(64.dp))
+            } else {
+                Card(shape = CircleShape, elevation = CardDefaults.cardElevation(4.dp)) {
+                    IconButton(onClick = onPlayPauseClick, modifier = Modifier.size(64.dp)) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isPlaying) "Pause" else "Play",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 }
             }
 

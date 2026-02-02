@@ -128,6 +128,7 @@ dependencies {
     implementation(project(":feature:feature-about-dr-hassan"))
     implementation(project(":feature:feature-audio"))
     implementation(project(":core:core-domain"))
+    implementation(project(":core:core-player"))
     implementation(project(":data"))
 
     // test
