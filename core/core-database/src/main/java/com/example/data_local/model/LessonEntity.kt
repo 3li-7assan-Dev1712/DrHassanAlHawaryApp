@@ -19,6 +19,7 @@ import androidx.room.PrimaryKey
 data class LessonEntity(
     @PrimaryKey val id: String,
     val playlistId: String,
+    val order: Int,
     val title: String,
     val audioUrl: String,
     val audioFilePath: String?,

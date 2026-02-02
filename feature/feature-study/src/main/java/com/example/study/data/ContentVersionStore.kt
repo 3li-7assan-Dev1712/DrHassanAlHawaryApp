@@ -18,6 +18,8 @@ val Context.contentDataStore: DataStore<Preferences> by preferencesDataStore(nam
 private const val LEVELS_VERSION_KEY = "levels_version"
 private const val LAST_PLAYLIST_SYNC = "last_playlist_sync"
 
+private const val LAST_LESSON_SYNC = "last_lesson_sync"
+
 @Singleton
 class ContentVersionStore @Inject constructor(
     @ApplicationContext private val context: Context
@@ -42,6 +44,20 @@ class ContentVersionStore @Inject constructor(
     suspend fun setLastPlaylistSync(timestamp: Long) {
         dataStore.edit {
             it[longPreferencesKey(LAST_PLAYLIST_SYNC)] = timestamp
+        }
+    }
+
+
+    suspend fun getLastLessonSync(): Long {
+        return dataStore.data.map {
+            it[longPreferencesKey(LAST_LESSON_SYNC)] ?: 0
+        }.firstOrNull() ?: 0
+
+    }
+
+    suspend fun setLastLessonSync(timestamp: Long) {
+        dataStore.edit {
+            it[longPreferencesKey(LAST_LESSON_SYNC)] = timestamp
         }
     }
 

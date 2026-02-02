@@ -53,6 +53,10 @@ object LocalDataModule {
 
     @Provides
     @Singleton
+    fun provideLessonDao(appDatabase: AppDatabase) = appDatabase.lessonDao()
+
+    @Provides
+    @Singleton
     fun provideLevelDao(appDatabase: AppDatabase) = appDatabase.levelDao()
 
 

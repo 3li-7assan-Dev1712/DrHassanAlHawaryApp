@@ -1,5 +1,6 @@
 package com.example.study.domain.repository
 
+import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.study.domain.model.Student
@@ -25,4 +26,8 @@ interface StudyRepository {
     fun getLevels(): Flow<List<Level>>
 
 
+    fun getLessonsForPlaylist(playlistId: String): Flow<List<Lesson>>
+
+
+    suspend fun syncLessons()
 }

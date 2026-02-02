@@ -2,9 +2,11 @@ package com.example.study.data
 
 import android.util.Log
 import com.example.data_firebase.StudentFirestoreSource
+import com.example.data_local.LessonDao
 import com.example.data_local.LevelsDao
 import com.example.data_local.PlaylistDao
 import com.example.data_local.StudentDao
+import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.study.data.mappers.toDomain
@@ -21,6 +23,7 @@ class StudyRepositoryImpl @Inject constructor(
     private val studentDao: StudentDao,
     private val versionStore: ContentVersionStore,
     private val playlistDao: PlaylistDao,
+    private val lessonDao: LessonDao,
     private val levelsDao: LevelsDao
 ) : StudyRepository {
 
@@ -105,4 +108,26 @@ class StudyRepositoryImpl @Inject constructor(
                 levelEntity.toDomain()
             } ?: emptyList()
         }
+
+    override fun getLessonsForPlaylist(playlistId: String): Flow<List<Lesson>> =
+        lessonDao.getLessonsForPlaylist(playlistId).map { lessonsEntities ->
+            lessonsEntities?.map { lessonEntity ->
+                lessonEntity.toDomain()
+            } ?: emptyList()
+        }
+
+    override suspend fun syncLessons() {
+        val lastLessonSync = versionStore.getLastLessonSync()
+        val lessons = studentFirestoreSource.getUpdatedLessons(lastLessonSync)
+        if (lessons.isNotEmpty()) {
+            val entities = lessons.map {
+                it.toEntity()
+            }
+            lessonDao.upsertAll(entities)
+            versionStore.setLastLessonSync(
+                entities.maxOf { it.updatedAt }
+            )
+
+        }
+    }
 }

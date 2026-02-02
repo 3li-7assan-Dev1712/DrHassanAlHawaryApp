@@ -2,6 +2,7 @@ package com.example.study.presentation.lessons
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,29 +21,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.domain.module.Lesson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LessonsListScreen(
+    modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
     onLessonClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    lessonViewModel: LessonsViewModel = hiltViewModel()
 ) {
-    // Fake data for demonstration
-    val lessons = remember {
-        listOf(
-            Lesson(
-                "1", "Introduction to Islamic Beliefs", "audio_url_1", "pdf_url_1",
-                duration = "1:23",
-            ),
 
-        )
-    }
+    val uiState by lessonViewModel.uiState.collectAsState()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -59,18 +57,43 @@ fun LessonsListScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(lessons) { lesson ->
-                LessonListItem(
-                    lesson = lesson,
-                    onClick = { onLessonClick(lesson.id) }
-                )
+        when (val state = uiState) {
+            is LessonsUiState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is LessonsUiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+            }
+
+            is LessonsUiState.Success -> {
+                val lessons = state.lessons
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(lessons) { lesson ->
+                        LessonListItem(
+                            lesson = lesson,
+                            onClick = { onLessonClick(lesson.id) }
+                        )
+                    }
+                }
+
             }
         }
     }

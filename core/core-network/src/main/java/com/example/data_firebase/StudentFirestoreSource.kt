@@ -1,10 +1,12 @@
 package com.example.data_firebase
 
 import android.util.Log
+import com.example.data_firebase.model.LessonDto
 import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.StudentDto
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -59,7 +61,8 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun getPlaylists(lastPlaylistSync: Long): List<PlaylistDto> {
         return try {
             Log.d(TAG, "getPlaylists: last time: $lastPlaylistSync ${Date(lastPlaylistSync)}")
-            val playlistsCollection = firestore.collection("playlists").whereGreaterThan("updatedAt", Date(lastPlaylistSync))
+            val playlistsCollection = firestore.collection("playlists")
+                .whereGreaterThan("updatedAt", Date(lastPlaylistSync))
 
             val snapshot = playlistsCollection.get().await()
             snapshot.mapNotNull { document ->
@@ -67,7 +70,7 @@ class StudentFirestoreSource @Inject constructor(
                 val dto = PlaylistDto(
                     id = document.getString("id") ?: "",
                     title = document.getString("title") ?: "",
-                    levelId = document.getString("levelId") ?:"",
+                    levelId = document.getString("levelId") ?: "",
                     order = document.getLong("order")?.toInt() ?: 0,
                     thumbnailUrl = document.getString("thumbnailUrl") ?: "",
                     updatedAt = document.getDate("updatedAt") ?: Date()
@@ -76,6 +79,22 @@ class StudentFirestoreSource @Inject constructor(
                 dto
             }
         } catch (e: Exception) {
+            emptyList() // Return an empty list on error
+        }
+    }
+
+    suspend fun getUpdatedLessons(lastLessonSync: Long): List<LessonDto> {
+        return try {
+            Log.d(TAG, "getPlaylists: last time: $lastLessonSync ${Date(lastLessonSync)}")
+            val lessonsCollection = firestore.collection("lessons")
+                .whereGreaterThan("updatedAt", Date(lastLessonSync))
+
+            val snapshot = lessonsCollection.get().await()
+            snapshot.mapNotNull { document ->
+                document.toObject<LessonDto>()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             emptyList() // Return an empty list on error
         }
     }
@@ -101,7 +120,8 @@ class StudentFirestoreSource @Inject constructor(
     }
 
     suspend fun getLevelsVersion(): Long {
-        val versionCollection = firestore.collection("metadata").document("content_versions").get().await()
+        val versionCollection =
+            firestore.collection("metadata").document("content_versions").get().await()
         return versionCollection.getLong("levelsVersion") ?: 0
     }
 

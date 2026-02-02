@@ -336,11 +336,17 @@ class MainActivity : ComponentActivity() {
                             navController.popBackStack()
                         },
                         onPlaylistClick = { playlistId ->
-                            navController.navigate(Routes.LESSONS_SCREEN)
+                            navController.navigate("${Routes.LESSONS_SCREEN}/$playlistId")
                         }
                     )
                 }
-                composable(Routes.LESSONS_SCREEN) {
+                composable(
+                    route = "${Routes.LESSONS_SCREEN}/{playlistId}",
+                    arguments = listOf(navArgument("playlistId") {
+                        type = NavType.StringType
+                    })
+
+                ) {
 
                     LessonsListScreen(
                         onNavigateBack = {
