@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,7 +54,6 @@ fun PlaylistScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onPlaylistClick = onPlaylistClick,
-        onRefresh = viewModel::onRefresh
     )
 }
 
@@ -66,7 +64,6 @@ fun LessonsPlaylistContent(
     uiState: PlaylistUiState,
     onNavigateBack: () -> Unit,
     onPlaylistClick: (String) -> Unit,
-    onRefresh: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -77,14 +74,6 @@ fun LessonsPlaylistContent(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onRefresh) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Refresh"
                         )
                     }
                 }
@@ -182,15 +171,14 @@ fun LessonPlaylistItem(
 private fun LessonsPlaylistScreenPreview() {
     val playlists = listOf(
         Playlist("p1", "أساسيات العقيدة الإسلامية", "12"),
-        Playlist("p2", "شرح كتاب التوحيد",  ""),
-        Playlist("p3", "مقدمات في علوم الحديث",  ""),
+        Playlist("p2", "شرح كتاب التوحيد", ""),
+        Playlist("p3", "مقدمات في علوم الحديث", ""),
     )
     MaterialTheme {
         LessonsPlaylistContent(
             uiState = PlaylistUiState.Success(playlists),
             onNavigateBack = {},
             onPlaylistClick = {},
-            onRefresh = {}
         )
     }
 }

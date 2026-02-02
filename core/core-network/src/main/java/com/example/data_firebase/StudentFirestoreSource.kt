@@ -58,7 +58,9 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun getPlaylists(lastPlaylistSync: Long): List<PlaylistDto> {
         return try {
-            val playlistsCollection = firestore.collection("playlists")/*.whereGreaterThan("updatedAt", lastPlaylistSync)*/
+            Log.d(TAG, "getPlaylists: last time: $lastPlaylistSync ${Date(lastPlaylistSync)}")
+            val playlistsCollection = firestore.collection("playlists").whereGreaterThan("updatedAt", Date(lastPlaylistSync))
+
             val snapshot = playlistsCollection.get().await()
             snapshot.mapNotNull { document ->
 

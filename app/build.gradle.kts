@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.lifecycle.process)
     ksp(libs.hilt.compiler)
 
     //room

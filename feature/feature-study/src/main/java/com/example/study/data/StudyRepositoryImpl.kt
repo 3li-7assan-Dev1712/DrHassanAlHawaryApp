@@ -92,7 +92,7 @@ class StudyRepositoryImpl @Inject constructor(
             return
 
         val levels = studentFirestoreSource.getRemoteLevels()
-        Log.d(TAG, "syncLevels: cout: ${levels.count()}")
+        Log.d(TAG, "syncLevels: count: ${levels.count()}")
         levelsDao.storeLevels(levels.map { it.toEntity() })
         versionStore.updateLevelsVersion(remoteLevelVersion)
 
