@@ -48,17 +48,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
 import com.example.domain.module.Lesson
+import java.io.File
 import java.util.concurrent.TimeUnit
 
-@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun LessonDetailScreen(
     modifier: Modifier = Modifier,
@@ -79,14 +79,27 @@ fun LessonDetailScreen(
     }
 
     fun openPdf(url: String) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(url.toUri(), "application/pdf")
-            flags = Intent.FLAG_ACTIVITY_NO_HISTORY
+        val intent = if (url.startsWith("http")) {
+            // It's a remote URL, open in browser
+            Intent(Intent.ACTION_VIEW, url.toUri()).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        } else {
+            // It's a local file path, use FileProvider
+            val file = File(url)
+            val authority = "${context.packageName}.provider"
+            val contentUri = FileProvider.getUriForFile(context, authority, file)
+
+            Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(contentUri, "application/pdf")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
         }
+
         try {
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "No PDF viewer found.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "No application can handle this request.", Toast.LENGTH_SHORT).show()
         }
     }
 

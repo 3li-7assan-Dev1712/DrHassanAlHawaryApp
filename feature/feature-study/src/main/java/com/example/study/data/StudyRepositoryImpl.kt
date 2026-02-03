@@ -14,6 +14,7 @@ import com.example.study.data.mappers.toEntity
 import com.example.study.domain.model.Student
 import com.example.study.domain.repository.StudyRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -25,6 +26,7 @@ class StudyRepositoryImpl @Inject constructor(
     private val playlistDao: PlaylistDao,
     private val lessonDao: LessonDao,
     private val levelsDao: LevelsDao,
+    private val fileDownloader: FileDownloader
 ) : StudyRepository {
 
 
@@ -137,7 +139,27 @@ class StudyRepositoryImpl @Inject constructor(
         }
 
 
+    override suspend fun ensureLessonFilesDownloaded(id: String) {
+        val entity = lessonDao.getLessonById(id).first() ?: return
 
+
+        val audioFilePath = entity.audioFilePath
+            ?: entity.audioRemoteUrl.let {
+                fileDownloader.downloadAudio(it, entity.id)
+            }
+
+        val pdfFilePath = entity.pdfFilePath
+            ?: entity.pdfRemoteUrl.let {
+                fileDownloader.downloadPdf(it, entity.id)
+            }
+
+
+        lessonDao.updateLessonFiles(
+            id,
+            audioFilePath,
+            pdfFilePath
+        )
+    }
 
 
 }

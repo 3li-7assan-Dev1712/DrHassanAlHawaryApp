@@ -33,4 +33,15 @@ interface StudyRepository {
 
 
     suspend fun syncLessons()
+
+    suspend fun ensureLessonFilesDownloaded(id: String)
+
+
+
+
+
+
+
+
+
 }

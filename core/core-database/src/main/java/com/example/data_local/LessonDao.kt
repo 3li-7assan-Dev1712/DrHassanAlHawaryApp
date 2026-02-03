@@ -31,4 +31,7 @@ interface LessonDao {
     suspend fun lastUpdatedAt(): Long?
 
 
+
+    @Query("UPDATE lessons SET audioFilePath = :audio, pdfFilePath = :pdf WHERE id = :id")
+    suspend fun updateLessonFiles(id: String, audio: String?, pdf: String?)
 }

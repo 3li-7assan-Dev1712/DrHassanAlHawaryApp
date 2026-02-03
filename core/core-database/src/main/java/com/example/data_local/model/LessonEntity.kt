@@ -21,9 +21,10 @@ data class LessonEntity(
     val playlistId: String,
     val order: Int,
     val title: String,
-    val audioUrl: String,
+    val audioRemoteUrl: String,
     val audioFilePath: String?,
     val duration: Long,
-    val pdfUrl: String,
+    val pdfRemoteUrl: String,
+    val pdfFilePath: String?,
     val updatedAt: Long
 )

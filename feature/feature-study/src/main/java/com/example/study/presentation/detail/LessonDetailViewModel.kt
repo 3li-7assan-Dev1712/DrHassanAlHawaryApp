@@ -10,12 +10,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import com.example.domain.module.Lesson
+import com.example.study.domain.use_case.EnsureLessonFilesDownloadedUseCase
 import com.example.study.domain.use_case.GetLessonByIdUseCase
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
@@ -35,11 +37,14 @@ data class PlayerUiState(
 @HiltViewModel
 class LessonDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val getLessonByIdUseCase: GetLessonByIdUseCase
+    private val getLessonByIdUseCase: GetLessonByIdUseCase,
+    private val ensureLessonFilesDownloadedUseCase: EnsureLessonFilesDownloadedUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PlayerUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val lessonId: String = checkNotNull(savedStateHandle["lessonId"])
 
     var mediaControllerFuture: ListenableFuture<MediaController>? = null
         set(value) {
@@ -48,46 +53,40 @@ class LessonDetailViewModel @Inject constructor(
         }
 
     init {
-        val lessonId = savedStateHandle.get<String>("lessonId")
-        if (lessonId != null) {
-            viewModelScope.launch {
-                getLessonByIdUseCase(lessonId).collect { lesson ->
-
-                    _uiState.value = _uiState.value.copy(lesson = lesson, isLoading = false)
+        viewModelScope.launch {
+            ensureLessonFilesDownloadedUseCase(lessonId)
+            getLessonByIdUseCase(lessonId).collectLatest { lesson ->
+                _uiState.update { it.copy(lesson = lesson, isLoading = false) }
+                // If the controller is ready, update its media item
+                mediaControllerFuture?.await()?.let { controller ->
+                    if (lesson != null && controller.currentMediaItem?.mediaId != lesson.id) {
+                        setupPlayerWithLesson(controller, lesson)
+                    }
                 }
             }
-        } else {
-            _uiState.value = _uiState.value.copy(isLoading = false)
         }
-
     }
 
-    // This is a placeholder. Fetch the real lesson from your repository.
-    private fun getLessonById(id: String): Lesson {
-        return Lesson(
-            id = id,
-            title = "Understanding the Fundamentals of Iman",
-            audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-            pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-            duration = "04:32"
-        )
+    private fun setupPlayerWithLesson(controller: MediaController, lesson: Lesson) {
+        val metadata = MediaMetadata.Builder().setTitle(lesson.title).build()
+        val mediaItem = MediaItem.Builder()
+            .setUri(lesson.audioUrl) // This will now be a local or remote path
+            .setMediaId(lesson.id)
+            .setMediaMetadata(metadata)
+            .build()
+        controller.setMediaItem(mediaItem)
+        controller.prepare()
     }
 
     private fun listenToController(controllerFuture: ListenableFuture<MediaController>) {
         viewModelScope.launch {
             val controller = controllerFuture.await()
 
-            // Set the media item if it's not already the correct one
-            val lesson = _uiState.value.lesson
-            if (lesson != null && controller.currentMediaItem?.mediaId != lesson.id) {
-                val metadata = MediaMetadata.Builder().setTitle(lesson.title).build()
-                val mediaItem = MediaItem.Builder()
-                    .setUri(lesson.audioUrl)
-                    .setMediaId(lesson.id)
-                    .setMediaMetadata(metadata)
-                    .build()
-                controller.setMediaItem(mediaItem)
-                controller.prepare()
+            // Initial setup if lesson is already loaded
+            _uiState.value.lesson?.let { lesson ->
+                if (controller.currentMediaItem?.mediaId != lesson.id) {
+                    setupPlayerWithLesson(controller, lesson)
+                }
             }
 
             controller.addListener(object : Player.Listener {
