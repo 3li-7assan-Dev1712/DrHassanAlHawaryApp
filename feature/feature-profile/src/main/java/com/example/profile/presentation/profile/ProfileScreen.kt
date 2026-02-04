@@ -1,7 +1,9 @@
 package com.example.profile.presentation.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,18 +16,29 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -42,41 +55,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.example.profile.presentation.components.ProfileRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    onNavigate: (ProfileRoute) -> Unit,
     onLogout: () -> Unit,
-    onNavigateToAboutApp: () -> Unit,
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
-
-
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(state.signOutResult) {
-        if (state.signOutResult != null) {
-            // If the sign-out was successful, trigger the navigation
-            if (state.signOutResult!!.success) {
-                onLogout()
-            }
-            // After handling, reset the event in the ViewModel
-            viewModel.onSignOutResultConsumed()
-        }
+        val result = state.signOutResult ?: return@LaunchedEffect
+        if (result.success) onLogout()
+        viewModel.onSignOutResultConsumed()
     }
 
     val userName = state.userData?.username ?: "زائر التطبيق"
-    val userEmail =
-        state.userData?.let { "hassan.app@example.com" } ?: "hassan.app@example.com"
-    val profileUrl = state.userData?.userProfilePictureUrl ?: ""
+    val userEmail = state.userData?.let { "hassan.app@example.com" } ?: "hassan.app@example.com"
+    val profileUrl = state.userData?.userProfilePictureUrl.orEmpty()
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text("الحساب الشخصي", fontWeight = FontWeight.Bold)
-                },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+                title = { Text("الحساب الشخصي", fontWeight = FontWeight.Bold) },
+                windowInsets = WindowInsets(0.dp)
             )
         }
     ) { padding ->
@@ -84,83 +88,145 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Profile Avatar Header
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                modifier = Modifier.size(120.dp)
+
+            // Header card (premium feel)
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                // Use SubcomposeAsyncImage to handle loading and error states explicitly
-                SubcomposeAsyncImage(
-                    model = profileUrl,
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = "user profile image",
-                    loading = {
-                        // Show a loading indicator while the image is being fetched
-                        Box(
-                            modifier = Modifier.size(24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(40.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    },
-                    error = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Fallback profile icon",
-                            modifier = Modifier.padding(24.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        modifier = Modifier.size(72.dp)
+                    ) {
+                        SubcomposeAsyncImage(
+                            model = profileUrl,
+                            modifier = Modifier.fillMaxSize(),
+                            contentDescription = "user profile image",
+                            loading = {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(26.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            },
+                            error = {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(16.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         )
                     }
-                )
 
+                    Spacer(Modifier.width(14.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = userName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = userEmail,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        // Optional: connection badge (remove if not needed)
+                        Spacer(Modifier.height(8.dp))
+                        AssistChip(
+                            onClick = { /* no-op */ },
+                            label = { Text("الحساب متصل") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Verified,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(18.dp))
 
+            // Section: App
+            SectionCard(title = "التطبيق") {
+                ProfileRow(
+                    icon = Icons.Default.Info,
+                    title = "عن التطبيق",
+                    subtitle = "الإصدار، المطور، المصادر",
+                    onClick = { onNavigate(ProfileRoute.About) }
+                )
+                ProfileRow(
+                    icon = Icons.Default.Share,
+                    title = "مشاركة التطبيق",
+                    subtitle = "أرسل رابط التطبيق لمن تحب",
+                    onClick = { onNavigate(ProfileRoute.Share) }
+                )
+                ProfileRow(
+                    icon = Icons.Default.Star,
+                    title = "تقييم التطبيق",
+                    subtitle = "ساعدنا بتقييمك على المتجر",
+                    onClick = { onNavigate(ProfileRoute.Rate) }
+                )
+            }
 
-            Text(
-                text = userName,
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Spacer(Modifier.height(12.dp))
 
-            Text(text = userEmail, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            // Section: Legal & Support
+            SectionCard(title = "الدعم والسياسات") {
+                ProfileRow(
+                    icon = Icons.Default.SupportAgent,
+                    title = "الدعم والتواصل",
+                    subtitle = "أسئلة، اقتراحات، مشاكل",
+                    onClick = { onNavigate(ProfileRoute.Support) }
+                )
+                ProfileRow(
+                    icon = Icons.Default.Policy,
+                    title = "سياسة الخصوصية",
+                    subtitle = "كيف نتعامل مع بياناتك",
+                    onClick = { onNavigate(ProfileRoute.Privacy) }
+                )
+                ProfileRow(
+                    icon = Icons.Default.Gavel,
+                    title = "الشروط والأحكام",
+                    subtitle = "بنود الاستخدام",
+                    onClick = { onNavigate(ProfileRoute.Terms) }
+                )
+                ProfileRow(
+                    icon = Icons.Default.Code,
+                    title = "التراخيص والمصادر المفتوحة",
+                    subtitle = "Open source licenses",
+                    onClick = { onNavigate(ProfileRoute.Licenses) }
+                )
+            }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(Modifier.weight(1f))
 
-            // 2. Settings List
-            ProfileMenuItem(
-                icon = Icons.Default.Info,
-                label = "عن التطبيق",
-                onClick = onNavigateToAboutApp
-            )
-
-            ProfileMenuItem(
-                icon = Icons.Default.Share,
-                label = "مشاركة التطبيق مع الآخرين",
-                onClick = { /* Implement system share intent */ }
-            )
-
-            ProfileMenuItem(
-                icon = Icons.Default.Star,
-                label = "تقييم التطبيق",
-                onClick = { /* Open Play Store link */ }
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // 3. Logout Section
+            // Keep logout if you want; you said ignore it, but leaving it here optional
             Button(
                 onClick = { viewModel.signOut() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.error
@@ -168,47 +234,74 @@ fun ProfileScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.ExitToApp, contentDescription = null)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(Modifier.width(10.dp))
                 Text("تسجيل الخروج", fontWeight = FontWeight.Bold)
             }
-
-            Text(
-                text = "الإصدار 1.0.0",
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 16.dp),
-                color = Color.LightGray
-            )
         }
     }
 }
 
 @Composable
-fun ProfileMenuItem(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit
+private fun SectionCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surface
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(label, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowLeft, // RTL arrow
-                contentDescription = null,
-                tint = Color.LightGray
+        Column(Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )
+            content()
         }
     }
+}
+
+@Composable
+private fun ProfileRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    ListItem(
+        headlineContent = { Text(title, fontWeight = FontWeight.SemiBold) },
+        supportingContent = { Text(subtitle) },
+        leadingContent = {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                modifier = Modifier.size(40.dp)
+            ) {
+                Box(modifier = Modifier.clickable {
+                    onClick()
+                }, contentAlignment = Alignment.Center) {
+                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        },
+        trailingContent = {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowLeft, // RTL chevron
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth(),
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+    Divider(
+        Modifier.padding(horizontal = 16.dp),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+    )
 }

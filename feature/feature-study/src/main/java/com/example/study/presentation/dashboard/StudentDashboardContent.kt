@@ -128,6 +128,8 @@ fun StudentDashboardContent(
                                     },
                                     currentLevelIndex = 3,
                                     onNodeClick = { index ->
+                                        val levelId = "level_$index"
+                                        onLevelClick(levelId)
                                         Log.d(
                                             "Dashboard",
                                             "StudentDashboardContent: click node $index"

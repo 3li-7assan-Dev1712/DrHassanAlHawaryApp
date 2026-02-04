@@ -46,7 +46,16 @@ import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
+import com.example.profile.domain.model.privacyBody
+import com.example.profile.domain.model.termsBody
+import com.example.profile.presentation.about_app.AboutAppScreen
+import com.example.profile.presentation.components.ProfileRoute
+import com.example.profile.presentation.legal.LegalTextScreen
+import com.example.profile.presentation.navigation.ProfileDestinations
 import com.example.profile.presentation.profile.ProfileScreen
+import com.example.profile.presentation.rate_app.RateAppScreen
+import com.example.profile.presentation.share_app.ShareAppScreen
+import com.example.profile.presentation.support.SupportScreen
 import com.example.search.presentation.SearchScreen
 import com.example.study.presentation.StudyScreen
 import com.example.study.presentation.detail.LessonDetailScreen
@@ -447,12 +456,72 @@ class MainActivity : ComponentActivity() {
                 composable(Routes.KHOTAB_SCREEN) {
 
                 }
+
+                // profile screens
                 composable(Routes.PROFILE_SCREEN) {
                     ProfileScreen(
-                        onLogout = onLogout,
-                        onNavigateToAboutApp = {
-//                        navController.navigate("cv_screen")
-                        }
+                        onNavigate = { route ->
+                            when (route) {
+                                ProfileRoute.About -> navController.navigate(ProfileDestinations.ABOUT)
+                                ProfileRoute.Share -> navController.navigate(ProfileDestinations.SHARE)
+                                ProfileRoute.Rate -> navController.navigate(ProfileDestinations.RATE)
+                                ProfileRoute.Privacy -> navController.navigate(ProfileDestinations.PRIVACY)
+                                ProfileRoute.Terms -> navController.navigate(ProfileDestinations.TERMS)
+                                ProfileRoute.Licenses -> navController.navigate(ProfileDestinations.LICENSES)
+                                ProfileRoute.Support -> navController.navigate(ProfileDestinations.SUPPORT)
+                            }
+                        },
+                        onLogout = { /* your auth flow */ }
+                    )
+                }
+
+                composable(ProfileDestinations.ABOUT) {
+                    AboutAppScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(ProfileDestinations.SHARE) {
+                    ShareAppScreen(
+                        onBack = { navController.popBackStack() },
+                        onShareClick = { /* launch share intent */ }
+                    )
+                }
+
+                composable(ProfileDestinations.RATE) {
+                    RateAppScreen(
+                        onBack = { navController.popBackStack() },
+                        onRateClick = { /* open Play Store */ }
+                    )
+                }
+
+                composable(ProfileDestinations.PRIVACY) {
+                    LegalTextScreen(
+                        title = "سياسة الخصوصية",
+                        body = privacyBody,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(ProfileDestinations.TERMS) {
+                    LegalTextScreen(
+                        title = "الشروط والأحكام",
+                        body = termsBody,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(ProfileDestinations.LICENSES) {
+                    LegalTextScreen(
+                        title = "التراخيص والمصادر المفتوحة",
+                        body = "ضع نص التراخيص هنا أو افتح شاشة licenses الرسمية.",
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(ProfileDestinations.SUPPORT) {
+                    SupportScreen(
+                        onBack = { navController.popBackStack() },
+                        onEmailClick = { /* open email intent */ },
+                        onTelegramClick = { /* open telegram channel */ }
                     )
                 }
 

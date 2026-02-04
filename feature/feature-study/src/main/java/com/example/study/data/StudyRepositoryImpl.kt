@@ -55,8 +55,6 @@ class StudyRepositoryImpl @Inject constructor(
         val studentData = studentFirestoreSource.getStudentByTelegramId(telegramId)?.toEntity()
         if (studentData != null) {
             studentDao.storeStudent(studentData)
-        } else {
-            throw NullPointerException("Student data is null")
         }
 
 
