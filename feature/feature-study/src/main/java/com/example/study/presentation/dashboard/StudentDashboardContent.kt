@@ -1,22 +1,30 @@
 package com.example.study.presentation.dashboard
 
 import android.util.Log
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,11 +38,11 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -45,12 +53,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -69,19 +82,14 @@ fun StudentDashboardContent(
     onDisconnect: () -> Unit,
     onLevelClick: (String) -> Unit,
 ) {
-
     var selectedSection by remember { mutableStateOf<DashboardSection>(DashboardSection.Study) }
-
     val uiState by dashboardViewModel.uiState.collectAsState()
-
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(28.dp) // Space between sections
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-
-
         item {
             StudentHeader(
                 name = studentData.name,
@@ -91,6 +99,7 @@ fun StudentDashboardContent(
                 onDisconnect = onDisconnect
             )
         }
+
         item {
             MotivationMessagesSection()
         }
@@ -98,14 +107,11 @@ fun StudentDashboardContent(
         item {
             DashboardChips(
                 selectedSection = selectedSection,
-                onSectionSelected = { newSection ->
-                    selectedSection = newSection
-                }
+                onSectionSelected = { newSection -> selectedSection = newSection }
             )
         }
 
         item {
-            // A Box to elegantly switch content based on the selected chip
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -115,33 +121,28 @@ fun StudentDashboardContent(
                         when (uiState) {
                             is DashboardUiState.Success -> {
                                 val levels = (uiState as DashboardUiState.Success).levels
-                               /* LevelsContent(
-                                    levels = levels,
-                                    onLevelClick = onLevelClick
-                                )*/
+                                // keep your original logic; currently using your journey placeholder
                                 LevelsJourneyMap(
                                     levels = List(6) {
                                         LevelNode(index = it + 1, isUnlocked = it < 2)
                                     },
                                     currentLevelIndex = 3,
                                     onNodeClick = { index ->
-                                        // Handle node click
-                                        Log.d("Dashboard", "StudentDashboardContent: click node $index")
+                                        Log.d(
+                                            "Dashboard",
+                                            "StudentDashboardContent: click node $index"
+                                        )
                                     }
                                 )
                             }
 
-                            is DashboardUiState.Loading -> {
-                                LoadingScreen()
-                            }
+                            is DashboardUiState.Loading -> LoadingScreen()
 
                             is DashboardUiState.Error -> {
                                 val msg = (uiState as DashboardUiState.Error).message
                                 Text(text = msg, style = MaterialTheme.typography.bodyMedium)
                             }
-
                         }
-
                     }
 
                     DashboardSection.TopStudents -> TopStudentsContent()
@@ -153,20 +154,7 @@ fun StudentDashboardContent(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StudyTopAppBar(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.top_bar_banner),
-        contentDescription = stringResource(R.string.app_name),
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        contentScale = ContentScale.Crop
-    )
-}
-
-@OptIn(ExperimentalFoundationApi::class) // Required for Pager
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MotivationMessagesSection(modifier: Modifier = Modifier) {
     val messages = remember {
@@ -181,35 +169,33 @@ fun MotivationMessagesSection(modifier: Modifier = Modifier) {
         )
     }
 
-    // 1. Remember the state for the pager (current page, etc.)
     val pagerState = rememberPagerState(pageCount = { messages.size })
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally // Center the dots indicator
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HorizontalPager(
             state = pagerState,
-            pageSpacing = 12.dp,
+            pageSpacing = 12.dp
         ) { pageIndex ->
             MotivationMessageCard(message = messages[pageIndex])
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // 3. Dots Indicator
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            repeat(messages.size) { iteration ->
-                val color =
-                    if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+        // Dots indicator (calmer)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            repeat(messages.size) { i ->
+                val active = pagerState.currentPage == i
                 Box(
                     modifier = Modifier
-                        .padding(2.dp)
                         .clip(CircleShape)
-                        .background(color)
-                        .size(8.dp)
+                        .background(
+                            if (active) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+                        )
+                        .size(if (active) 9.dp else 7.dp)
                 )
             }
         }
@@ -218,29 +204,47 @@ fun MotivationMessagesSection(modifier: Modifier = Modifier) {
 
 @Composable
 fun MotivationMessageCard(message: String, modifier: Modifier = Modifier) {
-    Card(
+    val shape = RoundedCornerShape(22.dp)
+
+    // Lighter, calmer "hint" style (not heavy card)
+    Surface(
         modifier = modifier
-            .fillMaxWidth() // Each card will fill the available space within the pager's content padding
-            .height(100.dp),
+            .fillMaxWidth()
+            .heightIn(min = 92.dp),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.78f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)),
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
-                .padding(0.dp)
-                .fillMaxSize(),
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Icon(
-                imageVector = Icons.Rounded.Lightbulb,
-                contentDescription = null, // Decorative icon
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Lightbulb,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
 
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f)
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -254,123 +258,336 @@ fun StudentHeader(
     isMember: Boolean,
     onDisconnect: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    val shape = RoundedCornerShape(28.dp)
 
-        Row(
+    val cardColor = MaterialTheme.colorScheme.surface
+    val outline = MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(elevation = 10.dp, shape = shape, clip = false),
+        shape = shape,
+        color = cardColor,
+        border = BorderStroke(1.dp, outline),
+        tonalElevation = 2.dp
+    ) {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+                            Color.Transparent
+                        )
+                    )
+                )
+                .padding(16.dp)
         ) {
-
-            AsyncImage(
-                model = photoUrl,
-                contentDescription = "Student Avatar",
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape),
-                placeholder = painterResource(R.drawable.dr_hassan_photo),
-                error = painterResource(R.drawable.dr_hassan_photo)
-            )
-            Column {
-                Text(name, style = MaterialTheme.typography.titleLarge)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "@$username")
-
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-
-                OutlinedButton(onClick = onDisconnect) {
-                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Disconnect")
+                // Avatar with clean ring
+                Box(
+                    modifier = Modifier
+                        .size(74.dp)
+                        .shadow(6.dp, CircleShape, clip = false)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                        .padding(2.dp) // ring thickness
+                        .background(Color.Transparent),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f))
+                            .padding(2.dp)
+                    ) {
+                        AsyncImage(
+                            model = photoUrl,
+                            contentDescription = "Student Avatar",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            placeholder = painterResource(R.drawable.dr_hassan_photo),
+                            error = painterResource(R.drawable.dr_hassan_photo),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
 
-                val statusText = if (isMember) "من طلاب المعهد" else "ليس من طلاب المعهد"
-                val backgroundColor =
-                    if (isMember) Color(0xFF4CAF50) else MaterialTheme.colorScheme.secondary
-                val textColor = Color.White
-                Text(
-                    text = statusText,
-                    color = textColor,
-                    modifier = Modifier
-                        .background(
-                            backgroundColor,
-                            RoundedCornerShape(50)
+                Spacer(Modifier.width(14.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = name,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "@$username",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(Modifier.height(10.dp))
+
+                    // Membership chip (soft, no harsh blocks)
+                    val statusText = if (isMember) "من طلاب المعهد" else "ليس من طلاب المعهد"
+                    val chipBg =
+                        if (isMember) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f)
+
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(chipBg)
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isMember) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
                         )
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
 
+                FilledTonalIconButton(
+                    onClick = onDisconnect,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                    ),
+                    modifier = Modifier.size(44.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = "Disconnect"
+                    )
+                }
             }
-
         }
-
     }
-
 }
-
 @Composable
 fun DashboardChips(
     selectedSection: DashboardSection,
     onSectionSelected: (DashboardSection) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    val shape = RoundedCornerShape(999.dp)
+
+    val isStudy = selectedSection is DashboardSection.Study
+    val selectedIndex = if (isStudy) 0 else 1
+
+    // Sizing close to the mockup
+    val height = 56.dp
+    val outerPadding = 6.dp
+
+    BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+        contentAlignment = Alignment.Center
     ) {
-        // Study Chip
-        FilterChip(
-            selected = selectedSection is DashboardSection.Study,
-            onClick = { onSectionSelected(DashboardSection.Study) },
-            label = {
-                Text(
-                    text = stringResource(
-                        R.string.study,
+        val totalWidth = maxWidth
+        val segmentWidth = (totalWidth - (outerPadding * 2)) / 2
 
-                        ),
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
+        val indicatorOffset by animateDpAsState(
+            targetValue = outerPadding + (segmentWidth * selectedIndex),
+            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+            label = "segmented_offset"
         )
 
-        // Top Students Chip
-        FilterChip(
-            selected = selectedSection is DashboardSection.TopStudents,
-            onClick = { onSectionSelected(DashboardSection.TopStudents) },
-            label = {
-                Text(
+        // Outer pill container (soft glass)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.60f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.10f), shape)
+                .padding(outerPadding)
+        ) {
+            // Sliding indicator (selected pill)
+            Box(
+                modifier = Modifier
+                    .offset(x = indicatorOffset)
+                    .width(segmentWidth)
+                    .fillMaxHeight()
+                    .clip(shape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f))
+            )
+
+            Row(modifier = Modifier.fillMaxSize()) {
+                SegmentItem(
+                    width = segmentWidth,
+                    text = stringResource(R.string.study),
+                    selected = isStudy,
+                    onClick = { onSectionSelected(DashboardSection.Study) }
+                )
+
+                SegmentItem(
+                    width = segmentWidth,
                     text = stringResource(R.string.competition),
-                    modifier = Modifier.padding(8.dp)
+                    selected = !isStudy,
+                    onClick = { onSectionSelected(DashboardSection.TopStudents) }
                 )
             }
-        )
+        }
+    }
+}
 
-        /* // Summaries Chip
-         FilterChip(
-             selected = selectedSection is DashboardSection.Summaries,
-             onClick = { onSectionSelected(DashboardSection.Summaries) },
-             label = {
-                 Text(
-                     text = stringResource(R.string.summary),
-                     modifier = Modifier.padding(8.dp)
-                 )
-             }
-         )*/
+@Composable
+private fun SegmentItem(
+    width: Dp,
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(999.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = if (selected) MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+        )
     }
 }
 
 
+
+@Composable
+fun PolishedStudyTopBar(
+    modifier: Modifier = Modifier,
+    titleLine1: String = "مَعْهَدُ الشَّيْخِ حَسَنِ الهُوَّارِي الفِقْهِ",
+    titleLine2: String = "فقه وتأصيل",
+) {
+    // Colors close to your screenshot (teal -> deeper teal)
+    val top = Color(0xFF3A6871)
+    val bottom = Color(0xFF2E5E67)
+
+    // Accent mint pill
+    val mint1 = Color(0xFF2BC2A5)
+    val mint2 = Color(0xFF1FAF96)
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(150.dp),
+        color = Color.Transparent
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(top, bottom)
+                    )
+                )
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = titleLine1,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    ),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                // Ornament row: line + diamond + mint pill + diamond + line
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OrnamentLine(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.55f))
+                    OrnamentDiamond(color = Color.White.copy(alpha = 0.65f))
+                    Spacer(Modifier.width(10.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(mint1, mint2)
+                                )
+                            )
+                            .padding(horizontal = 18.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = titleLine2,
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+
+                    Spacer(Modifier.width(10.dp))
+                    OrnamentDiamond(color = Color.White.copy(alpha = 0.65f))
+                    OrnamentLine(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.55f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrnamentLine(modifier: Modifier, color: Color) {
+    Box(
+        modifier = modifier
+            .height(1.dp)
+            .background(color)
+    )
+}
+
+@Composable
+private fun OrnamentDiamond(color: Color) {
+    Box(
+        modifier = Modifier
+            .size(8.dp)
+            .clip(RoundedCornerShape(2.dp))
+            .background(color)
+    )
+}
+
+
+
 /**
  * The main screen to display the list of levels.
- *
- * @param levels The list of levels to display.
- * @param onLevelClick The action to perform when an unlocked level is clicked. It passes the level ID.
- * @param modifier Modifier for this composable.
  */
 @Composable
 fun LevelsContent(
@@ -379,7 +596,6 @@ fun LevelsContent(
     modifier: Modifier = Modifier
 ) {
     if (levels.isEmpty()) {
-        // Show a loading indicator or an empty state message
         Box(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -407,13 +623,6 @@ fun LevelsContent(
     }
 }
 
-
-/**
- * A composable that displays a single level item in the list.
- *
- * @param level The level data to display.
- * @param onClick The action to perform when the item is clicked.
- */
 @Composable
 fun LevelItem(
     level: Level,
@@ -459,7 +668,6 @@ fun LevelItem(
                 )
             }
             if (level.isLocked) {
-
                 Icon(
                     imageVector = Icons.Default.Lock,
                     contentDescription = "Enter Level",
@@ -480,16 +688,11 @@ val sampleLevels = listOf(
 @Preview(showBackground = true)
 @Composable
 fun LevelsContentPreview() {
-    // Sample data for the preview
-
-
     MaterialTheme {
-        // Preview the LevelsScreen which includes navigation logic
         LevelsContent(
-            levels = sampleLevels, modifier = Modifier,
-            onLevelClick = {
-
-            }
+            levels = sampleLevels,
+            modifier = Modifier,
+            onLevelClick = {}
         )
     }
 }
@@ -506,16 +709,11 @@ fun SummariesContent(modifier: Modifier = Modifier) {
             Text("Summaries Section", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text("Here students can browse public summaries and upload their own.")
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(onClick = { /* TODO: Handle upload summary */ }) {
-                Text("Upload My Summary")
-            }
         }
     }
 }
 
-
-@Preview()
+@Preview
 @Composable
 private fun StudentHeaderPreview() {
     StudentHeader(
