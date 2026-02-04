@@ -5,9 +5,11 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
 import com.example.profile.domain.model.SystemActions
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 
-class SystemActionsImpl(
-    private val context: Context
+class SystemActionsImpl @Inject constructor(
+    @ApplicationContext private val context: Context
 ) : SystemActions {
 
     override fun shareText(text: String) {
@@ -16,7 +18,10 @@ class SystemActionsImpl(
             putExtra(Intent.EXTRA_TEXT, text)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-        context.startActivity(Intent.createChooser(intent, null))
+        val chooserIntend = Intent.createChooser(intent, null).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(chooserIntend)
     }
 
     override fun openPlayStore(appPackageName: String) {

@@ -27,14 +27,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import com.example.profile.domain.use_case.RateAppUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-
+@HiltViewModel
+class RateViewModel @Inject constructor(
+    private val rageAppUseCase: RateAppUseCase
+) : ViewModel() {
+    fun rate(packageName: String) = rageAppUseCase(packageName)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RateAppScreen(
     onBack: () -> Unit,
-    onRateClick: () -> Unit,
+    viewModel: RateViewModel = hiltViewModel(),
+    packageName: String
 ) {
     Scaffold(
         topBar = {
@@ -64,7 +75,9 @@ fun RateAppScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Button(
-                        onClick = onRateClick,
+                        onClick = {
+                            viewModel.rate(packageName)
+                        },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         shape = RoundedCornerShape(14.dp)
                     ) {
