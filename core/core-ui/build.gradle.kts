@@ -59,6 +59,11 @@ dependencies {
     //  internal UI LIBRARIES (Only used inside this module)
     implementation(libs.androidx.activity.compose)
 
+    // lottie animation
+
+    api(libs.lottie.compose)
+
+
     // testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

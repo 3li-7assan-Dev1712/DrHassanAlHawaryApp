@@ -55,6 +55,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
+import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Lesson
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -154,7 +155,7 @@ fun LessonDetailContent(
             verticalArrangement = Arrangement.Center
         ) {
             if (uiState.isLoading) {
-                CircularProgressIndicator()
+                LoadingScreen()
             } else if (uiState.lesson != null) {
                 // Player UI
                 Image(

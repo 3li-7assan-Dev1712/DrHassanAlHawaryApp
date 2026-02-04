@@ -1,5 +1,6 @@
 package com.example.study.presentation.dashboard
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +30,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.core.ui.R
+import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Level
 import com.example.study.domain.model.Student
 import com.example.study.presentation.model.DashboardSection
@@ -114,14 +115,24 @@ fun StudentDashboardContent(
                         when (uiState) {
                             is DashboardUiState.Success -> {
                                 val levels = (uiState as DashboardUiState.Success).levels
-                                LevelsContent(
+                               /* LevelsContent(
                                     levels = levels,
                                     onLevelClick = onLevelClick
+                                )*/
+                                LevelsJourneyMap(
+                                    levels = List(6) {
+                                        LevelNode(index = it + 1, isUnlocked = it < 2)
+                                    },
+                                    currentLevelIndex = 3,
+                                    onNodeClick = { index ->
+                                        // Handle node click
+                                        Log.d("Dashboard", "StudentDashboardContent: click node $index")
+                                    }
                                 )
                             }
 
                             is DashboardUiState.Loading -> {
-                                CircularProgressIndicator()
+                                LoadingScreen()
                             }
 
                             is DashboardUiState.Error -> {
@@ -373,7 +384,7 @@ fun LevelsContent(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            LoadingScreen()
         }
     } else {
         Box(
