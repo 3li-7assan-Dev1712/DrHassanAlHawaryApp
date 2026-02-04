@@ -1,86 +1,78 @@
 package com.example.profile.presentation.about_app
 
-
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutAppScreen(
     onBack: () -> Unit,
-    appName: String = "تطبيق د. حسن الحواري",
-    versionName: String = "1.0.0",
+    viewModel: AboutViewModel = hiltViewModel()
 ) {
+    val info by viewModel.appInfo.collectAsState()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("عن التطبيق", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.KeyboardArrowLeft, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
-                },
-                windowInsets = WindowInsets(0.dp)
+                }
             )
         }
     ) { padding ->
         Column(
             Modifier
-                .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             ElevatedCard(shape = RoundedCornerShape(18.dp)) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(appName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    Text("تطبيق تعليمي لمتابعة الدروس، المواد، والتنبيهات.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Divider()
-                    InfoRow("الإصدار", versionName)
-                    InfoRow("المطور", "Hassan App")
-                }
+                ListItem(
+                    headlineContent = { Text(info.appName, fontWeight = FontWeight.SemiBold) },
+                    supportingContent = { Text("الإصدار: ${info.versionName} (${info.versionCode})") },
+                    leadingContent = { Icon(Icons.Default.Info, null) }
+                )
             }
 
-            ElevatedCard(shape = RoundedCornerShape(18.dp)) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("ملاحظات", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        "إذا واجهت مشكلة أو لديك اقتراح، تواصل معنا من صفحة الدعم.",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                "نبذة",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "تطبيق تعليمي يساعدك على متابعة المحتوى بشكل منظم وبواجهة عربية جميلة.",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
-    }
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.SemiBold)
     }
 }

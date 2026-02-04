@@ -13,14 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Share
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
@@ -84,162 +86,176 @@ fun ProfileScreen(
             )
         }
     ) { padding ->
-        Column(
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = 16.dp,
+                bottom = 16.dp
+            )
         ) {
 
-            // Header card (premium feel)
-            ElevatedCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            item {
+                // Header card
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        modifier = Modifier.size(72.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        SubcomposeAsyncImage(
-                            model = profileUrl,
-                            modifier = Modifier.fillMaxSize(),
-                            contentDescription = "user profile image",
-                            loading = {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(26.dp),
-                                        strokeWidth = 2.dp
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            modifier = Modifier.size(72.dp)
+                        ) {
+                            SubcomposeAsyncImage(
+                                model = profileUrl,
+                                modifier = Modifier.fillMaxSize(),
+                                contentDescription = "user profile image",
+                                loading = {
+                                    Box(
+                                        Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(26.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+                                },
+                                error = {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = null,
+                                        modifier = Modifier.padding(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                            },
-                            error = {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    modifier = Modifier.padding(16.dp),
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        )
-                    }
+                            )
+                        }
 
-                    Spacer(Modifier.width(14.dp))
+                        Spacer(Modifier.width(14.dp))
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = userName,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = userEmail,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = userName,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(Modifier.height(2.dp))
+                            Text(
+                                text = userEmail,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
 
-                        // Optional: connection badge (remove if not needed)
-                        Spacer(Modifier.height(8.dp))
-                        AssistChip(
-                            onClick = { /* no-op */ },
-                            label = { Text("الحساب متصل") },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Default.Verified,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        )
+                            Spacer(Modifier.height(8.dp))
+                            AssistChip(
+                                onClick = { /* no-op */ },
+                                label = { Text("الحساب متصل") },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Verified,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
+
+                Spacer(Modifier.height(18.dp))
             }
 
-            Spacer(Modifier.height(18.dp))
+            item {
+                SectionCard(title = "التطبيق") {
+                    ProfileRow(
+                        icon = Icons.Default.Info,
+                        title = "عن التطبيق",
+                        subtitle = "الإصدار، المطور، المصادر",
+                        onClick = { onNavigate(ProfileRoute.About) }
+                    )
+                    ProfileRow(
+                        icon = Icons.Default.Share,
+                        title = "مشاركة التطبيق",
+                        subtitle = "أرسل رابط التطبيق لمن تحب",
+                        onClick = { onNavigate(ProfileRoute.Share) }
+                    )
+                    ProfileRow(
+                        icon = Icons.Default.Star,
+                        title = "تقييم التطبيق",
+                        subtitle = "ساعدنا بتقييمك على المتجر",
+                        onClick = { onNavigate(ProfileRoute.Rate) }
+                    )
+                }
 
-            // Section: App
-            SectionCard(title = "التطبيق") {
-                ProfileRow(
-                    icon = Icons.Default.Info,
-                    title = "عن التطبيق",
-                    subtitle = "الإصدار، المطور، المصادر",
-                    onClick = { onNavigate(ProfileRoute.About) }
-                )
-                ProfileRow(
-                    icon = Icons.Default.Share,
-                    title = "مشاركة التطبيق",
-                    subtitle = "أرسل رابط التطبيق لمن تحب",
-                    onClick = { onNavigate(ProfileRoute.Share) }
-                )
-                ProfileRow(
-                    icon = Icons.Default.Star,
-                    title = "تقييم التطبيق",
-                    subtitle = "ساعدنا بتقييمك على المتجر",
-                    onClick = { onNavigate(ProfileRoute.Rate) }
-                )
+                Spacer(Modifier.height(12.dp))
             }
 
-            Spacer(Modifier.height(12.dp))
+            item {
+                SectionCard(title = "الدعم والسياسات") {
+                    ProfileRow(
+                        icon = Icons.Default.SupportAgent,
+                        title = "الدعم والتواصل",
+                        subtitle = "أسئلة، اقتراحات، مشاكل",
+                        onClick = { onNavigate(ProfileRoute.Support) }
+                    )
+                    ProfileRow(
+                        icon = Icons.Default.Policy,
+                        title = "سياسة الخصوصية",
+                        subtitle = "كيف نتعامل مع بياناتك",
+                        onClick = { onNavigate(ProfileRoute.Privacy) }
+                    )
+                    ProfileRow(
+                        icon = Icons.Default.Gavel,
+                        title = "الشروط والأحكام",
+                        subtitle = "بنود الاستخدام",
+                        onClick = { onNavigate(ProfileRoute.Terms) }
+                    )
+                    ProfileRow(
+                        icon = Icons.Default.Code,
+                        title = "التراخيص والمصادر المفتوحة",
+                        subtitle = "Open source licenses",
+                        onClick = { onNavigate(ProfileRoute.Licenses) }
+                    )
+                }
 
-            // Section: Legal & Support
-            SectionCard(title = "الدعم والسياسات") {
-                ProfileRow(
-                    icon = Icons.Default.SupportAgent,
-                    title = "الدعم والتواصل",
-                    subtitle = "أسئلة، اقتراحات، مشاكل",
-                    onClick = { onNavigate(ProfileRoute.Support) }
-                )
-                ProfileRow(
-                    icon = Icons.Default.Policy,
-                    title = "سياسة الخصوصية",
-                    subtitle = "كيف نتعامل مع بياناتك",
-                    onClick = { onNavigate(ProfileRoute.Privacy) }
-                )
-                ProfileRow(
-                    icon = Icons.Default.Gavel,
-                    title = "الشروط والأحكام",
-                    subtitle = "بنود الاستخدام",
-                    onClick = { onNavigate(ProfileRoute.Terms) }
-                )
-                ProfileRow(
-                    icon = Icons.Default.Code,
-                    title = "التراخيص والمصادر المفتوحة",
-                    subtitle = "Open source licenses",
-                    onClick = { onNavigate(ProfileRoute.Licenses) }
-                )
+                Spacer(Modifier.height(18.dp))
             }
 
-            Spacer(Modifier.weight(1f))
-
-            // Keep logout if you want; you said ignore it, but leaving it here optional
-            Button(
-                onClick = { viewModel.signOut() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(54.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Default.ExitToApp, contentDescription = null)
-                Spacer(Modifier.width(10.dp))
-                Text("تسجيل الخروج", fontWeight = FontWeight.Bold)
+            item {
+                Button(
+                    onClick = { viewModel.signOut() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Default.ExitToApp, contentDescription = null)
+                    Spacer(Modifier.width(10.dp))
+                    Text("تسجيل الخروج", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
+
 }
+
 
 @Composable
 private fun SectionCard(
@@ -252,9 +268,11 @@ private fun SectionCard(
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp)
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelLarge,
@@ -274,6 +292,11 @@ private fun ProfileRow(
     onClick: () -> Unit
 ) {
     ListItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            },
         headlineContent = { Text(title, fontWeight = FontWeight.SemiBold) },
         supportingContent = { Text(subtitle) },
         leadingContent = {
@@ -282,26 +305,31 @@ private fun ProfileRow(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
                 modifier = Modifier.size(40.dp)
             ) {
-                Box(modifier = Modifier.clickable {
-                    onClick()
-                }, contentAlignment = Alignment.Center) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 }
             }
         },
         trailingContent = {
             Icon(
-                imageVector = Icons.Default.KeyboardArrowLeft, // RTL chevron
+                imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
         },
-        modifier = Modifier
-            .fillMaxWidth(),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
     Divider(
         Modifier.padding(horizontal = 16.dp),
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+    )
+}
+
+@Preview
+@Composable
+private fun Prev() {
+    ProfileScreen(
+        onNavigate = {},
+        onLogout = {}
     )
 }
