@@ -14,7 +14,7 @@ object Routes {
     const val MAIN_GRAPH = "main_graph"
     const val HOME_SCREEN = "home_screen"
     const val SEARCH_SCREEN = "search_screen"
-    const val STUDY_SCREEN = "study_screen"
+    const val STUDY_SCREEN = "telegram_login" // has this name to match the html schema when open via telegram deep link
     const val PLAYLIST_SCREEN = "playlist_screen"
     const val LESSONS_SCREEN = "lessons_screen"
     const val LESSON_DETAIL_SCREEN = "lesson_detail_screen"

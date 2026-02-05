@@ -182,6 +182,7 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
+
     fun MainAppContent(
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,
@@ -195,7 +196,7 @@ class MainActivity : ComponentActivity() {
         // routes where the bottom nav should be shown
         val routesWithBottomNav = remember {
             setOf(
-                Routes.HOME_SCREEN, Routes.SEARCH_SCREEN, Routes.PROFILE_SCREEN, Routes.STUDY_SCREEN
+                Routes.HOME_SCREEN, Routes.SEARCH_SCREEN, Routes.PROFILE_SCREEN, "telegram_login?data={data}"
             )
         }
 

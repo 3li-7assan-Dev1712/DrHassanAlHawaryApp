@@ -33,7 +33,7 @@ sealed class BottomNavItem(
     )
 
     object StudyScreen : BottomNavItem(
-        route = "telegram_login",
+        route = Routes.STUDY_SCREEN,
         titleResId = R.string.study_zone,
         selectedIconResId = R.drawable.study_zone_filled_icon,
         unselectedIconResId = R.drawable.study_zone_icon
