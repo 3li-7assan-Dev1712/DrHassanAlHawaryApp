@@ -1,7 +1,12 @@
 package com.example.profile.presentation.share_app
 
 import android.content.Context
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -12,12 +17,16 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
@@ -61,19 +70,41 @@ fun ShareAppScreen(
             )
         }
     ) { padding ->
-        Button(
-            onClick = { viewModel.share(packageName) },
+        Column(
             modifier = Modifier
                 .padding(padding)
                 .padding(20.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                Icons.Default.Share,
-                contentDescription = stringResource(id = R.string.share_icon)
+            Image(
+                painter = painterResource(id = R.drawable.share_app_illu),
+                contentDescription = null,
+                modifier = Modifier.height(250.dp)
             )
-            androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
-            Text(stringResource(id = R.string.share_app_link_button))
+
+            Spacer(Modifier.height(24.dp))
+
+            Text(
+                text = stringResource(R.string.share_app),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = { viewModel.share(packageName) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Default.Share,
+                    contentDescription = stringResource(id = R.string.share_icon)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(stringResource(id = R.string.share_app_link_button))
+            }
         }
     }
 }

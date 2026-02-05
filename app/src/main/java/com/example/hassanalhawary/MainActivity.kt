@@ -170,27 +170,16 @@ class MainActivity : ComponentActivity() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        // routes where the bottom nav should be hidden
-        val routesWithoutBottomNav = remember {
+        // routes where the bottom nav should be shown
+        val routesWithBottomNav = remember {
             setOf(
-                "detail_article_screen/{articleId}/{paragraphIndex}",
-                "audio_detail_screen/{title}/{audioId}",
-                "ask_question_screen",
-                "splash_screen",
-                Routes.ARTICLES_SCREEN,
-                Routes.AUDIO_LIST_SCREEN,
-                Routes.IMAGES_SCREEN,
-                Routes.IMAGE_DETAIL_SCREEN,
-                Routes.KHOTAB_SCREEN,
-                "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}",
-                Routes.VIDEOS_SCREEN,
-                Routes.ABOUT_DR_HASSAN_SCREEN
+                Routes.HOME_SCREEN, Routes.SEARCH_SCREEN, Routes.PROFILE_SCREEN, Routes.STUDY_SCREEN
             )
         }
 
         val shouldShowBottomNav = remember(currentRoute) {
             derivedStateOf {
-                currentRoute != null && routesWithoutBottomNav.none { routePattern ->
+                currentRoute != null && routesWithBottomNav.any { routePattern ->
                     // Simple check for exact match or prefix match for routes with arguments
                     if (routePattern.contains("{")) {
                         val baseRoutePattern = routePattern.substringBefore("/{")
@@ -508,7 +497,7 @@ class MainActivity : ComponentActivity() {
 
                 composable(ProfileDestinations.RATE) {
                     RateAppScreen(
-                        packageName = "com.example.hassanalhwary",
+                        packageName = "com.example.hassanalhawary",
                         onBack = { navController.popBackStack() },
 
                         )
@@ -580,5 +569,3 @@ class MainActivity : ComponentActivity() {
     }
 
 }
-
-

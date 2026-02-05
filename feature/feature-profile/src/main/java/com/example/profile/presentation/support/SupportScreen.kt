@@ -1,8 +1,12 @@
 package com.example.profile.presentation.support
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,11 +22,14 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import com.example.core.ui.R
 import com.example.profile.domain.model.SystemActions
 import com.example.profile.domain.use_case.ContactSupportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -66,9 +73,19 @@ fun SupportScreen(
         Column(
             Modifier
                 .padding(padding)
-                .padding(20.dp),
+                .padding(20.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.contact_illu),
+                contentDescription = null,
+                modifier = Modifier.height(250.dp)
+            )
+
+            Spacer(Modifier.height(16.dp))
+
             ElevatedCard(shape = RoundedCornerShape(18.dp)) {
                 ListItem(
                     headlineContent = { Text("راسلنا عبر البريد") },
