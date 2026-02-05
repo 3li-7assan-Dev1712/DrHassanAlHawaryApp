@@ -41,6 +41,7 @@ import com.example.feature.auth.presentation.register.RegisterScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
+import com.example.feature.onboarding.presentation.OnboardingScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
 import com.example.hassanalhawary.core.util.LocaleForce
@@ -84,18 +85,27 @@ class MainActivity : ComponentActivity() {
                 val mainActivityViewModel = viewModel<MainActivityViewModel>()
                 val mainActivityState by mainActivityViewModel.state.collectAsState()
 
+                val completed by mainActivityViewModel.onboardingCompleted.collectAsState()
+
                 val isLoggedIn = mainActivityState.isUserLoggedIn
 
                 Log.d(TAG, "onCreate: isLoggedIn: $isLoggedIn")
                 val rootNavController =
                     rememberNavController() // Single NavController for switching graphs
 
-                if (false) {
+                if (mainActivityState.showSplashScreen) {
                     SplashScreen(onShowSplashScreenTimeEnd = {
                         mainActivityViewModel.updateShowSplashVal(false)
                     })
+                } else if (!completed) {
+                    OnboardingScreen(
+                        onFinished = {
+                            mainActivityViewModel.updateOnboardingCompleted()
+                        }
+                    )
                 } else {
                     // After the splash screen, we decide which graph to show based on the login state.
+
                     val isLoggedIn = mainActivityState.isUserLoggedIn
                     when {
                         mainActivityState.isLoading -> {
@@ -127,6 +137,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+
+
 
 
                     LaunchedEffect(key1 = mainActivityState.navigateTo) {

@@ -1,13 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "com.example.data_local"
+    namespace = "com.example.feature.onboarding"
     compileSdk = 36
 
     defaultConfig {
@@ -36,30 +36,29 @@ android {
 }
 
 dependencies {
-
-
-    // paging
-//    implementation(libs.androidx.paging.common.jvm)
-//    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.room.paging)
-
-    //room
-    api(libs.room.runtime)
-    api(libs.room.ktx)
-    ksp(libs.room.compiler)
-    implementation(project(":core:core-domain"))
-
-    // datastore
-    implementation(libs.androidx.datastore.preferences)
-
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    implementation(project(":core:core-domain"))
+    implementation(project(":core:core-database"))
+    implementation(project(":core:core-ui"))
+
+    // ViewModel
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.runtime.compose)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
+    // navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+
+
 }

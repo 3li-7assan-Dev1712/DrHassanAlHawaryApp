@@ -75,7 +75,7 @@ fun ProfileScreen(
     }
 
     val userName = state.userData?.username ?: "زائر التطبيق"
-    val userEmail = state.userData?.let { "hassan.app@example.com" } ?: "hassan.app@example.com"
+    val userEmail = state.userData?.email ?: "hassan.app@example.com"
     val profileUrl = state.userData?.userProfilePictureUrl.orEmpty()
 
     Scaffold(

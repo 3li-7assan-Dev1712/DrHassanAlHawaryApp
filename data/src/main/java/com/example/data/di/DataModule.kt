@@ -3,6 +3,7 @@ package com.example.data.di
 import com.example.data.ArticlesRepositoryImpl
 import com.example.data.AudiosRepositoryImpl
 import com.example.data.AuthRepositoryImpl
+import com.example.data.DataStoreRepositoryImpl
 import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
 import com.example.data.VideosRepositoryImpl
@@ -10,6 +11,7 @@ import com.example.data.WisdomRepositoryImpl
 import com.example.domain.repository.ArticlesRepository
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.repository.AuthRepository
+import com.example.domain.repository.DataStoreRepository
 import com.example.domain.repository.ImagesRepository
 import com.example.domain.repository.NetworkRepository
 import com.example.domain.repository.VideosRepository
@@ -63,6 +65,12 @@ abstract class DataModule {
     abstract fun bindVideoRepository(
         videosRepositoryImpl: VideosRepositoryImpl
     ): VideosRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDataStoresRepository(
+        dataStoreRepositoryImpl: DataStoreRepositoryImpl
+    ): DataStoreRepository
 
 
 }

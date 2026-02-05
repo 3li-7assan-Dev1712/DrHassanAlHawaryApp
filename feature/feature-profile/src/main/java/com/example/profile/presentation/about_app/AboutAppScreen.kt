@@ -23,9 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +40,13 @@ fun AboutAppScreen(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("عن التطبيق", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.about_app), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.back)
+                        )
                     }
                 }
             )
@@ -56,21 +61,28 @@ fun AboutAppScreen(
             ElevatedCard(shape = RoundedCornerShape(18.dp)) {
                 ListItem(
                     headlineContent = { Text(info.appName, fontWeight = FontWeight.SemiBold) },
-                    supportingContent = { Text("الإصدار: ${info.versionName} (${info.versionCode})") },
-                    leadingContent = { Icon(Icons.Default.Info, null) }
+                    supportingContent = {
+                        Text(stringResource(id = R.string.app_version, info.versionName))
+                    },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = stringResource(id = R.string.app_info_icon)
+                        )
+                    }
                 )
             }
 
             Spacer(Modifier.height(16.dp))
 
             Text(
-                "نبذة",
+                text = stringResource(id = R.string.overview),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "تطبيق تعليمي يساعدك على متابعة المحتوى بشكل منظم وبواجهة عربية جميلة.",
+                text = stringResource(id = R.string.app_description),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

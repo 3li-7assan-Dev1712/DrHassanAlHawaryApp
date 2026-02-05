@@ -122,6 +122,7 @@ dependencies {
     implementation(project(":feature:feature-profile"))
     implementation(project(":feature:feature-image"))
     implementation(project(":feature:feature-study"))
+    implementation(project(":feature:feature-onboarding"))
     implementation(project(":feature:feature-search"))
     implementation(project(":feature:feature-video"))
     implementation(project(":feature:feature-article"))

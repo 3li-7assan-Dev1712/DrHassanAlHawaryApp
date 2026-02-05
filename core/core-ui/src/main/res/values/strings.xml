@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_app">عن التطبيق</string>
+    <string name="app_version">الإصدار: %1$s</string>
+    <string name="overview">نبذة</string>
+    <string name="app_description">تطبيق تعليمي يساعدك على متابعة المحتوى بشكل منظم وبواجهة عربية جميلة.</string>
+    <string name="back">رجوع</string>
+    <string name="app_info_icon">معلومات التطبيق</string>
+    <string name="rate_app">تقييم التطبيق</string>
+    <string name="your_opinion_matters">رأيك يهمنا</string>
+    <string name="rate_us_description">تقييمك يساعدنا على تحسين التطبيق والوصول لمستخدمين أكثر.</string>
+    <string name="open_rating_page">فتح صفحة التقييم</string>
+    <string name="rating_star_icon">نجمة تقييم</string>
+    <string name="share_app_title">مشاركة التطبيق</string>
+    <string name="share_app_link_button">مشاركة رابط التطبيق</string>
+    <string name="share_app_text">جرّب هذا التطبيق الرائع:\n%1$s</string>
+    <string name="share_icon">أيقونة المشاركة</string>
+    <string name="rating_illustration">صورة تقييم التطبيق</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Start your journey</string>
+    <string name="onboarding_description_1">Learn with a dedicated app containing study materials: videos, audios, images, and PDFs.</string>
+    <string name="onboarding_title_2">Read PDFs instantly</string>
+    <string name="onboarding_description_2">View PDFs directly inside each lesson screen—no switching apps.</string>
+    <string name="onboarding_title_3">Offline studying</string>
+    <string name="onboarding_description_3">Download lessons once. Listen to audio and open PDFs completely offline.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get started</string>
+</resources>

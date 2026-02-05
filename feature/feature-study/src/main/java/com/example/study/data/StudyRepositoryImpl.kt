@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data_firebase.StudentFirestoreSource
 import com.example.data_local.LessonDao
 import com.example.data_local.LevelsDao
+import com.example.data_local.LocalDataStore
 import com.example.data_local.PlaylistDao
 import com.example.data_local.StudentDao
 import com.example.domain.module.Lesson
@@ -22,7 +23,7 @@ import javax.inject.Inject
 class StudyRepositoryImpl @Inject constructor(
     private val studentFirestoreSource: StudentFirestoreSource,
     private val studentDao: StudentDao,
-    private val versionStore: ContentVersionStore,
+    private val versionStore: LocalDataStore,
     private val playlistDao: PlaylistDao,
     private val lessonDao: LessonDao,
     private val levelsDao: LevelsDao,
