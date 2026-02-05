@@ -14,7 +14,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,10 +44,10 @@ fun LegalTextScreen(
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
-    var text by remember { mutableStateOf<String?>(null) }
+    var markdown by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(assetFileName) {
-        text = readAsset(context, assetFileName)
+        markdown = readAsset(context, assetFileName)
     }
 
     Scaffold(
@@ -63,8 +62,13 @@ fun LegalTextScreen(
             )
         }
     ) { padding ->
-        if (text == null) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+        if (markdown == null) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator()
             }
         } else {
@@ -74,7 +78,7 @@ fun LegalTextScreen(
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(text!!, style = MaterialTheme.typography.bodyMedium)
+                MarkdownText(content = markdown!!)
             }
         }
     }

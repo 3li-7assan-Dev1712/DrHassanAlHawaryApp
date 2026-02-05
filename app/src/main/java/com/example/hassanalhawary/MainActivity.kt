@@ -43,6 +43,7 @@ import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
+import com.example.hassanalhawary.core.util.LocaleForce
 import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
 import com.example.hassanalhawary.ui.navigation.Routes
 import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
@@ -65,12 +66,20 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(LocaleForce.wrap(newBase))
+    }
+
     val TAG = "MainActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
+        val locale = resources.configuration.locales[0]
+        Log.d("LOCALE", "Current locale = $locale")
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             HassanAlHawaryTheme {
+
 
                 val mainActivityViewModel = viewModel<MainActivityViewModel>()
                 val mainActivityState by mainActivityViewModel.state.collectAsState()
@@ -496,7 +505,7 @@ class MainActivity : ComponentActivity() {
                 composable(ProfileDestinations.PRIVACY) {
                     LegalTextScreen(
                         title = "سياسة الخصوصية",
-                        assetFileName = "privacy.txt",
+                        assetFileName = "privacy.md",
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -504,7 +513,7 @@ class MainActivity : ComponentActivity() {
                 composable(ProfileDestinations.TERMS) {
                     LegalTextScreen(
                         title = "الشروط والأحكام",
-                        assetFileName = "terms.txt",
+                        assetFileName = "terms.md",
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -512,7 +521,7 @@ class MainActivity : ComponentActivity() {
                 composable(ProfileDestinations.LICENSES) {
                     LegalTextScreen(
                         title = "التراخيص والمصادر المفتوحة",
-                        assetFileName = "licenses.txt",
+                        assetFileName = "licenses.md",
                         onBack = { navController.popBackStack() }
                     )
                 }

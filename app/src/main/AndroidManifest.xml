@@ -17,6 +17,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.HassanAlHawary">
+        <meta-data
+            android:name="androidx.appcompat.app.AppLocales"
+            android:resource="@xml/locales_config" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

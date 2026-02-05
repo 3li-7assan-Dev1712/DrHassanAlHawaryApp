@@ -134,7 +134,7 @@ class AudioRemoteMediator @Inject constructor(
                         )
                     } else {
                         // This is a brand new audio not seen before.
-                        // The server entity with its default user-state values is fine.
+                        // The server entity with its default user-state values-en is fine.
                         serverEntity
                     }
                 }
