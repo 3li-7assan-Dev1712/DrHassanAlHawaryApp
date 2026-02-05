@@ -108,6 +108,9 @@ dependencies {
 
 
 
+    // splash screen
+    implementation(libs.androidx.core.splashscreen)
+
     // youtube player
     implementation(libs.youtube.player)
 

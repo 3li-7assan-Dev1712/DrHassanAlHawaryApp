@@ -11,5 +11,10 @@ interface DataStoreRepository {
     suspend fun setCompleted(completed: Boolean)
 
 
+    fun isDarkTheme(): Flow<Boolean>
+
+    suspend fun updateDarkThemePreference(isDarkTheme: Boolean)
+
+
 
 }

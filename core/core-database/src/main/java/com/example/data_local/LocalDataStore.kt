@@ -1,6 +1,7 @@
 package com.example.data_local
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -23,11 +24,14 @@ private const val LAST_PLAYLIST_SYNC = "last_playlist_sync"
 private const val LAST_LESSON_SYNC = "last_lesson_sync"
 
 val KEY_COMPLETED = booleanPreferencesKey("onboarding_completed")
+val KEY_DARK_THEME = booleanPreferencesKey("dark_theme_enabled")
+
 
 @Singleton
 class LocalDataStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    val TAG = "LocalDataStore"
     private val dataStore = context.contentDataStore
 
     suspend fun getLevelsVersion(): Long {
@@ -88,6 +92,20 @@ class LocalDataStore @Inject constructor(
     suspend fun getVersion(key: String): Long? {
         val prefKey = longPreferencesKey(key)
         return dataStore.data.map { it[prefKey] }.firstOrNull()
+    }
+
+
+    // Theme preferences
+    val isDarkTheme: Flow<Boolean> =
+        dataStore.data.map { prefs ->
+            prefs[KEY_DARK_THEME] ?: false
+        }
+
+    suspend fun setDarkTheme(enabled: Boolean) {
+        Log.d(TAG, "setDarkTheme: $enabled")
+        dataStore.edit { prefs ->
+            prefs[KEY_DARK_THEME] = enabled
+        }
     }
 
 }

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -71,21 +72,39 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(LocaleForce.wrap(newBase))
     }
 
+    private val mainActivityViewModel: MainActivityViewModel by viewModels()
     val TAG = "MainActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+
+        splashScreen.setKeepOnScreenCondition {
+            !mainActivityViewModel.themeState.value.isReady
+        }
+
         val locale = resources.configuration.locales[0]
         Log.d("LOCALE", "Current locale = $locale")
+
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            HassanAlHawaryTheme {
+
+            val themeState by mainActivityViewModel.themeState.collectAsState()
+
+            if (!themeState.isReady) {
+                return@setContent
+            }
 
 
-                val mainActivityViewModel = viewModel<MainActivityViewModel>()
+            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme) {
+
+
+//                val mainActivityViewModel = viewModel<MainActivityViewModel>()
                 val mainActivityState by mainActivityViewModel.state.collectAsState()
 
                 val completed by mainActivityViewModel.onboardingCompleted.collectAsState()
+
+//                val isDarkTheme by mainActivityViewModel.themeState.collectAsState()
 
                 val isLoggedIn = mainActivityState.isUserLoggedIn
 
@@ -93,11 +112,12 @@ class MainActivity : ComponentActivity() {
                 val rootNavController =
                     rememberNavController() // Single NavController for switching graphs
 
-                if (mainActivityState.showSplashScreen) {
+                /*if (mainActivityState.showSplashScreen) {
                     SplashScreen(onShowSplashScreenTimeEnd = {
                         mainActivityViewModel.updateShowSplashVal(false)
                     })
-                } else if (!completed) {
+                } else */
+                if (!completed) {
                     OnboardingScreen(
                         onFinished = {
                             mainActivityViewModel.updateOnboardingCompleted()
@@ -124,7 +144,8 @@ class MainActivity : ComponentActivity() {
                                 onLogout = {
                                     Log.d(TAG, "Logout event received")
                                     mainActivityViewModel.logoutSuccess()
-                                }
+                                },
+                                isDarkThemeEnabled = themeState.isDarkTheme
                             )
 
                         }
@@ -162,9 +183,10 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MainAppContent(
-        onLogout: () -> Unit
+        onLogout: () -> Unit,
+        isDarkThemeEnabled: Boolean = false,
 
-    ) {
+        ) {
         val navController = rememberNavController()
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -479,7 +501,14 @@ class MainActivity : ComponentActivity() {
                                 ProfileRoute.Support -> navController.navigate(ProfileDestinations.SUPPORT)
                             }
                         },
-                        onLogout = { /* your auth flow */ }
+                        onThemeChanged = { isDarkTheme ->
+                            Log.d(TAG, "MainAppContent: isDarkTheme: $isDarkTheme")
+                            mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
+                        },
+                        isDarkTheme = isDarkThemeEnabled,
+                        onLogout = {
+                            onLogout()
+                        }
                     )
                 }
 

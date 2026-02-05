@@ -16,4 +16,12 @@ class DataStoreRepositoryImpl @Inject constructor(
     override suspend fun setCompleted(completed: Boolean) {
         localDataStore.setCompleted(completed)
     }
+
+    override fun isDarkTheme(): Flow<Boolean> {
+        return localDataStore.isDarkTheme
+    }
+
+    override suspend fun updateDarkThemePreference(isDarkTheme: Boolean) {
+        localDataStore.setDarkTheme(isDarkTheme)
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.profile.presentation.profile
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -20,8 +21,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Share
@@ -43,6 +46,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +68,8 @@ import com.example.profile.presentation.components.ProfileRoute
 fun ProfileScreen(
     onNavigate: (ProfileRoute) -> Unit,
     onLogout: () -> Unit,
+    isDarkTheme: Boolean,
+    onThemeChanged: (Boolean) -> Unit,
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -179,6 +185,15 @@ fun ProfileScreen(
             }
 
             item {
+                SectionCard(title = "السمة") {
+                    ThemeSwitcher(isDarkTheme = isDarkTheme, onThemeChange = {
+                        onThemeChanged(it)
+                    })
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+
+            item {
                 SectionCard(title = "التطبيق") {
                     ProfileRow(
                         icon = Icons.Default.Info,
@@ -202,6 +217,7 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(12.dp))
             }
+
 
             item {
                 SectionCard(title = "الدعم والسياسات") {
@@ -325,11 +341,32 @@ private fun ProfileRow(
     )
 }
 
+@Composable
+fun ThemeSwitcher(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
+    ListItem(
+        headlineContent = { Text("الوضع الداكن", fontWeight = FontWeight.SemiBold) },
+        leadingContent = {
+            Icon(
+                if (isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
+                contentDescription = null
+            )
+        },
+        trailingContent = {
+            Switch(checked = isDarkTheme, onCheckedChange = { checked ->
+//                onThemeChange(checked)
+            })
+        },
+        modifier = Modifier.clickable { onThemeChange(!isDarkTheme) }
+    )
+}
+
 @Preview
 @Composable
 private fun Prev() {
     ProfileScreen(
         onNavigate = {},
+        onThemeChanged = {},
+        isDarkTheme = isSystemInDarkTheme(),
         onLogout = {}
     )
 }
