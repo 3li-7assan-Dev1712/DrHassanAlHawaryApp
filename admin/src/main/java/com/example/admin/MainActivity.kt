@@ -1,7 +1,6 @@
 package com.example.admin
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,7 +17,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,6 +25,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.institute_main.InstituteMainScreen
+import com.example.admin.ui.lesson.AddEditLessonScreen
+import com.example.admin.ui.lesson.LessonsScreen
+import com.example.admin.ui.playlist.AddEditPlaylistScreen
 import com.example.admin.ui.playlist.PlaylistScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
@@ -48,7 +49,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                val context = LocalContext.current
 
                 val topBarTitle = when (currentRoute) {
                     "control_screen" -> "Admin Control Panel"
@@ -60,6 +60,9 @@ class MainActivity : ComponentActivity() {
                     "upload_quiz" -> "Upload Quiz"
                     "upload_announcement" -> "Upload Announcement"
                     "playlists/{levelName}" -> navBackStackEntry?.arguments?.getString("levelName") ?: "Playlists"
+                    "lessons/{playlistId}" -> "Lessons"
+                    "add_edit_playlist/{playlistId}" -> if (navBackStackEntry?.arguments?.getString("playlistId") == null) "Add Playlist" else "Edit Playlist"
+                    "add_edit_lesson/{lessonId}" -> if (navBackStackEntry?.arguments?.getString("lessonId") == null) "Add Lesson" else "Edit Lesson"
                     else -> ""
                 }
 
@@ -91,18 +94,14 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("control_screen") {
-                            ControlScreen(
-                                onNavigate = { route ->
-                                    navController.navigate(route)
-                                }
-                            )
+                            ControlScreen {
+                                navController.navigate(it)
+                            }
                         }
                         composable("articles_upload") {
-                            ArticleUploadScreen(
-                                onArticleUploaded = {
-                                    navController.popBackStack()
-                                }
-                            )
+                            ArticleUploadScreen {
+                                navController.popBackStack()
+                            }
                         }
                         composable("audios_upload") {
                             AudioUploadScreen()
@@ -135,10 +134,43 @@ class MainActivity : ComponentActivity() {
                             arguments = listOf(navArgument("levelName") { type = NavType.StringType })
                         ) {
                             val levelName = it.arguments?.getString("levelName") ?: ""
-                            PlaylistScreen(levelName = levelName, onEditPlaylist = {
-                                // Placeholder for a real navigation
-                                Toast.makeText(context, "Edit playlist $it", Toast.LENGTH_SHORT).show()
-                            })
+                            PlaylistScreen(
+                                levelName = levelName,
+                                onAddPlaylist = { navController.navigate("add_edit_playlist") },
+                                onEditPlaylist = { playlistId ->
+                                    navController.navigate("add_edit_playlist/$playlistId")
+                                },
+                                onPlaylistClick = { playlistId ->
+                                    navController.navigate("lessons/$playlistId")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "lessons/{playlistId}",
+                            arguments = listOf(navArgument("playlistId") { type = NavType.StringType })
+                        ) {
+                            val playlistId = it.arguments?.getString("playlistId") ?: ""
+                            LessonsScreen(
+                                playlistId = playlistId,
+                                onAddLesson = { navController.navigate("add_edit_lesson") },
+                                onEditLesson = { lessonId ->
+                                    navController.navigate("add_edit_lesson/$lessonId")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "add_edit_playlist/{playlistId}",
+                            arguments = listOf(navArgument("playlistId") { nullable = true })
+                        ) {
+                            val playlistId = it.arguments?.getString("playlistId")
+                            AddEditPlaylistScreen(playlistId = playlistId)
+                        }
+                        composable(
+                            route = "add_edit_lesson/{lessonId}",
+                            arguments = listOf(navArgument("lessonId") { nullable = true })
+                        ) {
+                            val lessonId = it.arguments?.getString("lessonId")
+                            AddEditLessonScreen(lessonId = lessonId)
                         }
                     }
                 }

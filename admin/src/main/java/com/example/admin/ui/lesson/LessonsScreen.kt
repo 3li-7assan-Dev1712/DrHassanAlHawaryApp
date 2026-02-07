@@ -1,6 +1,5 @@
-package com.example.admin.ui.playlist
+package com.example.admin.ui.lesson
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,28 +31,27 @@ import androidx.compose.ui.unit.dp
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 
 // A simple data class for demonstration
-data class Playlist(
+data class Lesson(
     val id: String,
     val title: String,
-    val lessonCount: Int
+    val duration: String
 )
 
 @Composable
-fun PlaylistScreen(
-    levelName: String,
-    onAddPlaylist: () -> Unit,
-    onEditPlaylist: (String) -> Unit,
-    onPlaylistClick: (String) -> Unit
+fun LessonsScreen(
+    playlistId: String,
+    onAddLesson: () -> Unit,
+    onEditLesson: (String) -> Unit
 ) {
     // Dummy data for preview and demonstration
-    val playlists = List(5) {
-        Playlist(id = "$it", title = "Playlist ${it + 1} in $levelName", lessonCount = 10 + it)
+    val lessons = List(10) {
+        Lesson(id = "$it", title = "Lesson ${it + 1}", duration = "${it + 5}:00")
     }
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddPlaylist) {
-                Icon(Icons.Default.Add, contentDescription = "Add Playlist")
+            FloatingActionButton(onClick = onAddLesson) {
+                Icon(Icons.Default.Add, contentDescription = "Add Lesson")
             }
         }
     ) {
@@ -64,11 +62,10 @@ fun PlaylistScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(playlists) { playlist ->
-                PlaylistItem(
-                    playlist = playlist,
-                    onEditClick = { onEditPlaylist(playlist.id) },
-                    onClick = { onPlaylistClick(playlist.id) }
+            items(lessons) { lesson ->
+                LessonItem(
+                    lesson = lesson,
+                    onEditClick = { onEditLesson(lesson.id) }
                 )
             }
         }
@@ -76,15 +73,12 @@ fun PlaylistScreen(
 }
 
 @Composable
-fun PlaylistItem(
-    playlist: Playlist,
-    onClick: () -> Unit,
+fun LessonItem(
+    lesson: Lesson,
     onEditClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(
@@ -96,13 +90,13 @@ fun PlaylistItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = playlist.title,
+                    text = lesson.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "${playlist.lessonCount} lessons",
+                    text = "Duration: ${lesson.duration}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -110,7 +104,7 @@ fun PlaylistItem(
             IconButton(onClick = onEditClick) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Playlist"
+                    contentDescription = "Edit Lesson"
                 )
             }
         }
@@ -119,10 +113,10 @@ fun PlaylistItem(
 
 @Preview(showBackground = true)
 @Composable
-private fun PlaylistScreenPreview() {
+private fun LessonsScreenPreview() {
     HassanAlHawaryTheme {
         Surface {
-            PlaylistScreen("Level 1", onAddPlaylist = {}, onEditPlaylist = {}, onPlaylistClick = {})
+            LessonsScreen("123", onAddLesson = {}, onEditLesson = {})
         }
     }
 }
