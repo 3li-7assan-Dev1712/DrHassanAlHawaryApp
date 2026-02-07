@@ -1,4 +1,4 @@
-package com.example.admin.ui.lesson
+package com.example.admin.ui.add_edit_lesson
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

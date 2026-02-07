@@ -23,10 +23,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.admin.ui.add_edit_lesson.AddEditLessonScreen
+import com.example.admin.ui.add_edit_lesson.LessonsScreen
 import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.institute_main.InstituteMainScreen
-import com.example.admin.ui.lesson.AddEditLessonScreen
-import com.example.admin.ui.lesson.LessonsScreen
 import com.example.admin.ui.playlist.AddEditPlaylistScreen
 import com.example.admin.ui.playlist.PlaylistScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
@@ -61,8 +61,12 @@ class MainActivity : ComponentActivity() {
                     "upload_announcement" -> "Upload Announcement"
                     "playlists/{levelName}" -> navBackStackEntry?.arguments?.getString("levelName") ?: "Playlists"
                     "lessons/{playlistId}" -> "Lessons"
-                    "add_edit_playlist/{playlistId}" -> if (navBackStackEntry?.arguments?.getString("playlistId") == null) "Add Playlist" else "Edit Playlist"
-                    "add_edit_lesson/{lessonId}" -> if (navBackStackEntry?.arguments?.getString("lessonId") == null) "Add Lesson" else "Edit Lesson"
+                    "add_edit_playlist?playlistId={playlistId}" -> {
+                        if (navBackStackEntry?.arguments?.getString("playlistId") == null) "Add Playlist" else "Edit Playlist"
+                    }
+                    "add_edit_lesson?lessonId={lessonId}" -> {
+                        if (navBackStackEntry?.arguments?.getString("lessonId") == null) "Add Lesson" else "Edit Lesson"
+                    }
                     else -> ""
                 }
 
@@ -138,7 +142,7 @@ class MainActivity : ComponentActivity() {
                                 levelName = levelName,
                                 onAddPlaylist = { navController.navigate("add_edit_playlist") },
                                 onEditPlaylist = { playlistId ->
-                                    navController.navigate("add_edit_playlist/$playlistId")
+                                    navController.navigate("add_edit_playlist?playlistId=$playlistId")
                                 },
                                 onPlaylistClick = { playlistId ->
                                     navController.navigate("lessons/$playlistId")
@@ -154,23 +158,25 @@ class MainActivity : ComponentActivity() {
                                 playlistId = playlistId,
                                 onAddLesson = { navController.navigate("add_edit_lesson") },
                                 onEditLesson = { lessonId ->
-                                    navController.navigate("add_edit_lesson/$lessonId")
+                                    navController.navigate("add_edit_lesson?lessonId=$lessonId")
                                 }
                             )
                         }
                         composable(
-                            route = "add_edit_playlist/{playlistId}",
-                            arguments = listOf(navArgument("playlistId") { nullable = true })
+                            route = "add_edit_playlist?playlistId={playlistId}",
+                            arguments = listOf(navArgument("playlistId") { type = NavType.StringType; nullable = true })
                         ) {
                             val playlistId = it.arguments?.getString("playlistId")
                             AddEditPlaylistScreen(playlistId = playlistId)
                         }
                         composable(
-                            route = "add_edit_lesson/{lessonId}",
-                            arguments = listOf(navArgument("lessonId") { nullable = true })
+                            route = "add_edit_lesson?lessonId={lessonId}",
+                            arguments = listOf(navArgument("lessonId") { type = NavType.StringType; nullable = true })
                         ) {
                             val lessonId = it.arguments?.getString("lessonId")
-                            AddEditLessonScreen(lessonId = lessonId)
+                            AddEditLessonScreen(lessonId = lessonId) {
+                                navController.popBackStack()
+                            }
                         }
                     }
                 }
