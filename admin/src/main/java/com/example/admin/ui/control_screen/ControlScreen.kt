@@ -1,86 +1,89 @@
 package com.example.admin.ui.control_screen
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
-import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
-import com.example.admin.ui.upload_images_screen.UploadImagesScreen
-import com.example.admin.ui.upload_video_screen.UploadVideoScreen
+import com.example.core.ui.R
 
-@ExperimentalMaterial3Api
+private data class ControlPanelItem(
+    val title: String,
+    val icon: Int,
+    val route: String
+)
+
 @Composable
-fun ControlScreen(
-    controlScreenViewModel: ControlScreenViewModel = hiltViewModel()
-) {
-    // 0 = Article, 1 = Audio
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("New Article", "New Audio", "New Images", "New Video")
+fun ControlScreen(onNavigate: (String) -> Unit) {
+    val controlItems = remember {
+        listOf(
+            ControlPanelItem("Article", R.drawable.articles_icon, "articles_upload"),
+            ControlPanelItem("Audio", R.drawable.audios_icon, "audios_upload"),
+            ControlPanelItem("Images", R.drawable.images_icon, "images_upload"),
+            ControlPanelItem("Video", R.drawable.videos_icon, "videos_upload"),
+            ControlPanelItem("Institute", R.drawable.student_icon, "institute_upload")
+        )
+    }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Admin Control Panel") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(controlItems) { controlItem ->
+            GridItem(
+                item = controlItem,
+                onClick = { onNavigate(controlItem.route) }
             )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            TabRow(selectedTabIndex = selectedTabIndex) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = { Text(title) }
-                    )
-                }
-            }
-
-            // Content changes based on the selected tab
-            when (selectedTabIndex) {
-                0 -> ArticleUploadScreen {
-
-                }
-                1 -> {
-                    AudioUploadScreen()
-                }
-                2 -> {
-                    UploadImagesScreen()
-                }
-                3 -> {
-                    UploadVideoScreen {
-
-                    }
-                }
-            }
         }
     }
 }
 
-
+@Composable
+private fun GridItem(item: ControlPanelItem, onClick: () -> Unit) {
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxSize()
+            .aspectRatio(1f)
+            .clickable(onClick = onClick)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = item.icon),
+                contentDescription = item.title,
+                modifier = Modifier.size(48.dp),
+            )
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+}

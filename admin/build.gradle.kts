@@ -107,6 +107,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":feature:feature-splash-screen"))
     implementation(project(":core:core-domain"))
+    implementation(project(":core:core-ui"))
 
 
 }
