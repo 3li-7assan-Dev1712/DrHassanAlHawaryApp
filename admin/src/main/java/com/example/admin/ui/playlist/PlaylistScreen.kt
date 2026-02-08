@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,31 +25,38 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.admin.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.R
+import com.example.core.ui.animation.LoadingScreen
+import com.example.domain.module.Playlist
 
-// A simple data class for demonstration
-data class Playlist(
-    val id: String,
-    val title: String,
-    val lessonCount: Int
-)
 
 @Composable
 fun PlaylistScreen(
     levelName: String,
+    adminPlaylistViewModel: AdminPlaylistViewModel = hiltViewModel(),
     onAddPlaylist: () -> Unit,
     onEditPlaylist: (String) -> Unit,
     onPlaylistClick: (String) -> Unit
 ) {
     // Dummy data for preview and demonstration
-    val playlists = List(5) {
-        Playlist(id = "$it", title = "Playlist ${it + 1} in $levelName", lessonCount = 10 + it)
-    }
+    /* val playlists = List(5) {
+         Playlist(id = "$it", title = "Playlist ${it + 1} in $levelName", lessonCount = 10 + it)
+     }*/
+
+    val uiState by adminPlaylistViewModel.uiState.collectAsState()
 
     Scaffold(
         floatingActionButton = {
@@ -57,19 +65,27 @@ fun PlaylistScreen(
             }
         }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(playlists) { playlist ->
-                PlaylistItem(
-                    playlist = playlist,
-                    onEditClick = { onEditPlaylist(playlist.id) },
-                    onClick = { onPlaylistClick(playlist.id) }
-                )
+        when (uiState) {
+            is AdminPlaylistUiState.Error -> Text(text = (uiState as AdminPlaylistUiState.Error).message)
+            AdminPlaylistUiState.Loading -> LoadingScreen()
+            is AdminPlaylistUiState.Success -> {
+
+                val playlists = (uiState as AdminPlaylistUiState.Success).playlists
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(it)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(playlists) { playlist ->
+                        PlaylistItem(
+                            playlist = playlist,
+                            onEditClick = { onEditPlaylist(playlist.id) },
+                            onClick = { onPlaylistClick(playlist.id) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -94,18 +110,28 @@ fun PlaylistItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+
+            AsyncImage(
+                model = playlist.thumbnailUrl,
+                contentDescription = "Student Avatar",
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                placeholder = painterResource(R.drawable.dr_hassan_photo),
+                error = painterResource(R.drawable.dr_hassan_photo),
+                contentScale = ContentScale.Crop
+            )
+
+
             Column(modifier = Modifier.weight(1f)) {
+
                 Text(
                     text = playlist.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "${playlist.lessonCount} lessons",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+
             }
             IconButton(onClick = onEditClick) {
                 Icon(

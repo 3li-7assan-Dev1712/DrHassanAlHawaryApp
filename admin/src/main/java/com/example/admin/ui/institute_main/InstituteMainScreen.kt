@@ -89,7 +89,7 @@ fun AdminDashboard(
     onUploadAnnouncement: () -> Unit,
     onLevelClick: (String) -> Unit
 ) {
-    val levels = (1..6).map { "Level $it" }
+    val levels = (1..6).map { "level_$it" }
 
     LazyColumn(
         modifier = Modifier

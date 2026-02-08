@@ -1,23 +1,32 @@
 package com.example.data_firebase
 
 import android.util.Log
+import androidx.core.net.toUri
 import com.example.data_firebase.model.LessonDto
 import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.StudentDto
+import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
-    val firestore: FirebaseFirestore
+    val firestore: FirebaseFirestore,
+    private val storage: FirebaseStorage
 ) {
 
     private val TAG = "StudentFirestoreSource"
     private val studentsCollection = firestore.collection("students")
     private val adminCollection = firestore.collection("admins")
+
+
 
     suspend fun storeStudent(studentDto: StudentDto) {
         try {
@@ -62,7 +71,10 @@ class StudentFirestoreSource @Inject constructor(
                 membershipState = document.getString("membershipState") ?: "",
                 isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
             )
-            Log.d(TAG, "getAdminDataByTelegramId: name: ${dto.firstName} -- ${dto.membershipState} ")
+            Log.d(
+                TAG,
+                "getAdminDataByTelegramId: name: ${dto.firstName} -- ${dto.membershipState} "
+            )
             dto
         } catch (e: Exception) {
             Log.e(TAG, "Error getting student by telegramId: $telegramId", e)
@@ -81,7 +93,7 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    suspend fun getPlaylists(lastPlaylistSync: Long): List<PlaylistDto> {
+    suspend fun getUpdatedPlaylists(lastPlaylistSync: Long): List<PlaylistDto> {
         return try {
             Log.d(TAG, "getPlaylists: last time: $lastPlaylistSync ${Date(lastPlaylistSync)}")
             val playlistsCollection = firestore.collection("playlists")
@@ -105,6 +117,77 @@ class StudentFirestoreSource @Inject constructor(
             emptyList() // Return an empty list on error
         }
     }
+
+    suspend fun getRemotePlaylistForLevel(levelId: String): List<PlaylistDto> {
+        return try {
+            val playlistsCollection =
+                firestore.collection("playlists").whereEqualTo("levelId", levelId)
+
+            val snapshot = playlistsCollection.get().await()
+            snapshot.mapNotNull { document ->
+
+                val dto = PlaylistDto(
+                    id = document.getString("id") ?: "",
+                    title = document.getString("title") ?: "",
+                    levelId = document.getString("levelId") ?: "",
+                    order = document.getLong("order")?.toInt() ?: 0,
+                    thumbnailUrl = document.getString("thumbnailUrl") ?: "",
+                    updatedAt = document.getDate("updatedAt") ?: Date()
+                )
+                Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
+                dto
+            }
+        } catch (e: Exception) {
+            emptyList() // Return an empty list on error
+        }
+    }
+
+
+    fun uploadPlaylist(playlistDto: PlaylistDto): Flow<UploadResult> {
+
+        return callbackFlow {
+            if (playlistDto.thumbnailUrl.isEmpty()) {
+                trySend(UploadResult.Error("No images to upload."))
+                close(); return@callbackFlow
+            }
+            trySend(UploadResult.Progress(0))
+
+            try {
+
+                val uri = playlistDto.thumbnailUrl.toUri()
+                val imageRef =
+                    storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
+                val downloadUrl =
+                    imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
+
+
+                val playlistToUpload = playlistDto.copy(
+                    thumbnailUrl = downloadUrl
+                )
+
+                // Add the main group doc
+                val groupDocRef = firestore.collection("playlists").document()
+                groupDocRef.set(playlistToUpload).await()
+
+                trySend(UploadResult.Progress(100))
+                trySend(UploadResult.Success)
+                close()
+
+                awaitClose { }
+
+
+                trySend(UploadResult.Progress(100))
+
+            } catch (e: Exception) {
+                trySend(UploadResult.Error("Failed to upload image: ${e.message}"))
+                close(); return@callbackFlow
+            }
+
+
+        }
+
+    }
+
 
     suspend fun getUpdatedLessons(lastLessonSync: Long): List<LessonDto> {
         return try {

@@ -2,6 +2,7 @@ package com.example.data
 
 import android.util.Log
 import com.example.data.mappers.toDomain
+import com.example.data.mappers.toDto
 import com.example.data.mappers.toEntity
 import com.example.data_firebase.StudentFirestoreSource
 import com.example.data_local.LessonDao
@@ -14,6 +15,7 @@ import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.domain.module.Student
 import com.example.domain.repository.StudyRepository
+import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
@@ -81,7 +83,7 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun syncPlaylists() {
         val lastPlaylistSync = versionStore.getLastPlaylistSync()
-        val playlists = studentFirestoreSource.getPlaylists(lastPlaylistSync)
+        val playlists = studentFirestoreSource.getUpdatedPlaylists(lastPlaylistSync)
 
         Log.d(TAG, "syncPlaylists: ${playlists.size}")
         if (playlists.isNotEmpty()) {
@@ -170,4 +172,27 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
 
+    // admin
+    override suspend fun getRemotePlaylistForLevel(levelId: String): List<Playlist> {
+        val playlists = studentFirestoreSource.getRemotePlaylistForLevel(levelId)
+        return playlists.map {
+            it.toDomain()
+        }
+    }
+
+    override suspend fun uploadPlaylist(playlist: Playlist): Flow<UploadResult> {
+        return studentFirestoreSource.uploadPlaylist(playlist.toDto())
+    }
+
+    override suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun uploadLesson(lesson: Lesson) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getRemoteLessonById(lessonId: String): Lesson {
+        TODO("Not yet implemented")
+    }
 }

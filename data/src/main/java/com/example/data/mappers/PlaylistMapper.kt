@@ -13,6 +13,26 @@ fun PlaylistDto.toEntity(): PlaylistEntity = PlaylistEntity(
     updatedAt = updatedAt.time
 )
 
+
+fun PlaylistDto.toDomain(): Playlist = Playlist(
+    id = id,
+    title = title,
+    levelId = levelId,
+    thumbnailUrl = thumbnailUrl,
+    order = order,
+    updatedAt = updatedAt
+)
+
+
+fun Playlist.toDto(): PlaylistDto = PlaylistDto(
+    id = id,
+    title = title,
+    levelId = levelId,
+    thumbnailUrl = thumbnailUrl,
+    order = order,
+    updatedAt = updatedAt
+)
+
 fun PlaylistEntity.toDomain(): Playlist = Playlist(
     id = id,
     title = title,
