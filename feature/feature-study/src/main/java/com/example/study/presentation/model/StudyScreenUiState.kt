@@ -1,6 +1,6 @@
 package com.example.study.presentation.model
 
-import com.example.study.domain.model.Student
+import com.example.domain.module.Student
 
 sealed interface StudyScreenUiState {
 

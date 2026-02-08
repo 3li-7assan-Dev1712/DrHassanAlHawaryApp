@@ -1,4 +1,4 @@
-package com.example.study.data
+package com.example.data
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext

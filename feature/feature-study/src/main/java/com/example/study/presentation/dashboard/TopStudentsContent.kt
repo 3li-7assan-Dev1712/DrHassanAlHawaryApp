@@ -23,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.core.ui.R
-import com.example.study.domain.model.LeaderboardStudent
+import com.example.domain.module.LeaderboardStudent
 
 @Composable
 fun TopStudentsContent(modifier: Modifier = Modifier) {

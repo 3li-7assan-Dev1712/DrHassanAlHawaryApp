@@ -1,6 +1,8 @@
-package com.example.study.data
+package com.example.data
 
 import android.util.Log
+import com.example.data.mappers.toDomain
+import com.example.data.mappers.toEntity
 import com.example.data_firebase.StudentFirestoreSource
 import com.example.data_local.LessonDao
 import com.example.data_local.LevelsDao
@@ -10,10 +12,8 @@ import com.example.data_local.StudentDao
 import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
-import com.example.study.data.mappers.toDomain
-import com.example.study.data.mappers.toEntity
-import com.example.study.domain.model.Student
-import com.example.study.domain.repository.StudyRepository
+import com.example.domain.module.Student
+import com.example.domain.repository.StudyRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
@@ -46,14 +46,23 @@ class StudyRepositoryImpl @Inject constructor(
         if (telegramId != null) {
             studentFirestoreSource.updateStudentConnectionStatus(telegramId, false)
             studentDao.deleteStudentByTelegramId(telegramId)
-        } else
-            throw NullPointerException("Student data is null")
+        }
     }
 
 
     override suspend fun saveStudentData(telegramId: Long) {
         Log.d(TAG, "saveStudentData: telegram id = $telegramId")
         val studentData = studentFirestoreSource.getStudentByTelegramId(telegramId)?.toEntity()
+        if (studentData != null) {
+            studentDao.storeStudent(studentData)
+        }
+
+
+    }
+
+    override suspend fun storeAdminDataToRoom(telegramId: Long) {
+        Log.d(TAG, "saveStudentData: telegram id = $telegramId")
+        val studentData = studentFirestoreSource.getAdminDataByTelegramId(telegramId)?.toEntity()
         if (studentData != null) {
             studentDao.storeStudent(studentData)
         }

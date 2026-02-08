@@ -1,4 +1,4 @@
-package com.example.study.presentation
+package com.example.admin.ui.institute_main
 
 import android.net.Uri
 import android.util.Log
@@ -7,8 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.study.DisconnectTelegramUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
-import com.example.domain.use_cases.study.StoreStudentDataUseCase
-import com.example.study.presentation.model.StudyScreenUiState
+import com.example.domain.use_cases.study.StoreAdminDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,40 +18,42 @@ import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
-class StudyViewModel @Inject constructor(
+class InstituteViewModel @Inject constructor(
     getStudentDataUseCase: GetStudentDataUseCase,
-    storeStudentDataUseCase: StoreStudentDataUseCase,
+    storeAdminDataUseCase: StoreAdminDataUseCase,
     private val disconnectTelegramUseCase: DisconnectTelegramUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val TAG = "InstituteViewModel"
 
-    val uiState: StateFlow<StudyScreenUiState> = getStudentDataUseCase()
+
+    val uiState: StateFlow<InstituteScreenUiState> = getStudentDataUseCase()
         .map { studentData ->
             if (studentData != null) {
-                StudyScreenUiState.StudentDashboard(studentData)
+                InstituteScreenUiState.AdminDashboard(studentData)
             } else {
-                StudyScreenUiState.Guest
+                InstituteScreenUiState.Guest
             }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             // The screen will show "Loading" on startup and while processing the deep link
-            initialValue = StudyScreenUiState.Loading,
+            initialValue = InstituteScreenUiState.Loading,
         )
-
 
 
     init {
         savedStateHandle.get<String>("data")?.let { encodedData ->
-            if (uiState.value !is StudyScreenUiState.StudentDashboard) {
+            Log.d(TAG, "data: $encodedData")
+            if (uiState.value !is InstituteScreenUiState.AdminDashboard) {
                 val json = Uri.decode(encodedData)
                 val user = JSONObject(json)
                 val telegramId = user.getLong("id")
                 Log.d("StudyViewModel", "telegram id: $telegramId")
                 viewModelScope.launch {
-                    storeStudentDataUseCase(telegramId)
+                    storeAdminDataUseCase(telegramId)
                 }
             }
         }

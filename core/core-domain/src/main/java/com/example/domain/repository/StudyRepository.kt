@@ -1,9 +1,9 @@
-package com.example.study.domain.repository
+package com.example.domain.repository
 
 import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
-import com.example.study.domain.model.Student
+import com.example.domain.module.Student
 import kotlinx.coroutines.flow.Flow
 
 interface StudyRepository {
@@ -12,6 +12,8 @@ interface StudyRepository {
     fun getStudentData(): Flow<Student?>
 
     suspend fun saveStudentData(telegramId: Long)
+
+    suspend fun storeAdminDataToRoom(telegramId: Long)
 
     suspend fun disconnectTelegram()
 

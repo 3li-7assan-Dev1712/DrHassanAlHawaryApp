@@ -2,6 +2,7 @@ package com.example.admin.ui.institute_main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,14 +18,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Announcement
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Announcement
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,17 +35,56 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.admin.ui.theme.HassanAlHawaryTheme
+import com.example.domain.module.Student
 
 @Composable
 fun InstituteMainScreen(
+    viewModel: InstituteViewModel = hiltViewModel(),
+    onUploadQuiz: () -> Unit,
+    onUploadAnnouncement: () -> Unit,
+    onLevelClick: (String) -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    when (val state = uiState) {
+        is InstituteScreenUiState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        }
+
+        is InstituteScreenUiState.AdminDashboard -> {
+            AdminDashboard(
+                student = state.studentData,
+                onUploadQuiz = onUploadQuiz,
+                onUploadAnnouncement = onUploadAnnouncement,
+                onLevelClick = onLevelClick
+            )
+        }
+
+        is InstituteScreenUiState.Guest -> {
+            GuestScreen()
+        }
+
+        else -> {}
+    }
+}
+
+@Composable
+fun AdminDashboard(
+    student: Student,
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onLevelClick: (String) -> Unit
@@ -58,9 +100,10 @@ fun InstituteMainScreen(
     ) {
         item {
             TelegramProfileHeader(
-                name = "Hassan Al-Hawary",
-                username = "@hassan.alhawary",
-                photoUrl = "" // Placeholder for a real image URL
+                name = student.name,
+                username = "@${student.username}",
+                photoUrl = student.photoUrl,
+                membershipState = student.membershipState
             )
         }
 
@@ -77,7 +120,7 @@ fun InstituteMainScreen(
                 )
                 UploadActionCard(
                     title = "Upload Announcement",
-                    icon = Icons.Default.Announcement,
+                    icon = Icons.AutoMirrored.Default.Announcement,
                     onClick = onUploadAnnouncement,
                     modifier = Modifier.weight(1f)
                 )
@@ -103,10 +146,27 @@ fun InstituteMainScreen(
 }
 
 @Composable
+fun GuestScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "You are not allowed to upload admin data.",
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun TelegramProfileHeader(
     name: String,
     username: String,
-    photoUrl: String
+    photoUrl: String,
+    membershipState: String
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -149,10 +209,12 @@ fun TelegramProfileHeader(
                 Spacer(Modifier.height(8.dp))
                 AssistChip(
                     onClick = { /* No-op */ },
-                    label = { Text("Admin") },
+                    label = { Text("#$membershipState") },
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Verified,
+                            if (membershipState == "creator" || membershipState == "administrator")
+                                Icons.Default.Verified else
+                                    Icons.Default.ErrorOutline,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
@@ -238,7 +300,26 @@ fun LevelListItem(
 private fun InstituteMainScreenPreview() {
     HassanAlHawaryTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            InstituteMainScreen({}, {}, {})
+            val student = Student(
+                telegramId = 123,
+                name = "Hassan Al-Hawary",
+                username = "hassan.alhawary",
+                photoUrl = "",
+                isCourseMember = true,
+                membershipState = "admin",
+                isConnectedToTelegram = false
+            )
+            AdminDashboard(student, {}, {}, {})
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360)
+@Composable
+private fun GuestScreenPreview() {
+    HassanAlHawaryTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            GuestScreen()
         }
     }
 }

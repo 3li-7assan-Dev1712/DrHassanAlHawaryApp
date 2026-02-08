@@ -1,4 +1,4 @@
-package com.example.study.domain.model
+package com.example.domain.module
 
 data class Student(
     val telegramId: Long,
@@ -6,5 +6,6 @@ data class Student(
     val username: String,
     val photoUrl: String,
     val isCourseMember: Boolean,
+    val membershipState: String,
     val isConnectedToTelegram: Boolean
 )

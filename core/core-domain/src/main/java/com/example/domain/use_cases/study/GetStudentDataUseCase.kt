@@ -1,7 +1,7 @@
-package com.example.study.domain.use_case
+package com.example.domain.use_cases.study
 
-import com.example.study.domain.model.Student
-import com.example.study.domain.repository.StudyRepository
+import com.example.domain.module.Student
+import com.example.domain.repository.StudyRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

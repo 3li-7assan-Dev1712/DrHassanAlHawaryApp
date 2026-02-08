@@ -74,7 +74,7 @@ import coil.compose.AsyncImage
 import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Level
-import com.example.study.domain.model.Student
+import com.example.domain.module.Student
 import com.example.study.presentation.model.DashboardSection
 import com.example.study.presentation.model.DashboardUiState
 

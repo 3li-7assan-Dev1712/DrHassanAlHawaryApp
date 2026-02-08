@@ -8,5 +8,6 @@ data class StudentDto(
     val username: String = "",
     val photoUrl: String = "",
     val isChannelMember: Boolean = false,
+    val membershipState: String = "",
     val isConnectedToTelegram: Boolean = false
 )

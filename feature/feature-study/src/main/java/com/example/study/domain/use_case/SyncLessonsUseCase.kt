@@ -1,6 +1,6 @@
 package com.example.study.domain.use_case
 
-import com.example.study.domain.repository.StudyRepository
+import com.example.domain.repository.StudyRepository
 import javax.inject.Inject
 
 class SyncLessonsUseCase @Inject constructor(

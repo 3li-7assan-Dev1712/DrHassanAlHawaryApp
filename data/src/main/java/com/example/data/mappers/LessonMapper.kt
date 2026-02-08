@@ -1,4 +1,4 @@
-package com.example.study.data.mappers
+package com.example.data.mappers
 
 import com.example.data_firebase.model.LessonDto
 import com.example.data_local.model.LessonEntity

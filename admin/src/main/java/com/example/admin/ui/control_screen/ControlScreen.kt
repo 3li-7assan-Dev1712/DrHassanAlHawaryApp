@@ -38,7 +38,7 @@ fun ControlScreen(onNavigate: (String) -> Unit) {
             ControlPanelItem("Audio", R.drawable.audios_icon, "audios_upload"),
             ControlPanelItem("Images", R.drawable.images_icon, "images_upload"),
             ControlPanelItem("Video", R.drawable.videos_icon, "videos_upload"),
-            ControlPanelItem("Institute", R.drawable.student_icon, "institute_upload")
+            ControlPanelItem("Institute", R.drawable.student_icon, "telegram_login")
         )
     }
 

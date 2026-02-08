@@ -12,5 +12,6 @@ data class StudentEntity(
     val username: String,
     val photoUrl: String,
     val isChannelMember: Boolean,
+    val membershipState: String,
     val isConnectedToTelegram: Boolean
 )

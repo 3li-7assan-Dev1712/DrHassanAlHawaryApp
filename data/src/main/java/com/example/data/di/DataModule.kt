@@ -6,6 +6,7 @@ import com.example.data.AuthRepositoryImpl
 import com.example.data.DataStoreRepositoryImpl
 import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
+import com.example.data.StudyRepositoryImpl
 import com.example.data.VideosRepositoryImpl
 import com.example.data.WisdomRepositoryImpl
 import com.example.domain.repository.ArticlesRepository
@@ -14,6 +15,7 @@ import com.example.domain.repository.AuthRepository
 import com.example.domain.repository.DataStoreRepository
 import com.example.domain.repository.ImagesRepository
 import com.example.domain.repository.NetworkRepository
+import com.example.domain.repository.StudyRepository
 import com.example.domain.repository.VideosRepository
 import com.example.domain.repository.WisdomRepository
 import dagger.Binds
@@ -72,6 +74,12 @@ abstract class DataModule {
         dataStoreRepositoryImpl: DataStoreRepositoryImpl
     ): DataStoreRepository
 
+
+    @Binds
+    @Singleton
+    abstract fun bindStudyRepository(
+        studyRepository: StudyRepositoryImpl
+    ): StudyRepository
 
 }
 

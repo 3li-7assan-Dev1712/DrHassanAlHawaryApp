@@ -1,4 +1,4 @@
-package com.example.study.domain.model
+package com.example.domain.module
 
 data class LeaderboardStudent(
     val rank: Int,

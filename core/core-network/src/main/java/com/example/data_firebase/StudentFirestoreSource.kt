@@ -17,6 +17,7 @@ class StudentFirestoreSource @Inject constructor(
 
     private val TAG = "StudentFirestoreSource"
     private val studentsCollection = firestore.collection("students")
+    private val adminCollection = firestore.collection("admins")
 
     suspend fun storeStudent(studentDto: StudentDto) {
         try {
@@ -39,8 +40,30 @@ class StudentFirestoreSource @Inject constructor(
                 username = document.getString("username") ?: "",
                 photoUrl = document.getString("photoUrl") ?: "",
                 isChannelMember = document.getBoolean("isChannelMember") ?: false,
+                membershipState = document.getString("membershipState") ?: "",
                 isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
             )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting student by telegramId: $telegramId", e)
+            null // Return null on error so the app doesn't crash
+        }
+    }
+
+    suspend fun getAdminDataByTelegramId(telegramId: Long): StudentDto? {
+        return try {
+            val document = adminCollection.document(telegramId.toString()).get().await()
+            val dto = StudentDto(
+                id = document.getLong("id") ?: 0,
+                firstName = document.getString("firstName") ?: "",
+                lastName = document.getString("lastName") ?: "",
+                username = document.getString("username") ?: "",
+                photoUrl = document.getString("photoUrl") ?: "",
+                isChannelMember = document.getBoolean("isChannelMember") ?: false,
+                membershipState = document.getString("membershipState") ?: "",
+                isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
+            )
+            Log.d(TAG, "getAdminDataByTelegramId: name: ${dto.firstName} -- ${dto.membershipState} ")
+            dto
         } catch (e: Exception) {
             Log.e(TAG, "Error getting student by telegramId: $telegramId", e)
             null // Return null on error so the app doesn't crash
