@@ -7,6 +7,7 @@ import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.StudentDto
 import com.example.domain.use_cases.audios.UploadResult
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.FirebaseStorage
@@ -18,14 +19,12 @@ import java.util.Date
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
-    val firestore: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    val firestore: FirebaseFirestore, private val storage: FirebaseStorage
 ) {
 
     private val TAG = "StudentFirestoreSource"
     private val studentsCollection = firestore.collection("students")
     private val adminCollection = firestore.collection("admins")
-
 
 
     suspend fun storeStudent(studentDto: StudentDto) {
@@ -72,8 +71,7 @@ class StudentFirestoreSource @Inject constructor(
                 isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
             )
             Log.d(
-                TAG,
-                "getAdminDataByTelegramId: name: ${dto.firstName} -- ${dto.membershipState} "
+                TAG, "getAdminDataByTelegramId: name: ${dto.firstName} -- ${dto.membershipState} "
             )
             dto
         } catch (e: Exception) {
@@ -85,8 +83,7 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun updateStudentConnectionStatus(telegramId: Long, isConnected: Boolean) {
         try {
             studentsCollection.document(telegramId.toString())
-                .update("isConnectedToTelegram", isConnected)
-                .await()
+                .update("isConnectedToTelegram", isConnected).await()
         } catch (e: Exception) {
             Log.e(TAG, "Error updating student connection status for id: $telegramId", e)
             throw e // Re-throw to be handled by the repository
@@ -142,6 +139,30 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getRemotePlaylistById(playlistId: String): PlaylistDto? {
+        return try {
+            val doc = firestore.collection("playlists")
+                .document(playlistId)
+                .get()
+                .await()
+
+            if (!doc.exists()) return null
+
+            PlaylistDto(
+                id = doc.getString("id") ?: doc.id,
+                title = doc.getString("title") ?: "",
+                levelId = doc.getString("levelId") ?: "",
+                order = doc.getLong("order")?.toInt() ?: 0,
+                thumbnailUrl = doc.getString("thumbnailUrl") ?: "",
+                updatedAt = doc.getDate("updatedAt") ?: Date()
+            )
+        } catch (e: Exception) {
+            Log.d(TAG, "getRemotePlaylistById error: ${e.message}", e)
+            null
+        }
+    }
+
+
 
     fun uploadPlaylist(playlistDto: PlaylistDto): Flow<UploadResult> {
 
@@ -161,13 +182,13 @@ class StudentFirestoreSource @Inject constructor(
                     imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
 
 
+                val playlistsRef = firestore.collection("playlists").document()
+                val newDocumentId = playlistsRef.id
                 val playlistToUpload = playlistDto.copy(
-                    thumbnailUrl = downloadUrl
+                    id = newDocumentId, thumbnailUrl = downloadUrl
                 )
 
-                // Add the main group doc
-                val groupDocRef = firestore.collection("playlists").document()
-                groupDocRef.set(playlistToUpload).await()
+                playlistsRef.set(playlistToUpload).await()
 
                 trySend(UploadResult.Progress(100))
                 trySend(UploadResult.Success)
@@ -189,11 +210,55 @@ class StudentFirestoreSource @Inject constructor(
     }
 
 
+    suspend fun updatePlaylist(
+        playlistId: String,
+        newTitle: String? = null,
+        newLevelId: String? = null,
+        newOrder: Int? = null,
+        newThumbnailLocalOrRemote: String? = null
+    ): Result<String> {
+        return try {
+
+            val playlistDoc = firestore.collection("playlists").document(playlistId)
+
+            // Upload new thumbnail if user picked a local uri, otherwise keep remote url as-is
+            val finalThumbnailUrl = when {
+                newThumbnailLocalOrRemote.isNullOrBlank() -> null
+                newThumbnailLocalOrRemote.startsWith("http") -> newThumbnailLocalOrRemote
+                else -> {
+                    val uri = newThumbnailLocalOrRemote.toUri()
+                    val imageRef =
+                        storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
+                    imageRef.putFile(uri).await()
+                    imageRef.downloadUrl.await().toString()
+                }
+            }
+
+            Log.d(TAG, "updatePlaylist: $newThumbnailLocalOrRemote")
+            //  Build a partial update map (only update provided fields)
+            val updates = hashMapOf<String, Any>()
+            newTitle?.let { updates["title"] = it }
+            newLevelId?.let { updates["levelId"] = it }
+            newOrder?.let { updates["order"] = it }
+            finalThumbnailUrl?.let { updates["thumbnailUrl"] = it }
+            updates["updatedAt"] = FieldValue.serverTimestamp()
+
+            //  Update
+            if (updates.isNotEmpty()) {
+                playlistDoc.update(updates).await()
+            }
+            Result.success("Playlist updated successfully")
+        } catch (e: Exception) {
+            Log.d(TAG, "updatePlaylist: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
     suspend fun getUpdatedLessons(lastLessonSync: Long): List<LessonDto> {
         return try {
             Log.d(TAG, "getPlaylists: last time: $lastLessonSync ${Date(lastLessonSync)}")
-            val lessonsCollection = firestore.collection("lessons")
-                .whereGreaterThan("updatedAt", Date(lastLessonSync))
+            val lessonsCollection =
+                firestore.collection("lessons").whereGreaterThan("updatedAt", Date(lastLessonSync))
 
             val snapshot = lessonsCollection.get().await()
             snapshot.mapNotNull { document ->

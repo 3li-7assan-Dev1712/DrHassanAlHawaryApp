@@ -21,7 +21,8 @@ class AdminPlaylistViewModel @Inject constructor(
 
 //    val levelId = "savedStateHandle.get<String>("levelId")"
 
-    val levelId = "level_1" // just for test now, I will change it later
+    val levelId: String? = savedStateHandle["levelId"]
+
     val _uiState = MutableStateFlow<AdminPlaylistUiState>(AdminPlaylistUiState.Loading)
 
     val uiState = _uiState.asStateFlow()

@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -16,7 +15,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
@@ -26,14 +24,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.example.admin.ui.MainActivityState
-import com.example.admin.ui.MainActivityViewModel
 import com.example.admin.ui.add_edit_lesson.AddEditLessonScreen
 import com.example.admin.ui.add_edit_lesson.LessonsScreen
-import com.example.admin.ui.connect_telegram.ConnectTelegramScreen
+import com.example.admin.ui.add_edit_playlist.AddEditPlaylistScreen
 import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.institute_main.InstituteMainScreen
-import com.example.admin.ui.playlist.AddEditPlaylistScreen
 import com.example.admin.ui.playlist.PlaylistScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
@@ -47,11 +42,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 @ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
-
-
-    private val mainActivityViewModel: MainActivityViewModel by viewModels()
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -60,7 +50,6 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
-                val state: MainActivityState by mainActivityViewModel.state.collectAsState()
 
                 val topBarTitle = when (currentRoute) {
                     "control_screen" -> "Admin Control Panel"
@@ -68,7 +57,7 @@ class MainActivity : ComponentActivity() {
                     "audios_upload" -> "Upload Audio"
                     "videos_upload" -> "Upload Video"
                     "images_upload" -> "Upload Images"
-                    "telegram_login" -> "Institute Management"
+                    "telegram_login", "telegram_login?data={data}" -> "Institute Management"
                     "upload_quiz" -> "Upload Quiz"
                     "upload_announcement" -> "Upload Announcement"
                     "playlists/{levelName}" -> navBackStackEntry?.arguments?.getString("levelName")
@@ -114,21 +103,9 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable("control_screen") {
-                            ControlScreen { route ->
-                                if (route == "telegram_login") {
-                                    if (state.isAdminConnectedToTelegram) {
-                                        navController.navigate(route)
-                                    } else {
-                                        navController.navigate("connect_telegram")
-
-                                    }
-                                } else {
-                                    navController.navigate(route)
-                                }
+                            ControlScreen {
+                                navController.navigate(it)
                             }
-                        }
-                        composable("connect_telegram") {
-                            ConnectTelegramScreen()
                         }
                         composable("articles_upload") {
                             ArticleUploadScreen {
@@ -170,19 +147,7 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("playlists/$levelName")
                                 }
                             )
-
                         }
-
-
-                        /*composable("institute_upload") {
-                            InstituteMainScreen(
-                                onUploadQuiz = { navController.navigate("upload_quiz") },
-                                onUploadAnnouncement = { navController.navigate("upload_announcement") },
-                                onLevelClick = { levelName ->
-                                    navController.navigate("playlists/$levelName")
-                                }
-                            )
-                        }*/
                         composable("upload_quiz") {
                             UploadQuizScreen()
                         }
@@ -190,17 +155,17 @@ class MainActivity : ComponentActivity() {
                             UploadAnnouncementScreen()
                         }
                         composable(
-                            route = "playlists/{levelName}",
-                            arguments = listOf(navArgument("levelName") {
+                            route = "playlists/{levelId}",
+                            arguments = listOf(navArgument("levelId") {
                                 type = NavType.StringType
                             })
                         ) {
-                            val levelName = it.arguments?.getString("levelName") ?: ""
+                            val levelId = it.arguments?.getString("levelId") ?: ""
                             PlaylistScreen(
-                                levelName = levelName,
-                                onAddPlaylist = { navController.navigate("add_edit_playlist") },
+                                levelName = levelId,
+                                onAddPlaylist = { navController.navigate("add_edit_playlist?levelId=$levelId") },
                                 onEditPlaylist = { playlistId ->
-                                    navController.navigate("add_edit_playlist?playlistId=$playlistId")
+                                    navController.navigate("add_edit_playlist?levelId=$levelId&playlistId=$playlistId")
                                 },
                                 onPlaylistClick = { playlistId ->
                                     navController.navigate("lessons/$playlistId")
@@ -223,13 +188,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(
-                            route = "add_edit_playlist?playlistId={playlistId}",
-                            arguments = listOf(navArgument("playlistId") {
-                                type = NavType.StringType; nullable = true
-                            })
+                            route = "add_edit_playlist?levelId={levelId}&playlistId={playlistId}",
+                            arguments = listOf(
+                                navArgument("playlistId") {
+                                    type = NavType.StringType; nullable = true
+                                },
+                                navArgument("levelId") {
+                                    type = NavType.StringType; nullable = true
+                                }
+
+                            )
                         ) {
-                            val playlistId = it.arguments?.getString("playlistId")
-                            AddEditPlaylistScreen(playlistId = playlistId)
+                            AddEditPlaylistScreen {
+                                navController.popBackStack()
+                            }
                         }
                         composable(
                             route = "add_edit_lesson?lessonId={lessonId}",
@@ -237,13 +209,10 @@ class MainActivity : ComponentActivity() {
                                 type = NavType.StringType; nullable = true
                             })
                         ) {
-                            val lessonId = it.arguments?.getString("lessonId")
-                            AddEditLessonScreen(lessonId = lessonId) {
+                            AddEditLessonScreen(lessonId = it.arguments?.getString("lessonId")) {
                                 navController.popBackStack()
                             }
                         }
-
-
                     }
                 }
             }

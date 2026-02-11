@@ -40,20 +40,25 @@ interface StudyRepository {
     suspend fun ensureLessonFilesDownloaded(id: String)
 
 
+    suspend fun updatePlaylist(
+        playlistId: String,
+        newTitle: String,
+        newLevelId: String,
+        newOrder: Int,
+        newThumbnailLocalOrRemote: String?
+    ): Result<String>
 
 
     // admin
 
     suspend fun getRemotePlaylistForLevel(levelId: String): List<Playlist>
-    suspend fun uploadPlaylist(playlist: Playlist) : Flow<UploadResult>
+    suspend fun uploadPlaylist(playlist: Playlist): Flow<UploadResult>
 
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson>
     suspend fun uploadLesson(lesson: Lesson)
 
     suspend fun getRemoteLessonById(lessonId: String): Lesson
-
-
-
+    suspend fun getRemotePlaylistById(playlistId: String): Playlist?
 
 
 }

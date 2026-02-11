@@ -180,8 +180,30 @@ class StudyRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getRemotePlaylistById(playlistId: String): Playlist? {
+
+        return studentFirestoreSource.getRemotePlaylistById(playlistId)?.toDomain()
+    }
+
     override suspend fun uploadPlaylist(playlist: Playlist): Flow<UploadResult> {
         return studentFirestoreSource.uploadPlaylist(playlist.toDto())
+    }
+
+
+    override suspend fun updatePlaylist(
+        playlistId: String,
+        newTitle: String,
+        newLevelId: String,
+        newOrder: Int,
+        newThumbnailLocalOrRemote: String?
+    ): Result<String> {
+        return studentFirestoreSource.updatePlaylist(
+            playlistId = playlistId,
+            newTitle = newTitle,
+            newLevelId = newLevelId,
+            newOrder = newOrder,
+            newThumbnailLocalOrRemote = newThumbnailLocalOrRemote
+        )
     }
 
     override suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson> {
