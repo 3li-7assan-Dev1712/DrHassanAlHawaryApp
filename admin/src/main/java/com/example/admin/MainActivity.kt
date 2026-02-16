@@ -25,10 +25,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.admin.ui.add_edit_lesson.AddEditLessonScreen
-import com.example.admin.ui.add_edit_lesson.LessonsScreen
 import com.example.admin.ui.add_edit_playlist.AddEditPlaylistScreen
 import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.institute_main.InstituteMainScreen
+import com.example.admin.ui.lessons.LessonsScreen
 import com.example.admin.ui.playlist.PlaylistScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen

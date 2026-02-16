@@ -1,4 +1,4 @@
-package com.example.admin.ui.add_edit_lesson
+package com.example.admin.ui.lessons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,30 +23,32 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.admin.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.animation.LoadingScreen
+import com.example.domain.module.Lesson
 
 // A simple data class for demonstration
-data class Lesson(
-    val id: String,
-    val title: String,
-    val duration: String
-)
 
 @Composable
 fun LessonsScreen(
     playlistId: String,
     onAddLesson: () -> Unit,
+    lessonsViewModel: AdminLessonsViewModel = hiltViewModel(),
     onEditLesson: (String) -> Unit
 ) {
-    // Dummy data for preview and demonstration
-    val lessons = List(10) {
-        Lesson(id = "$it", title = "Lesson ${it + 1}", duration = "${it + 5}:00")
-    }
+
+
+    val state by lessonsViewModel.uiState.collectAsState()
+
+
 
     Scaffold(
         floatingActionButton = {
@@ -55,20 +57,35 @@ fun LessonsScreen(
             }
         }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(lessons) { lesson ->
-                LessonItem(
-                    lesson = lesson,
-                    onEditClick = { onEditLesson(lesson.id) }
-                )
+
+        when (state) {
+            is AdminLessonsUiState.Error -> {
+                Text(text = (state as AdminLessonsUiState.Error).message)
+            }
+
+            AdminLessonsUiState.Loading -> {
+                LoadingScreen()
+            }
+
+            is AdminLessonsUiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(it)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items((state as AdminLessonsUiState.Success).lessons) { lesson ->
+                        LessonItem(
+                            lesson = lesson,
+                            onEditClick = { onEditLesson(lesson.id) }
+                        )
+                    }
+                }
             }
         }
+
+
     }
 }
 

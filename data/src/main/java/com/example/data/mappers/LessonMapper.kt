@@ -19,6 +19,24 @@ fun LessonDto.toEntity(): LessonEntity = LessonEntity(
     updatedAt = updatedAt.time
 )
 
+fun LessonDto.toDomain(): Lesson = Lesson(
+    id = id,
+    title = title,
+    audioUrl = audioUrl,
+    pdfUrl = pdfUrl,
+    duration = formatDuration(duration),
+)
+
+fun Lesson.toDto(
+    playlistId: String,
+    order: Int
+): LessonDto = LessonDto(
+    id = id,
+    title = title,
+    order = order,
+    playlistId = playlistId
+)
+
 fun LessonEntity.toDomain(): Lesson = Lesson(
     id = id,
     title = title,

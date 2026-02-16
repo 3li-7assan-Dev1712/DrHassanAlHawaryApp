@@ -139,6 +139,34 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<LessonDto> {
+        return try {
+            val lessonsCollection =
+                firestore.collection("lessons").whereEqualTo("playlistId", playlistId)
+
+            val snapshot = lessonsCollection.get().await()
+            snapshot.mapNotNull { document ->
+
+                val dto = document.toObject<LessonDto>()
+                Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
+                dto
+                /* val dto = LessonDto(
+                     id = document.getString("id") ?: "",
+                     title = document.getString("title") ?: "",
+                     playlistId = document.getString("playlistId") ?: "",
+                     order = document.getLong("order")?.toInt() ?: 0,
+                     audioUrl = document.getString("audioRemoteUrl") ?: "",
+                     duration = ,
+                     pdfUrl = document.getString("audioFilePath") ?: "",
+                     updatedAt = document.getDate("updatedAt") ?: Date()
+                 )*/
+
+            }
+        } catch (e: Exception) {
+            emptyList() // Return an empty list on error
+        }
+    }
+
     suspend fun getRemotePlaylistById(playlistId: String): PlaylistDto? {
         return try {
             val doc = firestore.collection("playlists")
@@ -162,6 +190,21 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getRemoteLessonById(lessonId: String): LessonDto? {
+        return try {
+            val doc = firestore.collection("lessons")
+                .document(lessonId)
+                .get()
+                .await()
+
+            if (!doc.exists()) return null
+
+            doc.toObject<LessonDto>()
+        } catch (e: Exception) {
+            Log.d(TAG, "getRemotePlaylistById error: ${e.message}", e)
+            null
+        }
+    }
 
 
     fun uploadPlaylist(playlistDto: PlaylistDto): Flow<UploadResult> {
@@ -198,6 +241,52 @@ class StudentFirestoreSource @Inject constructor(
 
 
                 trySend(UploadResult.Progress(100))
+
+            } catch (e: Exception) {
+                trySend(UploadResult.Error("Failed to upload image: ${e.message}"))
+                close(); return@callbackFlow
+            }
+
+
+        }
+
+    }
+
+    fun addLesson(lessonDto: LessonDto): Flow<UploadResult> {
+
+        return callbackFlow {
+            if (lessonDto.audioUrl.isEmpty() || lessonDto.pdfUrl.isEmpty()) {
+                trySend(UploadResult.Error("No files to upload."))
+                close(); return@callbackFlow
+            }
+            trySend(UploadResult.Progress(0))
+
+            try {
+
+                val audioUri = lessonDto.audioUrl.toUri()
+                val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
+                val audioDownloadUrl =
+                    audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
+                trySend(UploadResult.Progress(45))
+
+                val pdfUri = lessonDto.pdfUrl.toUri()
+                val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
+                val pdfDownloadUrl =
+                    pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
+                trySend(UploadResult.Progress(90))
+
+                val lessonRef = firestore.collection("lessons").document()
+                val newDocumentId = lessonRef.id
+                val lessonToUpload = lessonDto.copy(
+                    id = newDocumentId, audioUrl = audioDownloadUrl, pdfUrl = pdfDownloadUrl
+                )
+                lessonRef.set(lessonToUpload).await()
+
+                trySend(UploadResult.Progress(100))
+                trySend(UploadResult.Success)
+                close()
+
+                awaitClose { }
 
             } catch (e: Exception) {
                 trySend(UploadResult.Error("Failed to upload image: ${e.message}"))
@@ -250,6 +339,79 @@ class StudentFirestoreSource @Inject constructor(
             Result.success("Playlist updated successfully")
         } catch (e: Exception) {
             Log.d(TAG, "updatePlaylist: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun deleteFileByUrl(fileUrl: String): Boolean {
+        val storage = FirebaseStorage.getInstance()
+        val ref = storage.getReferenceFromUrl(fileUrl)
+
+        ref.delete().await().also {
+            Log.d(TAG, "deleteFileByUrl: success")
+            return true
+        }
+
+    }
+
+
+    suspend fun updateLesson(
+        lessonId: String,
+        newTitle: String? = null,
+        newOrder: Int? = null,
+        localAudioUrl: String? = null,
+        remoteAudioUrl: String,
+        localPdfUrl: String? = null,
+        remotePdfUrl: String
+    ): Result<String> {
+        return try {
+
+            val lessonDoc = firestore.collection("lessons").document(lessonId)
+
+            var newRemoteAudioUrl: String? = null
+            var newRemotePdfUrl: String? = null
+            // Upload new thumbnail if user picked a local uri, otherwise keep remote url as-is
+            if (!localAudioUrl.isNullOrBlank() && remoteAudioUrl.isNotBlank()) {
+                // delete old and upload new
+                val success = deleteFileByUrl(remoteAudioUrl)
+                if (success) {
+                    val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
+                    val uri = localAudioUrl.toUri()
+                    audioRef.putFile(uri).await()
+                    audioRef.downloadUrl.await().toString()
+                    newRemoteAudioUrl = uri.toString()
+                }
+            }
+            if (!localPdfUrl.isNullOrBlank() && remotePdfUrl.isNotBlank()) {
+                // delete old and upload new
+                val success = deleteFileByUrl(remotePdfUrl)
+                if (success) {
+                    val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
+                    val uri = localPdfUrl.toUri()
+                    pdfRef.putFile(uri).await()
+                    pdfRef.downloadUrl.await().toString()
+                    newRemotePdfUrl = uri.toString()
+                }
+            }
+
+
+            Log.d(TAG, "update lesson: $localAudioUrl")
+            //  Build a partial update map (only update provided fields)
+            val updates = hashMapOf<String, Any>()
+            newTitle?.let { updates["title"] = it }
+            newOrder?.let { updates["order"] = it }
+            newRemoteAudioUrl?.let { updates["audioUrl"] = it }
+            newRemotePdfUrl?.let { updates["pdf"] = it }
+            updates["updatedAt"] = FieldValue.serverTimestamp()
+
+            //  Update
+            if (updates.isNotEmpty()) {
+                lessonDoc.update(updates).await()
+            }
+            Result.success("lesson updated successfully")
+        } catch (e: Exception) {
+            Log.d(TAG, "update lesson: ${e.message}")
             Result.failure(e)
         }
     }

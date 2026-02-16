@@ -40,7 +40,7 @@ fun AddEditLessonScreen(
     var pdfFileName by remember { mutableStateOf<String?>(null) }
     var audioFileName by remember { mutableStateOf<String?>(null) }
 
-    // In a real app, you would fetch the lesson details if lessonId is not null
+
 
     Scaffold(
         floatingActionButton = {

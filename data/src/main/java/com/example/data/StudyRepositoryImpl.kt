@@ -207,14 +207,44 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson> {
-        TODO("Not yet implemented")
+        val lessons = studentFirestoreSource.getRemoteLessonsForPlaylist(playlistId)
+        return lessons.map {
+            it.toDomain()
+        }
     }
 
-    override suspend fun uploadLesson(lesson: Lesson) {
-        TODO("Not yet implemented")
+    override suspend fun updateLesson(
+        lesson: Lesson,
+        order: Int,
+        localAudioUrl: String?,
+        localPdfUrl: String?
+    ): Result<String> {
+        return studentFirestoreSource.updateLesson(
+            newTitle = lesson.title,
+            newOrder = order,
+            localAudioUrl = localAudioUrl,
+            localPdfUrl = localPdfUrl,
+            remoteAudioUrl = lesson.audioUrl,
+            remotePdfUrl = lesson.pdfUrl,
+            lessonId = lesson.id
+        )
     }
 
-    override suspend fun getRemoteLessonById(lessonId: String): Lesson {
-        TODO("Not yet implemented")
+    override suspend fun addLesson(
+        lesson: Lesson,
+        playlistId: String,
+        order: Int
+    ): Flow<UploadResult> {
+        return studentFirestoreSource.addLesson(
+            lesson.toDto(
+                playlistId = playlistId,
+                order = order
+            )
+        )
+    }
+
+    override suspend fun getRemoteLessonById(lessonId: String): Lesson? {
+        val lesson = studentFirestoreSource.getRemoteLessonById(lessonId)
+        return lesson?.toDomain()
     }
 }
