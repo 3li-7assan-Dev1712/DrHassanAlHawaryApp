@@ -14,12 +14,10 @@ class AddLessonUseCase @Inject constructor(
     suspend operator fun invoke(
         lesson: Lesson,
         playlistId: String,
-        order: Int
     ): Flow<UploadResult> {
         return studyRepository.addLesson(
             lesson,
             playlistId,
-            order
         )
 
     }

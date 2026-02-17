@@ -215,13 +215,12 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun updateLesson(
         lesson: Lesson,
-        order: Int,
         localAudioUrl: String?,
         localPdfUrl: String?
     ): Result<String> {
         return studentFirestoreSource.updateLesson(
             newTitle = lesson.title,
-            newOrder = order,
+            newOrder = lesson.order,
             localAudioUrl = localAudioUrl,
             localPdfUrl = localPdfUrl,
             remoteAudioUrl = lesson.audioUrl,
@@ -233,13 +232,13 @@ class StudyRepositoryImpl @Inject constructor(
     override suspend fun addLesson(
         lesson: Lesson,
         playlistId: String,
-        order: Int
     ): Flow<UploadResult> {
+        Log.d(TAG, "addLesson: playlistId: $playlistId")
         return studentFirestoreSource.addLesson(
             lesson.toDto(
-                playlistId = playlistId,
-                order = order
-            )
+
+            ),
+            playlistId = playlistId,
         )
     }
 

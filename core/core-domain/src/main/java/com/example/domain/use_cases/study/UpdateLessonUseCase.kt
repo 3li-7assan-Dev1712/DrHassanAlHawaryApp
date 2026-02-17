@@ -11,14 +11,12 @@ class UpdateLessonUseCase @Inject constructor(
 
     suspend operator fun invoke(
         lesson: Lesson,
-        order: Int,
         localAudioUrl: String?,
         localPdfUrl: String?
 
     ): Result<String> {
         return studyRepository.updateLesson(
             lesson,
-            order,
             localAudioUrl,
             localPdfUrl
         )

@@ -252,7 +252,7 @@ class StudentFirestoreSource @Inject constructor(
 
     }
 
-    fun addLesson(lessonDto: LessonDto): Flow<UploadResult> {
+    fun addLesson(lessonDto: LessonDto, playlistId: String): Flow<UploadResult> {
 
         return callbackFlow {
             if (lessonDto.audioUrl.isEmpty() || lessonDto.pdfUrl.isEmpty()) {
@@ -278,7 +278,7 @@ class StudentFirestoreSource @Inject constructor(
                 val lessonRef = firestore.collection("lessons").document()
                 val newDocumentId = lessonRef.id
                 val lessonToUpload = lessonDto.copy(
-                    id = newDocumentId, audioUrl = audioDownloadUrl, pdfUrl = pdfDownloadUrl
+                    id = newDocumentId, audioUrl = audioDownloadUrl, pdfUrl = pdfDownloadUrl, playlistId = playlistId
                 )
                 lessonRef.set(lessonToUpload).await()
 
@@ -361,60 +361,61 @@ class StudentFirestoreSource @Inject constructor(
         newTitle: String? = null,
         newOrder: Int? = null,
         localAudioUrl: String? = null,
-        remoteAudioUrl: String,
+        remoteAudioUrl: String? = null,
         localPdfUrl: String? = null,
-        remotePdfUrl: String
+        remotePdfUrl: String? = null
     ): Result<String> {
         return try {
-
             val lessonDoc = firestore.collection("lessons").document(lessonId)
 
-            var newRemoteAudioUrl: String? = null
-            var newRemotePdfUrl: String? = null
-            // Upload new thumbnail if user picked a local uri, otherwise keep remote url as-is
-            if (!localAudioUrl.isNullOrBlank() && remoteAudioUrl.isNotBlank()) {
-                // delete old and upload new
-                val success = deleteFileByUrl(remoteAudioUrl)
-                if (success) {
-                    val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
-                    val uri = localAudioUrl.toUri()
-                    audioRef.putFile(uri).await()
-                    audioRef.downloadUrl.await().toString()
-                    newRemoteAudioUrl = uri.toString()
-                }
-            }
-            if (!localPdfUrl.isNullOrBlank() && remotePdfUrl.isNotBlank()) {
-                // delete old and upload new
-                val success = deleteFileByUrl(remotePdfUrl)
-                if (success) {
-                    val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
-                    val uri = localPdfUrl.toUri()
-                    pdfRef.putFile(uri).await()
-                    pdfRef.downloadUrl.await().toString()
-                    newRemotePdfUrl = uri.toString()
-                }
-            }
-
-
-            Log.d(TAG, "update lesson: $localAudioUrl")
-            //  Build a partial update map (only update provided fields)
             val updates = hashMapOf<String, Any>()
+
+            // ---- AUDIO ----
+            var uploadedAudioUrl: String? = null
+            if (!localAudioUrl.isNullOrBlank()) {
+                val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
+                val localUri = localAudioUrl.toUri()
+
+                audioRef.putFile(localUri).await()
+                uploadedAudioUrl = audioRef.downloadUrl.await().toString()
+                updates["audioUrl"] = uploadedAudioUrl
+            }
+
+            // delete old audio AFTER successful upload
+            if (!uploadedAudioUrl.isNullOrBlank() && !remoteAudioUrl.isNullOrBlank()) {
+                runCatching { deleteFileByUrl(remoteAudioUrl) } // ignore not-found
+            }
+
+            // ---- PDF ----
+            var uploadedPdfUrl: String? = null
+            if (!localPdfUrl.isNullOrBlank()) {
+                val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
+                val localUri = localPdfUrl.toUri()
+
+                pdfRef.putFile(localUri).await()
+                uploadedPdfUrl = pdfRef.downloadUrl.await().toString()
+                updates["pdfUrl"] = uploadedPdfUrl
+            }
+
+            // delete old pdf AFTER successful upload
+            if (!uploadedPdfUrl.isNullOrBlank() && !remotePdfUrl.isNullOrBlank()) {
+                runCatching { deleteFileByUrl(remotePdfUrl) }
+            }
+
+            // ---- OTHER FIELDS ----
             newTitle?.let { updates["title"] = it }
             newOrder?.let { updates["order"] = it }
-            newRemoteAudioUrl?.let { updates["audioUrl"] = it }
-            newRemotePdfUrl?.let { updates["pdf"] = it }
             updates["updatedAt"] = FieldValue.serverTimestamp()
 
-            //  Update
-            if (updates.isNotEmpty()) {
-                lessonDoc.update(updates).await()
-            }
+            if (updates.isNotEmpty()) lessonDoc.update(updates).await()
+
             Result.success("lesson updated successfully")
         } catch (e: Exception) {
-            Log.d(TAG, "update lesson: ${e.message}")
+            Log.d(TAG, "update lesson: ${e.message}", e)
             Result.failure(e)
         }
     }
+
 
     suspend fun getUpdatedLessons(lastLessonSync: Long): List<LessonDto> {
         return try {

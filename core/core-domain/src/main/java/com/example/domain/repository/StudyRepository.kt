@@ -57,12 +57,11 @@ interface StudyRepository {
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson>
     suspend fun updateLesson(
         lesson: Lesson,
-        order: Int,
         localAudioUrl: String?,
         localPdfUrl: String?
     ): Result<String>
 
-    suspend fun addLesson(lesson: Lesson, playlistId: String, order: Int): Flow<UploadResult>
+    suspend fun addLesson(lesson: Lesson, playlistId: String): Flow<UploadResult>
 
     suspend fun getRemoteLessonById(lessonId: String): Lesson?
     suspend fun getRemotePlaylistById(playlistId: String): Playlist?
