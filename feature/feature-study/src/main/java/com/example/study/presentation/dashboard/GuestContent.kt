@@ -2,7 +2,6 @@ package com.example.study.presentation.dashboard
 
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,7 +21,6 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -119,16 +117,13 @@ fun GuestContent(
 
                 Spacer(Modifier.height(18.dp))
 
-                // Primary CTA
+
                 Button(
                     onClick = {
                         val customTabsIntent = CustomTabsIntent.Builder().build()
                         customTabsIntent.launchUrl(context, telegramLoginUrl.toUri())
 
-                        // IMPORTANT:
-                        // Don't call onConnect() here.
-                        // Call it after you receive a valid Telegram callback (deep link / web callback).
-                        // onConnect()
+
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -150,29 +145,6 @@ fun GuestContent(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                // Secondary actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(
-                        onClick = { onLearnMore?.invoke() },
-                        enabled = onLearnMore != null
-                    ) {
-                        Text("How it works")
-                    }
-
-                    TextButton(
-                        onClick = { onPrivacy?.invoke() },
-                        enabled = onPrivacy != null
-                    ) {
-                        Text("Privacy")
-                    }
                 }
             }
         }

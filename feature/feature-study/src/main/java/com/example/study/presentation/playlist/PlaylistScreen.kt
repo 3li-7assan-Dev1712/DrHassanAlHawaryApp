@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -165,20 +164,3 @@ fun LessonPlaylistItem(
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-private fun LessonsPlaylistScreenPreview() {
-    val playlists = listOf(
-        Playlist("p1", "أساسيات العقيدة الإسلامية", "12"),
-        Playlist("p2", "شرح كتاب التوحيد", ""),
-        Playlist("p3", "مقدمات في علوم الحديث", ""),
-    )
-    MaterialTheme {
-        LessonsPlaylistContent(
-            uiState = PlaylistUiState.Success(playlists),
-            onNavigateBack = {},
-            onPlaylistClick = {},
-        )
-    }
-}

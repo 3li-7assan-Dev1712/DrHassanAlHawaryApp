@@ -10,13 +10,13 @@
     <style name="Theme.HassanAlHawary.Splash" parent="Theme.SplashScreen">
 
         <!-- Background color -->
-        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
 
         <!-- App icon -->
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
 
         <!-- Optional icon background (nice for adaptive icons) -->
-<!--        <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_bg</item>-->
+        <item name="windowSplashScreenIconBackgroundColor">@color/ic_launcher_background</item>
 
         <!-- Your real theme -->
         <item name="postSplashScreenTheme">@style/Theme.HassanAlHawary</item>

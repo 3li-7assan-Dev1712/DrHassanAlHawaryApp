@@ -1,6 +1,5 @@
 package com.example.hassanalhawary
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.IsUserLoggedInUseCase
@@ -34,21 +33,19 @@ class MainActivityViewModel @Inject constructor(
     private val updateDarkThemePreferenceUseCase: UpdateDarkThemePreference
 ) : ViewModel() {
 
-    val TAG = "MainActivityViewModel"
+    private val _state = MutableStateFlow(MainActivityState())
+    val state = _state.asStateFlow()
 
+    // ✅ 1) onboarding starts as null (unknown), then becomes true/false
     val onboardingCompleted = observeOnboardingCompletedUseCase()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        .map<Boolean, Boolean?> { it }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val themeState = observeDarkThemePreferenceUseCase()
         .map { isDark ->
-            Log.d(TAG, "isDarkTheme: $isDark")
-            ThemeUiState(
-                isReady = true,
-                isDarkTheme = isDark
-            )
+            ThemeUiState(isReady = true, isDarkTheme = isDark)
         }
-        .catch { // if datastore throws for any reason, still allow app to start
-            Log.d(TAG, "error: ")
+        .catch {
             emit(ThemeUiState(isReady = true, isDarkTheme = false))
         }
         .stateIn(
@@ -57,36 +54,26 @@ class MainActivityViewModel @Inject constructor(
             initialValue = ThemeUiState(isReady = false, isDarkTheme = false)
         )
 
-    private val _state = MutableStateFlow(MainActivityState())
-
-    val state = _state.asStateFlow()
+    // ✅ 2) single "app ready" flag for splash
+    val appReady = kotlinx.coroutines.flow.combine(
+        themeState,
+        onboardingCompleted,
+        state
+    ) { theme, onboarding, main ->
+        theme.isReady && onboarding != null && !main.isLoading
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         checkUserAuthState()
     }
 
-    fun hideProgressBar() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    showProgressBar = false
-                )
-            }
-        }
-    }
-
     fun updateOnboardingCompleted() {
-        viewModelScope.launch {
-            updateOnboardingCompletedUseCase()
-        }
+        viewModelScope.launch { updateOnboardingCompletedUseCase() }
     }
 
     fun updateDarkThemePreference(isDarkTheme: Boolean) {
-        viewModelScope.launch {
-            updateDarkThemePreferenceUseCase(isDarkTheme)
-        }
+        viewModelScope.launch { updateDarkThemePreferenceUseCase(isDarkTheme) }
     }
-
 
     fun checkUserAuthState() {
         viewModelScope.launch {
@@ -100,32 +87,10 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun loginSuccess() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isUserLoggedIn = true
-                )
-            }
-        }
+        viewModelScope.launch { _state.update { it.copy(isUserLoggedIn = true) } }
     }
 
     fun logoutSuccess() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isUserLoggedIn = false
-                )
-            }
-        }
-    }
-
-    fun updateShowSplashVal(show: Boolean) {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    showSplashScreen = show
-                )
-            }
-        }
+        viewModelScope.launch { _state.update { it.copy(isUserLoggedIn = false) } }
     }
 }

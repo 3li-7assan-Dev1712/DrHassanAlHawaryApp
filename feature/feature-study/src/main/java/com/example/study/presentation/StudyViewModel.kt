@@ -12,6 +12,8 @@ import com.example.study.presentation.model.StudyScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -21,48 +23,47 @@ import javax.inject.Inject
 @HiltViewModel
 class StudyViewModel @Inject constructor(
     getStudentDataUseCase: GetStudentDataUseCase,
-    storeStudentDataUseCase: StoreStudentDataUseCase,
+    private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val disconnectTelegramUseCase: DisconnectTelegramUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val TAG = "StudyViewModel"
 
     val uiState: StateFlow<StudyScreenUiState> = getStudentDataUseCase()
         .map { studentData ->
-            if (studentData != null) {
-                StudyScreenUiState.StudentDashboard(studentData)
-            } else {
-                StudyScreenUiState.Guest
-            }
+            if (studentData != null) StudyScreenUiState.StudentDashboard(studentData)
+            else StudyScreenUiState.Guest
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            // The screen will show "Loading" on startup and while processing the deep link
-            initialValue = StudyScreenUiState.Loading,
+            initialValue = StudyScreenUiState.Loading
         )
 
-
+    private val dataFlow = savedStateHandle.getStateFlow<String?>("data", null)
 
     init {
-        savedStateHandle.get<String>("data")?.let { encodedData ->
-            if (uiState.value !is StudyScreenUiState.StudentDashboard) {
-                val json = Uri.decode(encodedData)
-                val user = JSONObject(json)
-                val telegramId = user.getLong("id")
-                Log.d("StudyViewModel", "telegram id: $telegramId")
-                viewModelScope.launch {
+        viewModelScope.launch {
+            dataFlow
+                .filterNotNull()
+                .distinctUntilChanged()
+                .collect { encodedData ->
+                    Log.d(TAG, "deep link data received: $encodedData")
+
+                    val json = Uri.decode(encodedData)
+                    val user = JSONObject(json)
+                    val telegramId = user.getLong("id")
+                    Log.d(TAG, "telegramId: $telegramId")
+
                     storeStudentDataUseCase(telegramId)
                 }
-            }
         }
     }
-
 
     fun onDisconnectTelegram() {
         viewModelScope.launch {
             disconnectTelegramUseCase()
-            // After disconnecting, reload the screen to show the Guest view again
         }
     }
 }

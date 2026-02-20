@@ -1,9 +1,9 @@
 package com.example.hassanalhawary
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,7 +16,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -68,7 +67,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
 
-    override fun attachBaseContext(newBase: android.content.Context) {
+    override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleForce.wrap(newBase))
     }
 
@@ -78,106 +77,57 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
 
         splashScreen.setKeepOnScreenCondition {
-            !mainActivityViewModel.themeState.value.isReady
+            !mainActivityViewModel.appReady.value
         }
-
-        val locale = resources.configuration.locales[0]
-        Log.d("LOCALE", "Current locale = $locale")
-
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
-
             val themeState by mainActivityViewModel.themeState.collectAsState()
+            val onboardingCompleted by mainActivityViewModel.onboardingCompleted.collectAsState()
+            val mainActivityState by mainActivityViewModel.state.collectAsState()
 
-            if (!themeState.isReady) {
-                return@setContent
-            }
-
+            // Optional extra safety: don't draw anything until splash should go away
+            if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
             HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme) {
 
+                when (onboardingCompleted) {
+                    null -> {
+                        // still loading onboarding flag -> splash is still visible anyway
+                        return@HassanAlHawaryTheme
+                    }
 
-//                val mainActivityViewModel = viewModel<MainActivityViewModel>()
-                val mainActivityState by mainActivityViewModel.state.collectAsState()
+                    false -> {
+                        OnboardingScreen(
+                            onFinished = { mainActivityViewModel.updateOnboardingCompleted() }
+                        )
+                    }
 
-                val completed by mainActivityViewModel.onboardingCompleted.collectAsState()
-
-//                val isDarkTheme by mainActivityViewModel.themeState.collectAsState()
-
-                val isLoggedIn = mainActivityState.isUserLoggedIn
-
-                Log.d(TAG, "onCreate: isLoggedIn: $isLoggedIn")
-                val rootNavController =
-                    rememberNavController() // Single NavController for switching graphs
-
-                /*if (mainActivityState.showSplashScreen) {
-                    SplashScreen(onShowSplashScreenTimeEnd = {
-                        mainActivityViewModel.updateShowSplashVal(false)
-                    })
-                } else */
-                if (!completed) {
-                    OnboardingScreen(
-                        onFinished = {
-                            mainActivityViewModel.updateOnboardingCompleted()
-                        }
-                    )
-                } else {
-                    // After the splash screen, we decide which graph to show based on the login state.
-
-                    val isLoggedIn = mainActivityState.isUserLoggedIn
-                    when {
-                        mainActivityState.isLoading -> {
-
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
+                    true -> {
+                        when {
+                            mainActivityState.isLoading -> {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
                             }
 
-                        }
+                            mainActivityState.isUserLoggedIn -> {
+                                MainAppContent(
+                                    onLogout = { mainActivityViewModel.logoutSuccess() },
+                                    isDarkThemeEnabled = themeState.isDarkTheme
+                                )
+                            }
 
-                        isLoggedIn -> {
-                            MainAppContent(
-                                onLogout = {
-                                    Log.d(TAG, "Logout event received")
-                                    mainActivityViewModel.logoutSuccess()
-                                },
-                                isDarkThemeEnabled = themeState.isDarkTheme
-                            )
-
-                        }
-
-                        else -> {
-                            AuthNavHost(
-                                onLoginSuccess = {
-                                    mainActivityViewModel.loginSuccess()
-                                }
-                            )
+                            else -> {
+                                AuthNavHost(onLoginSuccess = { mainActivityViewModel.loginSuccess() })
+                            }
                         }
                     }
-
-
-
-
-                    LaunchedEffect(key1 = mainActivityState.navigateTo) {
-                        if (mainActivityState.navigateTo != null) {
-                            Toast.makeText(
-                                applicationContext, "Sign in successful", Toast.LENGTH_LONG
-                            ).show()
-                            mainActivityViewModel.hideProgressBar()
-                        }
-                    }
-
-
                 }
-
             }
         }
-
-
     }
 
 
@@ -338,27 +288,28 @@ class MainActivity : ComponentActivity() {
                 }
 
                 composable(
-                    route = "telegram_login?data={data}",
+                    route = "telegram_login?data={data}&t={t}",
                     arguments = listOf(
                         navArgument("data") {
                             type = NavType.StringType
                             nullable = true
+                        },
+                        navArgument("t") {
+                            type = NavType.LongType
+                            defaultValue = -1L
                         }
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern =
-                                "com.example.hassanalhawary://telegram-login?data={data}"
+                            uriPattern = "com.example.hassanalhawary://telegram-login?data={data}&t={t}"
                         }
                     )
                 ) {
-
                     StudyScreen(
                         onLevelClick = { levelId ->
                             navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
                         },
-                        onNavigateToLogin = {
-                        }
+                        onNavigateToLogin = { }
                     )
                 }
 
