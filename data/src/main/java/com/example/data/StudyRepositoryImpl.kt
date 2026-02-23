@@ -242,6 +242,11 @@ class StudyRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun getRemoteMotivationalMessages(): List<String> {
+        val messages = studentFirestoreSource.getRemoteMotivationalMessages()
+        return messages
+    }
+
     override suspend fun getRemoteLessonById(lessonId: String): Lesson? {
         val lesson = studentFirestoreSource.getRemoteLessonById(lessonId)
         return lesson?.toDomain()

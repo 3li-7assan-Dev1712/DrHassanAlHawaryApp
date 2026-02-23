@@ -278,7 +278,10 @@ class StudentFirestoreSource @Inject constructor(
                 val lessonRef = firestore.collection("lessons").document()
                 val newDocumentId = lessonRef.id
                 val lessonToUpload = lessonDto.copy(
-                    id = newDocumentId, audioUrl = audioDownloadUrl, pdfUrl = pdfDownloadUrl, playlistId = playlistId
+                    id = newDocumentId,
+                    audioUrl = audioDownloadUrl,
+                    pdfUrl = pdfDownloadUrl,
+                    playlistId = playlistId
                 )
                 lessonRef.set(lessonToUpload).await()
 
@@ -457,6 +460,24 @@ class StudentFirestoreSource @Inject constructor(
         val versionCollection =
             firestore.collection("metadata").document("content_versions").get().await()
         return versionCollection.getLong("levelsVersion") ?: 0
+    }
+
+    suspend fun getRemoteMotivationalMessages(): List<String> {
+        return try {
+            val document = firestore.collection("motivational_messages")
+                .document("daily_messages")
+                .get()
+                .await()
+
+            // Firestore returns arrays as List<*>, so we cast to List<String>
+            // We use 'get' and a safe cast to avoid crashing if the field is missing or has a wrong type
+            document.get("messages") as? List<String> ?: emptyList()
+
+        } catch (e: Exception) {
+            Log.d(TAG, "getRemoteMotivationalMessages: ${e.message}")
+            emptyList()
+        }
+
     }
 
 }

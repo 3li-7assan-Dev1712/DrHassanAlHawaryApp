@@ -40,6 +40,7 @@ import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
 import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
 import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
 import com.example.admin.ui.upload_images_screen.UploadImagesScreen
+import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
 import com.example.admin.ui.upload_quiz.UploadQuizScreen
 import com.example.admin.ui.upload_video_screen.UploadVideoScreen
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
                     "telegram_login", "telegram_login?data={data}" -> "Institute Management"
                     "upload_quiz" -> "Upload Quiz"
                     "upload_announcement" -> "Upload Announcement"
+                    "upload_motivational_messages" -> "Upload Motivational Messages"
                     "playlists/{levelName}" -> navBackStackEntry?.arguments?.getString("levelName")
                         ?: "Playlists"
 
@@ -172,6 +174,7 @@ class MainActivity : ComponentActivity() {
                             InstituteMainScreen(
                                 onUploadQuiz = { navController.navigate("upload_quiz") },
                                 onUploadAnnouncement = { navController.navigate("upload_announcement") },
+                                onUploadMotivationalMessages = { navController.navigate("upload_motivational_messages") },
                                 onLevelClick = { levelName ->
                                     navController.navigate("playlists/$levelName")
                                 }
@@ -182,6 +185,11 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("upload_announcement") {
                             UploadAnnouncementScreen {
+                                navController.popBackStack()
+                            }
+                        }
+                        composable("upload_motivational_messages") {
+                            UploadMotivationalMessagesScreen {
                                 navController.popBackStack()
                             }
                         }

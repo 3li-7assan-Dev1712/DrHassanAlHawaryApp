@@ -73,10 +73,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
+import com.example.core.ui.components.shimmer
 import com.example.domain.module.Level
 import com.example.domain.module.Student
 import com.example.study.presentation.model.DashboardSection
-import com.example.study.presentation.model.DashboardUiState
 
 @Composable
 fun StudentDashboardContent(
@@ -104,7 +104,10 @@ fun StudentDashboardContent(
         }
 
         item {
-            MotivationMessagesSection()
+            MotivationMessagesSection(
+                messages = uiState.motivationalMessages,
+                isLoading = uiState.loadingMotivationalMessages
+            )
         }
 
         item {
@@ -121,37 +124,30 @@ fun StudentDashboardContent(
             ) {
                 when (selectedSection) {
                     DashboardSection.Study -> {
-                        when (uiState) {
-                            is DashboardUiState.Success -> {
-                                val levels = (uiState as DashboardUiState.Success).levels
-                                // keep your original logic; currently using your journey placeholder
-                                LevelsJourneyMap(
-                                    levels = List(6) {
-                                        LevelNode(index = it + 1, isUnlocked = it < 2)
-                                    },
-                                    currentLevelIndex = 3,
-                                    onNodeClick = { index ->
-                                        val levelId = "level_$index"
-                                        onLevelClick(levelId)
-                                        Log.d(
-                                            "Dashboard",
-                                            "StudentDashboardContent: click node $index"
-                                        )
-                                    }
+
+
+                        // keep your original logic; currently using your journey placeholder
+                        LevelsJourneyMap(
+                            levels = List(6) {
+                                LevelNode(index = it + 1, isUnlocked = it < uiState.levels.count())
+                            },
+                            isLoading = uiState.loadingLevels,
+                            currentLevelIndex = 3,
+                            onNodeClick = { index ->
+                                val levelId = "level_$index"
+                                onLevelClick(levelId)
+                                Log.d(
+                                    "Dashboard",
+                                    "StudentDashboardContent: click node $index"
                                 )
                             }
+                        )
 
-                            is DashboardUiState.Loading -> LoadingScreen()
-
-                            is DashboardUiState.Error -> {
-                                val msg = (uiState as DashboardUiState.Error).message
-                                Text(text = msg, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
                     }
 
                     DashboardSection.TopStudents -> TopStudentsContent()
-                    DashboardSection.Summaries -> SummariesContent()
+
+                    else -> {}
                 }
             }
         }
@@ -175,23 +171,17 @@ fun StudyTopAppBar(modifier: Modifier = Modifier) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MotivationMessagesSection(modifier: Modifier = Modifier) {
-    val messages = remember {
-        listOf(
-            "اطلب العلم ولا تكسل، فما أبعد الخير عن أهل الكسل.",
-            "كل إناء يضيق بما جعل فيه إلا وعاء العلم، فإنه يتسع.",
-            "لا يزال المرء عالماً ما طلب العلم، فإذا ظن أنه قد علم، فقد جهل.",
-            "العلم يرفع بيوتاً لا عماد لها، والجهل يهدم بيت العز والشرف.",
-            "رحلة الألف ميل تبدأ بخطوة. خطوتك اليوم هي علم تتعلمه.",
-            "من لم يذق مر التعلم ساعة، تجرع ذل الجهل طول حياته.",
-            "استثمر في نفسك، فالعلم هو الزاد الذي لا ينضب."
-        )
-    }
+fun MotivationMessagesSection(
+    modifier: Modifier = Modifier,
+    messages: List<String>,
+    isLoading: Boolean
+) {
+
 
     val pagerState = rememberPagerState(pageCount = { messages.size })
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().shimmer(isLoading = isLoading),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HorizontalPager(
@@ -218,6 +208,7 @@ fun MotivationMessagesSection(modifier: Modifier = Modifier) {
                 )
             }
         }
+
     }
 }
 
@@ -406,6 +397,7 @@ fun StudentHeader(
         }
     }
 }
+
 @Composable
 fun DashboardChips(
     selectedSection: DashboardSection,
@@ -498,7 +490,6 @@ private fun SegmentItem(
 }
 
 
-
 @Composable
 fun PolishedStudyTopBar(
     modifier: Modifier = Modifier,
@@ -551,7 +542,10 @@ fun PolishedStudyTopBar(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OrnamentLine(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.55f))
+                    OrnamentLine(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.55f)
+                    )
                     OrnamentDiamond(color = Color.White.copy(alpha = 0.65f))
                     Spacer(Modifier.width(10.dp))
 
@@ -577,7 +571,10 @@ fun PolishedStudyTopBar(
 
                     Spacer(Modifier.width(10.dp))
                     OrnamentDiamond(color = Color.White.copy(alpha = 0.65f))
-                    OrnamentLine(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.55f))
+                    OrnamentLine(
+                        modifier = Modifier.weight(1f),
+                        color = Color.White.copy(alpha = 0.55f)
+                    )
                 }
             }
         }
@@ -602,7 +599,6 @@ private fun OrnamentDiamond(color: Color) {
             .background(color)
     )
 }
-
 
 
 /**
@@ -635,7 +631,9 @@ fun LevelsContent(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(levels.size) { index ->
-                    LevelItem(level = levels[index], onClick = { onLevelClick(levels[index].id) })
+                    LevelItem(
+                        level = levels[index],
+                        onClick = { onLevelClick(levels[index].id) })
                 }
             }
         }

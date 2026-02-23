@@ -23,6 +23,7 @@ interface StudyRepository {
 
     suspend fun syncPlaylists()
 
+    suspend fun getRemoteMotivationalMessages(): List<String>
 
     suspend fun syncLevels()
 
@@ -55,6 +56,8 @@ interface StudyRepository {
     suspend fun uploadPlaylist(playlist: Playlist): Flow<UploadResult>
 
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson>
+
+
     suspend fun updateLesson(
         lesson: Lesson,
         localAudioUrl: String?,

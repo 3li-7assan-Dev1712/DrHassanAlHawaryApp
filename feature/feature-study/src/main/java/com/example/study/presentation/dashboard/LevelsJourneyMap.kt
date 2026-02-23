@@ -8,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.animation.LoadingScreen
 
 data class LevelNode(
     val index: Int,
@@ -46,219 +48,233 @@ data class LevelNode(
 
 @Composable
 fun LevelsJourneyMap(
+    isLoading: Boolean,
     levels: List<LevelNode>,
     currentLevelIndex: Int,
     onNodeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colorScheme = MaterialTheme.colorScheme
-    val textMeasurer = rememberTextMeasurer()
+    if (isLoading) {
+        Box (
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(420.dp),
+            contentAlignment = androidx.compose.ui.Alignment.Center
 
-    val nodePositions = remember { mutableStateListOf<Offset>() }
+        ) {
+            LoadingScreen()
+        }
+    } else {
 
-    // One PathMeasure for everything
-    val pathMeasure = remember { android.graphics.PathMeasure() }
-    var totalLength by remember { mutableStateOf(0f) }
+        val colorScheme = MaterialTheme.colorScheme
+        val textMeasurer = rememberTextMeasurer()
 
-    val pathAnim = remember { Animatable(0f) }
-    var startPulse by remember { mutableStateOf(false) }
+        val nodePositions = remember { mutableStateListOf<Offset>() }
 
-    // Pulse starts only after path animation finishes
-    val pulseScale by animateFloatAsState(
-        targetValue = if (startPulse) 1.15f else 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(900, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = ""
-    )
+        // One PathMeasure for everything
+        val pathMeasure = remember { android.graphics.PathMeasure() }
+        var totalLength by remember { mutableStateOf(0f) }
 
-    LaunchedEffect(currentLevelIndex, totalLength) {
-        if (totalLength <= 0f) return@LaunchedEffect
+        val pathAnim = remember { Animatable(0f) }
+        var startPulse by remember { mutableStateOf(false) }
 
-        startPulse = false // reset (important)
-        val step = totalLength / (levels.size + 1)
-        val targetDistance = step * currentLevelIndex
-
-        pathAnim.snapTo(0f)
-        pathAnim.animateTo(
-            targetValue = targetDistance,
-            animationSpec = tween(
-                durationMillis = 1400,
-                easing = FastOutSlowInEasing
-            )
+        // Pulse starts only after path animation finishes
+        val pulseScale by animateFloatAsState(
+            targetValue = if (startPulse) 1.15f else 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(900, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = ""
         )
 
-        startPulse = true
-    }
+        LaunchedEffect(currentLevelIndex, totalLength) {
+            if (totalLength <= 0f) return@LaunchedEffect
 
-    Canvas(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(420.dp)
-            .pointerInput(levels) {
-                detectTapGestures { tap ->
-                    nodePositions.forEachIndexed { i, center ->
-                        if ((tap - center).getDistance() < 42f) {
-                            onNodeClick(i + 1)
+            startPulse = false // reset (important)
+            val step = totalLength / (levels.size + 1)
+            val targetDistance = step * currentLevelIndex
+
+            pathAnim.snapTo(0f)
+            pathAnim.animateTo(
+                targetValue = targetDistance,
+                animationSpec = tween(
+                    durationMillis = 1400,
+                    easing = FastOutSlowInEasing
+                )
+            )
+
+            startPulse = true
+        }
+
+        Canvas(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(420.dp)
+                .pointerInput(levels) {
+                    detectTapGestures { tap ->
+                        nodePositions.forEachIndexed { i, center ->
+                            if ((tap - center).getDistance() < 42f) {
+                                onNodeClick(i + 1)
+                            }
                         }
                     }
                 }
+        ) {
+            nodePositions.clear()
+
+            val w = size.width
+            val h = size.height
+
+            // Snake Path
+            val path = Path().apply {
+                moveTo(w * 0.85f, h * 0.08f)
+                cubicTo(w * 0.1f, h * 0.18f, w * 0.9f, h * 0.30f, w * 0.5f, h * 0.40f)
+                cubicTo(w * 0.1f, h * 0.50f, w * 0.9f, h * 0.62f, w * 0.4f, h * 0.72f)
+                cubicTo(w * 0.2f, h * 0.82f, w * 0.6f, h * 0.92f, w * 0.15f, h * 0.96f)
             }
-    ) {
-        nodePositions.clear()
 
-        val w = size.width
-        val h = size.height
+            // Update measure based on actual drawn path
+            pathMeasure.setPath(path.asAndroidPath(), false)
+            val len = pathMeasure.length
+            if (kotlin.math.abs(len - totalLength) > 0.5f) totalLength = len
 
-        // Snake Path
-        val path = Path().apply {
-            moveTo(w * 0.85f, h * 0.08f)
-            cubicTo(w * 0.1f, h * 0.18f, w * 0.9f, h * 0.30f, w * 0.5f, h * 0.40f)
-            cubicTo(w * 0.1f, h * 0.50f, w * 0.9f, h * 0.62f, w * 0.4f, h * 0.72f)
-            cubicTo(w * 0.2f, h * 0.82f, w * 0.6f, h * 0.92f, w * 0.15f, h * 0.96f)
+            // Base road
+            drawPath(
+                path = path,
+                color = colorScheme.surfaceVariant,
+                style = Stroke(width = 16f, cap = StrokeCap.Round)
+            )
+
+            // Animated filled segment
+            val segment = android.graphics.Path()
+            val end = pathAnim.value.coerceIn(0f, len)
+            pathMeasure.getSegment(0f, end, segment, true)
+
+            drawPath(
+                path = segment.asComposePath(),
+                color = colorScheme.primary,
+                style = Stroke(width = 16f, cap = StrokeCap.Round)
+            )
+
+            // Nodes positions
+            val step = if (len > 0f) len / (levels.size + 1) else 0f
+            val pos = FloatArray(2)
+
+            levels.forEachIndexed { i, level ->
+                val dist = step * (i + 1)
+                pathMeasure.getPosTan(dist, pos, null)
+
+                val center = Offset(pos[0], pos[1])
+                nodePositions.add(center)
+
+                val isCurrent = level.index == currentLevelIndex
+
+                drawCoinPolished(
+                    center = center,
+                    radius = 26f,
+                    scale = if (isCurrent) pulseScale else 1f,
+                    isLocked = !level.isUnlocked,
+                    isCurrent = isCurrent,
+                    primary = colorScheme.primary,
+                    outline = colorScheme.outline
+                )
+
+                val label = when (i) {
+                    0 -> "المرحلة\nالأولى"
+                    1 -> "المرحلة\nالثانية"
+                    2 -> "المرحلة\nالثالثة"
+                    3 -> "المرحلة\nالرابعة"
+                    4 -> "المرحلة\nالخامسة"
+                    5 -> "المرحلة\nالسادسة"
+                    else -> ""
+                }
+
+                val textLayout = textMeasurer.measure(
+                    AnnotatedString(label),
+                    style = TextStyle(
+                        color = colorScheme.onSurface,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    )
+                )
+
+                val nodeRadius = 26f
+                val gap = 20f
+                val isRight = center.x > size.width / 2
+
+                val offset = if (isRight) {
+                    Offset(
+                        center.x - nodeRadius - gap - textLayout.size.width,
+                        center.y - textLayout.size.height / 2
+                    )
+                } else {
+                    Offset(
+                        center.x + nodeRadius + gap,
+                        center.y - textLayout.size.height / 2
+                    )
+                }
+
+                // padding around text background
+                val padX = 14f
+                val padY = 10f
+
+                val bgTopLeft = Offset(offset.x - padX, offset.y - padY)
+                val bgSize = androidx.compose.ui.geometry.Size(
+                    width = textLayout.size.width + padX * 2,
+                    height = textLayout.size.height + padY * 2
+                )
+
+                drawRoundRect(
+                    color = colorScheme.surface.copy(alpha = 0.90f),
+                    topLeft = bgTopLeft,
+                    size = bgSize,
+                    cornerRadius = CornerRadius(18f, 18f)
+                )
+
+                drawRoundRect(
+                    color = colorScheme.outline.copy(alpha = 0.25f),
+                    topLeft = bgTopLeft,
+                    size = bgSize,
+                    cornerRadius = CornerRadius(18f, 18f),
+                    style = Stroke(width = 1.5f)
+                )
+
+                drawText(
+                    textLayoutResult = textLayout,
+                    topLeft = offset
+                )
+            }
+
+            // ✅ FLAGS: place them exactly on the road using PathMeasure points
+            val endPointArr = FloatArray(2)   // start of path (top/right) -> END flag (gold)
+            val startPointArr = FloatArray(2) // end of path (bottom/left) -> START flag (green)
+
+            pathMeasure.getPosTan(0f, endPointArr, null)
+            pathMeasure.getPosTan(len, startPointArr, null)
+
+            val endFlagPosition = Offset(endPointArr[0], endPointArr[1])
+            val startFlagPosition = Offset(startPointArr[0], startPointArr[1])
+
+            val startFlagColor = Color(0xFFFFC107)                // green-ish (matches your theme)
+            val endFlagColor = colorScheme.primary                // gold
+            val poleColor = colorScheme.outline
+
+            // Start flag (bottom-left) = green
+            drawFlag(
+                position = startFlagPosition,
+                flagColor = startFlagColor,
+                poleColor = poleColor
+            )
+
+            // End flag (top-right) = gold
+            drawFlag(
+                position = endFlagPosition,
+                flagColor = endFlagColor,
+                poleColor = poleColor
+            )
         }
-
-        // Update measure based on actual drawn path
-        pathMeasure.setPath(path.asAndroidPath(), false)
-        val len = pathMeasure.length
-        if (kotlin.math.abs(len - totalLength) > 0.5f) totalLength = len
-
-        // Base road
-        drawPath(
-            path = path,
-            color = colorScheme.surfaceVariant,
-            style = Stroke(width = 16f, cap = StrokeCap.Round)
-        )
-
-        // Animated filled segment
-        val segment = android.graphics.Path()
-        val end = pathAnim.value.coerceIn(0f, len)
-        pathMeasure.getSegment(0f, end, segment, true)
-
-        drawPath(
-            path = segment.asComposePath(),
-            color = colorScheme.primary,
-            style = Stroke(width = 16f, cap = StrokeCap.Round)
-        )
-
-        // Nodes positions
-        val step = if (len > 0f) len / (levels.size + 1) else 0f
-        val pos = FloatArray(2)
-
-        levels.forEachIndexed { i, level ->
-            val dist = step * (i + 1)
-            pathMeasure.getPosTan(dist, pos, null)
-
-            val center = Offset(pos[0], pos[1])
-            nodePositions.add(center)
-
-            val isCurrent = level.index == currentLevelIndex
-
-            drawCoinPolished(
-                center = center,
-                radius = 26f,
-                scale = if (isCurrent) pulseScale else 1f,
-                isLocked = !level.isUnlocked,
-                isCurrent = isCurrent,
-                primary = colorScheme.primary,
-                outline = colorScheme.outline
-            )
-
-            val label = when (i) {
-                0 -> "المرحلة\nالأولى"
-                1 -> "المرحلة\nالثانية"
-                2 -> "المرحلة\nالثالثة"
-                3 -> "المرحلة\nالرابعة"
-                4 -> "المرحلة\nالخامسة"
-                5 -> "المرحلة\nالسادسة"
-                else -> ""
-            }
-
-            val textLayout = textMeasurer.measure(
-                AnnotatedString(label),
-                style = TextStyle(
-                    color = colorScheme.onSurface,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-            )
-
-            val nodeRadius = 26f
-            val gap = 20f
-            val isRight = center.x > size.width / 2
-
-            val offset = if (isRight) {
-                Offset(
-                    center.x - nodeRadius - gap - textLayout.size.width,
-                    center.y - textLayout.size.height / 2
-                )
-            } else {
-                Offset(
-                    center.x + nodeRadius + gap,
-                    center.y - textLayout.size.height / 2
-                )
-            }
-
-            // padding around text background
-            val padX = 14f
-            val padY = 10f
-
-            val bgTopLeft = Offset(offset.x - padX, offset.y - padY)
-            val bgSize = androidx.compose.ui.geometry.Size(
-                width = textLayout.size.width + padX * 2,
-                height = textLayout.size.height + padY * 2
-            )
-
-            drawRoundRect(
-                color = colorScheme.surface.copy(alpha = 0.90f),
-                topLeft = bgTopLeft,
-                size = bgSize,
-                cornerRadius = CornerRadius(18f, 18f)
-            )
-
-            drawRoundRect(
-                color = colorScheme.outline.copy(alpha = 0.25f),
-                topLeft = bgTopLeft,
-                size = bgSize,
-                cornerRadius = CornerRadius(18f, 18f),
-                style = Stroke(width = 1.5f)
-            )
-
-            drawText(
-                textLayoutResult = textLayout,
-                topLeft = offset
-            )
-        }
-
-        // ✅ FLAGS: place them exactly on the road using PathMeasure points
-        val endPointArr = FloatArray(2)   // start of path (top/right) -> END flag (gold)
-        val startPointArr = FloatArray(2) // end of path (bottom/left) -> START flag (green)
-
-        pathMeasure.getPosTan(0f, endPointArr, null)
-        pathMeasure.getPosTan(len, startPointArr, null)
-
-        val endFlagPosition = Offset(endPointArr[0], endPointArr[1])
-        val startFlagPosition = Offset(startPointArr[0], startPointArr[1])
-
-        val startFlagColor = Color(0xFFFFC107)                // green-ish (matches your theme)
-        val endFlagColor = colorScheme.primary                // gold
-        val poleColor = colorScheme.outline
-
-        // Start flag (bottom-left) = green
-        drawFlag(
-            position = startFlagPosition,
-            flagColor = startFlagColor,
-            poleColor = poleColor
-        )
-
-        // End flag (top-right) = gold
-        drawFlag(
-            position = endFlagPosition,
-            flagColor = endFlagColor,
-            poleColor = poleColor
-        )
     }
 }
 

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Announcement
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Verified
@@ -54,6 +55,7 @@ fun InstituteMainScreen(
     viewModel: InstituteViewModel = hiltViewModel(),
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
+    onUploadMotivationalMessages: () -> Unit,
     onLevelClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -70,6 +72,7 @@ fun InstituteMainScreen(
                 student = state.studentData,
                 onUploadQuiz = onUploadQuiz,
                 onUploadAnnouncement = onUploadAnnouncement,
+                onUploadMotivationalMessages = onUploadMotivationalMessages,
                 onLevelClick = onLevelClick
             )
         }
@@ -78,7 +81,7 @@ fun InstituteMainScreen(
             GuestScreen()
         }
 
-        else -> {}
+        else -> {} // No-op
     }
 }
 
@@ -87,6 +90,7 @@ fun AdminDashboard(
     student: Student,
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
+    onUploadMotivationalMessages: () -> Unit,
     onLevelClick: (String) -> Unit
 ) {
     val levels = (1..6).map { "level_$it" }
@@ -125,6 +129,15 @@ fun AdminDashboard(
                     modifier = Modifier.weight(1f)
                 )
             }
+        }
+
+        item {
+            UploadActionCard(
+                title = "Motivational Messages",
+                icon = Icons.Default.Forum,
+                onClick = onUploadMotivationalMessages,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         item {
@@ -214,7 +227,7 @@ fun TelegramProfileHeader(
                         Icon(
                             if (membershipState == "creator" || membershipState == "administrator")
                                 Icons.Default.Verified else
-                                    Icons.Default.ErrorOutline,
+                                Icons.Default.ErrorOutline,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
@@ -309,7 +322,7 @@ private fun InstituteMainScreenPreview() {
                 membershipState = "admin",
                 isConnectedToTelegram = false
             )
-            AdminDashboard(student, {}, {}, {})
+            AdminDashboard(student, {}, {}, {}, {})
         }
     }
 }
