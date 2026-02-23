@@ -65,7 +65,6 @@ import com.example.study.presentation.StudyScreen
 import com.example.study.presentation.detail.LessonDetailScreen
 import com.example.study.presentation.lessons.LessonsListScreen
 import com.example.study.presentation.playlist.PlaylistScreen
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -124,15 +123,12 @@ class MainActivity : ComponentActivity() {
                                     onLogout = { mainActivityViewModel.logoutSuccess() },
                                     isDarkThemeEnabled = themeState.isDarkTheme
                                 )
-                                FirebaseMessaging.getInstance()
-                                    .subscribeToTopic("student_broadcasts")
                             }
 
                             else -> {
                                 AuthNavHost(onLoginSuccess = {
                                     mainActivityViewModel.loginSuccess()
-                                    FirebaseMessaging.getInstance()
-                                        .subscribeToTopic("student_broadcasts")
+
                                 })
                             }
                         }

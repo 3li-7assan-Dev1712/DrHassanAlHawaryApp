@@ -3,6 +3,7 @@ package com.example.hassanalhawary.core.util
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -37,6 +38,7 @@ class NotificationService : FirebaseMessagingService() {
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
+        val large = BitmapFactory.decodeResource(resources, com.example.core.ui.R.drawable.logo)
         // Create channel for Android 8+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -48,7 +50,8 @@ class NotificationService : FirebaseMessagingService() {
         }
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(com.example.hassanalhawary.R.drawable.dr_hassan_photo)
+            .setSmallIcon(com.example.hassanalhawary.R.drawable.audios_icon)
+            .setLargeIcon(large)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

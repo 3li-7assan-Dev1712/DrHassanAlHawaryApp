@@ -7,11 +7,13 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.data.di.ApplicationScope
+import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.hassanalhawary.core.util.LocaleForce
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.GetPlaylistsForLevelUseCase
 import com.example.study.domain.use_case.SyncLessonsUseCase
 import com.example.study.domain.use_case.SyncPlaylistsUseCase
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -33,6 +35,9 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
 
     @Inject
     lateinit var getLevelsUseCase: GetLevelsUseCase
+
+    @Inject
+    lateinit var getStudentDataUseCase: GetStudentDataUseCase
 
     @Inject
     lateinit var getPlaylistsForLevelUseCase: GetPlaylistsForLevelUseCase
@@ -61,6 +66,16 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
                 if (!it.isNullOrEmpty()) {
                     syncPlaylistsUseCase()
                     syncLessons()
+                }
+            }
+        }
+        appScope.launch {
+            getStudentDataUseCase().collectLatest {
+                FirebaseMessaging.getInstance()
+                    .subscribeToTopic("all_users")
+                if (it != null) {
+                    FirebaseMessaging.getInstance()
+                        .subscribeToTopic("student_broadcasts")
                 }
             }
         }
