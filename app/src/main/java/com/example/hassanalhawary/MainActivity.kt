@@ -2,11 +2,14 @@ package com.example.hassanalhawary
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -61,6 +65,7 @@ import com.example.study.presentation.StudyScreen
 import com.example.study.presentation.detail.LessonDetailScreen
 import com.example.study.presentation.lessons.LessonsListScreen
 import com.example.study.presentation.playlist.PlaylistScreen
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -75,6 +80,7 @@ class MainActivity : ComponentActivity() {
     val TAG = "MainActivity"
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
+
 
         splashScreen.setKeepOnScreenCondition {
             !mainActivityViewModel.appReady.value
@@ -118,12 +124,30 @@ class MainActivity : ComponentActivity() {
                                     onLogout = { mainActivityViewModel.logoutSuccess() },
                                     isDarkThemeEnabled = themeState.isDarkTheme
                                 )
+                                FirebaseMessaging.getInstance()
+                                    .subscribeToTopic("student_broadcasts")
                             }
 
                             else -> {
-                                AuthNavHost(onLoginSuccess = { mainActivityViewModel.loginSuccess() })
+                                AuthNavHost(onLoginSuccess = {
+                                    mainActivityViewModel.loginSuccess()
+                                    FirebaseMessaging.getInstance()
+                                        .subscribeToTopic("student_broadcasts")
+                                })
                             }
                         }
+                    }
+                }
+                val launcher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission(),
+                    onResult = {
+
+                    }
+                )
+
+                LaunchedEffect(Unit) {
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        launcher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                     }
                 }
             }
@@ -146,7 +170,10 @@ class MainActivity : ComponentActivity() {
         // routes where the bottom nav should be shown
         val routesWithBottomNav = remember {
             setOf(
-                Routes.HOME_SCREEN, Routes.SEARCH_SCREEN, Routes.PROFILE_SCREEN, "telegram_login?data={data}"
+                Routes.HOME_SCREEN,
+                Routes.SEARCH_SCREEN,
+                Routes.PROFILE_SCREEN,
+                "telegram_login?data={data}"
             )
         }
 
@@ -301,7 +328,8 @@ class MainActivity : ComponentActivity() {
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = "com.example.hassanalhawary://telegram-login?data={data}&t={t}"
+                            uriPattern =
+                                "com.example.hassanalhawary://telegram-login?data={data}&t={t}"
                         }
                     )
                 ) {

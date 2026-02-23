@@ -7,7 +7,6 @@ class SyncLessonsUseCase @Inject constructor(
     private val studyRepository: StudyRepository
 ) {
 
-
     suspend operator fun invoke() {
         return studyRepository.syncLessons()
     }

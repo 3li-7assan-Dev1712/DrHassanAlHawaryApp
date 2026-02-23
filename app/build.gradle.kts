@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.database)
+    implementation(libs.firebase.messaging)
     // auth credential
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)

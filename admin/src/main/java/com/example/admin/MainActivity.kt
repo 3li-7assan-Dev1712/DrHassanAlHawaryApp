@@ -181,7 +181,9 @@ class MainActivity : ComponentActivity() {
                             UploadQuizScreen()
                         }
                         composable("upload_announcement") {
-                            UploadAnnouncementScreen()
+                            UploadAnnouncementScreen {
+                                navController.popBackStack()
+                            }
                         }
                         composable(
                             route = "playlists/{levelId}",

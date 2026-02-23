@@ -165,7 +165,7 @@ fun ConnectTelegramScreen(
 
         Spacer(Modifier.height(14.dp))
 
-        // Optional: subtle reassurance / footnote
+
         Text(
             text = "We only use Telegram to verify your membership and deliver course notifications.",
             style = MaterialTheme.typography.bodySmall,
