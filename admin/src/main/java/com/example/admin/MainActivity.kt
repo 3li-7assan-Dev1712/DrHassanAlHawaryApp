@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
     private val mainActivityViewModel: MainActivityViewModel by viewModels()
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -181,7 +180,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("upload_quiz") {
-                            UploadQuizScreen()
+                            UploadQuizScreen(onUploadSuccess = {
+                                navController.popBackStack()
+                            })
                         }
                         composable("upload_announcement") {
                             UploadAnnouncementScreen {

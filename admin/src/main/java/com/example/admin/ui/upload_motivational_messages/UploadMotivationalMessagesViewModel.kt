@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+
 sealed interface UiState {
     data class Stable(
         val messagesText: String = "",
@@ -39,7 +40,6 @@ class UploadMotivationalMessagesViewModel @Inject constructor(
         val currentState = _uiState.value as? UiState.Stable ?: return
 
         if (currentState.messagesText.isBlank()) {
-            // Use the already-cast 'currentState' variable
             _uiState.update { currentState.copy(error = "Messages cannot be empty.") }
             return
         }
@@ -47,18 +47,29 @@ class UploadMotivationalMessagesViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { currentState.copy(isUploading = true, error = null) }
             try {
-                // Split the text into a list of non-empty messages
-                val messagesList = currentState.messagesText.lines().filter { it.isNotBlank() }
+                // Split the text by double new lines (or more) to allow multi-line messages.
+                // This treats any empty line as a separator between messages.
+                val messagesList = currentState.messagesText
+                    .split(Regex("\\n\\s*\\n"))
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+
                 // Create a data map to be stored in a single document
                 val data = hashMapOf("messages" to messagesList)
 
                 // Set the list in a specific document, overwriting any existing one
-                firestore.collection("motivational_messages").document("daily_messages").set(data).await()
+                firestore.collection("motivational_messages").document("daily_messages").set(data)
+                    .await()
 
                 _uiState.value = UiState.UploadSuccess
 
             } catch (e: Exception) {
-                _uiState.update { currentState.copy(isUploading = false, error = e.message ?: "Upload failed.") }
+                _uiState.update {
+                    currentState.copy(
+                        isUploading = false,
+                        error = e.message ?: "Upload failed."
+                    )
+                }
             }
         }
     }

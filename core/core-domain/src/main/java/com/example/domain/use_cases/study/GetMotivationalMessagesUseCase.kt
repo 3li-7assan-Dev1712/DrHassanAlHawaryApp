@@ -7,7 +7,6 @@ class GetMotivationalMessagesUseCase @Inject constructor(
     private val studyRepository: StudyRepository
 ) {
 
-
     suspend operator fun invoke(): List<String> {
         return studyRepository.getRemoteMotivationalMessages()
     }
