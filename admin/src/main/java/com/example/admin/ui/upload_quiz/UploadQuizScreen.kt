@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.animation.LoadingScreen
+import com.example.domain.module.Question
+import com.example.domain.module.QuestionType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

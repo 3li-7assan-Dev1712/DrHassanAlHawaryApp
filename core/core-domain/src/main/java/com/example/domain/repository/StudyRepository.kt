@@ -1,8 +1,10 @@
 package com.example.domain.repository
 
+import com.example.domain.module.LeaderBoard
 import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
+import com.example.domain.module.Quiz
 import com.example.domain.module.Student
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
@@ -68,6 +70,11 @@ interface StudyRepository {
 
     suspend fun getRemoteLessonById(lessonId: String): Lesson?
     suspend fun getRemotePlaylistById(playlistId: String): Playlist?
+
+    // Quiz and Leaderboard
+    suspend fun getLatestQuiz(): Quiz?
+    suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>
+    suspend fun getLeaderboard(): List<LeaderBoard>
 
 
 }

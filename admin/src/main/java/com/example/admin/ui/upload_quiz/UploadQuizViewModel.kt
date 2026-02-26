@@ -2,6 +2,9 @@ package com.example.admin.ui.upload_quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.module.Question
+import com.example.domain.module.QuestionType
+import com.example.domain.module.Quiz
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

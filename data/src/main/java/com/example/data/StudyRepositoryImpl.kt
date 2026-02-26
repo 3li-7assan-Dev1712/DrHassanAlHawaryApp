@@ -10,9 +10,11 @@ import com.example.data_local.LevelsDao
 import com.example.data_local.LocalDataStore
 import com.example.data_local.PlaylistDao
 import com.example.data_local.StudentDao
+import com.example.domain.module.LeaderBoard
 import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
+import com.example.domain.module.Quiz
 import com.example.domain.module.Student
 import com.example.domain.repository.StudyRepository
 import com.example.domain.use_cases.audios.UploadResult
@@ -250,5 +252,22 @@ class StudyRepositoryImpl @Inject constructor(
     override suspend fun getRemoteLessonById(lessonId: String): Lesson? {
         val lesson = studentFirestoreSource.getRemoteLessonById(lessonId)
         return lesson?.toDomain()
+    }
+
+    override suspend fun getLatestQuiz(): Quiz? {
+        return studentFirestoreSource.getLatestQuiz()?.toDomain()
+    }
+
+    override suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit> {
+        return try {
+            studentFirestoreSource.submitLeaderboardEntry(entry.toDto())
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getLeaderboard(): List<LeaderBoard> {
+        return studentFirestoreSource.getLeaderboard().map { it.toDomain() }
     }
 }

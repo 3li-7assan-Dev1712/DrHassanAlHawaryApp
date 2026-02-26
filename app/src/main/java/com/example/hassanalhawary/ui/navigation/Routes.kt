@@ -5,6 +5,8 @@ package com.example.hassanalhawary.ui.navigation
  * Using this object prevents typos and makes route management easier.
  */
 object Routes {
+    const val QUIZ_SCREEN = "quiz_screen"
+
     // --- Authentication Routes ---
     const val AUTH_GRAPH = "auth_graph"
     const val LOGIN_SCREEN = "login_screen"

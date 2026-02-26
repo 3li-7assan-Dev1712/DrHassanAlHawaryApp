@@ -31,7 +31,8 @@ import com.example.study.presentation.model.StudyScreenUiState
 fun StudyScreen(
     viewModel: StudyViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
-    onLevelClick: (String) -> Unit
+    onLevelClick: (String) -> Unit,
+    onQuizClick: (String) -> Unit
 ) {
 
 
@@ -71,7 +72,8 @@ fun StudyScreen(
                     StudentDashboardContent(
                         studentData = state.studentData,
                         onDisconnect = { viewModel.onDisconnectTelegram() },
-                        onLevelClick = onLevelClick
+                        onLevelClick = onLevelClick,
+                        onQuizClick =  onQuizClick
                     )
                 }
 

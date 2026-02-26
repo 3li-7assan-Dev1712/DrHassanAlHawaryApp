@@ -2,13 +2,16 @@ package com.example.data_firebase
 
 import android.util.Log
 import androidx.core.net.toUri
+import com.example.data_firebase.model.LeaderboardDto
 import com.example.data_firebase.model.LessonDto
 import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
+import com.example.data_firebase.model.QuizDto
 import com.example.data_firebase.model.StudentDto
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
@@ -478,6 +481,46 @@ class StudentFirestoreSource @Inject constructor(
             emptyList()
         }
 
+    }
+
+    suspend fun getLatestQuiz(): QuizDto? {
+        return try {
+            val snapshot = firestore.collection("weekly_quiz")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .await()
+
+            snapshot.documents.firstOrNull()?.toObject<QuizDto>()
+        } catch (e: Exception) {
+            Log.e(TAG, "getLatestQuiz error: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun submitLeaderboardEntry(entry: LeaderboardDto) {
+        try {
+            firestore.collection("leaderboard").add(entry).await()
+        } catch (e: Exception) {
+            Log.e(TAG, "submitLeaderboardEntry error: ${e.message}")
+            throw e
+        }
+    }
+
+    suspend fun getLeaderboard(): List<LeaderboardDto> {
+        return try {
+            val snapshot = firestore.collection("leaderboard")
+                .orderBy("score", Query.Direction.DESCENDING)
+                .orderBy("answerTimestamp", Query.Direction.ASCENDING)
+                .limit(20)
+                .get()
+                .await()
+
+            snapshot.toObjects(LeaderboardDto::class.java)
+        } catch (e: Exception) {
+            Log.e(TAG, "getLeaderboard error: ${e.message}")
+            emptyList()
+        }
     }
 
 }

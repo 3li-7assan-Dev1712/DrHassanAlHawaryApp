@@ -37,9 +37,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -84,6 +86,7 @@ fun StudentDashboardContent(
     dashboardViewModel: DashboardViewModel = hiltViewModel(),
     onDisconnect: () -> Unit,
     onLevelClick: (String) -> Unit,
+    onQuizClick: (String) -> Unit,
 ) {
     var selectedSection by remember { mutableStateOf<DashboardSection>(DashboardSection.Study) }
     val uiState by dashboardViewModel.uiState.collectAsState()
@@ -101,6 +104,15 @@ fun StudentDashboardContent(
                 isMember = studentData.isCourseMember,
                 onDisconnect = onDisconnect
             )
+        }
+
+        if (uiState.hasNewQuiz && uiState.latestQuizId != null) {
+            item {
+                QuizReminderSection(
+                    quizId = uiState.latestQuizId!!,
+                    onClick = { onQuizClick(it) }
+                )
+            }
         }
 
         item {
@@ -149,6 +161,60 @@ fun StudentDashboardContent(
 
                     else -> {}
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuizReminderSection(
+    quizId: String,
+    onClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick(quizId) },
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Quiz,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "اختبار أسبوعي جديد متاح!",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "اضغط هنا للبدء في حل الاختبار.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
             }
         }
     }
