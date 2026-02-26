@@ -1,5 +1,6 @@
 package com.example.admin.ui.upload_quiz
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Question
 import com.example.domain.module.QuestionType
+import com.example.domain.module.QuizType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +59,7 @@ fun UploadQuizScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Create Weekly Quiz") })
+            TopAppBar(title = { Text("Create Quiz") })
         },
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
@@ -86,6 +89,33 @@ fun UploadQuizScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // --- Quiz Type Selection ---
+            Text("Quiz Type", style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                QuizType.values().forEach { type ->
+                    FilterChip(
+                        selected = uiState.quizType == type,
+                        onClick = { viewModel.onTypeChange(type) },
+                        label = { Text(type.name) }
+                    )
+                }
+            }
+
+            if (uiState.quizType == QuizType.FINAL_EXAM) {
+                OutlinedTextField(
+                    value = uiState.targetLevelId ?: "",
+                    onValueChange = viewModel::onTargetLevelChange,
+                    label = { Text("Target Level ID (e.g. level_1)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(modifier = Modifier.weight(1f)) {
                 itemsIndexed(uiState.questions) { index, question ->

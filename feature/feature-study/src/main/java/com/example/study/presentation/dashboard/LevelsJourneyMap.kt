@@ -51,6 +51,8 @@ fun LevelsJourneyMap(
     isLoading: Boolean,
     levels: List<LevelNode>,
     currentLevelIndex: Int,
+    hasPlayedAnimation: Boolean,
+    onAnimationFinished: () -> Unit,
     onNodeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -88,23 +90,30 @@ fun LevelsJourneyMap(
             label = ""
         )
 
-        LaunchedEffect(currentLevelIndex, totalLength) {
+        LaunchedEffect(currentLevelIndex, totalLength, hasPlayedAnimation) {
             if (totalLength <= 0f) return@LaunchedEffect
 
-            startPulse = false // reset (important)
             val step = totalLength / (levels.size + 1)
             val targetDistance = step * currentLevelIndex
 
-            pathAnim.snapTo(0f)
-            pathAnim.animateTo(
-                targetValue = targetDistance,
-                animationSpec = tween(
-                    durationMillis = 1400,
-                    easing = FastOutSlowInEasing
+            if (hasPlayedAnimation) {
+                // If animation already played, jump to the target directly
+                pathAnim.snapTo(targetDistance)
+                startPulse = true
+            } else {
+                // Otherwise, run the animation
+                startPulse = false
+                pathAnim.snapTo(0f)
+                pathAnim.animateTo(
+                    targetValue = targetDistance,
+                    animationSpec = tween(
+                        durationMillis = 1400,
+                        easing = FastOutSlowInEasing
+                    )
                 )
-            )
-
-            startPulse = true
+                startPulse = true
+                onAnimationFinished() // Mark as played
+            }
         }
 
         Canvas(

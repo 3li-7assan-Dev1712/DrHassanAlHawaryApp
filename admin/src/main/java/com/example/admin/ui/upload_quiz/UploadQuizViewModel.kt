@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.module.Question
 import com.example.domain.module.QuestionType
 import com.example.domain.module.Quiz
+import com.example.domain.module.QuizType
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +19,8 @@ import javax.inject.Inject
 data class UploadQuizUiState(
     val title: String = "",
     val questions: List<Question> = emptyList(),
+    val quizType: QuizType = QuizType.WEEKLY,
+    val targetLevelId: String? = null,
     val isUploading: Boolean = false,
     val uploadSuccess: Boolean = false,
     val error: String? = null
@@ -33,6 +36,14 @@ class UploadQuizViewModel @Inject constructor(
 
     fun onTitleChange(title: String) {
         _uiState.update { it.copy(title = title) }
+    }
+
+    fun onTypeChange(type: QuizType) {
+        _uiState.update { it.copy(quizType = type) }
+    }
+
+    fun onTargetLevelChange(levelId: String) {
+        _uiState.update { it.copy(targetLevelId = levelId) }
     }
 
     fun addMcqQuestion() {
@@ -100,6 +111,11 @@ class UploadQuizViewModel @Inject constructor(
             return
         }
 
+        if (state.quizType == QuizType.FINAL_EXAM && state.targetLevelId == null) {
+            _uiState.update { it.copy(error = "Target Level is required for Final Exams.") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isUploading = true, error = null) }
             try {
@@ -107,7 +123,9 @@ class UploadQuizViewModel @Inject constructor(
                 val quiz = Quiz(
                     id = quizRef.id,
                     title = state.title,
-                    questions = state.questions
+                    questions = state.questions,
+                    type = state.quizType,
+                    targetLevelId = state.targetLevelId
                 )
                 quizRef.set(quiz).await()
                 _uiState.update { it.copy(isUploading = false, uploadSuccess = true) }

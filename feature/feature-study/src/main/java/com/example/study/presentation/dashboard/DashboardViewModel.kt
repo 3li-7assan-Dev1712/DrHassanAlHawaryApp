@@ -73,7 +73,13 @@ class DashboardViewModel @Inject constructor(
             try {
                 val quiz = getLatestQuizUseCase()
                 if (quiz != null) {
-                    _uiState.update { it.copy(latestQuizId = quiz.id, hasNewQuiz = true) }
+                    _uiState.update { 
+                        it.copy(
+                            latestQuizId = quiz.id, 
+                            latestQuizType = quiz.type,
+                            hasNewQuiz = true 
+                        ) 
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Quiz error", e)

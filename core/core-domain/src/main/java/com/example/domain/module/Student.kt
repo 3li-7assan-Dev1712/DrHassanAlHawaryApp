@@ -7,5 +7,7 @@ data class Student(
     val photoUrl: String,
     val isCourseMember: Boolean,
     val membershipState: String,
-    val isConnectedToTelegram: Boolean
+    val isConnectedToTelegram: Boolean,
+    val currentLevelId: String = "level_1", // Default starting level
+    val completedLessonIds: List<String> = emptyList() // To track progress
 )

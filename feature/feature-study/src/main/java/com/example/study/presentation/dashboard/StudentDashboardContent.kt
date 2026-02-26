@@ -39,6 +39,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -78,6 +79,7 @@ import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.components.shimmer
 import com.example.domain.module.Level
+import com.example.domain.module.QuizType
 import com.example.domain.module.Student
 import com.example.study.presentation.model.DashboardSection
 
@@ -111,6 +113,7 @@ fun StudentDashboardContent(
             item {
                 QuizReminderSection(
                     quizId = uiState.latestQuizId!!,
+                    quizType = uiState.latestQuizType ?: QuizType.WEEKLY,
                     userScore = uiState.userQuizScore,
                     onClick = { onQuizClick(it) }
                 )
@@ -147,6 +150,10 @@ fun StudentDashboardContent(
                             },
                             isLoading = uiState.loadingLevels,
                             currentLevelIndex = 3,
+                            hasPlayedAnimation = uiState.hasJourneyAnimationPlayed,
+                            onAnimationFinished = {
+                                dashboardViewModel.onJourneyAnimationFinished()
+                            },
                             onNodeClick = { index ->
                                 val levelId = "level_$index"
                                 onLevelClick(levelId)
@@ -171,11 +178,13 @@ fun StudentDashboardContent(
 @Composable
 fun QuizReminderSection(
     quizId: String,
+    quizType: QuizType,
     userScore: Int?,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val hasTakenQuiz = userScore != null
+    val isFinalExam = quizType == QuizType.FINAL_EXAM
 
     ElevatedCard(
         modifier = modifier
@@ -183,7 +192,8 @@ fun QuizReminderSection(
             .clickable { onClick(quizId) },
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = if (hasTakenQuiz) MaterialTheme.colorScheme.secondaryContainer 
+            containerColor = if (isFinalExam) MaterialTheme.colorScheme.tertiaryContainer
+                            else if (hasTakenQuiz) MaterialTheme.colorScheme.secondaryContainer 
                             else MaterialTheme.colorScheme.primaryContainer
         )
     ) {
@@ -198,33 +208,49 @@ fun QuizReminderSection(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(if (hasTakenQuiz) MaterialTheme.colorScheme.secondary 
+                    .background(if (isFinalExam) MaterialTheme.colorScheme.tertiary
+                                else if (hasTakenQuiz) MaterialTheme.colorScheme.secondary 
                                 else MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (hasTakenQuiz) Icons.Default.RestartAlt else Icons.Default.Quiz,
+                    imageVector = if (isFinalExam) Icons.Default.School
+                                   else if (hasTakenQuiz) Icons.Default.RestartAlt 
+                                   else Icons.Default.Quiz,
                     contentDescription = null,
-                    tint = if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondary 
+                    tint = if (isFinalExam) MaterialTheme.colorScheme.onTertiary
+                           else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondary 
                            else MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
+                val title = when {
+                    isFinalExam -> "اختبار نهائي متاح!"
+                    hasTakenQuiz -> "نتيجتك في الاختبار الأسبوعي: $userScore"
+                    else -> "اختبار أسبوعي جديد متاح!"
+                }
+                
+                val subtitle = when {
+                    isFinalExam -> "اجتز هذا الاختبار لتنتقل للمرحلة التالية."
+                    hasTakenQuiz -> "اضغط هنا لإعادة الاختبار وتحسين نتيجتك."
+                    else -> "اضغط هنا للبدء في حل الاختبار."
+                }
+
                 Text(
-                    text = if (hasTakenQuiz) "نتيجتك في الاختبار: $userScore" 
-                           else "اختبار أسبوعي جديد متاح!",
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer 
+                    color = if (isFinalExam) MaterialTheme.colorScheme.onTertiaryContainer
+                            else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer 
                             else MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = if (hasTakenQuiz) "اضغط هنا لإعادة الاختبار وتحسين نتيجتك." 
-                           else "اضغط هنا للبدء في حل الاختبار.",
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = (if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer 
+                    color = (if (isFinalExam) MaterialTheme.colorScheme.onTertiaryContainer
+                            else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer
                             else MaterialTheme.colorScheme.onPrimaryContainer).copy(alpha = 0.8f)
                 )
             }
