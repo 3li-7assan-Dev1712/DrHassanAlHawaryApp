@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 data class AnswerQuizUiState(
     val quiz: Quiz? = null,
-    val userAnswers: Map<String, Any> = emptyMap(), // Question ID -> Answer (Int or Boolean)
+    val userAnswers: Map<String, Any> = emptyMap(),
     val isLoading: Boolean = true,
     val isSubmitting: Boolean = false,
     val submitSuccess: Boolean = false,
@@ -67,6 +67,17 @@ class AnswerQuizViewModel @Inject constructor(
         _uiState.update { it.copy(userAnswers = it.userAnswers + (questionId to answer)) }
     }
 
+    fun resetQuiz() {
+        _uiState.update {
+            it.copy(
+                userAnswers = emptyMap(),
+                submitSuccess = false,
+                finalScore = null,
+                error = null
+            )
+        }
+    }
+
     fun submitQuiz() {
         val state = _uiState.value
         val quiz = state.quiz ?: return
@@ -88,6 +99,7 @@ class AnswerQuizViewModel @Inject constructor(
                 val student = getStudentDataUseCase().first()
                 if (student != null) {
                     val entry = LeaderBoard(
+                        telegramId = student.telegramId,
                         studentName = student.name,
                         telegramPhotoUrl = student.photoUrl ?: "",
                         score = score,

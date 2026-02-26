@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -60,11 +61,19 @@ fun AnswerQuizScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (uiState.error != null) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center).padding(16.dp)
-                )
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    Button(onClick = onNavigateBack) {
+                        Text("العودة")
+                    }
+                }
             } else if (uiState.submitSuccess) {
                 Column(
                     modifier = Modifier.align(Alignment.Center),
@@ -72,9 +81,16 @@ fun AnswerQuizScreen(
                 ) {
                     Text("تم تسليم الاختبار بنجاح!", style = MaterialTheme.typography.headlineSmall)
                     Text("نتيجتك: ${uiState.finalScore}", style = MaterialTheme.typography.titleLarge)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = onNavigateBack) {
-                        Text("العودة للرئيسية")
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        OutlinedButton(onClick = { viewModel.resetQuiz() }) {
+                            Text("إعادة المحاولة")
+                        }
+                        Button(onClick = onNavigateBack) {
+                            Text("العودة للرئيسية")
+                        }
                     }
                 }
             } else {

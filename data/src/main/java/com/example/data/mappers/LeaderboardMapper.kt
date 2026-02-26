@@ -6,6 +6,7 @@ import java.util.Date
 
 fun LeaderboardDto.toDomain(): LeaderBoard {
     return LeaderBoard(
+        telegramId = telegramId,
         studentName = studentName,
         telegramPhotoUrl = telegramPhotoUrl,
         score = score,
@@ -15,6 +16,7 @@ fun LeaderboardDto.toDomain(): LeaderBoard {
 
 fun LeaderBoard.toDto(): LeaderboardDto {
     return LeaderboardDto(
+        telegramId = telegramId,
         studentName = studentName,
         telegramPhotoUrl = telegramPhotoUrl,
         score = score,

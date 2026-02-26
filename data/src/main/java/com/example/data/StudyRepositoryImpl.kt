@@ -267,7 +267,9 @@ class StudyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getLeaderboard(): List<LeaderBoard> {
-        return studentFirestoreSource.getLeaderboard().map { it.toDomain() }
+    override fun getLeaderboard(): Flow<List<LeaderBoard>> {
+        return studentFirestoreSource.getLeaderboardFlow().map { list ->
+            list.map { it.toDomain() }
+        }
     }
 }

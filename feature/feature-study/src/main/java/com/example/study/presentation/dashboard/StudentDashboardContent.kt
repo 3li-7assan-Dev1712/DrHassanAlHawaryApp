@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -110,6 +111,7 @@ fun StudentDashboardContent(
             item {
                 QuizReminderSection(
                     quizId = uiState.latestQuizId!!,
+                    userScore = uiState.userQuizScore,
                     onClick = { onQuizClick(it) }
                 )
             }
@@ -169,16 +171,20 @@ fun StudentDashboardContent(
 @Composable
 fun QuizReminderSection(
     quizId: String,
+    userScore: Int?,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val hasTakenQuiz = userScore != null
+
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick(quizId) },
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = if (hasTakenQuiz) MaterialTheme.colorScheme.secondaryContainer 
+                            else MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Row(
@@ -192,28 +198,34 @@ fun QuizReminderSection(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(if (hasTakenQuiz) MaterialTheme.colorScheme.secondary 
+                                else MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Quiz,
+                    imageVector = if (hasTakenQuiz) Icons.Default.RestartAlt else Icons.Default.Quiz,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondary 
+                           else MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "اختبار أسبوعي جديد متاح!",
+                    text = if (hasTakenQuiz) "نتيجتك في الاختبار: $userScore" 
+                           else "اختبار أسبوعي جديد متاح!",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer 
+                            else MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = "اضغط هنا للبدء في حل الاختبار.",
+                    text = if (hasTakenQuiz) "اضغط هنا لإعادة الاختبار وتحسين نتيجتك." 
+                           else "اضغط هنا للبدء في حل الاختبار.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    color = (if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer 
+                            else MaterialTheme.colorScheme.onPrimaryContainer).copy(alpha = 0.8f)
                 )
             }
         }

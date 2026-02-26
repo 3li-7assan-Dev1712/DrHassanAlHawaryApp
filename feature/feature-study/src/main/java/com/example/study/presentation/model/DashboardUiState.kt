@@ -14,5 +14,7 @@ data class DashboardUiState (
     val topStudentsErrorMessage: String? = null,
     val motivationalMessagesErrorMessage: String? = null,
     val latestQuizId: String? = null,
-    val hasNewQuiz: Boolean = false
+    val hasNewQuiz: Boolean = false,
+    val userQuizScore: Int? = null,
+    val hasJourneyAnimationPlayed: Boolean = false
 )

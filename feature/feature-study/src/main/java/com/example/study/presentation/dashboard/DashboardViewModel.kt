@@ -6,12 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.study.GetLatestQuizUseCase
 import com.example.domain.use_cases.study.GetLeaderboardUseCase
 import com.example.domain.use_cases.study.GetMotivationalMessagesUseCase
+import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.SyncLevelsUseCase
 import com.example.study.presentation.model.DashboardUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,10 +26,11 @@ class DashboardViewModel @Inject constructor(
     private val syncLevelsUseCase: SyncLevelsUseCase,
     private val getMotivationalMessagesUseCase: GetMotivationalMessagesUseCase,
     private val getLatestQuizUseCase: GetLatestQuizUseCase,
-    private val getLeaderboardUseCase: GetLeaderboardUseCase
+    private val getLeaderboardUseCase: GetLeaderboardUseCase,
+    private val getStudentDataUseCase: GetStudentDataUseCase
 ) : ViewModel() {
 
-    val TAG = "DashboardViewModel"
+    private val TAG = "DashboardViewModel"
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState = _uiState.asStateFlow()
@@ -47,7 +52,8 @@ class DashboardViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "Levels error: ${e.message}")
+                Log.e(TAG, "Levels error", e)
+                _uiState.update { it.copy(levelsErrorMessage = e.message, loadingLevels = false) }
             }
         }
 
@@ -57,6 +63,7 @@ class DashboardViewModel @Inject constructor(
                 val messages = getMotivationalMessagesUseCase()
                 _uiState.update { it.copy(motivationalMessages = messages, loadingMotivationalMessages = false) }
             } catch (e: Exception) {
+                Log.e(TAG, "Messages error", e)
                 _uiState.update { it.copy(motivationalMessagesErrorMessage = e.message, loadingMotivationalMessages = false) }
             }
         }
@@ -69,23 +76,45 @@ class DashboardViewModel @Inject constructor(
                     _uiState.update { it.copy(latestQuizId = quiz.id, hasNewQuiz = true) }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error fetching quiz: ${e.message}")
+                Log.e(TAG, "Quiz error", e)
             }
         }
 
-        // Top Students (Leaderboard)
-        loadTopStudents()
+        // Leaderboard and User Score (Real-time)
+        observeLeaderboard()
     }
 
-    fun loadTopStudents() {
+    private fun observeLeaderboard() {
         viewModelScope.launch {
             _uiState.update { it.copy(loadingTopStudents = true) }
-            try {
-                val leaderboard = getLeaderboardUseCase()
-                _uiState.update { it.copy(topStudents = leaderboard, loadingTopStudents = false) }
-            } catch (e: Exception) {
+            
+            // Combine both flows to always have the latest user score when either the leaderboard 
+            // or the student profile changes.
+            combine(
+                getLeaderboardUseCase(),
+                getStudentDataUseCase()
+            ) { leaderboard, student ->
+                val userEntry = if (student != null) {
+                    leaderboard.find { it.telegramId == student.telegramId }
+                } else null
+                
+                Pair(leaderboard, userEntry?.score)
+            }.catch { e ->
+                Log.e(TAG, "Leaderboard observation error", e)
                 _uiState.update { it.copy(loadingTopStudents = false, topStudentsErrorMessage = e.message) }
+            }.collectLatest { (leaderboard, score) ->
+                _uiState.update { 
+                    it.copy(
+                        topStudents = leaderboard, 
+                        loadingTopStudents = false,
+                        userQuizScore = score
+                    )
+                }
             }
         }
+    }
+
+    fun onJourneyAnimationFinished() {
+        _uiState.update { it.copy(hasJourneyAnimationPlayed = true) }
     }
 }

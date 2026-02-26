@@ -74,7 +74,7 @@ interface StudyRepository {
     // Quiz and Leaderboard
     suspend fun getLatestQuiz(): Quiz?
     suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>
-    suspend fun getLeaderboard(): List<LeaderBoard>
+    fun getLeaderboard(): Flow<List<LeaderBoard>>
 
 
 }

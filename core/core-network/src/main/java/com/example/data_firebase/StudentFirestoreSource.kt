@@ -500,27 +500,40 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun submitLeaderboardEntry(entry: LeaderboardDto) {
         try {
-            firestore.collection("leaderboard").add(entry).await()
+            val docRef = firestore.collection("leaderboard").document(entry.telegramId.toString())
+            val existingDoc = docRef.get().await()
+
+            if (existingDoc.exists()) {
+                val existingScore = existingDoc.getLong("score") ?: 0
+                // Update only if new score is better
+                if (entry.score > existingScore) {
+                    docRef.set(entry).await()
+                }
+            } else {
+                docRef.set(entry).await()
+            }
         } catch (e: Exception) {
             Log.e(TAG, "submitLeaderboardEntry error: ${e.message}")
             throw e
         }
     }
 
-    suspend fun getLeaderboard(): List<LeaderboardDto> {
-        return try {
-            val snapshot = firestore.collection("leaderboard")
-                .orderBy("score", Query.Direction.DESCENDING)
-                .orderBy("answerTimestamp", Query.Direction.ASCENDING)
-                .limit(20)
-                .get()
-                .await()
-
-            snapshot.toObjects(LeaderboardDto::class.java)
-        } catch (e: Exception) {
-            Log.e(TAG, "getLeaderboard error: ${e.message}")
-            emptyList()
-        }
+    fun getLeaderboardFlow(): Flow<List<LeaderboardDto>> = callbackFlow {
+        val listener = firestore.collection("leaderboard")
+            .orderBy("score", Query.Direction.DESCENDING)
+            .orderBy("answerTimestamp", Query.Direction.ASCENDING)
+            .limit(20)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val leaderboard = snapshot.toObjects(LeaderboardDto::class.java)
+                    trySend(leaderboard)
+                }
+            }
+        awaitClose { listener.remove() }
     }
 
 }
