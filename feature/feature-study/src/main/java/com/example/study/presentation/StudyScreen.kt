@@ -1,5 +1,6 @@
 package com.example.study.presentation
 
+import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,10 +33,12 @@ fun StudyScreen(
     viewModel: StudyViewModel = hiltViewModel(),
     onNavigateToLogin: () -> Unit,
     onLevelClick: (String) -> Unit,
-    onQuizClick: (String) -> Unit
+    onQuizClick: (String) -> Unit,
+    userEmail: String? = null
 ) {
 
 
+    Log.d("StudyScreen", "StudyScreen: userEmail: $userEmail")
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -79,7 +82,7 @@ fun StudyScreen(
 
                 is StudyScreenUiState.Guest -> {
                     // Show the simple connect button for guests
-                    GuestContent(onConnect = onNavigateToLogin)
+                    GuestContent(onConnect = onNavigateToLogin, userEmail = userEmail)
                 }
             }
         }

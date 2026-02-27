@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,13 +41,21 @@ fun GuestContent(
     onConnect: () -> Unit,
     onLearnMore: (() -> Unit)? = null,
     onPrivacy: (() -> Unit)? = null,
+    userEmail: String? = null
 ) {
     val context = LocalContext.current
 
-    val telegramLoginUrl =
-        "https://oauth.telegram.org/auth?bot_id=8255460260&origin=https://dr-hassan-al-hawary.web.app&return_to=https://dr-hassan-al-hawary.web.app/telegram-callback.html&request_access=write"
+    val returnTo = "https://dr-hassan-al-hawary.web.app/telegram-callback.html?email=${
+        java.net.URLEncoder.encode(userEmail ?: "", "UTF-8")
+    }"
 
-    // Brand-ish color (Telegram-like). Replace with your own from theme if you have it.
+    val telegramLoginUrl =
+        "https://oauth.telegram.org/auth" +
+                "?bot_id=8255460260" +
+                "&origin=https://dr-hassan-al-hawary.web.app" +
+                "&return_to=${java.net.URLEncoder.encode(returnTo, "UTF-8")}" +
+                "&request_access=write"
+
     val telegramBlue = Color(0xFF2AABEE)
 
     Column(
@@ -57,7 +66,6 @@ fun GuestContent(
     ) {
         Spacer(Modifier.height(12.dp))
 
-        // Hero card
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -72,7 +80,6 @@ fun GuestContent(
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Icon in tinted circle
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -91,7 +98,7 @@ fun GuestContent(
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = "Connect your Telegram",
+                    text = stringResource(R.string.telegram_connect_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center
@@ -100,7 +107,7 @@ fun GuestContent(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Link your account to access courses, track progress, and receive new-lesson alerts.",
+                    text = stringResource(R.string.telegram_connect_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -108,22 +115,18 @@ fun GuestContent(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Benefit bullets (simple + premium)
-                BenefitRow("Instant alerts for new lessons")
+                BenefitRow(stringResource(R.string.benefit_alerts))
                 Spacer(Modifier.height(8.dp))
-                BenefitRow("Sync progress across devices")
+                BenefitRow(stringResource(R.string.benefit_sync))
                 Spacer(Modifier.height(8.dp))
-                BenefitRow("Fast login (no passwords)")
+                BenefitRow(stringResource(R.string.benefit_fast_login))
 
                 Spacer(Modifier.height(18.dp))
-
 
                 Button(
                     onClick = {
                         val customTabsIntent = CustomTabsIntent.Builder().build()
                         customTabsIntent.launchUrl(context, telegramLoginUrl.toUri())
-
-
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -141,7 +144,7 @@ fun GuestContent(
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "Connect to Telegram",
+                        text = stringResource(R.string.button_connect_telegram),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -151,9 +154,8 @@ fun GuestContent(
 
         Spacer(Modifier.height(14.dp))
 
-        // Optional: subtle reassurance / footnote
         Text(
-            text = "We only use Telegram to verify your membership and deliver course notifications.",
+            text = stringResource(R.string.telegram_privacy_footnote),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -168,7 +170,6 @@ private fun BenefitRow(text: String) {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Minimal “check” dot (no extra icon dependency)
         Box(
             modifier = Modifier
                 .size(8.dp)

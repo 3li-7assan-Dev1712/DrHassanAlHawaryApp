@@ -28,4 +28,13 @@
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get started</string>
     <string name="share_app">مشاركة التطبيق مع الإخــوة</string>
+
+    <!-- Guest Content -->
+    <string name="telegram_connect_title">اربط حسابك بتيليجرام</string>
+    <string name="telegram_connect_description">اربط حسابك للوصول إلى الدورات، وتتبع تقدمك، وتلقي تنبيهات بالدروس الجديدة.</string>
+    <string name="benefit_alerts">تنبيهات فورية بالدروس الجديدة</string>
+    <string name="benefit_sync">مزامنة تقدمك عبر الأجهزة</string>
+    <string name="benefit_fast_login">تسجيل دخول سريع (بدون كلمات مرور)</string>
+    <string name="button_connect_telegram">الاتصال بتيليجرام</string>
+    <string name="telegram_privacy_footnote">نحن نستخدم تيليجرام فقط للتحقق من عضويتك وإرسال إشعارات الدورة.</string>
 </resources>

@@ -7,6 +7,7 @@ import com.example.domain.use_cases.datastore.ObserveDarkThemePreference
 import com.example.domain.use_cases.datastore.ObserveOnboardingCompletedUseCase
 import com.example.domain.use_cases.datastore.UpdateDarkThemePreference
 import com.example.domain.use_cases.datastore.UpdateOnboardingCompletedUseCase
+import com.example.profile.domain.use_case.GetUserDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +31,8 @@ class MainActivityViewModel @Inject constructor(
     private val observeOnboardingCompletedUseCase: ObserveOnboardingCompletedUseCase,
     private val updateOnboardingCompletedUseCase: UpdateOnboardingCompletedUseCase,
     private val observeDarkThemePreferenceUseCase: ObserveDarkThemePreference,
-    private val updateDarkThemePreferenceUseCase: UpdateDarkThemePreference
+    private val updateDarkThemePreferenceUseCase: UpdateDarkThemePreference,
+    private val getCurrentUserDataUseCase: GetUserDataUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainActivityState())
@@ -77,12 +79,15 @@ class MainActivityViewModel @Inject constructor(
 
     fun checkUserAuthState() {
         viewModelScope.launch {
+            val isLoggedIn = isUserLoggedInUseCase()
             _state.update {
                 it.copy(
-                    isUserLoggedIn = isUserLoggedInUseCase(),
+                    isUserLoggedIn = isLoggedIn,
                     isLoading = false
                 )
             }
+            if (isLoggedIn)
+                _state.update { it.copy(currentUserDate = getCurrentUserDataUseCase()) }
         }
     }
 
