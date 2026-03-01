@@ -5,43 +5,28 @@ import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.domain.module.Quiz
-import com.example.domain.module.Student
+import com.example.domain.module.User
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 
 interface StudyRepository {
 
+    // User session methods
+    fun observeUser(uid: String): Flow<User?>
+    suspend fun upsertUser(user: User)
+    suspend fun disconnectTelegram(uid: String)
+    suspend fun getUser(uid: String): User?
 
-    fun getStudentData(): Flow<Student?>
-
-    suspend fun saveStudentData(telegramId: Long)
-
-    suspend fun storeAdminDataToRoom(telegramId: Long)
-
-    suspend fun disconnectTelegram()
-
-
+    // Existing methods (updated to be generic if needed, but keeping logic)
     fun getPlaylistsForLevel(levelId: String): Flow<List<Playlist>?>
-
     suspend fun syncPlaylists()
-
     suspend fun getRemoteMotivationalMessages(): List<String>
-
     suspend fun syncLevels()
-
     fun getLevels(): Flow<List<Level>>
-
-
     fun getLessonsForPlaylist(playlistId: String): Flow<List<Lesson>>
-
-
     fun getLessonById(lessonId: String): Flow<Lesson?>
-
-
     suspend fun syncLessons()
-
     suspend fun ensureLessonFilesDownloaded(id: String)
-
 
     suspend fun updatePlaylist(
         playlistId: String,
@@ -51,23 +36,16 @@ interface StudyRepository {
         newThumbnailLocalOrRemote: String?
     ): Result<String>
 
-
-    // admin
-
+    // Admin/Other
     suspend fun getRemotePlaylistForLevel(levelId: String): List<Playlist>
     suspend fun uploadPlaylist(playlist: Playlist): Flow<UploadResult>
-
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson>
-
-
     suspend fun updateLesson(
         lesson: Lesson,
         localAudioUrl: String?,
         localPdfUrl: String?
     ): Result<String>
-
     suspend fun addLesson(lesson: Lesson, playlistId: String): Flow<UploadResult>
-
     suspend fun getRemoteLessonById(lessonId: String): Lesson?
     suspend fun getRemotePlaylistById(playlistId: String): Playlist?
 
@@ -75,6 +53,4 @@ interface StudyRepository {
     suspend fun getLatestQuiz(): Quiz?
     suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>
     fun getLeaderboard(): Flow<List<LeaderBoard>>
-
-
 }
