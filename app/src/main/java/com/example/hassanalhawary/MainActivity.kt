@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                                 MainAppContent(
                                     onLogout = { mainActivityViewModel.logoutSuccess() },
                                     isDarkThemeEnabled = themeState.isDarkTheme,
-                                    userEmail = mainActivityState.currentUserDate?.email ?: ""
+                                    userEmail = mainActivityState.currentUserDate?.email ?: "",
                                 )
                             }
 
@@ -158,7 +158,7 @@ class MainActivity : ComponentActivity() {
     fun MainAppContent(
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,
-        userEmail: String
+        userEmail: String,
         ) {
         val navController = rememberNavController()
 
@@ -171,16 +171,15 @@ class MainActivity : ComponentActivity() {
                 Routes.HOME_SCREEN,
                 Routes.SEARCH_SCREEN,
                 Routes.PROFILE_SCREEN,
-                "telegram_login?data={data}"
+                "telegram_login?uid={uid}&data={data}&t={t}"
             )
         }
 
         val shouldShowBottomNav = remember(currentRoute) {
             derivedStateOf {
                 currentRoute != null && routesWithBottomNav.any { routePattern ->
-                    // Simple check for exact match or prefix match for routes with arguments
                     if (routePattern.contains("{")) {
-                        val baseRoutePattern = routePattern.substringBefore("/{")
+                        val baseRoutePattern = routePattern.substringBefore("?")
                         currentRoute.startsWith(baseRoutePattern)
                     } else {
                         currentRoute == routePattern
@@ -227,7 +226,11 @@ class MainActivity : ComponentActivity() {
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     }, onCategoryClick = { route ->
-                        navController.navigate(route)
+                        if (route == Routes.STUDY_SCREEN) {
+                            navController.navigate("telegram_login")
+                        } else {
+                            navController.navigate(route)
+                        }
                     }
 
 
@@ -274,7 +277,6 @@ class MainActivity : ComponentActivity() {
                     })
                 }
                 composable(
-                    // Update the route to include an optional parameter
                     route = "detail_article_screen/{articleId}/{paragraphIndex}",
                     arguments = listOf(
                         navArgument("articleId") { type = NavType.StringType },
@@ -285,7 +287,6 @@ class MainActivity : ComponentActivity() {
                     )
                 ) { backStackEntry ->
                     ArticleDetailScreen(
-//                        paragraphIndex = backStackEntry.arguments?.getInt("paragraphIndex")?.takeIf { it != -1 },
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }
@@ -313,8 +314,12 @@ class MainActivity : ComponentActivity() {
                 }
 
                 composable(
-                    route = "telegram_login?data={data}&t={t}",
+                    route = "telegram_login?uid={uid}&data={data}&t={t}",
                     arguments = listOf(
+                        navArgument("uid") {
+                            type = NavType.StringType
+                            defaultValue = uid
+                        },
                         navArgument("data") {
                             type = NavType.StringType
                             nullable = true
@@ -404,18 +409,7 @@ class MainActivity : ComponentActivity() {
                     LessonDetailScreen(
                         onNavigateBack = {
                             navController.popBackStack()
-                        },
-                        /*onPlayAudioClick = {
-
-                        }, onOpenPdfClick = {
-
-                        }, lesson = Lesson(
-                            id = "1",
-                            title = "Introduction to Islamic Beliefs",
-                            audioUrl = "",
-                            pdfUrl = "",
-                            duration = "1.32"
-                        )*/
+                        }
                     )
 
                 }

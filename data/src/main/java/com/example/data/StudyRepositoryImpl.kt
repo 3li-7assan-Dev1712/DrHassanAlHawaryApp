@@ -34,24 +34,32 @@ class StudyRepositoryImpl @Inject constructor(
 
     private val TAG = "StudyRepositoryImpl"
 
-    override fun observeUser(uid: String): Flow<User?> {
-        return userDao.observeUser(uid).map { it?.toDomain() }
+    override fun observeUser(): Flow<User?> {
+        return userDao.observeUser().map { it?.toDomain() }
     }
 
     override suspend fun upsertUser(user: User) {
-        // Save to Local
+        // Save to Local (only one user allowed)
         userDao.upsertUser(user.toEntity())
         // Save to Remote
         studentFirestoreSource.upsertUser(user.toDto())
     }
 
-    override suspend fun getUser(uid: String): User? {
-        return userDao.getUser(uid)?.toDomain() ?: studentFirestoreSource.getUser(uid)?.toDomain()
+    override suspend fun getUser(): User? {
+        return userDao.getUser()?.toDomain()
+    }
+
+    override suspend fun getRemoteUser(uid: String): User? {
+        return studentFirestoreSource.getUser(uid)?.toDomain(uid)
+    }
+
+    override suspend fun clearUser() {
+        userDao.clearAll()
     }
 
     override suspend fun disconnectTelegram(uid: String) {
         studentFirestoreSource.updateTelegramDisconnected(uid)
-        val localUser = userDao.getUser(uid)
+        val localUser = userDao.getUser()
         if (localUser != null) {
             userDao.upsertUser(localUser.copy(
                 isConnectedToTelegram = false,

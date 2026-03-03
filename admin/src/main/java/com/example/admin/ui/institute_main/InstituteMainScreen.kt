@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Student
+import com.example.domain.module.User
 
 @Composable
 fun InstituteMainScreen(
@@ -69,7 +70,7 @@ fun InstituteMainScreen(
 
         is InstituteScreenUiState.AdminDashboard -> {
             AdminDashboard(
-                student = state.studentData,
+                user = state.user,
                 onUploadQuiz = onUploadQuiz,
                 onUploadAnnouncement = onUploadAnnouncement,
                 onUploadMotivationalMessages = onUploadMotivationalMessages,
@@ -87,7 +88,7 @@ fun InstituteMainScreen(
 
 @Composable
 fun AdminDashboard(
-    student: Student,
+    user: User,
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onUploadMotivationalMessages: () -> Unit,
@@ -104,7 +105,7 @@ fun AdminDashboard(
     ) {
         item {
             TelegramProfileHeader(
-                name = student.name,
+                name = user.telegramFirstName ?: "",
                 username = "@${student.username}",
                 photoUrl = student.photoUrl,
                 membershipState = student.membershipState

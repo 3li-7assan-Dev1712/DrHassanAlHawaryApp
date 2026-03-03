@@ -1,6 +1,6 @@
 package com.example.admin.ui.institute_main
 
-import com.example.domain.module.Student
+import com.example.domain.module.User
 
 sealed interface InstituteScreenUiState {
 
@@ -8,7 +8,7 @@ sealed interface InstituteScreenUiState {
 
     data class Error(val message: String): InstituteScreenUiState
 
-    data class AdminDashboard(val studentData: Student): InstituteScreenUiState
+    data class AdminDashboard(val user: User): InstituteScreenUiState
 
     data object Guest: InstituteScreenUiState
 

@@ -2,12 +2,15 @@ package com.example.hassanalhawary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.module.User
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.datastore.ObserveDarkThemePreference
 import com.example.domain.use_cases.datastore.ObserveOnboardingCompletedUseCase
 import com.example.domain.use_cases.datastore.UpdateDarkThemePreference
 import com.example.domain.use_cases.datastore.UpdateOnboardingCompletedUseCase
-import com.example.profile.domain.use_case.GetUserDataUseCase
+import com.example.domain.use_cases.study.UpsertUserUseCase
+import com.example.profile.domain.use_case.GetGoogleUserDataUseCase
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +35,9 @@ class MainActivityViewModel @Inject constructor(
     private val updateOnboardingCompletedUseCase: UpdateOnboardingCompletedUseCase,
     private val observeDarkThemePreferenceUseCase: ObserveDarkThemePreference,
     private val updateDarkThemePreferenceUseCase: UpdateDarkThemePreference,
-    private val getCurrentUserDataUseCase: GetUserDataUseCase
+    private val getCurrentUserDataUseCase: GetGoogleUserDataUseCase,
+    private val upsertUserUseCase: UpsertUserUseCase,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainActivityState())
@@ -86,13 +91,44 @@ class MainActivityViewModel @Inject constructor(
                     isLoading = false
                 )
             }
-            if (isLoggedIn)
+            if (isLoggedIn) {
+
                 _state.update { it.copy(currentUserDate = getCurrentUserDataUseCase()) }
+
+
+            }
+        }
+    }
+
+    private suspend fun initUser() {
+        // Initialize user in room/firestore if first time after login
+        val authUser = firebaseAuth.currentUser
+        if (authUser != null) {
+            val user = User(
+                uid = authUser.uid,
+                email = authUser.email,
+                displayName = authUser.displayName,
+                photoUrl = authUser.photoUrl?.toString(),
+                telegramId = null,
+                telegramUsername = null,
+                telegramFirstName = null,
+                telegramLastName = null,
+                telegramPhotoUrl = null,
+                isChannelMember = false,
+                membershipState = null,
+                isConnectedToTelegram = false,
+                currentLevelId = "level_1"
+            )
+            upsertUserUseCase(user)
         }
     }
 
     fun loginSuccess() {
-        viewModelScope.launch { _state.update { it.copy(isUserLoggedIn = true) } }
+        viewModelScope.launch {
+            _state.update { it.copy(isUserLoggedIn = true) }
+            initUser()
+        }
+
     }
 
     fun logoutSuccess() {

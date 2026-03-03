@@ -1,39 +1,39 @@
 package com.example.study.presentation
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.use_cases.study.DisconnectTelegramUseCase
-import com.example.domain.use_cases.study.GetStudentDataUseCase
-import com.example.domain.use_cases.study.StoreStudentDataUseCase
+import com.example.domain.use_cases.study.GetUserDataUseCase
+import com.example.domain.use_cases.study.SyncUserUseCase
 import com.example.study.presentation.model.StudyScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import javax.inject.Inject
 
 @HiltViewModel
 class StudyViewModel @Inject constructor(
-    getStudentDataUseCase: GetStudentDataUseCase,
-    private val storeStudentDataUseCase: StoreStudentDataUseCase,
-    private val disconnectTelegramUseCase: DisconnectTelegramUseCase,
+    private val getUserDataUseCase: GetUserDataUseCase,
+    private val syncUserUseCase: SyncUserUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val TAG = "StudyViewModel"
 
-    val uiState: StateFlow<StudyScreenUiState> = getStudentDataUseCase()
-        .map { studentData ->
-            if (studentData != null) StudyScreenUiState.StudentDashboard(studentData)
-            else StudyScreenUiState.Guest
+    // Driven purely by Room (Local Source of Truth)
+    val uiState: StateFlow<StudyScreenUiState> = getUserDataUseCase()
+        .map { user ->
+            when {
+                user == null -> StudyScreenUiState.Guest
+                !user.isConnectedToTelegram -> StudyScreenUiState.Guest
+                user.membershipState == "none" -> StudyScreenUiState.NotAllowed
+                else -> StudyScreenUiState.StudentDashboard(user)
+            }
         }
         .stateIn(
             scope = viewModelScope,
@@ -41,29 +41,19 @@ class StudyViewModel @Inject constructor(
             initialValue = StudyScreenUiState.Loading
         )
 
-    private val dataFlow = savedStateHandle.getStateFlow<String?>("data", null)
-
     init {
+        // Automatically sync from remote whenever we have a local user record
+        // This handles app launch, local data changes, and catch-up for Cloud Function merges.
         viewModelScope.launch {
-            dataFlow
-                .filterNotNull()
-                .distinctUntilChanged()
-                .collect { encodedData ->
-                    Log.d(TAG, "deep link data received: $encodedData")
-
-                    val json = Uri.decode(encodedData)
-                    val user = JSONObject(json)
-                    val telegramId = user.getLong("id")
-                    Log.d(TAG, "telegramId: $telegramId")
-
-                    storeStudentDataUseCase(telegramId)
+            getUserDataUseCase().collectLatest { user ->
+                if (user != null && !user.isConnectedToTelegram) {
+                    try {
+                        syncUserUseCase(user.uid)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Sync failed: ${e.message}")
+                    }
                 }
-        }
-    }
-
-    fun onDisconnectTelegram() {
-        viewModelScope.launch {
-            disconnectTelegramUseCase()
+            }
         }
     }
 }

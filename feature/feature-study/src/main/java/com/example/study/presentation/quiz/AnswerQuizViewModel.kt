@@ -7,7 +7,7 @@ import com.example.domain.module.LeaderBoard
 import com.example.domain.module.QuestionType
 import com.example.domain.module.Quiz
 import com.example.domain.use_cases.study.GetLatestQuizUseCase
-import com.example.domain.use_cases.study.GetStudentDataUseCase
+import com.example.domain.use_cases.study.GetUserDataUseCase
 import com.example.domain.use_cases.study.SubmitLeaderboardEntryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +32,7 @@ data class AnswerQuizUiState(
 class AnswerQuizViewModel @Inject constructor(
     private val getLatestQuizUseCase: GetLatestQuizUseCase,
     private val submitLeaderboardEntryUseCase: SubmitLeaderboardEntryUseCase,
-    private val getStudentDataUseCase: GetStudentDataUseCase,
+    private val getUserDataUseCase: GetUserDataUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -96,12 +96,12 @@ class AnswerQuizViewModel @Inject constructor(
                     }
                 }
 
-                val student = getStudentDataUseCase().first()
-                if (student != null) {
+                val user = getUserDataUseCase().first()
+                if (user != null && user.telegramId != null) {
                     val entry = LeaderBoard(
-                        telegramId = student.telegramId,
-                        studentName = student.name,
-                        telegramPhotoUrl = student.photoUrl ?: "",
+                        telegramId = user.telegramId!!,
+                        studentName = user.displayName ?: user.telegramFirstName ?: "Unknown",
+                        telegramPhotoUrl = user.telegramPhotoUrl ?: user.photoUrl ?: "",
                         score = score,
                         answerTimestamp = Date()
                     )
@@ -111,7 +111,7 @@ class AnswerQuizViewModel @Inject constructor(
                         _uiState.update { it.copy(isSubmitting = false, error = e.message) }
                     }
                 } else {
-                    _uiState.update { it.copy(isSubmitting = false, error = "User not found.") }
+                    _uiState.update { it.copy(isSubmitting = false, error = "User or Telegram connection not found.") }
                 }
 
             } catch (e: Exception) {

@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.Flow
 interface StudyRepository {
 
     // User session methods
-    fun observeUser(uid: String): Flow<User?>
+    fun observeUser(): Flow<User?>
     suspend fun upsertUser(user: User)
     suspend fun disconnectTelegram(uid: String)
-    suspend fun getUser(uid: String): User?
+    suspend fun getUser(): User?
+    suspend fun getRemoteUser(uid: String): User?
+    suspend fun clearUser()
 
-    // Existing methods (updated to be generic if needed, but keeping logic)
+    // Existing methods
     fun getPlaylistsForLevel(levelId: String): Flow<List<Playlist>?>
     suspend fun syncPlaylists()
     suspend fun getRemoteMotivationalMessages(): List<String>

@@ -6,7 +6,7 @@ import com.example.profile.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 
-class GetUserDataUseCase @Inject constructor(
+class GetGoogleUserDataUseCase @Inject constructor(
 
     private val profileRepository: ProfileRepository
 ) {

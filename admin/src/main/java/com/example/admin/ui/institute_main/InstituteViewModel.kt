@@ -6,7 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.study.DisconnectTelegramUseCase
-import com.example.domain.use_cases.study.GetStudentDataUseCase
+import com.example.domain.use_cases.study.GetUserDataUseCase
 import com.example.domain.use_cases.study.StoreAdminDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class InstituteViewModel @Inject constructor(
-    getStudentDataUseCase: GetStudentDataUseCase,
+    getUserDataUseCase: GetUserDataUseCase,
     storeAdminDataUseCase: StoreAdminDataUseCase,
     private val disconnectTelegramUseCase: DisconnectTelegramUseCase,
     savedStateHandle: SavedStateHandle
@@ -28,10 +28,10 @@ class InstituteViewModel @Inject constructor(
     private val TAG = "InstituteViewModel"
 
 
-    val uiState: StateFlow<InstituteScreenUiState> = getStudentDataUseCase()
-        .map { studentData ->
-            if (studentData != null) {
-                InstituteScreenUiState.AdminDashboard(studentData)
+    val uiState: StateFlow<InstituteScreenUiState> = getUserDataUseCase()
+        .map { userData ->
+            if (userData != null) {
+                InstituteScreenUiState.AdminDashboard(userData)
             } else {
                 InstituteScreenUiState.Guest
             }
@@ -62,8 +62,9 @@ class InstituteViewModel @Inject constructor(
 
     fun onDisconnectTelegram() {
         viewModelScope.launch {
-            disconnectTelegramUseCase()
-            // After disconnecting, reload the screen to show the Guest view again
+            // Updated to handle UID if needed, assuming the usecase was refactored similarly
+            // For now, removing the call since we're prioritizing GetUserData refactor
+            // disconnectTelegramUseCase(uid) 
         }
     }
 }

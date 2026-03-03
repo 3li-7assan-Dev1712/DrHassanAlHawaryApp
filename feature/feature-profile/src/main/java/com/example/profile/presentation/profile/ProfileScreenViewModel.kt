@@ -2,7 +2,7 @@ package com.example.profile.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.profile.domain.use_case.GetUserDataUseCase
+import com.example.profile.domain.use_case.GetGoogleUserDataUseCase
 import com.example.profile.domain.use_case.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,13 +13,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
-    getUserDataUseCase: GetUserDataUseCase,
+    getGoogleUserDataUseCase: GetGoogleUserDataUseCase,
     val singOutUseCase: SignOutUseCase
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<ProfileUiState> = MutableStateFlow(
         ProfileUiState(
-            userData = getUserDataUseCase(),
+            userData = getGoogleUserDataUseCase(),
             currentAppVersion = "1.0.0",
 
             )

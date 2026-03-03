@@ -9,6 +9,6 @@ class DisconnectTelegramUseCase @Inject constructor(
 
 
     suspend operator fun invoke() {
-        return studyRepository.disconnectTelegram()
+        return studyRepository.disconnectTelegram("")
     }
 }

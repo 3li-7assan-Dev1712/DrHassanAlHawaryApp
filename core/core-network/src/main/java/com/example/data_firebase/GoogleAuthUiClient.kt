@@ -1,6 +1,7 @@
 package com.example.data_firebase
 
 import android.content.Context
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -49,7 +50,8 @@ class GoogleAuthUiClient
                         userId = uid,
                         username = displayName,
                         email = email,
-                        userProfilePictureUrl = photoUrl?.toString()
+                        userProfilePictureUrl = photoUrl?.toString(),
+                        idToken = getIdToken(false).result?.token
                     )
                 }, errorMessage = null
             )
@@ -70,7 +72,7 @@ class GoogleAuthUiClient
             withContext(Dispatchers.IO) {
 
                 credentialManager.clearCredentialState(
-                    androidx.credentials.ClearCredentialStateRequest()
+                    ClearCredentialStateRequest()
                 )
                 // Also sign out from Firebase.
                 auth.signOut()
@@ -88,6 +90,7 @@ class GoogleAuthUiClient
             userId = uid,
             username = displayName,
             email = email,
+            idToken = getIdToken(false).result?.token,
             userProfilePictureUrl = photoUrl?.toString()
         )
     }
