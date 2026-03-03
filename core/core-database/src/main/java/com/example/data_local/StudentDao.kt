@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface StudentDao {
 
+    @Query("DELETE FROM students")
+    suspend fun deleteAll()
+
 
     @Query("SELECT * FROM students LIMIT 1")
     fun getCurrentStudentData(): Flow<StudentEntity?>

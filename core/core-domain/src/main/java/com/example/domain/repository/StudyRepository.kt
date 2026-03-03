@@ -6,6 +6,7 @@ import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.domain.module.Quiz
 import com.example.domain.module.Student
+import com.example.domain.module.UserData
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 
@@ -14,9 +15,13 @@ interface StudyRepository {
 
     fun getStudentData(): Flow<Student?>
 
-    suspend fun saveStudentData(telegramId: Long)
+    suspend fun getStudentAuthData(): UserData?
+
+    suspend fun saveStudentData(uid: String)
 
     suspend fun storeAdminDataToRoom(telegramId: Long)
+
+    suspend fun deleteStudentData()
 
     suspend fun disconnectTelegram()
 

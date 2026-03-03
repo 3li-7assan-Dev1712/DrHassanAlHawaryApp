@@ -34,7 +34,8 @@ fun StudyScreen(
     onNavigateToLogin: () -> Unit,
     onLevelClick: (String) -> Unit,
     onQuizClick: (String) -> Unit,
-    userEmail: String? = null
+    userEmail: String? = null,
+    idToken: String? = null
 ) {
 
 
@@ -76,13 +77,17 @@ fun StudyScreen(
                         studentData = state.studentData,
                         onDisconnect = { viewModel.onDisconnectTelegram() },
                         onLevelClick = onLevelClick,
-                        onQuizClick =  onQuizClick
+                        onQuizClick = onQuizClick
                     )
                 }
 
                 is StudyScreenUiState.Guest -> {
                     // Show the simple connect button for guests
-                    GuestContent(onConnect = onNavigateToLogin, userEmail = userEmail)
+                    GuestContent(
+                        onConnect = onNavigateToLogin,
+                        userEmail = userEmail,
+                        idToken = idToken
+                    )
                 }
             }
         }

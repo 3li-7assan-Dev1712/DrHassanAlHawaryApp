@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.study.DisconnectTelegramUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.domain.use_cases.study.StoreStudentDataUseCase
+import com.example.study.domain.use_case.GetStudentAuthDataUseCase
 import com.example.study.presentation.model.StudyScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,6 +26,7 @@ class StudyViewModel @Inject constructor(
     getStudentDataUseCase: GetStudentDataUseCase,
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val disconnectTelegramUseCase: DisconnectTelegramUseCase,
+    private val getStudentAuthDataUseCase: GetStudentAuthDataUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -56,7 +58,14 @@ class StudyViewModel @Inject constructor(
                     val telegramId = user.getLong("id")
                     Log.d(TAG, "telegramId: $telegramId")
 
-                    storeStudentDataUseCase(telegramId)
+                    val uid = getStudentAuthDataUseCase()?.userId
+                    if (uid != null) {
+                        storeStudentDataUseCase(uid)
+                        Log.d(TAG, "uid: $uid")
+
+                    } else {
+                        Log.d(TAG, "uid is null: ")
+                    }
                 }
         }
     }

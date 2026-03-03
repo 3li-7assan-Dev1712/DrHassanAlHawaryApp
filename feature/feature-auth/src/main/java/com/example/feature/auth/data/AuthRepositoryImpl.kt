@@ -39,6 +39,7 @@ class AuthRepositoryImpl @Inject constructor(
                         userId = firebaseUser.uid,
                         username = firebaseUser.displayName,
                         email = firebaseUser.email,
+                        idToken = firebaseUser.getIdToken(false).await().token,
                         userProfilePictureUrl = firebaseUser.photoUrl?.toString()
                     ), errorMessage = null
                 )
@@ -78,6 +79,7 @@ class AuthRepositoryImpl @Inject constructor(
                         userId = updatedUser.uid,
                         username = updatedUser.displayName,
                         email = email,
+                        idToken = firebaseUser.getIdToken(false).await().token,
                         userProfilePictureUrl = updatedUser.photoUrl?.toString()
                     ), errorMessage = null
                 )
@@ -112,6 +114,7 @@ class AuthRepositoryImpl @Inject constructor(
                 data = UserData(
                     userId = firebaseUser.uid,
                     email = firebaseUser.email,
+                    idToken = firebaseUser.getIdToken(false).await().token,
                     username = firebaseUser.displayName,
                     userProfilePictureUrl = firebaseUser.photoUrl?.toString()
                 ), errorMessage = null

@@ -10,7 +10,7 @@ class GetUserDataUseCase @Inject constructor(
 
     private val profileRepository: ProfileRepository
 ) {
-    operator fun invoke(
+    suspend operator fun invoke(
     ): UserData? {
         return profileRepository.getCurrentUserData()
     }

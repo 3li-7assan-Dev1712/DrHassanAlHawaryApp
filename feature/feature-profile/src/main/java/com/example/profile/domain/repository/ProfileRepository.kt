@@ -6,7 +6,7 @@ import com.example.domain.module.UserData
 
 interface ProfileRepository {
 
-    fun getCurrentUserData(): UserData?
+    suspend fun getCurrentUserData(): UserData?
 
     suspend fun signOut(): SignOutResult
 

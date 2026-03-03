@@ -41,13 +41,20 @@ fun GuestContent(
     onConnect: () -> Unit,
     onLearnMore: (() -> Unit)? = null,
     onPrivacy: (() -> Unit)? = null,
-    userEmail: String? = null
+    userEmail: String? = null,
+    idToken: String? = null
 ) {
     val context = LocalContext.current
 
-    val returnTo = "https://dr-hassan-al-hawary.web.app/telegram-callback.html?email=${
-        java.net.URLEncoder.encode(userEmail ?: "", "UTF-8")
-    }"
+
+    val encodedEmail = java.net.URLEncoder.encode(userEmail ?: "", "UTF-8")
+    val encodedIdToken = java.net.URLEncoder.encode(idToken ?: "", "UTF-8")
+
+
+    val returnTo =
+        "https://dr-hassan-al-hawary.web.app/telegram-callback.html" +
+                "?email=$encodedEmail" +
+                "&idToken=$encodedIdToken"
 
     val telegramLoginUrl =
         "https://oauth.telegram.org/auth" +
@@ -191,6 +198,8 @@ private fun Preview() {
     GuestContent(
         onConnect = {},
         onLearnMore = {},
-        onPrivacy = {}
+        onPrivacy = {},
+        userEmail = "test@example.com",
+        idToken = "fake_token"
     )
 }

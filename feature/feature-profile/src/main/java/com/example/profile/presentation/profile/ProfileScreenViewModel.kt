@@ -19,12 +19,19 @@ class ProfileScreenViewModel @Inject constructor(
 
     private val _state: MutableStateFlow<ProfileUiState> = MutableStateFlow(
         ProfileUiState(
-            userData = getUserDataUseCase(),
+            userData = null,
             currentAppVersion = "1.0.0",
 
             )
     )
 
+    init {
+        viewModelScope.launch {
+
+            val data = getUserDataUseCase()
+            _state.update { it.copy(userData = data) }
+        }
+    }
     val state = _state.asStateFlow()
 
 

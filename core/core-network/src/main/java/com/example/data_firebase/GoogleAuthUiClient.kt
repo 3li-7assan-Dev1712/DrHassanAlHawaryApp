@@ -38,7 +38,7 @@ class GoogleAuthUiClient
         val result = credentialManager.getCredential(context, request)
 
         val credential = result.credential as CustomCredential
-        val googleIdTokenCredential = GoogleIdTokenCredential.Companion.createFrom(credential.data)
+        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
         val googleIdToken = googleIdTokenCredential.idToken
         val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
         return try {
@@ -49,6 +49,7 @@ class GoogleAuthUiClient
                         userId = uid,
                         username = displayName,
                         email = email,
+                        idToken = googleIdToken,
                         userProfilePictureUrl = photoUrl?.toString()
                     )
                 }, errorMessage = null
@@ -83,13 +84,27 @@ class GoogleAuthUiClient
         }
     }
 
-    fun getUserData(): UserData? = auth.currentUser?.run {
-        UserData(
-            userId = uid,
-            username = displayName,
-            email = email,
-            userProfilePictureUrl = photoUrl?.toString()
-        )
+    suspend fun getUserData(): UserData? {
+        val user = auth.currentUser ?: return null
+        return try {
+            val tokenResult = user.getIdToken(false).await()
+            UserData(
+                userId = user.uid,
+                username = user.displayName,
+                email = user.email,
+                idToken = tokenResult.token,
+                userProfilePictureUrl = user.photoUrl?.toString()
+            )
+        } catch (e: Exception) {
+            // Fallback: Return data without token if fetching token fails
+            UserData(
+                userId = user.uid,
+                username = user.displayName,
+                email = user.email,
+                idToken = null,
+                userProfilePictureUrl = user.photoUrl?.toString()
+            )
+        }
     }
 
 }

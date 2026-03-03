@@ -12,7 +12,7 @@ class ProfileRepositoryImpl @Inject constructor(
 ) : ProfileRepository {
 
 
-    override fun getCurrentUserData(): UserData? =
+    override suspend fun getCurrentUserData(): UserData? =
         googleAuthUiClient.getUserData()
 
 

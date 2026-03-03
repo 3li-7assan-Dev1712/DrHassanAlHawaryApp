@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data.mappers.toDomain
 import com.example.data.mappers.toDto
 import com.example.data.mappers.toEntity
+import com.example.data_firebase.GoogleAuthUiClient
 import com.example.data_firebase.StudentFirestoreSource
 import com.example.data_local.LessonDao
 import com.example.data_local.LevelsDao
@@ -16,6 +17,7 @@ import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.domain.module.Quiz
 import com.example.domain.module.Student
+import com.example.domain.module.UserData
 import com.example.domain.repository.StudyRepository
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +28,7 @@ import javax.inject.Inject
 
 class StudyRepositoryImpl @Inject constructor(
     private val studentFirestoreSource: StudentFirestoreSource,
+    private val googleAuthUiClient: GoogleAuthUiClient,
     private val studentDao: StudentDao,
     private val versionStore: LocalDataStore,
     private val playlistDao: PlaylistDao,
@@ -34,6 +37,9 @@ class StudyRepositoryImpl @Inject constructor(
     private val fileDownloader: FileDownloader
 ) : StudyRepository {
 
+    override suspend fun getStudentAuthData(): UserData? {
+        return googleAuthUiClient.getUserData()
+    }
 
     val TAG = "StudyRepositoryImpl"
 
@@ -41,6 +47,10 @@ class StudyRepositoryImpl @Inject constructor(
         return studentDao.getCurrentStudentData().map {
             it?.toDomain()
         }
+    }
+
+    override suspend fun deleteStudentData() {
+        studentDao.deleteAll()
     }
 
     override suspend fun disconnectTelegram() {
@@ -54,9 +64,9 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun saveStudentData(telegramId: Long) {
-        Log.d(TAG, "saveStudentData: telegram id = $telegramId")
-        val studentData = studentFirestoreSource.getStudentByTelegramId(telegramId)?.toEntity()
+    override suspend fun saveStudentData(uid: String) {
+        Log.d(TAG, "saveStudentData: telegram id = $uid")
+        val studentData = studentFirestoreSource.getStudentDataById(uid)?.toEntity()
         if (studentData != null) {
             studentDao.storeStudent(studentData)
         }

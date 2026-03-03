@@ -2,11 +2,14 @@ package com.example.hassanalhawary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.datastore.ObserveDarkThemePreference
 import com.example.domain.use_cases.datastore.ObserveOnboardingCompletedUseCase
 import com.example.domain.use_cases.datastore.UpdateDarkThemePreference
 import com.example.domain.use_cases.datastore.UpdateOnboardingCompletedUseCase
+import com.example.domain.use_cases.study.DeleteStudentDataUseCase
+import com.example.domain.use_cases.study.StoreStudentDataUseCase
 import com.example.profile.domain.use_case.GetUserDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +35,10 @@ class MainActivityViewModel @Inject constructor(
     private val updateOnboardingCompletedUseCase: UpdateOnboardingCompletedUseCase,
     private val observeDarkThemePreferenceUseCase: ObserveDarkThemePreference,
     private val updateDarkThemePreferenceUseCase: UpdateDarkThemePreference,
-    private val getCurrentUserDataUseCase: GetUserDataUseCase
+    private val getCurrentUserDataUseCase: GetUserDataUseCase,
+    private val storeStudentDataUseCase: StoreStudentDataUseCase,
+    private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
+    private val deleteStudentDataUseCase: DeleteStudentDataUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainActivityState())
@@ -86,16 +92,34 @@ class MainActivityViewModel @Inject constructor(
                     isLoading = false
                 )
             }
-            if (isLoggedIn)
-                _state.update { it.copy(currentUserDate = getCurrentUserDataUseCase()) }
+            if (isLoggedIn) {
+                val idToken = getUserIdTokenUseCase()
+                _state.update {
+                    it.copy(
+                        currentUserDate = getCurrentUserDataUseCase(),
+                        idToken = idToken
+                    )
+                }
+
+            }
         }
     }
 
     fun loginSuccess() {
-        viewModelScope.launch { _state.update { it.copy(isUserLoggedIn = true) } }
+        viewModelScope.launch {
+            _state.update { it.copy(isUserLoggedIn = true) }
+            val idToken = getUserIdTokenUseCase()
+            _state.update { it.copy(idToken = idToken) }
+            val uid = getCurrentUserDataUseCase()?.userId
+            if (uid != null)
+                storeStudentDataUseCase(uid)
+        }
     }
 
     fun logoutSuccess() {
-        viewModelScope.launch { _state.update { it.copy(isUserLoggedIn = false) } }
+        viewModelScope.launch {
+            _state.update { it.copy(isUserLoggedIn = false) }
+            deleteStudentDataUseCase()
+        }
     }
 }

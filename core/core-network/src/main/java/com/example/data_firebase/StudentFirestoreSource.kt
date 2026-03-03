@@ -41,21 +41,28 @@ class StudentFirestoreSource @Inject constructor(
     }
 
 
-    suspend fun getStudentByTelegramId(telegramId: Long): StudentDto? {
+    suspend fun getStudentDataById(uid: String): StudentDto? {
         return try {
-            val document = studentsCollection.document(telegramId.toString()).get().await()
-            StudentDto(
-                id = document.getLong("id") ?: 0,
-                firstName = document.getString("firstName") ?: "",
-                lastName = document.getString("lastName") ?: "",
-                username = document.getString("username") ?: "",
-                photoUrl = document.getString("photoUrl") ?: "",
-                isChannelMember = document.getBoolean("isChannelMember") ?: false,
-                membershipState = document.getString("membershipState") ?: "",
-                isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
-            )
+            val document = studentsCollection.document(uid).get().await()
+            if (document.data == null) {
+                Log.d(TAG, "getStudentDataById: null student")
+                 null
+            } else {
+
+                Log.d(TAG, "getStudentDataById: there is data of ${document.data}")
+                StudentDto(
+                    id = document.getLong("id") ?: 0,
+                    firstName = document.getString("firstName") ?: "",
+                    lastName = document.getString("lastName") ?: "",
+                    username = document.getString("username") ?: "",
+                    photoUrl = document.getString("photoUrl") ?: "",
+                    isChannelMember = document.getBoolean("isChannelMember") ?: false,
+                    membershipState = document.getString("membershipState") ?: "",
+                    isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
+                )
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting student by telegramId: $telegramId", e)
+            Log.e(TAG, "Error getting student by telegramId: $uid", e)
             null // Return null on error so the app doesn't crash
         }
     }

@@ -9,5 +9,6 @@ data class MainActivityState(
     val isUserLoggedIn: Boolean = false,
     val isLoading: Boolean = true,
     val showSplashScreen: Boolean = true,
-    val currentUserDate: UserData? = null
+    val currentUserDate: UserData? = null,
+    val idToken: String? = null
 )

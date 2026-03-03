@@ -3,14 +3,10 @@ package com.example.domain.use_cases.study
 import com.example.domain.repository.StudyRepository
 import javax.inject.Inject
 
-class StoreStudentDataUseCase @Inject constructor(
+class DeleteStudentDataUseCase @Inject constructor(
     private val studyRepository: StudyRepository
 ) {
-
-
-    suspend operator fun invoke(uid: String) {
-        studyRepository.saveStudentData(uid)
-
-
+    suspend operator fun invoke() {
+        studyRepository.deleteStudentData()
     }
 }

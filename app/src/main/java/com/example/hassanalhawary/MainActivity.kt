@@ -123,7 +123,9 @@ class MainActivity : ComponentActivity() {
                                 MainAppContent(
                                     onLogout = { mainActivityViewModel.logoutSuccess() },
                                     isDarkThemeEnabled = themeState.isDarkTheme,
-                                    userEmail = mainActivityState.currentUserDate?.email ?: ""
+                                    userEmail = mainActivityState.currentUserDate?.email ?: "",
+                                    idToken = mainActivityState.idToken ?: ""
+
                                 )
                             }
 
@@ -158,7 +160,8 @@ class MainActivity : ComponentActivity() {
     fun MainAppContent(
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,
-        userEmail: String
+        userEmail: String,
+        idToken: String
         ) {
         val navController = rememberNavController()
 
@@ -333,6 +336,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     StudyScreen(
                         userEmail = userEmail,
+                        idToken = idToken,
                         onLevelClick = { levelId ->
                             navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
                         },
