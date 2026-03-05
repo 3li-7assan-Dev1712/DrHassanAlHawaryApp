@@ -25,6 +25,8 @@ interface StudyRepository {
 
     suspend fun disconnectTelegram()
 
+    suspend fun checkMembership(uid: String, telegramId: Long): Result<Unit>
+
 
     fun getPlaylistsForLevel(levelId: String): Flow<List<Playlist>?>
 

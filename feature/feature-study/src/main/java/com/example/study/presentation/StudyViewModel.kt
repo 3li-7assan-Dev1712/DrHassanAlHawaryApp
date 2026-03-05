@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.use_cases.study.CheckStudentChannelMembershipStateUseCase
 import com.example.domain.use_cases.study.DisconnectTelegramUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.domain.use_cases.study.StoreStudentDataUseCase
@@ -27,6 +28,7 @@ class StudyViewModel @Inject constructor(
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val disconnectTelegramUseCase: DisconnectTelegramUseCase,
     private val getStudentAuthDataUseCase: GetStudentAuthDataUseCase,
+    private val checkStudentMembership: CheckStudentChannelMembershipStateUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -34,8 +36,13 @@ class StudyViewModel @Inject constructor(
 
     val uiState: StateFlow<StudyScreenUiState> = getStudentDataUseCase()
         .map { studentData ->
-            if (studentData != null) StudyScreenUiState.StudentDashboard(studentData)
-            else StudyScreenUiState.Guest
+            if (studentData != null) {
+                if (studentData.membershipState == "none") {
+                    StudyScreenUiState.NotChannelMember(studentData)
+                } else {
+                    StudyScreenUiState.StudentDashboard(studentData)
+                }
+            } else StudyScreenUiState.Guest
         }
         .stateIn(
             scope = viewModelScope,
@@ -70,6 +77,29 @@ class StudyViewModel @Inject constructor(
         }
     }
 
+    fun onRefreshStudentData() {
+        val studentData = (uiState.value as? StudyScreenUiState.NotChannelMember)?.studentData
+        val telegramId = studentData?.telegramId
+        
+        viewModelScope.launch {
+            try {
+                val uid = getStudentAuthDataUseCase()?.userId
+                if (uid != null && telegramId != null) {
+                    val data = hashMapOf(
+                        "uid" to uid,
+                        "telegramId" to telegramId
+                    )
+                    
+                    checkStudentMembership(uid, telegramId)
+                    storeStudentDataUseCase(uid)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error refreshing student data", e)
+            }
+        }
+    }
+    
+    
     fun onDisconnectTelegram() {
         viewModelScope.launch {
             disconnectTelegramUseCase()

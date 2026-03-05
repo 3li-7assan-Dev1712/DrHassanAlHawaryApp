@@ -7,9 +7,12 @@ import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_firebase.VideoFirestoreSource
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.functions.functions
 import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
@@ -75,6 +78,9 @@ object FirebaseModule {
         return FirebaseArticlesSource(firestore)
     }
 
+    @Singleton
+    @Provides
+    fun provideFirebaseFunctions(): FirebaseFunctions = Firebase.functions
 
     @Singleton
     @Provides

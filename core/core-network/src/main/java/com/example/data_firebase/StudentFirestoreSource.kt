@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +23,9 @@ import java.util.Date
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
-    val firestore: FirebaseFirestore, private val storage: FirebaseStorage
+    val firestore: FirebaseFirestore,
+    private val storage: FirebaseStorage,
+    private val functions: FirebaseFunctions
 ) {
 
     private val TAG = "StudentFirestoreSource"
@@ -41,12 +44,29 @@ class StudentFirestoreSource @Inject constructor(
     }
 
 
+    suspend fun checkMembership(uid: String, telegramId: Long) : Result<Unit> {
+        return try {
+            val data = hashMapOf(
+                "uid" to uid,
+                "telegramId" to telegramId
+            )
+            functions
+                .getHttpsCallable("checkMembership")
+                .call(data)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "checkMembership error: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
     suspend fun getStudentDataById(uid: String): StudentDto? {
         return try {
             val document = studentsCollection.document(uid).get().await()
             if (document.data == null) {
                 Log.d(TAG, "getStudentDataById: null student")
-                 null
+                null
             } else {
 
                 Log.d(TAG, "getStudentDataById: there is data of ${document.data}")

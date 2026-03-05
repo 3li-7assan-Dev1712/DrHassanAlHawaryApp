@@ -34,7 +34,7 @@ class StudyRepositoryImpl @Inject constructor(
     private val playlistDao: PlaylistDao,
     private val lessonDao: LessonDao,
     private val levelsDao: LevelsDao,
-    private val fileDownloader: FileDownloader
+    private val fileDownloader: FileDownloader,
 ) : StudyRepository {
 
     override suspend fun getStudentAuthData(): UserData? {
@@ -61,6 +61,10 @@ class StudyRepositoryImpl @Inject constructor(
             studentFirestoreSource.updateStudentConnectionStatus(telegramId, false)
             studentDao.deleteStudentByTelegramId(telegramId)
         }
+    }
+
+    override suspend fun checkMembership(uid: String, telegramId: Long): Result<Unit> {
+        return studentFirestoreSource.checkMembership(uid, telegramId)
     }
 
 

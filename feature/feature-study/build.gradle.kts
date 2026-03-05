@@ -91,5 +91,7 @@ dependencies {
     debugApi(libs.androidx.ui.tooling)
     debugApi(libs.androidx.ui.tooling.preview)
 
+    // Firebase Functions
+    implementation(libs.firebase.functions)
 
 }

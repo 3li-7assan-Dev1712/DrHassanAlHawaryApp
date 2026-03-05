@@ -10,8 +10,8 @@ sealed interface StudyScreenUiState {
 
     data class StudentDashboard(val studentData: Student): StudyScreenUiState
 
+    data class NotChannelMember(val studentData: Student): StudyScreenUiState
+
     data object Guest: StudyScreenUiState
-
-
 
 }

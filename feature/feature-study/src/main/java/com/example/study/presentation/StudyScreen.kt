@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.study.presentation.dashboard.GuestContent
+import com.example.study.presentation.dashboard.NotChannelMemberContent
 import com.example.study.presentation.dashboard.StudentDashboardContent
 import com.example.study.presentation.dashboard.StudyTopAppBar
 import com.example.study.presentation.model.StudyScreenUiState
@@ -75,7 +76,7 @@ fun StudyScreen(
                     // Show the rich dashboard for students
                     StudentDashboardContent(
                         studentData = state.studentData,
-                        onDisconnect = { viewModel.onDisconnectTelegram() },
+                        onDisconnect = { /* viewModel.onDisconnectTelegram() */ },
                         onLevelClick = onLevelClick,
                         onQuizClick = onQuizClick
                     )
@@ -89,6 +90,17 @@ fun StudyScreen(
                         idToken = idToken
                     )
                 }
+
+                is StudyScreenUiState.NotChannelMember -> {
+                    NotChannelMemberContent(
+                        studentData = state.studentData,
+                        onDisconnect = { /* viewModel.onDisconnectTelegram() */ },
+                        onRefreshClick = {
+                            viewModel.onRefreshStudentData()
+                        }
+                    )
+                }
+
             }
         }
     }
