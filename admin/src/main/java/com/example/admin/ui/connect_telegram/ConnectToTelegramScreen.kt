@@ -3,7 +3,6 @@ package com.example.admin.ui.connect_telegram
 
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,13 +40,28 @@ import com.example.core.ui.R
 @Composable
 fun ConnectTelegramScreen(
 
+    userEmail: String? = null,
+    idToken: String? = null
 ) {
     val context = LocalContext.current
 
-    val telegramLoginUrl =
-        "https://oauth.telegram.org/auth?bot_id=8255460260&origin=https://dr-hassan-al-hawary.web.app&return_to=https://dr-hassan-al-hawary.web.app/telegram-callback.html&request_access=write"
 
-    // Brand-ish color (Telegram-like). Replace with your own from theme if you have it.
+    val encodedEmail = java.net.URLEncoder.encode(userEmail ?: "", "UTF-8")
+    val encodedIdToken = java.net.URLEncoder.encode(idToken ?: "", "UTF-8")
+
+
+    val returnTo =
+        "https://dr-hassan-al-hawary.web.app/telegram-callback.html" +
+                "?email=$encodedEmail" +
+                "&idToken=$encodedIdToken"
+
+    val telegramLoginUrl =
+        "https://oauth.telegram.org/auth" +
+                "?bot_id=8255460260" +
+                "&origin=https://dr-hassan-al-hawary.web.app" +
+                "&return_to=${java.net.URLEncoder.encode(returnTo, "UTF-8")}" +
+                "&request_access=write"
+
     val telegramBlue = Color(0xFF2AABEE)
 
     Column(
@@ -57,7 +72,6 @@ fun ConnectTelegramScreen(
     ) {
         Spacer(Modifier.height(12.dp))
 
-        // Hero card
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -72,7 +86,6 @@ fun ConnectTelegramScreen(
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Icon in tinted circle
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -91,7 +104,7 @@ fun ConnectTelegramScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = "Connect your Telegram",
+                    text = stringResource(R.string.telegram_connect_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center
@@ -100,7 +113,7 @@ fun ConnectTelegramScreen(
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Link your account to access courses, track progress, and receive new-lesson alerts.",
+                    text = stringResource(R.string.telegram_connect_description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -108,25 +121,18 @@ fun ConnectTelegramScreen(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Benefit bullets (simple + premium)
-                BenefitRow("Instant alerts for new lessons")
+                BenefitRow(stringResource(R.string.benefit_alerts))
                 Spacer(Modifier.height(8.dp))
-                BenefitRow("Sync progress across devices")
+                BenefitRow(stringResource(R.string.benefit_sync))
                 Spacer(Modifier.height(8.dp))
-                BenefitRow("Fast login (no passwords)")
+                BenefitRow(stringResource(R.string.benefit_fast_login))
 
                 Spacer(Modifier.height(18.dp))
 
-                // Primary CTA
                 Button(
                     onClick = {
                         val customTabsIntent = CustomTabsIntent.Builder().build()
                         customTabsIntent.launchUrl(context, telegramLoginUrl.toUri())
-
-                        // IMPORTANT:
-                        // Don't call onConnect() here.
-                        // Call it after you receive a valid Telegram callback (deep link / web callback).
-                        // onConnect()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -144,30 +150,18 @@ fun ConnectTelegramScreen(
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        text = "Connect to Telegram",
+                        text = stringResource(R.string.button_connect_telegram),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                // Secondary actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-
                 }
             }
         }
 
         Spacer(Modifier.height(14.dp))
 
-
         Text(
-            text = "We only use Telegram to verify your membership and deliver course notifications.",
+            text = stringResource(R.string.telegram_privacy_footnote),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

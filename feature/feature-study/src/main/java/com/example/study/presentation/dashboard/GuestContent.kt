@@ -38,9 +38,6 @@ import com.example.core.ui.R
 
 @Composable
 fun GuestContent(
-    onConnect: () -> Unit,
-    onLearnMore: (() -> Unit)? = null,
-    onPrivacy: (() -> Unit)? = null,
     userEmail: String? = null,
     idToken: String? = null
 ) {
@@ -196,9 +193,6 @@ private fun BenefitRow(text: String) {
 @Composable
 private fun Preview() {
     GuestContent(
-        onConnect = {},
-        onLearnMore = {},
-        onPrivacy = {},
         userEmail = "test@example.com",
         idToken = "fake_token"
     )

@@ -28,6 +28,7 @@ fun MarkdownText(
 ) {
     val layoutDirection = LocalLayoutDirection.current
     val resolvedStyle = style.copy(
+        color = MaterialTheme.colorScheme.onSurface,
         textDirection = if (layoutDirection == LayoutDirection.Rtl) TextDirection.Rtl else TextDirection.Ltr
     )
 

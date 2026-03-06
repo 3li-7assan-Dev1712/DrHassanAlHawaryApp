@@ -33,7 +33,7 @@
     <string name="audio_detail_description_title">مقــــطع بعنــــوان</string>
     <string name="study">الدراسة</string>
     <string name="competition">قائمة التميز</string>
-    <string name="error_msg">حـــدث خــــطأ</string>
+    <string name="error_msg">لم يتم العثور على نتائج</string>
     <string name="about_dr_hassan">عن الشيــخ</string>
 
 

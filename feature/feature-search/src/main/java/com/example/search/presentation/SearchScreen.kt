@@ -1,5 +1,6 @@
 package com.example.search.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,11 +8,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
+import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.SearchResultMetaData
 import com.example.search.presentation.components.ArticleResultCard
@@ -54,6 +55,9 @@ fun SearchScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(top = 16.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surface
+            )
     ) {
 
         SearchBar(
@@ -81,9 +85,7 @@ fun SearchScreen(
                 }
 
                 is SearchUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp)
-                    )
+                    LoadingScreen()
                 }
 
                 is SearchUiState.Success -> {

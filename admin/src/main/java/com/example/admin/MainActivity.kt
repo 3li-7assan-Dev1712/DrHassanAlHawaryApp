@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -16,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -43,6 +45,8 @@ import com.example.admin.ui.upload_images_screen.UploadImagesScreen
 import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
 import com.example.admin.ui.upload_quiz.UploadQuizScreen
 import com.example.admin.ui.upload_video_screen.UploadVideoScreen
+import com.example.feature.auth.presentation.login.LoginScreen
+import com.example.feature.auth.presentation.register.RegisterScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -112,9 +116,31 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = "control_screen",
+                        startDestination = if (state.isAdminLoggedIn) "control_screen" else  "login_screen",
                         modifier = Modifier.padding(innerPadding)
                     ) {
+
+
+                        // auth screens
+                        composable(route = "login_screen") {
+                            LoginScreen(
+
+                                onRegisterClick = {
+                                    navController.navigate("register_screen")
+                                    navController.clearBackStack("login_screen")
+                                }, onSuccessfulLogin = {
+                                    mainActivityViewModel.loginSuccess()
+                                })
+                        }
+                        composable("register_screen") {
+                            RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
+                                navController.popBackStack()
+                            }, onSuccessfulRegister = {
+                                mainActivityViewModel.loginSuccess()
+                            })
+                        }
+
+
                         composable("control_screen") {
                             ControlScreen {
                                 navController.navigate(it)
@@ -262,6 +288,36 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    fun AuthNavHost(
+        onLoginSuccess: () -> Unit
+    ) {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController, startDestination = "login_screen"
+        ) {
+
+
+            composable(route = "login_screen") {
+                LoginScreen(
+
+                    onRegisterClick = {
+                        navController.navigate("register_screen")
+                        navController.clearBackStack("login_screen")
+                    }, onSuccessfulLogin = {
+                        onLoginSuccess()
+                    })
+            }
+            composable("register_screen") {
+                RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
+                    navController.popBackStack()
+                }, onSuccessfulRegister = {
+                    onLoginSuccess()
+                })
             }
         }
     }

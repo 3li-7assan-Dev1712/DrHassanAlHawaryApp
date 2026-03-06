@@ -85,7 +85,6 @@ fun StudyScreen(
                 is StudyScreenUiState.Guest -> {
                     // Show the simple connect button for guests
                     GuestContent(
-                        onConnect = onNavigateToLogin,
                         userEmail = userEmail,
                         idToken = idToken
                     )

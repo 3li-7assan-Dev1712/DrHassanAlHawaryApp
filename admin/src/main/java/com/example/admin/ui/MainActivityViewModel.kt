@@ -2,8 +2,12 @@ package com.example.admin.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
+import com.example.domain.use_cases.study.DeleteStudentDataUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
+import com.example.domain.use_cases.study.StoreStudentDataUseCase
+import com.example.profile.domain.use_case.GetUserDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +21,10 @@ import javax.inject.Inject
 class MainActivityViewModel @Inject constructor(
     private val isUserLoggedInUseCase: IsUserLoggedInUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
+    private val getCurrentUserDataUseCase: GetUserDataUseCase,
+    private val storeStudentDataUseCase: StoreStudentDataUseCase,
+    private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
+    private val deleteStudentDataUseCase: DeleteStudentDataUseCase
 ) : ViewModel() {
 
     val TAG = "MainActivityViewModel"
@@ -31,16 +39,6 @@ class MainActivityViewModel @Inject constructor(
         checkTelegramConnectionState()
     }
 
-
-    fun checkUserAuthState() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isAdminLoggedIn = isUserLoggedInUseCase(),
-                )
-            }
-        }
-    }
 
     fun checkTelegramConnectionState() {
         viewModelScope.launch {
@@ -57,23 +55,42 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun loginSuccess() {
+    fun checkUserAuthState() {
         viewModelScope.launch {
+            val isLoggedIn = isUserLoggedInUseCase()
             _state.update {
                 it.copy(
-                    isAdminLoggedIn = true
+                    isAdminLoggedIn = isLoggedIn,
+                    isLoading = false
                 )
             }
+            if (isLoggedIn) {
+                val idToken = getUserIdTokenUseCase()
+                _state.update {
+                    it.copy(
+                        currentUserDate = getCurrentUserDataUseCase(),
+                        idToken = idToken
+                    )
+                }
+
+            }
+        }
+    }
+    fun loginSuccess() {
+        viewModelScope.launch {
+            _state.update { it.copy(isAdminLoggedIn = true) }
+            val idToken = getUserIdTokenUseCase()
+            _state.update { it.copy(idToken = idToken) }
+            val uid = getCurrentUserDataUseCase()?.userId
+            if (uid != null)
+                storeStudentDataUseCase(uid)
         }
     }
 
     fun logoutSuccess() {
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isAdminLoggedIn = false
-                )
-            }
+            _state.update { it.copy(isAdminLoggedIn = false) }
+            deleteStudentDataUseCase()
         }
     }
 
