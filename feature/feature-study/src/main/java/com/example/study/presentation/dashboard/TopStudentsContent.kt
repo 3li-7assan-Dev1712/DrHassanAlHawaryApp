@@ -57,7 +57,11 @@ fun TopStudentsContent(
                 modifier = Modifier.height(400.dp)
             ) {
                 itemsIndexed(uiState.topStudents) { index, student ->
-                    LeaderboardItem(rank = index + 1, student = student)
+                    LeaderboardItem(
+                        modifier = Modifier.fillMaxWidth(),
+                        rank = index + 1,
+                        student = student
+                    )
                 }
             }
         }
@@ -77,7 +81,11 @@ fun LeaderboardItem(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Rank
-            Text(text = "#$rank", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                text = "#$rank",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
 
             // Avatar
             AsyncImage(

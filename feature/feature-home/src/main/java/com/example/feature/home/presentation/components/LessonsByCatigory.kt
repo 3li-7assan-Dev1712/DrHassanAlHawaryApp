@@ -51,7 +51,7 @@ fun CategoryCard(
             defaultElevation = 4.dp
         ),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // Use surface color for a clean white/black background
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
@@ -88,7 +88,7 @@ fun LessonsByCategory(
     ) {
         // --- section title ---
         Text(
-            text = stringResource(R.string.audios),
+            text = stringResource(R.string.lessons),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.padding(horizontal = 16.dp)
         )

@@ -49,7 +49,7 @@ fun ImagesGroupsScreen(
 
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
                 title = {
                     Text(

@@ -82,9 +82,9 @@ fun LevelsJourneyMap(
 
         // Pulse starts only after path animation finishes
         val pulseScale by animateFloatAsState(
-            targetValue = if (startPulse) 1.15f else 1f,
+            targetValue = if (startPulse) 1.4f else 1f,
             animationSpec = infiniteRepeatable(
-                animation = tween(900, easing = FastOutSlowInEasing),
+                animation = tween(1200, easing = FastOutSlowInEasing),
                 repeatMode = RepeatMode.Reverse
             ),
             label = ""

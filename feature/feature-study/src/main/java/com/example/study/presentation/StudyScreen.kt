@@ -44,7 +44,7 @@ fun StudyScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-
+        containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
 

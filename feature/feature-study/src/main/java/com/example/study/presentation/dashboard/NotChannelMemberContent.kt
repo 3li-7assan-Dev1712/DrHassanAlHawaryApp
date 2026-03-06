@@ -66,7 +66,7 @@ fun NotChannelMemberContent(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
             )
         ) {
             Column(

@@ -66,12 +66,12 @@ private fun ArticlesScreenContent(
     val listState = rememberLazyListState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Column { // Use Column to stack TopAppBar and SearchBar
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surface
                     ),
                     title = {
                         Text(

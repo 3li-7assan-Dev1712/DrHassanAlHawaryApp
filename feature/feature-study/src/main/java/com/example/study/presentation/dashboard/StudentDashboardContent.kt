@@ -192,9 +192,7 @@ fun QuizReminderSection(
             .clickable { onClick(quizId) },
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = if (isFinalExam) MaterialTheme.colorScheme.tertiaryContainer
-                            else if (hasTakenQuiz) MaterialTheme.colorScheme.secondaryContainer 
-                            else MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Row(
@@ -208,19 +206,21 @@ fun QuizReminderSection(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(if (isFinalExam) MaterialTheme.colorScheme.tertiary
-                                else if (hasTakenQuiz) MaterialTheme.colorScheme.secondary 
-                                else MaterialTheme.colorScheme.primary),
+                    .background(
+                        if (isFinalExam) MaterialTheme.colorScheme.tertiary
+                        else if (hasTakenQuiz) MaterialTheme.colorScheme.secondary
+                        else MaterialTheme.colorScheme.primary
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = if (isFinalExam) Icons.Default.School
-                                   else if (hasTakenQuiz) Icons.Default.RestartAlt 
-                                   else Icons.Default.Quiz,
+                    else if (hasTakenQuiz) Icons.Default.RestartAlt
+                    else Icons.Default.Quiz,
                     contentDescription = null,
                     tint = if (isFinalExam) MaterialTheme.colorScheme.onTertiary
-                           else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondary 
-                           else MaterialTheme.colorScheme.onPrimary,
+                    else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondary
+                    else MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -231,7 +231,7 @@ fun QuizReminderSection(
                     hasTakenQuiz -> "نتيجتك في الاختبار الأسبوعي: $userScore"
                     else -> "اختبار أسبوعي جديد متاح!"
                 }
-                
+
                 val subtitle = when {
                     isFinalExam -> "اجتز هذا الاختبار لتنتقل للمرحلة التالية."
                     hasTakenQuiz -> "اضغط هنا لإعادة الاختبار وتحسين نتيجتك."
@@ -243,15 +243,15 @@ fun QuizReminderSection(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (isFinalExam) MaterialTheme.colorScheme.onTertiaryContainer
-                            else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer 
-                            else MaterialTheme.colorScheme.onPrimaryContainer
+                    else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer
+                    else MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = (if (isFinalExam) MaterialTheme.colorScheme.onTertiaryContainer
-                            else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer
-                            else MaterialTheme.colorScheme.onPrimaryContainer).copy(alpha = 0.8f)
+                    else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer
+                    else MaterialTheme.colorScheme.onPrimaryContainer).copy(alpha = 0.8f)
                 )
             }
         }
@@ -285,7 +285,9 @@ fun MotivationMessagesSection(
     val pagerState = rememberPagerState(pageCount = { messages.size })
 
     Column(
-        modifier = modifier.fillMaxWidth().shimmer(isLoading = isLoading),
+        modifier = modifier
+            .fillMaxWidth()
+            .shimmer(isLoading = isLoading),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HorizontalPager(
@@ -326,7 +328,7 @@ fun MotivationMessageCard(message: String, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .heightIn(min = 92.dp),
         shape = shape,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.78f),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)),
         tonalElevation = 0.dp
     ) {

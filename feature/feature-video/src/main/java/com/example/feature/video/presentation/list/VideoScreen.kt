@@ -44,7 +44,7 @@ fun VideosScreen(
     val videos = viewModel.videos.collectAsLazyPagingItems()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(id = R.string.videos)) },
@@ -54,7 +54,7 @@ fun VideosScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )

@@ -29,7 +29,7 @@ fun AudioListItem(
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         modifier = modifier
             .fillMaxWidth()
