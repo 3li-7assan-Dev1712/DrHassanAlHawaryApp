@@ -1,6 +1,7 @@
 package com.example.data_firebase
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -35,6 +36,9 @@ class GoogleAuthUiClient
 
     suspend fun login(): LoginResult {
 
+        //  513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com admin
+        //
+        Log.d("CLIENT_ID_CHECK", BuildConfig.GOOGLE_WEB_CLIENT)
         val result = credentialManager.getCredential(context, request)
 
         val credential = result.credential as CustomCredential

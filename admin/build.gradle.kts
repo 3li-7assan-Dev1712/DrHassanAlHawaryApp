@@ -103,6 +103,8 @@ dependencies {
     implementation(libs.coil.compose)
 
 
+
+
     // depend on the core-ui library for sharing the ui components
     implementation(project(":data"))
     implementation(project(":feature:feature-splash-screen"))

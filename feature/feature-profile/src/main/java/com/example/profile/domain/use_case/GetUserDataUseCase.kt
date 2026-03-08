@@ -7,7 +7,6 @@ import javax.inject.Inject
 
 
 class GetUserDataUseCase @Inject constructor(
-
     private val profileRepository: ProfileRepository
 ) {
     suspend operator fun invoke(
