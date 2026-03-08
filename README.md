@@ -27,7 +27,7 @@ The User App provides a seamless and interactive experience for users to consume
 | ![Onboarding](screenshots/0_1.png) | ![Register](screenshots/5.png) | ![Articles](screenshots/8.png) | ![Profile](screenshots/11.png) |
 | ![Onboarding](screenshots/3.png) | ![Forgot](screenshots/6.png) | ![Videos](screenshots/9.png) | ![Settings](screenshots/2.png) |
 
-#### Additional Screens:
+#### Additional User Screens:
 <p align="center">
   <img src="screenshots/12.jpg" width="200" />
   <img src="screenshots/13.jpg" width="200" />
@@ -43,8 +43,24 @@ The Admin App empowers Dr. Hassan and his team to manage the platform's content 
 
 ### Key Features:
 - **Content Management (CMS):** Upload, edit, and delete articles, videos, audio, and images.
-- **User Insights:** (Optional) Overview of user engagement and platform activity.
-- **Administrative Control:** Secure access to backend configurations.
+- **Content Categorization:** Organize educational materials by levels and types.
+- **Administrative Control:** Secure access to backend configurations and platform data.
+
+### Admin App Screenshots:
+
+| Dashboard & Management | Content Upload | Data Control |
+|:---:|:---:|:---:|
+| ![Admin 1](screenshots/a_1.jpg) | ![Admin 4](screenshots/a_4.jpg) | ![Admin 7](screenshots/a_7.jpg) |
+| ![Admin 2](screenshots/a_2.jpg) | ![Admin 5](screenshots/a_5.jpg) | ![Admin 8](screenshots/a_8.jpg) |
+| ![Admin 3](screenshots/a_3.jpg) | ![Admin 6](screenshots/a_6.jpg) | ![Admin 9](screenshots/a_9.jpg) |
+
+#### Additional Admin Screens:
+<p align="center">
+  <img src="screenshots/a_10.jpg" width="200" />
+  <img src="screenshots/a_11.jpg" width="200" />
+  <img src="screenshots/a_12.jpg" width="200" />
+  <img src="screenshots/a_13.jpg" width="200" />
+</p>
 
 ---
 
@@ -63,9 +79,3 @@ Both apps are built using modern Android development standards:
 - **Modularization:** Heavily modularized project structure (`:core`, `:feature`, `:data`, `:admin`, `:app`) to ensure scalability and maintainability.
 
 ---
-
-## 🚀 Getting Started
-
-1. Clone the repository.
-2. Open the project in **Android Studio Ladybug** or newer.
-3. Sync Gradle and run the `:app` or `:admin` configuration.
