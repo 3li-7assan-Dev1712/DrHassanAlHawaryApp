@@ -2,6 +2,8 @@ package com.example.hassanalhawary
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.module.AppConfig
+import com.example.domain.use_cases.GetAppConfigUseCase
 import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.datastore.ObserveDarkThemePreference
@@ -38,11 +40,15 @@ class MainActivityViewModel @Inject constructor(
     private val getCurrentUserDataUseCase: GetUserDataUseCase,
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
-    private val deleteStudentDataUseCase: DeleteStudentDataUseCase
+    private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
+    private val getAppConfigUseCase: GetAppConfigUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainActivityState())
     val state = _state.asStateFlow()
+
+    private val _appConfig = MutableStateFlow<AppConfig?>(null)
+    val appConfig = _appConfig.asStateFlow()
 
     // ✅ 1) onboarding starts as null (unknown), then becomes true/false
     val onboardingCompleted = observeOnboardingCompletedUseCase()
@@ -73,6 +79,15 @@ class MainActivityViewModel @Inject constructor(
 
     init {
         checkUserAuthState()
+        observeAppConfig()
+    }
+
+    private fun observeAppConfig() {
+        viewModelScope.launch {
+            getAppConfigUseCase().collect { config ->
+                _appConfig.value = config
+            }
+        }
     }
 
     fun updateOnboardingCompleted() {

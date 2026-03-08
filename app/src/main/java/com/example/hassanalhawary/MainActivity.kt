@@ -23,7 +23,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -34,6 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
@@ -93,51 +96,75 @@ class MainActivity : ComponentActivity() {
             val themeState by mainActivityViewModel.themeState.collectAsState()
             val onboardingCompleted by mainActivityViewModel.onboardingCompleted.collectAsState()
             val mainActivityState by mainActivityViewModel.state.collectAsState()
+            val appConfig by mainActivityViewModel.appConfig.collectAsState()
 
-            // Optional extra safety: don't draw anything until splash should go away
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
             HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme) {
 
-                when (onboardingCompleted) {
-                    null -> {
-                        // still loading onboarding flag -> splash is still visible anyway
-                        return@HassanAlHawaryTheme
-                    }
+                var flexibleUpdateDismissed by remember { mutableStateOf(false) }
 
-                    false -> {
-                        OnboardingScreen(
-                            onFinished = { mainActivityViewModel.updateOnboardingCompleted() }
-                        )
+                // Determine update type
+                val updateType = remember(appConfig, flexibleUpdateDismissed) {
+                    val currentVersion = BuildConfig.VERSION_CODE
+                    val minVersion = appConfig?.minVersionCode ?: 0
+                    val latestVersion = appConfig?.latestVersionCode ?: 0
+                    
+                    when {
+                        currentVersion < minVersion -> "force"
+                        currentVersion < latestVersion && !flexibleUpdateDismissed -> "flexible"
+                        else -> "none"
                     }
+                }
 
-                    true -> {
-                        when {
-                            mainActivityState.isLoading -> {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    CircularProgressIndicator()
+                if (updateType != "none" && appConfig != null) {
+                    UpdateScreen(
+                        updateUrl = appConfig!!.updateUrl,
+                        isForceUpdate = updateType == "force",
+                        onDismiss = { flexibleUpdateDismissed = true }
+                    )
+                } else {
+                    when (onboardingCompleted) {
+                        null -> {
+                            // still loading onboarding flag -> splash is still visible anyway
+                            return@HassanAlHawaryTheme
+                        }
+
+                        false -> {
+                            OnboardingScreen(
+                                onFinished = { mainActivityViewModel.updateOnboardingCompleted() }
+                            )
+                        }
+
+                        true -> {
+                            when {
+                                mainActivityState.isLoading -> {
+                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        CircularProgressIndicator()
+                                    }
                                 }
-                            }
 
-                            mainActivityState.isUserLoggedIn -> {
-                                MainAppContent(
-                                    onLogout = { mainActivityViewModel.logoutSuccess() },
-                                    isDarkThemeEnabled = themeState.isDarkTheme,
-                                    userEmail = mainActivityState.currentUserDate?.email ?: "",
-                                    idToken = mainActivityState.idToken ?: ""
+                                mainActivityState.isUserLoggedIn -> {
+                                    MainAppContent(
+                                        onLogout = { mainActivityViewModel.logoutSuccess() },
+                                        isDarkThemeEnabled = themeState.isDarkTheme,
+                                        userEmail = mainActivityState.currentUserDate?.email ?: "",
+                                        idToken = mainActivityState.idToken ?: ""
 
-                                )
-                            }
+                                    )
+                                }
 
-                            else -> {
-                                AuthNavHost(onLoginSuccess = {
-                                    mainActivityViewModel.loginSuccess()
+                                else -> {
+                                    AuthNavHost(onLoginSuccess = {
+                                        mainActivityViewModel.loginSuccess()
 
-                                })
+                                    })
+                                }
                             }
                         }
                     }
                 }
+
                 val launcher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestPermission(),
                     onResult = {

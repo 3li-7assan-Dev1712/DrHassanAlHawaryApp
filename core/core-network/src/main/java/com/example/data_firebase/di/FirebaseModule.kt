@@ -3,10 +3,12 @@ package com.example.data_firebase.di
 import android.content.Context
 import androidx.credentials.CredentialManager
 import com.example.data_firebase.AudioFirestoreSource
+import com.example.data_firebase.ConfigRepositoryImpl
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_firebase.VideoFirestoreSource
+import com.example.domain.repository.ConfigRepository
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -28,10 +30,14 @@ object FirebaseModule {
     @Provides
     @Singleton
     fun provideFirebaseRealtimeDatabase(): FirebaseDatabase {
-        // Use getInstance() for the default database instance
         return FirebaseDatabase.getInstance("https://dr-hassan-al-hawary-default-rtdb.firebaseio.com/")
     }
 
+    @Provides
+    @Singleton
+    fun provideConfigRepository(firestore: FirebaseFirestore): ConfigRepository {
+        return ConfigRepositoryImpl(firestore)
+    }
 
     @Provides
     @Singleton
@@ -50,7 +56,6 @@ object FirebaseModule {
     ): ImageFirestoreSource {
         return ImageFirestoreSource(firestore, storage)
     }
-
 
     @Provides
     @Singleton

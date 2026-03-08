@@ -41,6 +41,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -134,6 +135,7 @@ dependencies {
     implementation(project(":feature:feature-audio"))
     implementation(project(":core:core-domain"))
     implementation(project(":core:core-player"))
+    implementation(project(":core:core-ui"))
     implementation(project(":data"))
 
     // test
