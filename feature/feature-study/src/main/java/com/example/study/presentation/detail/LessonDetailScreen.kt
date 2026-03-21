@@ -37,8 +37,12 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -204,10 +208,28 @@ private fun PlayerControls(
     onSeekBackward: () -> Unit,
     onSeekBarPositionChanged: (Long) -> Unit,
 ) {
+    var isUserSeeking by remember { mutableStateOf(false) }
+    var sliderPosition by remember { mutableStateOf(currentPosition.toFloat()) }
+
+    // Sync with player ONLY when not dragging
+    LaunchedEffect(currentPosition) {
+        if (!isUserSeeking) {
+            sliderPosition = currentPosition.toFloat()
+        }
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
         Slider(
-            value = currentPosition.toFloat(),
-            onValueChange = { onSeekBarPositionChanged(it.toLong()) },
+            value = sliderPosition,
+            onValueChange = {
+                isUserSeeking = true
+                sliderPosition = it
+            },
+            onValueChangeFinished = {
+                isUserSeeking = false
+                onSeekBarPositionChanged(sliderPosition.toLong())
+            },
             valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(0f)),
             modifier = Modifier.fillMaxWidth()
         )
@@ -218,8 +240,14 @@ private fun PlayerControls(
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = formatDuration(currentPosition), style = MaterialTheme.typography.bodySmall)
-            Text(text = formatDuration(totalDuration), style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = formatDuration(sliderPosition.toLong()),
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = formatDuration(totalDuration),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

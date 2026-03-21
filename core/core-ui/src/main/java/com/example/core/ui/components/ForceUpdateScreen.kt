@@ -3,7 +3,6 @@ package com.example.core.ui.components
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +15,7 @@ import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,15 +36,16 @@ fun UpdateScreen(
     onDismiss: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    
-    Box(
+
+    Surface(
         modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
+            .fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
+            modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+
             verticalArrangement = Arrangement.Center
         ) {
             Icon(
@@ -53,30 +54,30 @@ fun UpdateScreen(
                 modifier = Modifier.size(100.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Text(
                 text = if (isForceUpdate) "تحديث مطلوب" else "تحديث جديد متاح",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
-                text = if (isForceUpdate) 
+                text = if (isForceUpdate)
                     "يوجد إصدار جديد من التطبيق متاح حالياً. يرجى تحديث التطبيق للاستمرار في استخدام المنصة."
-                else 
+                else
                     "يوجد إصدار جديد من التطبيق متاح حالياً مع ميزات وتحسينات جديدة. هل ترغب في التحديث الآن؟",
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 color = Color.Gray
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             Button(
                 onClick = {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl))
@@ -86,7 +87,7 @@ fun UpdateScreen(
             ) {
                 Text(text = "تحديث الآن")
             }
-            
+
             if (!isForceUpdate) {
                 Spacer(modifier = Modifier.height(8.dp))
                 TextButton(

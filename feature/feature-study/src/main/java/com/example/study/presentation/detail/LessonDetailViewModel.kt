@@ -106,8 +106,10 @@ class LessonDetailViewModel @Inject constructor(
 
             // Progress tracking
             while (isActive) {
-                _uiState.update { it.copy(currentPosition = controller.currentPosition) }
-                delay(1000)
+                if (controller.isPlaying) {
+                    _uiState.update { it.copy(currentPosition = controller.currentPosition) }
+                }
+                delay(300)
             }
         }
     }

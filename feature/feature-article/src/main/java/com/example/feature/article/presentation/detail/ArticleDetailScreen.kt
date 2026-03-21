@@ -172,15 +172,6 @@ fun ArticleContent(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 72.dp)
     ) {
-        // First item is the header
-        item {
-            Text(
-                text = "Published: ${formatDate(article.publishDate)}",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 16.dp, bottom = 12.dp)
-            )
-        }
 
         items(
             items = paragraphs,
