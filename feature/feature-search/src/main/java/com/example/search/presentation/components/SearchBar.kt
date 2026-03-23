@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -15,10 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.theme.CairoTypography
+
 
 @Composable
 fun SearchBar(
@@ -28,8 +33,15 @@ fun SearchBar(
     hint: String,
     onSearchClicked: () -> Unit = {}
 ) {
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+
+
+
     Row(
-        modifier = modifier
+        modifier = modifier.padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Default.Search,
@@ -42,7 +54,7 @@ fun SearchBar(
             value = searchQuery,
             onValueChange = onQueryChanged,
             modifier = Modifier
-                .weight(1f) // Takes remaining space
+                .weight(1f)
                 .padding(end = 8.dp),
             textStyle = TextStyle(
                 color = MaterialTheme.colorScheme.onSurface,
@@ -51,18 +63,28 @@ fun SearchBar(
             ),
             singleLine = true,
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+
+
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                    onSearchClicked()
+                }
+            ),
+
             decorationBox = { innerTextField ->
-                Box(
-                    contentAlignment = Alignment.CenterStart
-                ) {
+                Box(contentAlignment = Alignment.CenterStart) {
                     if (searchQuery.isEmpty()) {
                         Text(
                             text = hint,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant // Hint color
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    innerTextField() // This is where the actual text field input is rendered
+                    innerTextField()
                 }
             }
         )
@@ -76,14 +98,14 @@ fun SearchBar(
                 )
             }
         }
-        if (searchQuery.isNotEmpty()) {
+      /*  if (searchQuery.isNotEmpty()) {
             IconButton(onClick = { onSearchClicked() }) { // Clear the query
                 Icon(
                     imageVector = Icons.Default.Search, // Or Icons.Filled.Clear
                     contentDescription = "search content"
                 )
             }
-        }
+        }*/
     }
 }
 

@@ -1,6 +1,5 @@
 package com.example.search.presentation
 
-
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,56 +11,71 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class SearchFilter(val type: String, val label: String) {
+    ALL("all", "الكل"),
+    ARTICLE("article", "مقالات"),
+    AUDIO("audio", "صوتيات"),
+    VIDEO("video", "فيديوهات"),
+    IMAGES("image_group", "صور")
+}
+
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    val searcher: HitsSearcher,
+    private val searcher: HitsSearcher,
 ) : ViewModel() {
+    private val TAG = "SearchViewModel"
 
-    val TAG = "SearchViewModel"
 
-    // This is the state that your UI will observe. It's private to the ViewModel.
     private val _uiState = MutableStateFlow<SearchUiState>(SearchUiState.Idle)
-
     val uiState = _uiState.asStateFlow()
+
+    private val _selectedFilter = MutableStateFlow(SearchFilter.ALL)
+    val selectedFilter = _selectedFilter.asStateFlow()
+
+    private var currentQuery: String = ""
 
     init {
         viewModelScope.launch {
-            searcher.response.subscribe { res ->
-                // If the search was successful, update the UI state with the results
-                res?.let { _uiState.value = SearchUiState.Success(it) }
-                if (res == null) {
-                    Log.d(TAG, "null: response")
-                } else {
-                    Log.d(TAG, "response: ${res.hits}")
 
-                }
+            searcher.response.subscribe { res ->
+                Log.d(TAG, "res value: ${res?.hits?.size}")
+                res?.let { _uiState.value = SearchUiState.Success(it) }
             }
         }
     }
 
+    fun onFilterSelected(filter: SearchFilter) {
+        _selectedFilter.value = filter
+
+        searcher.query.facetFilters =
+            if (filter == SearchFilter.ALL) null
+            else listOf(listOf("type:${filter.type}"))
+
+        _uiState.value = SearchUiState.Loading
+        searcher.searchAsync()
+
+        Log.d(TAG, "FacetFilters: ${searcher.query.facetFilters}")
+    }
+
     fun search(query: String) {
+        currentQuery = query
+
         if (query.isBlank()) {
             _uiState.value = SearchUiState.Idle
             return
         }
 
         _uiState.value = SearchUiState.Loading
-        searcher.setQuery(query)
 
+        searcher.query.query = query
+        searcher.searchAsync()
 
-        try {
-            searcher.searchAsync()
-
-        } catch (e: Exception) {
-            Log.d(TAG, "search: error: ${e.message}")
-            _uiState.value = SearchUiState.Error(e)
-        }
-
+        Log.d("SearchVM", "Query: ${searcher.query.query}")
+        Log.d("SearchVM", "Filters: ${searcher.query.filters}")
     }
 
     override fun onCleared() {
         super.onCleared()
         searcher.cancel()
     }
-
 }

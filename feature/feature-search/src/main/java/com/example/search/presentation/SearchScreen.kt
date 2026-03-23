@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,8 +51,7 @@ fun SearchScreen(
     var query by remember { mutableStateOf("") }
 
     val state by viewModel.uiState.collectAsState()
-
-
+    val selectedFilter by viewModel.selectedFilter.collectAsState()
 
     Column(
         modifier = modifier
@@ -65,14 +67,34 @@ fun SearchScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             searchQuery = query,
-            onQueryChanged = { query = it },
+            onQueryChanged = { 
+                query = it
+            },
             onSearchClicked = {
                 viewModel.search(query)
             },
             hint = stringResource(R.string.search_hint),
+        )
 
-            )
-
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(SearchFilter.entries) { filter ->
+                FilterChip(
+                    selected = selectedFilter == filter,
+                    onClick = { viewModel.onFilterSelected(filter) },
+                    label = { Text(text = filter.label) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -95,7 +117,7 @@ fun SearchScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
@@ -104,10 +126,8 @@ fun SearchScreen(
                                     parseHit(hit).objectID
                                 }
                             ) { hit ->
-                                // Parse the raw JSON into our clean SearchHit data class
                                 val parsedHit = parseHit(hit)
 
-                                // Decide which UI component to show based on the 'type' attribute
                                 when (parsedHit.type) {
                                     "article" -> ArticleResultCard(
                                         hit = parsedHit,
@@ -119,7 +139,6 @@ fun SearchScreen(
                                     "audio" -> AudioResultCard(hit = parsedHit, onItemClick = onNavigateToDetail)
                                     "image_group" -> MediaResultCard(hit = parsedHit, onItemClick = onNavigateToDetail)
                                     else -> {
-                                        // A fallback for unknown types or items without a type
                                         DefaultResultCard(hit = parsedHit)
                                     }
                                 }
@@ -134,7 +153,6 @@ fun SearchScreen(
                     )
                 }
             }
-
         }
     }
 }
