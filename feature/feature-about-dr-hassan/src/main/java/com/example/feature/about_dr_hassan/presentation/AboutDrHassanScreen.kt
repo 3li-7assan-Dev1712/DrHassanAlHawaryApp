@@ -1,11 +1,12 @@
 package com.example.feature.about_dr_hassan.presentation
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,12 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,15 +31,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,150 +46,217 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.core.ui.R
-import com.example.domain.module.fakeDoctorProfile
+import com.example.domain.module.doctorProfileData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutDrHassanScreen(
     onNavigateBack: () -> Unit
 ) {
-    val doctor = fakeDoctorProfile
+    val doctor = doctorProfileData
     val scrollState = rememberLazyListState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                title = {
-                    Text(
-                        text = stringResource(R.string.about_dr_hassan),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                },
+                title = { Text(stringResource(R.string.about_dr_hassan)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+                }
             )
-        },
-        modifier = Modifier.fillMaxSize()
+        }
     ) { padding ->
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
             state = scrollState,
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+
             item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        shadowElevation = 8.dp,
-                        modifier = Modifier.size(150.dp)
-                    ) {
-                        AsyncImage(
-                            model = doctor.profileImageUrl,
-                            contentDescription = "Profile Picture",
-                            contentScale = ContentScale.Crop,
-                            placeholder = painterResource(id = R.drawable.dr_hassan_photo),
-                            error = painterResource(id = R.drawable.dr_hassan_photo)
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = doctor.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = doctor.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                HeroSection(
+                    name = doctor.name,
+                    title = doctor.title,
+                    imageUrl = doctor.profileImageUrl
+                )
             }
 
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    SocialIcon(Icons.Default.Email, "Email") { /* Intent to Mail */ }
-                    SocialIcon(Icons.Default.Share, "YouTube") { /* Intent to YT */ }
-                    SocialIcon(Icons.Default.Phone, "WhatsApp") { /* Intent to WA */ }
-                    SocialIcon(Icons.Default.Face, "Facebook") { /* Intent to FB */ }
-                }
+                SocialRow()
             }
 
             item {
-                InfoSection(title = "السيرة الذاتية", content = doctor.bio)
+                InfoCard(
+                    title = "نبذة تعريفية",
+                    content = doctor.bio
+                )
             }
 
             item {
-                ListSection(title = "المؤهلات العلمية", items = doctor.education)
+                ListCard(
+                    title = "المؤهلات الأكاديمية 🎓",
+                    items = doctor.education
+                )
             }
 
             item {
-                ListSection(title = "الإنجازات", items = doctor.achievements)
+                ListCard(
+                    title = "المساهمات الإعلامية 📺",
+                    items = doctor.mediaResponsibilities
+                )
+            }
+
+            item {
+                ListCard(
+                    title = "المساهمات التعليمية ✍\uFE0F",
+                    items = doctor.studyingResponsibilities
+                )
+            }
+
+            item {
+                ListCard(
+                    title = "البحوث العلمية 📚",
+                    items = doctor.researches
+                )
             }
         }
     }
 }
 
 @Composable
-fun SocialIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        FilledIconButton(
-            onClick = onClick,
-            modifier = Modifier.size(50.dp),
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            )
-        ) {
-            Icon(icon, contentDescription = label)
-        }
-    }
-}
-
-@Composable
-fun InfoSection(title: String, content: String) {
-    Card(
+fun HeroSection(
+    name: String,
+    title: String,
+    imageUrl: String
+) {
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                alpha = 0.5f
-            )
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        AsyncImage(
+            modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+            model = imageUrl,
+            contentDescription = "Profile",
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.dr_hassan_image),
+            error = painterResource(R.drawable.dr_hassan_image)
+        )
+
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+fun SocialRow() {
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+
+        SocialButton(Icons.Default.Email) {
+            context.startActivity(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")))
+        }
+
+        SocialButton(Icons.Default.Phone) {
+            context.startActivity(Intent(Intent.ACTION_DIAL))
+        }
+
+        SocialButton(Icons.Default.Public) {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://youtube.com")))
+        }
+
+        SocialButton(Icons.Default.Share) {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, "Check this app!")
+            }
+            context.startActivity(intent)
+        }
+    }
+}
+
+@Composable
+fun SocialButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(52.dp),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     ) {
+        Icon(icon, contentDescription = null)
+    }
+}
+
+@Composable
+fun InfoCard(title: String, content: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(3.dp)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            Text(content, style = MaterialTheme.typography.bodyMedium, lineHeight = 24.sp)
+
+            Text(title, style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            HorizontalDivider()
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                content,
+                style = MaterialTheme.typography.bodyMedium,
+                lineHeight = 22.sp
+            )
         }
     }
 }
 
 @Composable
-fun ListSection(title: String, items: List<String>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+fun ListCard(title: String, items: List<String>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(3.dp)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            items.forEach { item ->
-                Row(modifier = Modifier.padding(vertical = 4.dp)) {
-                    Text("• ", fontWeight = FontWeight.Black)
-                    Text(item, style = MaterialTheme.typography.bodyMedium)
+
+            Text(title, style = MaterialTheme.typography.titleMedium)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            HorizontalDivider()
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                items.forEach { item ->
+                    Row {
+                        Text("• ", fontWeight = FontWeight.Bold)
+                        Text(item, style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
         }

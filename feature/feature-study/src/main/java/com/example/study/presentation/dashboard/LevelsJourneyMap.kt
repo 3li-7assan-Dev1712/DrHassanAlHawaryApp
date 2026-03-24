@@ -57,7 +57,7 @@ fun LevelsJourneyMap(
     modifier: Modifier = Modifier
 ) {
     if (isLoading) {
-        Box (
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(420.dp),
@@ -82,9 +82,9 @@ fun LevelsJourneyMap(
 
         // Pulse starts only after path animation finishes
         val pulseScale by animateFloatAsState(
-            targetValue = if (startPulse) 1.4f else 1f,
+            targetValue = if (startPulse) 1.15f else 1f,
             animationSpec = infiniteRepeatable(
-                animation = tween(1200, easing = FastOutSlowInEasing),
+                animation = tween(600, easing = FastOutSlowInEasing),
                 repeatMode = RepeatMode.Reverse
             ),
             label = ""
@@ -326,14 +326,31 @@ fun DrawScope.drawCoinPolished(
 ) {
     val r = radius * scale
 
-    val base = if (isLocked) outline.copy(alpha = 0.55f) else primary
-    val rim = if (isLocked) outline.copy(alpha = 0.60f) else base.copy(alpha = 0.90f)
-    val face = if (isLocked) outline.copy(alpha = 0.45f) else base.copy(alpha = 0.78f)
+    val base = when {
+        isCurrent -> Color(0xFFFFD700) // Golden Yellow for current node
+        isLocked -> outline.copy(alpha = 0.55f)
+        else -> primary
+    }
+    val rim = when {
+        isCurrent -> Color(0xFFFFD700).copy(alpha = .9f)
+        isLocked -> outline.copy(alpha = 0.60f)
+        else -> base.copy(alpha = 0.90f)
+    }
+
+    val face = when {
+
+        isCurrent -> Color(0xFFFFD700)
+        isLocked -> outline.copy(alpha = 0.45f)
+        else ->
+            base.copy(alpha = 0.78f)
+
+    }
+
 
     // Current glow ring
     if (isCurrent && !isLocked) {
         drawCircle(
-            color = primary.copy(alpha = 0.22f),
+            color = base.copy(alpha = 0.22f),
             radius = r * 1.35f,
             center = center
         )

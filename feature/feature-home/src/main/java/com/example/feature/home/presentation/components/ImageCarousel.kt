@@ -5,7 +5,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.core.ui.components.shimmer
@@ -62,26 +65,32 @@ fun ImageCarousel(
         }
     }
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(225.dp)
             .padding(horizontal = 8.dp)
             .shimmer(cornerRadius = 16.dp, isLoadingImages),
-    // Adjust height as needed
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+        // Adjust height as needed
     ) {
-        if (imageList.isNotEmpty() && !isLoadingImages){
+        if (imageList.isNotEmpty() && !isLoadingImages) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .height(200.dp)
+                    .fillMaxWidth()
             ) { page ->
                 CarouselItem(imageUrl = imageList[page].imageUrl)
             }
 
-            // Page indicators (dots)
+            Spacer(modifier = Modifier.height(4.dp))
+
+        }
+        if (imageList.isNotEmpty()) {
             Row(
                 Modifier
-                    .align(Alignment.BottomCenter)
                     .padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -102,6 +111,12 @@ fun ImageCarousel(
         }
 
     }
+}
+
+@Preview
+@Composable
+private fun ImageCaruelPrev() {
+    ImageCarousel(isLoadingImages = false)
 }
 
 @Composable

@@ -1,5 +1,6 @@
 package com.example.search.presentation
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
+
 import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.SearchResultMetaData
@@ -48,6 +50,7 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onNavigateToDetail: (SearchResultMetaData) -> Unit
 ) {
+    val TAG  = "SearchScreen"
     var query by remember { mutableStateOf("") }
 
     val state by viewModel.uiState.collectAsState()
@@ -148,6 +151,7 @@ fun SearchScreen(
                 }
 
                 is SearchUiState.Error -> {
+                    Log.d(TAG, "SearchScreen: error")
                     Text(
                         text = "Error: ${(state as SearchUiState.Error).throwable.message}"
                     )

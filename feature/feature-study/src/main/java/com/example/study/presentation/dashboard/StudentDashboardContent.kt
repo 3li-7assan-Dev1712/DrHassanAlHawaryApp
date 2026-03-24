@@ -37,7 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -48,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,6 +79,7 @@ import com.example.domain.module.Level
 import com.example.domain.module.QuizType
 import com.example.domain.module.Student
 import com.example.study.presentation.model.DashboardSection
+import kotlinx.coroutines.delay
 
 @Composable
 fun StudentDashboardContent(
@@ -259,6 +260,20 @@ fun MotivationMessagesSection(
 
     val pagerState = rememberPagerState(pageCount = { messages.size })
 
+    // Auto-scroll logic
+    if (!isLoading && messages.isNotEmpty()) {
+        LaunchedEffect(messages) {
+            while (true) {
+                delay(3000)
+                val nextPage = (pagerState.currentPage + 1) % messages.size
+                pagerState.animateScrollToPage(
+                    nextPage,
+                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                )
+            }
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -314,20 +329,13 @@ fun MotivationMessageCard(message: String, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Lightbulb,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+
+            Image(
+                painter = painterResource(id = R.drawable.bulb_image),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+
 
             Text(
                 text = message,
@@ -434,7 +442,10 @@ fun StudentHeader(
                     Spacer(Modifier.height(10.dp))
 
                     // Membership chip
-                    val statusText = if (isMember) "من طلاب المعهد" else "ليس من طلاب المعهد"
+                    val statusText =
+                        if (isMember) stringResource(R.string.institute_student) else stringResource(
+                            R.string.not_institute_student
+                        )
                     val chipBg =
                         if (isMember) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
                         else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f)
@@ -483,15 +494,14 @@ fun StudentHeader(
                                 },
                                 fontSize = 24.sp
                             )
-                            val suffix = if (userRank in 11..13) "th"
-                            else when (userRank % 10) {
-                                1 -> "st"
-                                2 -> "nd"
-                                3 -> "rd"
-                                else -> "th"
+                            val rankText = when (userRank) {
+                                1 -> stringResource(R.string.rank_1)
+                                2 -> stringResource(R.string.rank_2)
+                                3 -> stringResource(R.string.rank_3)
+                                else -> stringResource(R.string.rank_other, userRank)
                             }
                             Text(
-                                text = "$userRank$suffix",
+                                text = rankText,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
@@ -506,7 +516,8 @@ fun StudentHeader(
                             modifier = Modifier.size(42.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            val progress = if (totalQuestions > 0) userScore.toFloat() / totalQuestions else 0f
+                            val progress =
+                                if (totalQuestions > 0) userScore.toFloat() / totalQuestions else 0f
                             CircularProgressIndicator(
                                 progress = { progress },
                                 modifier = Modifier.fillMaxSize(),
@@ -846,21 +857,7 @@ fun LevelsContentPreview() {
     }
 }
 
-@Composable
-fun SummariesContent(modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .padding(vertical = 16.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Summaries Section", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Here students can browse public summaries and upload their own.")
-        }
-    }
-}
+
 
 @Preview
 @Composable
@@ -896,8 +893,8 @@ private fun LevelsContentPrev() {
         modifier = Modifier
             .fillMaxWidth()
             .height(400.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(sampleLevels.size) { index ->
             LevelItem(
