@@ -119,6 +119,18 @@ class UploadQuizViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isUploading = true, error = null) }
             try {
+                // 1. Clear existing quizzes and leaderboard
+                val batch = firestore.batch()
+                
+                // Clear "weekly_quiz" collection
+                val quizzes = firestore.collection("weekly_quiz").get().await()
+                quizzes.documents.forEach { batch.delete(it.reference) }
+                
+                // Clear "leaderboard" collection
+                val leaderboard = firestore.collection("leaderboard").get().await()
+                leaderboard.documents.forEach { batch.delete(it.reference) }
+                
+                // 2. Add the new quiz
                 val quizRef = firestore.collection("weekly_quiz").document()
                 val quiz = Quiz(
                     id = quizRef.id,
@@ -127,7 +139,11 @@ class UploadQuizViewModel @Inject constructor(
                     type = state.quizType,
                     targetLevelId = state.targetLevelId
                 )
-                quizRef.set(quiz).await()
+                batch.set(quizRef, quiz)
+                
+                // 3. Commit everything
+                batch.commit().await()
+
                 _uiState.update { it.copy(isUploading = false, uploadSuccess = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isUploading = false, error = e.message ?: "Upload failed") }

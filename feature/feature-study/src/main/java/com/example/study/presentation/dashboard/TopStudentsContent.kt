@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.core.ui.R
@@ -37,7 +39,7 @@ fun TopStudentsContent(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "قائمة المتصدرين",
+            text = stringResource(R.string.leaderboard_title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -78,16 +80,15 @@ fun LeaderboardItem(
         Row(
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Rank
             Text(
                 text = "#$rank",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
 
-            // Avatar
             AsyncImage(
                 model = student.telegramPhotoUrl,
                 contentDescription = student.studentName,
@@ -98,20 +99,35 @@ fun LeaderboardItem(
                     .clip(CircleShape)
             )
 
-            // Name
             Text(
                 text = student.studentName,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f)
             )
 
-            // Score
-            Text(
-                text = "${student.score}",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (rank <= 3) {
+                    Text(
+                        text = when (rank) {
+                            1 -> "🥇"
+                            2 -> "🥈"
+                            3 -> "🥉"
+                            else -> ""
+                        },
+                        fontSize = 20.sp
+                    )
+                }
+
+                Text(
+                    text = "${student.score}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

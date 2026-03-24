@@ -83,7 +83,8 @@ class ArticlesRepositoryImpl
         return Pager(
             config = PagingConfig(
                 // Set a page size. This is passed to your RemoteMediator's 'state'.
-                pageSize = 5,
+                pageSize = 10,
+                prefetchDistance = 5,
                 enablePlaceholders = false
             ),
             remoteMediator = ArticleRemoteMediator(

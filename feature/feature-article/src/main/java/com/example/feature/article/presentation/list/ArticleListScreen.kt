@@ -34,7 +34,7 @@ import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.domain.module.Article
 import com.example.feature.article.data.util.formatDate
-import com.example.hassanalhawary.ui.screens.articles_screen.ArticleItem
+import com.example.feature.article.presentation.components.ArticleItem
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,7 +126,7 @@ private fun ArticlesScreenContent(
                     }
                 }
 
-                // when scroll down show loading will appending new arts
+                // when scroll down show loading will append new arts
                 if (articles.loadState.append is LoadState.Loading) {
                     item {
                         Box(

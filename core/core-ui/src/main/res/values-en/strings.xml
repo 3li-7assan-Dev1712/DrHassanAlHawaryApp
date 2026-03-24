@@ -48,4 +48,32 @@
     <string name="about_app">عن التطبيق</string>
 
 
+    <!-- Study -->
+    <string name="leaderboard_title">قائمة المتصدرين</string>
+    <string name="final_quiz_available">اختبار نهائي متاح!</string>
+    <string name="weekly_quiz_available">اختبار أسبوعي جديد متاح!</string>
+    <string name="pass_this_quiz">اجتز هذا الاختبار لتنتقل للمرحلة التالية.</string>
+    <string name="click_to_start_quiz">اضغط هنا للبدء في حل الاختبار.</string>
+    <string name="institute_student">من طلاب المعهد</string>
+    <string name="not_institute_student">ليس من طلاب المعهد</string>
+    <string name="your_grade">درجتك</string>
+    <string name="in_rank">في الترتيب</string>
+    <string name="rank_1">الأول</string>
+    <string name="rank_2">الثاني</string>
+    <string name="rank_3">الثالث</string>
+    <string name="rank_other">المركز %1$d</string>
+
+    <!-- Article -->
+    <string name="published_since">نُشر %1$s</string>
+    <string name="just_now">الآن</string>
+    <string name="since_minutes">منذ %1$d دقائق</string>
+    <string name="since_hours">منذ %1$d ساعات</string>
+    <string name="since_days">منذ %1$d أيام</string>
+    <string name="since_2_days">منذ يومين</string>
+    <string name="since_week">منذ أسبوع</string>
+    <string name="since_2_weeks">منذ أسبوعين</string>
+    <string name="since_month">منذ شهر</string>
+
+
+
 </resources>
