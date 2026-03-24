@@ -56,8 +56,7 @@ fun NotChannelMemberContent(
             name = studentData.name,
             username = studentData.username,
             photoUrl = studentData.photoUrl,
-            isMember = false,
-            onDisconnect = onDisconnect
+            isMember = false
         )
 
         Spacer(modifier = Modifier.height(32.dp))

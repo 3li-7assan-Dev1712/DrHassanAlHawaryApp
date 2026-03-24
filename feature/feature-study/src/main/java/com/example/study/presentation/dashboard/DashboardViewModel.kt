@@ -77,6 +77,7 @@ class DashboardViewModel @Inject constructor(
                         it.copy(
                             latestQuizId = quiz.id, 
                             latestQuizType = quiz.type,
+                            latestQuizTotalQuestions = quiz.questions.size,
                             hasNewQuiz = true 
                         ) 
                     }

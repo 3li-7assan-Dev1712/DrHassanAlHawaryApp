@@ -1,6 +1,5 @@
 package com.example.study.presentation.dashboard
 
-import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -35,19 +34,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -100,21 +97,28 @@ fun StudentDashboardContent(
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         item {
+            val userRank = remember(uiState.topStudents, studentData.telegramId) {
+                val rank =
+                    uiState.topStudents.indexOfFirst { it.telegramId == studentData.telegramId }
+                if (rank != -1) rank + 1 else null
+            }
+
             StudentHeader(
                 name = studentData.name,
                 username = studentData.username,
                 photoUrl = studentData.photoUrl,
                 isMember = studentData.isCourseMember,
-                onDisconnect = onDisconnect
+                userScore = uiState.userQuizScore,
+                totalQuestions = uiState.latestQuizTotalQuestions,
+                userRank = userRank
             )
         }
 
-        if (uiState.hasNewQuiz && uiState.latestQuizId != null) {
+        if (uiState.hasNewQuiz && uiState.latestQuizId != null && uiState.userQuizScore == null) {
             item {
                 QuizReminderSection(
                     quizId = uiState.latestQuizId!!,
                     quizType = uiState.latestQuizType ?: QuizType.WEEKLY,
-                    userScore = uiState.userQuizScore,
                     onClick = { onQuizClick(it) }
                 )
             }
@@ -141,9 +145,6 @@ fun StudentDashboardContent(
             ) {
                 when (selectedSection) {
                     DashboardSection.Study -> {
-
-
-                        // keep your original logic; currently using your journey placeholder
                         LevelsJourneyMap(
                             levels = List(6) {
                                 LevelNode(index = it + 1, isUnlocked = it < uiState.levels.count())
@@ -157,13 +158,8 @@ fun StudentDashboardContent(
                             onNodeClick = { index ->
                                 val levelId = "level_$index"
                                 onLevelClick(levelId)
-                                Log.d(
-                                    "Dashboard",
-                                    "StudentDashboardContent: click node $index"
-                                )
                             }
                         )
-
                     }
 
                     DashboardSection.TopStudents -> TopStudentsContent()
@@ -179,13 +175,10 @@ fun StudentDashboardContent(
 fun QuizReminderSection(
     quizId: String,
     quizType: QuizType,
-    userScore: Int?,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val hasTakenQuiz = userScore != null
     val isFinalExam = quizType == QuizType.FINAL_EXAM
-
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
@@ -208,50 +201,32 @@ fun QuizReminderSection(
                     .clip(CircleShape)
                     .background(
                         if (isFinalExam) MaterialTheme.colorScheme.tertiary
-                        else if (hasTakenQuiz) MaterialTheme.colorScheme.secondary
                         else MaterialTheme.colorScheme.primary
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isFinalExam) Icons.Default.School
-                    else if (hasTakenQuiz) Icons.Default.RestartAlt
-                    else Icons.Default.Quiz,
+                    imageVector = if (isFinalExam) Icons.Default.School else Icons.Default.Quiz,
                     contentDescription = null,
-                    tint = if (isFinalExam) MaterialTheme.colorScheme.onTertiary
-                    else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondary
-                    else MaterialTheme.colorScheme.onPrimary,
+                    tint = if (isFinalExam) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(28.dp)
                 )
             }
 
             Column(modifier = Modifier.weight(1f)) {
-                val title = when {
-                    isFinalExam -> "اختبار نهائي متاح!"
-                    hasTakenQuiz -> "نتيجتك في الاختبار الأسبوعي: $userScore"
-                    else -> "اختبار أسبوعي جديد متاح!"
-                }
-
-                val subtitle = when {
-                    isFinalExam -> "اجتز هذا الاختبار لتنتقل للمرحلة التالية."
-                    hasTakenQuiz -> "اضغط هنا لإعادة الاختبار وتحسين نتيجتك."
-                    else -> "اضغط هنا للبدء في حل الاختبار."
-                }
+                val title = if (isFinalExam) "اختبار نهائي متاح!" else "اختبار أسبوعي جديد متاح!"
+                val subtitle =
+                    if (isFinalExam) "اجتز هذا الاختبار لتنتقل للمرحلة التالية." else "اضغط هنا للبدء في حل الاختبار."
 
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isFinalExam) MaterialTheme.colorScheme.onTertiaryContainer
-                    else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer
-                    else MaterialTheme.colorScheme.onPrimaryContainer
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = (if (isFinalExam) MaterialTheme.colorScheme.onTertiaryContainer
-                    else if (hasTakenQuiz) MaterialTheme.colorScheme.onSecondaryContainer
-                    else MaterialTheme.colorScheme.onPrimaryContainer).copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
             }
         }
@@ -372,7 +347,9 @@ fun StudentHeader(
     username: String,
     photoUrl: String?,
     isMember: Boolean,
-    onDisconnect: () -> Unit
+    userScore: Int? = null,
+    totalQuestions: Int? = null,
+    userRank: Int? = null
 ) {
     val shape = RoundedCornerShape(28.dp)
 
@@ -456,7 +433,7 @@ fun StudentHeader(
 
                     Spacer(Modifier.height(10.dp))
 
-                    // Membership chip (soft, no harsh blocks)
+                    // Membership chip
                     val statusText = if (isMember) "من طلاب المعهد" else "ليس من طلاب المعهد"
                     val chipBg =
                         if (isMember) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
@@ -487,17 +464,66 @@ fun StudentHeader(
                     }
                 }
 
-                FilledTonalIconButton(
-                    onClick = onDisconnect,
-                    colors = IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-                    ),
-                    modifier = Modifier.size(44.dp)
+                Spacer(Modifier.width(8.dp))
+
+                // PERFORMANCE VIEWS INSTEAD OF LOGOUT
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Logout,
-                        contentDescription = "Disconnect"
-                    )
+                    // 1. RANK MEDAL (Emoji Style)
+                    if (userRank != null) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = when (userRank) {
+                                    1 -> "🥇"
+                                    2 -> "🥈"
+                                    3 -> "🥉"
+                                    else -> "🏅"
+                                },
+                                fontSize = 24.sp
+                            )
+                            val suffix = if (userRank in 11..13) "th"
+                            else when (userRank % 10) {
+                                1 -> "st"
+                                2 -> "nd"
+                                3 -> "rd"
+                                else -> "th"
+                            }
+                            Text(
+                                text = "$userRank$suffix",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+
+                    // 2. QUIZ GRADE PROGRESS (Smaller)
+                    if (userScore != null && totalQuestions != null) {
+                        Box(
+                            modifier = Modifier.size(42.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val progress = if (totalQuestions > 0) userScore.toFloat() / totalQuestions else 0f
+                            CircularProgressIndicator(
+                                progress = { progress },
+                                modifier = Modifier.fillMaxSize(),
+                                strokeWidth = 3.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                strokeCap = StrokeCap.Round
+                            )
+                            Text(
+                                text = "$userScore/$totalQuestions",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 9.sp
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -844,7 +870,9 @@ private fun StudentHeaderPreview() {
         username = "3li_7assan",
         photoUrl = null,
         isMember = true,
-        onDisconnect = {}
+        userScore = 15,
+        totalQuestions = 20,
+        userRank = 1
     )
 }
 
@@ -863,8 +891,18 @@ private fun DashboardChipsPreview() {
 @Preview
 @Composable
 private fun LevelsContentPrev() {
-    LevelsContent(
-        levels = sampleLevels,
-        onLevelClick = {}
-    )
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        items(sampleLevels.size) { index ->
+            LevelItem(
+                level = sampleLevels[index],
+                onClick = {})
+        }
+    }
 }

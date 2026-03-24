@@ -16,6 +16,7 @@ data class DashboardUiState (
     val motivationalMessagesErrorMessage: String? = null,
     val latestQuizId: String? = null,
     val latestQuizType: QuizType? = null,
+    val latestQuizTotalQuestions: Int = 0,
     val hasNewQuiz: Boolean = false,
     val userQuizScore: Int? = null,
     val hasJourneyAnimationPlayed: Boolean = false
