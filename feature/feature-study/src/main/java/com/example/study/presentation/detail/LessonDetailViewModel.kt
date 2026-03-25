@@ -126,6 +126,11 @@ class LessonDetailViewModel @Inject constructor(
             val controller = mediaControllerFuture?.await() ?: return@launch
             val newPosition = (controller.currentPosition + 5000).coerceAtMost(controller.duration)
             controller.seekTo(newPosition)
+            _uiState.update {
+                it.copy(
+                    currentPosition = newPosition
+                )
+            }
         }
     }
 
@@ -134,6 +139,11 @@ class LessonDetailViewModel @Inject constructor(
             val controller = mediaControllerFuture?.await() ?: return@launch
             val newPosition = (controller.currentPosition - 5000).coerceAtLeast(0L)
             controller.seekTo(newPosition)
+            _uiState.update {
+                it.copy(
+                    currentPosition = newPosition
+                )
+            }
         }
     }
 

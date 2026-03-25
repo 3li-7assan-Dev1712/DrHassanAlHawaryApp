@@ -82,13 +82,10 @@ class AudioDetailViewModel @Inject constructor(
         }
     }
 
-    fun onSeek(positionFraction: Float) {
+    fun onSeek(newPosition: Long) {
         viewModelScope.launch {
             val controller = mediaControllerFuture?.await() ?: return@launch
-            val duration = controller.duration
-            if (duration > 0) {
-                controller.seekTo((duration * positionFraction).toLong())
-            }
+            controller.seekTo(newPosition)
         }
     }
 
@@ -140,7 +137,6 @@ class AudioDetailViewModel @Inject constructor(
                     .build()
                 controller.setMediaItem(mediaItem)
                 controller.prepare()
-                controller.play()
             } else {
                 Log.d("AudioVM", "Controller already has correct audio. Ensuring it plays.")
                 controller.play()
@@ -173,18 +169,14 @@ class AudioDetailViewModel @Inject constructor(
             })
 
             // Progress updater
-            launch {
-                while (isActive) {
-                    if (controller.playbackState != Player.STATE_IDLE && controller.playbackState != Player.STATE_ENDED) {
-                        _uiState.update {
-                            it.copy(
-                                currentPositionMillis = controller.currentPosition,
-                            )
-                        }
-                    }
-                    delay(300)
-                }
+
+            while (isActive) {
+
+                _uiState.update { it.copy(currentPositionMillis = controller.currentPosition) }
+
+                delay(300)
             }
+
         }
     }
 

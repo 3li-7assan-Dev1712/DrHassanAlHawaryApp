@@ -5,7 +5,10 @@ import android.content.ComponentName
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,8 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -74,7 +78,8 @@ fun LessonDetailScreen(
     val context = LocalContext.current
 
     DisposableEffect(Unit) {
-        val sessionToken = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+        val sessionToken =
+            SessionToken(context, ComponentName(context, PlaybackService::class.java))
         val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
         viewModel.mediaControllerFuture = controllerFuture
 
@@ -104,7 +109,8 @@ fun LessonDetailScreen(
         try {
             context.startActivity(intent)
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "No application can handle this request.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "No application can handle this request.", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -198,6 +204,35 @@ fun LessonDetailContent(
 }
 
 @Composable
+fun ThemedControlButton(
+    onClick: () -> Unit,
+    painter: Painter,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    iconSize: androidx.compose.ui.unit.Dp = 24.dp,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), // Elevated button look
+    iconTint: Color = MaterialTheme.colorScheme.onSurface // Default tint
+) {
+    Box(
+        modifier = modifier
+            .size(iconSize + 16.dp) // Make touch target larger than icon
+            .clip(CircleShape)
+            .background(
+                containerColor
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painter,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(iconSize),
+            tint = iconTint
+        )
+    }
+}
+
+@Composable
 private fun PlayerControls(
     isPlaying: Boolean,
     isBuffering: Boolean,
@@ -257,9 +292,12 @@ private fun PlayerControls(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onSeekBackward) {
-                Icon(Icons.Default.FastRewind, "Rewind 5s", modifier = Modifier.size(36.dp))
-            }
+            ThemedControlButton(
+                onClick = onSeekBackward,
+                painter = painterResource(id = R.drawable.round_backword_icon),
+                contentDescription = "Forward 5 seconds",
+                iconSize = 32.dp
+            )
 
             if (isBuffering) {
                 CircularProgressIndicator(modifier = Modifier.size(64.dp))
@@ -275,9 +313,12 @@ private fun PlayerControls(
                 }
             }
 
-            IconButton(onClick = onSeekForward) {
-                Icon(Icons.Default.FastForward, "Forward 5s", modifier = Modifier.size(36.dp))
-            }
+            ThemedControlButton(
+                onClick = onSeekForward,
+                painter = painterResource(id = R.drawable.round_forward_icon),
+                contentDescription = "Forward 5 seconds",
+                iconSize = 32.dp
+            )
         }
     }
 }

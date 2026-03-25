@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -28,13 +27,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +43,9 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -112,8 +110,6 @@ fun AudioDetailScreen(
         onSeek = viewModel::onSeek,
         onRewind = { viewModel.onRewind(10) },
         onForward = { viewModel.onForward(10) },
-        onChangeSpeed = viewModel::onChangeSpeed,
-        onToggleFavorite = viewModel::onToggleFavorite,
         onDownload = viewModel::onDownloadClicked,
         onShare = {
             // share the audio functionality will be added later
@@ -128,11 +124,9 @@ fun AudioDetailScreen(
     uiState: AudioDetailUiState,
     onNavigateUp: () -> Unit,
     onPlayPauseToggle: () -> Unit,
-    onSeek: (Float) -> Unit,
+    onSeek: (Long) -> Unit,
     onRewind: () -> Unit,
     onForward: () -> Unit,
-    onChangeSpeed: (Float) -> Unit,
-    onToggleFavorite: () -> Unit,
     onDownload: () -> Unit,
     onShare: () -> Unit
 ) {
@@ -181,12 +175,11 @@ fun AudioDetailScreen(
             AudioDetailContent(
                 paddingValues,
                 uiState,
-                onToggleFavorite,
                 onPlayPauseToggle,
+                uiState.currentPositionMillis,
                 onSeek,
                 onRewind,
                 onForward,
-                onChangeSpeed,
                 onDownload
             )
         }
@@ -197,12 +190,11 @@ fun AudioDetailScreen(
 private fun AudioDetailContent(
     paddingValues: PaddingValues,
     uiState: AudioDetailUiState,
-    onToggleFavorite: () -> Unit,
     onPlayPauseToggle: () -> Unit,
-    onSeek: (Float) -> Unit,
+    currentPosition: Long,
+    onSeek: (Long) -> Unit,
     onRewind: () -> Unit,
     onForward: () -> Unit,
-    onChangeSpeed: (Float) -> Unit,
     onDownload: () -> Unit
 ) {
     Column(
@@ -221,7 +213,7 @@ private fun AudioDetailContent(
             .verticalScroll(rememberScrollState())
     ) {
 
-        AudioTitleSection(uiState, onToggleFavorite)
+        AudioTitleSection(uiState)
 
 
         Spacer(modifier = Modifier.height(8.dp)) // Reduced spacer
@@ -235,10 +227,11 @@ private fun AudioDetailContent(
         ThemedPlayerControls(
             uiState = uiState, // Pass full uiState for theming potential
             onPlayPauseToggle = onPlayPauseToggle,
+            currentPosition = currentPosition,
             onSeek = onSeek,
+            totalDuration = uiState.totalDurationMillis,
             onRewind = onRewind,
             onForward = onForward,
-            onChangeSpeed = onChangeSpeed,
             modifier = Modifier.padding(
                 horizontal = 16.dp,
                 vertical = 12.dp
@@ -277,7 +270,6 @@ private fun AudioDescriptionSection(
 @Composable
 private fun AudioTitleSection(
     uiState: AudioDetailUiState,
-    onToggleFavorite: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -325,26 +317,6 @@ private fun AudioTitleSection(
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-    ) {
-        FloatingActionButton(
-            onClick = onToggleFavorite,
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(y = (-40).dp) // Adjust offset
-        ) {
-            Icon(
-                imageVector = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = "Favorite"
-            )
-        }
-    }
 }
 
 @Composable
@@ -364,11 +336,21 @@ fun ThemedPlayerControls(
     modifier: Modifier = Modifier,
     uiState: AudioDetailUiState, // Use full uiState for potential theming
     onPlayPauseToggle: () -> Unit,
-    onSeek: (Float) -> Unit,
+    currentPosition: Long,
+    totalDuration: Long,
+    onSeek: (Long) -> Unit,
     onRewind: () -> Unit,
     onForward: () -> Unit,
-    onChangeSpeed: (Float) -> Unit
 ) {
+    var isUserSeeking by remember { mutableStateOf(false) }
+    var sliderPosition by remember { mutableStateOf(currentPosition.toFloat()) }
+
+    LaunchedEffect(currentPosition) {
+        if (!isUserSeeking) {
+            sliderPosition = currentPosition.toFloat()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -382,8 +364,16 @@ fun ThemedPlayerControls(
         // --- Seek Bar ---
         Box(contentAlignment = Alignment.Center) {
             Slider(
-                value = if (uiState.totalDurationMillis > 0) uiState.currentPositionMillis.toFloat() / uiState.totalDurationMillis else 0f,
-                onValueChange = onSeek,
+                value = sliderPosition,
+                valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(0f)),
+                onValueChange = {
+                    isUserSeeking = true
+                    sliderPosition = it
+                },
+                onValueChangeFinished = {
+                    isUserSeeking = false
+                    onSeek(sliderPosition.toLong())
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp),
@@ -524,7 +514,7 @@ fun AudioDetailScreenThemedPreview() {
         AudioDetailScreen(
             uiState = sampleUiState,
             onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {},
-            onForward = {}, onChangeSpeed = {}, onToggleFavorite = {}, onDownload = {}, onShare = {}
+            onForward = {}, onDownload = {}, onShare = {}
         )
     }
 }
@@ -543,7 +533,7 @@ fun AudioDetailScreenPlayingThemedPreview() {
         AudioDetailScreen(
             uiState = sampleUiState,
             onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {},
-            onForward = {}, onChangeSpeed = {}, onToggleFavorite = {}, onDownload = {}, onShare = {}
+            onForward = {}, onDownload = {}, onShare = {}
         )
     }
 }

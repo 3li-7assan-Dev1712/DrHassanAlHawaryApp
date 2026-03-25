@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,10 +65,12 @@ fun AboutDrHassanScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                     }
-                }
+                },
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
-        }
-    ) { padding ->
+        },
+
+        ) { padding ->
 
         LazyColumn(
             modifier = Modifier
