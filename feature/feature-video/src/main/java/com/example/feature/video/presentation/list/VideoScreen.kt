@@ -38,7 +38,7 @@ import com.example.feature.video.presentation.components.VideoCard
 fun VideosScreen(
     viewModel: VideosViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToVideo: (String) -> Unit
+    onNavigateToVideo: (String, String) -> Unit
 ) {
 
     val videos = viewModel.videos.collectAsLazyPagingItems()
@@ -89,12 +89,14 @@ fun VideosScreen(
 
                 ) { audioIndex ->
                     val video = videos[audioIndex]
+
                     if (video != null) {
                         VideoCard(
                             video = video,
                             onVideoClick = {
                                 onNavigateToVideo(
-                                    video.videoUrl
+                                    video.videoUrl,
+                                    video.title
                                 )
                             }
                         )

@@ -1,6 +1,7 @@
 package com.example.feature.video.presentation.detail
 
 
+import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -40,11 +42,11 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 @Composable
 fun VideoPlayerScreen(
     videoUrl: String,
-    videoTitle: String = "فتوى مهمة لكل من يستخدم تطبيق بنكك",
+    videoTitle: String? = null,
     onNavigateBack: () -> Unit
 ) {
     val videoId = remember(videoUrl) {
-        videoUrl.substringAfter("v=").substringBefore("&")
+        extractVideoId(videoUrl)
     }
 
     BackHandler {
@@ -60,7 +62,7 @@ fun VideoPlayerScreen(
         if (videoId.isNotBlank()) {
             YoutubePlayerComponent(
                 videoId = videoId,
-                videoTitle = videoTitle,
+                videoTitle = videoTitle ?: "",
                 modifier = Modifier.fillMaxSize()
             )
         } else {
@@ -106,12 +108,22 @@ private fun YoutubePlayerComponent(
                     ) {
                         isLoading = false
                         Log.e("VideoPlayerScreen", "YouTube Player Error: ${error.name}")
+
+                        if (error == PlayerConstants.PlayerError.VIDEO_NOT_PLAYABLE_IN_EMBEDDED_PLAYER) {
+                            // fallback → open in YouTube app
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://www.youtube.com/watch?v=$videoId".toUri()
+                            )
+                            context.startActivity(intent)
+                        }
                     }
                 }
             )
         }
     }
 
+    lifecycleOwner.lifecycle.addObserver(playerView)
     Box(
         modifier = modifier
     ) {
@@ -131,7 +143,8 @@ private fun YoutubePlayerComponent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent background
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = videoTitle,
@@ -180,5 +193,20 @@ private fun YoutubePlayerComponent(
             lifecycleOwner.lifecycle.removeObserver(observer)
             playerView.release()
         }
+    }
+}
+
+fun extractVideoId(url: String): String {
+    return when {
+        url.contains("youtu.be/") ->
+            url.substringAfter("youtu.be/").substringBefore("?")
+
+        url.contains("watch?v=") ->
+            url.substringAfter("v=").substringBefore("&")
+
+        url.contains("/shorts/") ->
+            url.substringAfter("/shorts/").substringBefore("?")
+
+        else -> ""
     }
 }

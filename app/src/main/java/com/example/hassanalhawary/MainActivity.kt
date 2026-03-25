@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
                     val currentVersion = BuildConfig.VERSION_CODE
                     val minVersion = appConfig?.minVersionCode ?: 0
                     val latestVersion = appConfig?.latestVersionCode ?: 0
-                    
+
                     when {
                         currentVersion < minVersion -> "force"
                         currentVersion < latestVersion && !flexibleUpdateDismissed -> "flexible"
@@ -139,7 +139,10 @@ class MainActivity : ComponentActivity() {
                         true -> {
                             when {
                                 mainActivityState.isLoading -> {
-                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Box(
+                                        Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         CircularProgressIndicator()
                                     }
                                 }
@@ -189,7 +192,7 @@ class MainActivity : ComponentActivity() {
         isDarkThemeEnabled: Boolean = false,
         userEmail: String,
         idToken: String
-        ) {
+    ) {
         val navController = rememberNavController()
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -487,29 +490,37 @@ class MainActivity : ComponentActivity() {
                     VideosScreen(
                         onNavigateBack = {
                             navController.popBackStack()
-                        }, onNavigateToVideo = { videoUrl ->
+                        }, onNavigateToVideo = { videoUrl, videoTitle ->
                             val encodedUrl = Uri.encode(videoUrl)
-                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl")
+                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$videoTitle")
                         }
                     )
                 }
                 composable(
 
-                    route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}", arguments = listOf(
+                    route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}/{videoTitle}",
+                    arguments = listOf(
                         navArgument("videoUrl") {
                             type = NavType.StringType
-                        })
+                        },
+                        navArgument("videoTitle") {
+                            type = NavType.StringType
+                        }),
+
 
                 ) {
-                    val videoUrl = it.arguments?.getString("videoUrl")
-                    if (videoUrl != null) {
-                        VideoPlayerScreen(
-                            videoUrl = videoUrl, onNavigateBack = {
-                                navController.popBackStack()
-                            })
-                    }
-
+                val videoUrl = it.arguments?.getString("videoUrl")
+                val videoTitle = it.arguments?.getString("videoTitle")
+                if (videoUrl != null) {
+                    VideoPlayerScreen(
+                        videoUrl = videoUrl, onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        videoTitle = videoTitle
+                    )
                 }
+
+            }
                 composable(Routes.KHOTAB_SCREEN) {
 
                 }
