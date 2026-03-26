@@ -39,7 +39,7 @@
     <string name="audios">Audios</string>
     <string name="lessons">Lessons</string>
     <string name="levels">Levels</string>
-    <string name="images">Images</string>
+    <string name="images">Designs</string>
     <string name="study">Study</string>
     <string name="competition">Top Students</string>
     <string name="about_dr_hassan">About</string>
@@ -47,7 +47,21 @@
     <string name="study_zone_description">Enter you data to join to the study zone</string>
     <string name="about_app">عن التطبيق</string>
 
-
+    <string name="app_version">الإصدار: %1$s</string>
+    <string name="overview">نبذة</string>
+    <string name="app_description">تطبيق تعليمي يساعدك على متابعة المحتوى بشكل منظم وبواجهة عربية جميلة.</string>
+    <string name="back">رجوع</string>
+    <string name="app_info_icon">معلومات التطبيق</string>
+    <string name="rate_app">تقييم التطبيق</string>
+    <string name="your_opinion_matters">رأيك يهمنا</string>
+    <string name="rate_us_description">تقييمك يساعدنا على تحسين التطبيق والوصول لمستخدمين أكثر.</string>
+    <string name="open_rating_page">فتح صفحة التقييم</string>
+    <string name="rating_star_icon">نجمة تقييم</string>
+    <string name="share_app_title">مشاركة التطبيق</string>
+    <string name="share_app_link_button">مشاركة رابط التطبيق</string>
+    <string name="share_app_text">جرّب هذا التطبيق الرائع:\n%1$s</string>
+    <string name="share_icon">أيقونة المشاركة</string>
+    <string name="rating_illustration">صورة تقييم التطبيق</string>
 
 
 
@@ -78,5 +92,28 @@
     <string name="since_month">منذ شهر</string>
 
 
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">ابدأ رحلتك</string>
+    <string name="onboarding_description_1">تعلم مع تطبيق متخصص يحتوي على مواد دراسية متنوعة: فيديوهات، صوتيات، صور، وملفات PDF.</string>
+    <string name="onboarding_title_2">اقرأ ملفات PDF فورًا</string>
+    <string name="onboarding_description_2">استعرض ملفات PDF مباشرة داخل شاشة كل درس—لا حاجة للتنقل بين التطبيقات.</string>
+    <string name="onboarding_title_3">الدراسة بدون انترنت</string>
+    <string name="onboarding_description_3">قم بتنزيل الدروس مرة واحدة. استمع للصوتيات وافتح ملفات PDF بدون الحاجة للاتصال بالإنترنت.</string>
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_get_started">ابدأ الآن</string>
+
+
+
+
+
+    <!-- Guest Content -->
+    <string name="telegram_connect_title">اربط حسابك بتيليجرام</string>
+    <string name="telegram_connect_description">اربط حسابك للوصول إلى الدورات، وتتبع تقدمك، وتلقي تنبيهات بالدروس الجديدة.</string>
+    <string name="benefit_alerts">تنبيهات فورية بالدروس الجديدة</string>
+    <string name="benefit_sync">مزامنة تقدمك عبر الأجهزة</string>
+    <string name="benefit_fast_login">تسجيل دخول سريع (بدون كلمات مرور)</string>
+    <string name="button_connect_telegram">الاتصال بتيليجرام</string>
+    <string name="telegram_privacy_footnote">نحن نستخدم تيليجرام فقط للتحقق من عضويتك وإرسال إشعارات الدورة.</string>
 
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -152,7 +153,8 @@ fun LessonDetailContent(
                     IconButton(onClick = onOpenPdfClick) {
                         Icon(Icons.Default.Description, "Open PDF Summary")
                     }
-                }
+                },
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
         }
     ) { paddingValues ->
@@ -169,7 +171,7 @@ fun LessonDetailContent(
             } else if (uiState.lesson != null) {
                 // Player UI
                 Image(
-                    painter = painterResource(id = R.drawable.naqthm_lesson),
+                    painter = painterResource(id = R.drawable.institute_logo),
                     contentDescription = "Lesson Art",
                     modifier = Modifier
                         .fillMaxWidth(0.8f)

@@ -1,14 +1,18 @@
 package com.example.study.presentation.quiz
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.LeaderBoard
 import com.example.domain.module.QuestionType
 import com.example.domain.module.Quiz
+import com.example.domain.module.QuizType
 import com.example.domain.use_cases.study.GetLatestQuizUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
+import com.example.domain.use_cases.study.PromoteStudentUseCase
 import com.example.domain.use_cases.study.SubmitLeaderboardEntryUseCase
+import com.example.study.domain.use_case.GetStudentAuthDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +37,8 @@ class AnswerQuizViewModel @Inject constructor(
     private val getLatestQuizUseCase: GetLatestQuizUseCase,
     private val submitLeaderboardEntryUseCase: SubmitLeaderboardEntryUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
+    private val getStudentAuthDataUseCase: GetStudentAuthDataUseCase,
+    private val promoteStudentUseCase: PromoteStudentUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -96,6 +102,18 @@ class AnswerQuizViewModel @Inject constructor(
                     }
                 }
 
+                // Promotion logic for Final Exam
+                Log.d("AnswerQuizViewModel", "submitQuiz: target id: ${quiz.targetLevelId}")
+                val uid = getStudentAuthDataUseCase()?.userId ?: ""
+                if (quiz.type == QuizType.FINAL_EXAM && quiz.targetLevelId != null) {
+                    Log.d("AnswerQuizViewModel", "submitQuiz: should update 1")
+                    val totalQuestions = quiz.questions.size
+                    if (score > totalQuestions / 2) {
+                        Log.d("AnswerQuizViewModel", "submitQuiz: should update 2")
+                        promoteStudentUseCase(uid, quiz.targetLevelId!!)
+                    }
+                }
+
                 val student = getStudentDataUseCase().first()
                 if (student != null) {
                     val entry = LeaderBoard(
@@ -106,7 +124,13 @@ class AnswerQuizViewModel @Inject constructor(
                         answerTimestamp = Date()
                     )
                     submitLeaderboardEntryUseCase(entry).onSuccess {
-                        _uiState.update { it.copy(isSubmitting = false, submitSuccess = true, finalScore = score) }
+                        _uiState.update {
+                            it.copy(
+                                isSubmitting = false,
+                                submitSuccess = true,
+                                finalScore = score
+                            )
+                        }
                     }.onFailure { e ->
                         _uiState.update { it.copy(isSubmitting = false, error = e.message) }
                     }

@@ -83,5 +83,7 @@ interface StudyRepository {
     suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>
     fun getLeaderboard(): Flow<List<LeaderBoard>>
 
+    suspend fun updateStudentLevel(uid: String, nextLevelId: String): Result<Unit>
+
 
 }

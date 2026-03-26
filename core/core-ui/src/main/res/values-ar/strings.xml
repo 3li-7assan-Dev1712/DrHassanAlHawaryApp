@@ -53,9 +53,9 @@
 
 
     <string name="study_zone">المعهـــد</string>">
-    <string name="latest_articles">آخــر المــــقالات</string>
-    <string name="latest_audios">آخــر الصــــوتيات</string>
-    <string name="images">الصـــور</string>
+    <string name="latest_articles">أحدث المــــقالات</string>
+    <string name="latest_audios">أحدث الصــــوتيات</string>
+    <string name="images">التصاميم</string>
     <string name="wisdom_of_the_day">رسالــــة اليـــــوم</string>
     <string name="khotab_aljumah">خــطب الجـــمعة</string>
     <string name="war">نـــوازل الحـــرب</string>
@@ -75,6 +75,19 @@
     <string name="onboarding_skip">تخطي</string>
     <string name="onboarding_next">التالي</string>
     <string name="onboarding_get_started">ابدأ الآن</string>
+
+
+
+
+    <!-- Guest Content -->
+    <string name="telegram_connect_title">اربط حسابك بتيليجرام</string>
+    <string name="telegram_connect_description">اربط حسابك للوصول إلى الدورات، وتتبع تقدمك، وتلقي تنبيهات بالدروس الجديدة.</string>
+    <string name="benefit_alerts">تنبيهات فورية بالدروس الجديدة</string>
+    <string name="benefit_sync">مزامنة تقدمك عبر الأجهزة</string>
+    <string name="benefit_fast_login">تسجيل دخول سريع (بدون كلمات مرور)</string>
+    <string name="button_connect_telegram">الاتصال بتيليجرام</string>
+    <string name="telegram_privacy_footnote">نحن نستخدم تيليجرام فقط للتحقق من عضويتك وإرسال إشعارات الدورة.</string>
+
 
     <!-- Study -->
     <string name="leaderboard_title">قائمة المتصدرين</string>

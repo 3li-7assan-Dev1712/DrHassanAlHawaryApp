@@ -146,19 +146,25 @@ fun StudentDashboardContent(
             ) {
                 when (selectedSection) {
                     DashboardSection.Study -> {
+                        val currentLevelId =
+                            studentData.currentLevelId.substringAfter("_").toIntOrNull()
+                                ?: 1
+
                         LevelsJourneyMap(
                             levels = List(6) {
-                                LevelNode(index = it + 1, isUnlocked = it < uiState.levels.count())
+                                LevelNode(index = it + 1, isUnlocked = it  < currentLevelId)
                             },
                             isLoading = uiState.loadingLevels,
-                            currentLevelIndex = 3,
+                            currentLevelIndex = currentLevelId,
                             hasPlayedAnimation = uiState.hasJourneyAnimationPlayed,
                             onAnimationFinished = {
                                 dashboardViewModel.onJourneyAnimationFinished()
                             },
                             onNodeClick = { index ->
                                 val levelId = "level_$index"
-                                onLevelClick(levelId)
+                                if (index <= currentLevelId) {
+                                    onLevelClick(levelId)
+                                }
                             }
                         )
                     }
@@ -856,7 +862,6 @@ fun LevelsContentPreview() {
         )
     }
 }
-
 
 
 @Preview

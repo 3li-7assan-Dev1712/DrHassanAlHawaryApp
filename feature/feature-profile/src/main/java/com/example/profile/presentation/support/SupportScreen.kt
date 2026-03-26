@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,6 +61,7 @@ fun SupportScreen(
     viewModel: SupportViewModel = hiltViewModel()
 ) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("الدعم والتواصل", fontWeight = FontWeight.Bold) },
@@ -66,8 +69,9 @@ fun SupportScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
-                }
+                }, windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
+
         }
     ) { padding ->
         Column(

@@ -78,7 +78,8 @@ class StudentFirestoreSource @Inject constructor(
                     photoUrl = document.getString("photoUrl") ?: "",
                     isChannelMember = document.getBoolean("isChannelMember") ?: false,
                     membershipState = document.getString("membershipState") ?: "",
-                    isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
+                    isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false,
+                    currentLevelId = document.getString("currentLevelId") ?: "1"
                 )
             }
         } catch (e: Exception) {
@@ -561,6 +562,17 @@ class StudentFirestoreSource @Inject constructor(
                 }
             }
         awaitClose { listener.remove() }
+    }
+
+    suspend fun updateStudentLevelByUid(uid: String, nextLevelId: String) {
+        try {
+            Log.d(TAG, "updateStudentLevelByUid: update student: $uid to $nextLevelId")
+            studentsCollection.document(uid)
+                .update("currentLevelId", nextLevelId).await()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating student level for uid: $uid", e)
+            throw e
+        }
     }
 
 }

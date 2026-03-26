@@ -12,7 +12,9 @@ fun QuizDto.toDomain(): Quiz {
         id = id,
         title = title,
         questions = questions.map { it.toDomain() },
-        createdAt = createdAt
+        createdAt = createdAt,
+        type = type,
+        targetLevelId = targetLevelId
     )
 }
 
@@ -26,6 +28,6 @@ fun QuestionDto.toDomain(): Question {
         },
         options = options,
         correctAnswerIndex = correctAnswerIndex,
-        correctBooleanAnswer = correctBooleanAnswer
+        correctBooleanAnswer = correctBooleanAnswer,
     )
 }

@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.components.shimmer
 import com.example.feature.video.domain.model.Video
 
@@ -49,17 +49,31 @@ fun VideoCard(
                 .height(200.dp)
                 .clip(RoundedCornerShape(12.dp))
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = thumbnailUrl,
                 contentDescription = "Video Thumbnail",
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .shimmer(),
+                    .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
-
-                )
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .shimmer(cornerRadius = 12.dp)
+                    )
+                },
+                error = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .shimmer(cornerRadius = 12.dp)
+                    )
+                }
+            )
 
             // Play Icon in the center
             Icon(

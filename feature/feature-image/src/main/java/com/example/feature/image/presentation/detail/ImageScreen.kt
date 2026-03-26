@@ -3,6 +3,7 @@ package com.example.feature.image.presentation.detail
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,12 +25,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import com.example.core.ui.R
+import coil.compose.SubcomposeAsyncImage
+import com.example.core.ui.components.shimmer
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -58,7 +58,8 @@ fun ImageScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
         }
     ) { paddingValues ->
@@ -97,14 +98,28 @@ fun ImageScreen(
                         ) { pageIndex ->
                             // Use the actual image URL from the `images` list
                             val imageUrl = images[pageIndex].imageUrl
-                            AsyncImage(
+                            SubcomposeAsyncImage(
+                                modifier = Modifier.fillMaxSize(),
                                 model = imageUrl,
+                                loading = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .shimmer()
+                                    )
+                                },
+                                error = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .shimmer()
+                                    )
+                                },
                                 contentDescription = "Image ${pageIndex + 1}",
                                 contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxSize(),
-                                placeholder = painterResource(R.drawable.ic_launcher_background),
-                                error = painterResource(R.drawable.cv_icon)
-                            )
+
+
+                                )
                         }
                         // Pager position indicator text
                         if (pagerState.pageCount > 0) {

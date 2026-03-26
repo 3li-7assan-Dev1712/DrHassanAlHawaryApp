@@ -286,4 +286,14 @@ class StudyRepositoryImpl @Inject constructor(
             list.map { it.toDomain() }
         }
     }
+
+    override suspend fun updateStudentLevel(uid: String, nextLevelId: String): Result<Unit> {
+        return try {
+            studentFirestoreSource.updateStudentLevelByUid(uid, nextLevelId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.d(TAG, "updateStudentLevel: error here ${e.message}")
+            Result.failure(e)
+        }
+    }
 }

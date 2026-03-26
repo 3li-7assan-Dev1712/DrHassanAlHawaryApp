@@ -327,19 +327,16 @@ fun DrawScope.drawCoinPolished(
     val r = radius * scale
 
     val base = when {
-        isCurrent -> Color(0xFFFFD700) // Golden Yellow for current node
         isLocked -> outline.copy(alpha = 0.55f)
         else -> primary
     }
     val rim = when {
-        isCurrent -> Color(0xFFFFD700).copy(alpha = .9f)
         isLocked -> outline.copy(alpha = 0.60f)
         else -> base.copy(alpha = 0.90f)
     }
 
     val face = when {
 
-        isCurrent -> Color(0xFFFFD700)
         isLocked -> outline.copy(alpha = 0.45f)
         else ->
             base.copy(alpha = 0.78f)
