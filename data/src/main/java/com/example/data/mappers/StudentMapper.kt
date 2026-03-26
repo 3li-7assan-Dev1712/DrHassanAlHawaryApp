@@ -10,6 +10,7 @@ fun StudentEntity.toDomain(): Student = Student(
     username = username,
     photoUrl = photoUrl,
     isCourseMember = isChannelMember,
+    currentLevelId = currentLevelId,
     membershipState = membershipState,
     isConnectedToTelegram = isConnectedToTelegram
 )
@@ -20,6 +21,7 @@ fun StudentDto.toEntity(): StudentEntity = StudentEntity(
     username = username,
     photoUrl = photoUrl,
     isChannelMember = isChannelMember,
+    currentLevelId = currentLevelId,
     membershipState = membershipState,
     isConnectedToTelegram = isConnectedToTelegram
 )

@@ -1,5 +1,6 @@
 package com.example.hassanalhawary.ui.navigation
 
+import android.util.Log
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -38,8 +39,13 @@ fun BottomNavigationBar(
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         items.forEach { screen ->
-            val isSelected = currentRoute == screen.route
-
+            val isSelected =
+                currentRoute == screen.route || if (screen.route == "telegram_login") currentRoute == "telegram_login?data={data}&t={t}" else false
+            Log.d(
+                "BottomNavigationBar",
+                "BottomNavigationBar: isSelected = $isSelected && route = ${screen.route} current = $currentRoute"
+            )
+            "telegram_login"
             NavigationBarItem(
                 icon = {
                     Icon(

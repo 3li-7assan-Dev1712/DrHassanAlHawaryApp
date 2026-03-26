@@ -1,5 +1,6 @@
 package com.example.study.presentation.dashboard
 
+import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -150,9 +151,15 @@ fun StudentDashboardContent(
                             studentData.currentLevelId.substringAfter("_").toIntOrNull()
                                 ?: 1
 
+                        Log.d(
+                            "StudentDashboardContent",
+                            "StudentDashboardContent: current level id $currentLevelId string = ${
+                                studentData.currentLevelId
+                            }"
+                        )
                         LevelsJourneyMap(
                             levels = List(6) {
-                                LevelNode(index = it + 1, isUnlocked = it  < currentLevelId)
+                                LevelNode(index = it + 1, isUnlocked = it < currentLevelId)
                             },
                             isLoading = uiState.loadingLevels,
                             currentLevelIndex = currentLevelId,
@@ -365,6 +372,7 @@ fun StudentHeader(
     totalQuestions: Int? = null,
     userRank: Int? = null
 ) {
+    Log.d("StudentDashboardContent", "StudentHeader: userScore = $userScore total Questions = $totalQuestions")
     val shape = RoundedCornerShape(28.dp)
 
     val cardColor = MaterialTheme.colorScheme.surface

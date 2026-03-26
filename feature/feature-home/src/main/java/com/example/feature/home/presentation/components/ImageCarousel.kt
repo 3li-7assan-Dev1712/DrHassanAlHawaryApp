@@ -26,12 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.components.shimmer
-import com.example.feature.home.R
 import com.example.feature.home.domain.model.ImageFeed
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -105,6 +103,7 @@ fun ImageCarousel(
                             .clip(CircleShape)
                             .background(color)
                             .size(8.dp)
+
                     )
                 }
             }
@@ -129,12 +128,23 @@ fun CarouselItem(imageUrl: String) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // The shadow is on the Box now
     ) {
 
-        AsyncImage(
+        SubcomposeAsyncImage(
             model = imageUrl,
             contentDescription = "Carousel Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
-            error = painterResource(id = R.drawable.image_1)
+            loading = {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .shimmer(16.dp)
+                )
+            },
+            error = {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                        .shimmer(16.dp)
+                )
+            }
         )
 
     }

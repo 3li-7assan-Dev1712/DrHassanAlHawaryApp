@@ -46,7 +46,12 @@ class DashboardViewModel @Inject constructor(
                 syncLevelsUseCase()
                 getLevelsUseCase().collect { levels ->
                     if (levels.isNullOrEmpty()) {
-                        _uiState.update { it.copy(levelsErrorMessage = "No levels found", loadingLevels = false) }
+                        _uiState.update {
+                            it.copy(
+                                levelsErrorMessage = "No levels found",
+                                loadingLevels = false
+                            )
+                        }
                     } else {
                         _uiState.update { it.copy(levels = levels, loadingLevels = false) }
                     }
@@ -61,40 +66,54 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val messages = getMotivationalMessagesUseCase()
-                _uiState.update { it.copy(motivationalMessages = messages, loadingMotivationalMessages = false) }
+                _uiState.update {
+                    it.copy(
+                        motivationalMessages = messages,
+                        loadingMotivationalMessages = false
+                    )
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Messages error", e)
-                _uiState.update { it.copy(motivationalMessagesErrorMessage = e.message, loadingMotivationalMessages = false) }
+                _uiState.update {
+                    it.copy(
+                        motivationalMessagesErrorMessage = e.message,
+                        loadingMotivationalMessages = false
+                    )
+                }
             }
         }
 
         // Latest Quiz
         viewModelScope.launch {
-            try {
-                val quiz = getLatestQuizUseCase()
-                if (quiz != null) {
-                    _uiState.update { 
-                        it.copy(
-                            latestQuizId = quiz.id, 
-                            latestQuizType = quiz.type,
-                            latestQuizTotalQuestions = quiz.questions.size,
-                            hasNewQuiz = true 
-                        ) 
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Quiz error", e)
-            }
+            fetchLatestQuiz()
         }
 
         // Leaderboard and User Score (Real-time)
         observeLeaderboard()
     }
 
+    private suspend fun fetchLatestQuiz() {
+        try {
+            val quiz = getLatestQuizUseCase()
+            if (quiz != null) {
+                _uiState.update {
+                    it.copy(
+                        latestQuizId = quiz.id,
+                        latestQuizType = quiz.type,
+                        latestQuizTotalQuestions = quiz.questions.size,
+                        hasNewQuiz = true
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Quiz error", e)
+        }
+    }
+
     private fun observeLeaderboard() {
         viewModelScope.launch {
             _uiState.update { it.copy(loadingTopStudents = true) }
-            
+
             // Combine both flows to always have the latest user score when either the leaderboard 
             // or the student profile changes.
             combine(
@@ -104,19 +123,25 @@ class DashboardViewModel @Inject constructor(
                 val userEntry = if (student != null) {
                     leaderboard.find { it.telegramId == student.telegramId }
                 } else null
-                
+
                 Pair(leaderboard, userEntry?.score)
             }.catch { e ->
                 Log.e(TAG, "Leaderboard observation error", e)
-                _uiState.update { it.copy(loadingTopStudents = false, topStudentsErrorMessage = e.message) }
-            }.collectLatest { (leaderboard, score) ->
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
-                        topStudents = leaderboard, 
+                        loadingTopStudents = false,
+                        topStudentsErrorMessage = e.message
+                    )
+                }
+            }.collectLatest { (leaderboard, score) ->
+                _uiState.update {
+                    it.copy(
+                        topStudents = leaderboard,
                         loadingTopStudents = false,
                         userQuizScore = score
                     )
                 }
+                fetchLatestQuiz()
             }
         }
     }

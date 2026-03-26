@@ -10,8 +10,8 @@ import com.example.domain.module.Quiz
 import com.example.domain.module.QuizType
 import com.example.domain.use_cases.study.GetLatestQuizUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
-import com.example.domain.use_cases.study.PromoteStudentUseCase
 import com.example.domain.use_cases.study.SubmitLeaderboardEntryUseCase
+import com.example.domain.use_cases.study.SubmitQuizAndPromoteUseCase
 import com.example.study.domain.use_case.GetStudentAuthDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +38,7 @@ class AnswerQuizViewModel @Inject constructor(
     private val submitLeaderboardEntryUseCase: SubmitLeaderboardEntryUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
     private val getStudentAuthDataUseCase: GetStudentAuthDataUseCase,
-    private val promoteStudentUseCase: PromoteStudentUseCase,
+    private val submitQuizAndPromoteUseCase: SubmitQuizAndPromoteUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -107,11 +107,13 @@ class AnswerQuizViewModel @Inject constructor(
                 val uid = getStudentAuthDataUseCase()?.userId ?: ""
                 if (quiz.type == QuizType.FINAL_EXAM && quiz.targetLevelId != null) {
                     Log.d("AnswerQuizViewModel", "submitQuiz: should update 1")
-                    val totalQuestions = quiz.questions.size
-                    if (score > totalQuestions / 2) {
-                        Log.d("AnswerQuizViewModel", "submitQuiz: should update 2")
-                        promoteStudentUseCase(uid, quiz.targetLevelId!!)
+                    val answersList = quiz.questions.map { question ->
+                        state.userAnswers[question.id] ?: when (question.type) {
+                            QuestionType.MCQ -> 0
+                            QuestionType.TF -> false
+                        }
                     }
+                    submitQuizAndPromoteUseCase(answersList)
                 }
 
                 val student = getStudentDataUseCase().first()

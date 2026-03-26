@@ -287,12 +287,25 @@ class StudyRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateStudentLevel(uid: String, nextLevelId: String): Result<Unit> {
+    override suspend fun submitQuizAndPromote(answers: List<Any>): Result<Unit> {
         return try {
-            studentFirestoreSource.updateStudentLevelByUid(uid, nextLevelId)
+            // 1. Call cloud function
+            val newLevelId = studentFirestoreSource.submitQuizAndPromote(answers)
+
+            // 2. Get current student from Room
+            val currentStudent = studentDao.getCurrentStudentData().first()
+
+            if (currentStudent != null) {
+                // 3. Update Room (LOCAL STATE ✅)
+                val updatedStudent = currentStudent.copy(
+                    currentLevelId = newLevelId
+                )
+                studentDao.storeStudent(updatedStudent)
+            }
+
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.d(TAG, "updateStudentLevel: error here ${e.message}")
+            Log.e(TAG, "submitQuizAndPromote failed", e)
             Result.failure(e)
         }
     }

@@ -564,13 +564,31 @@ class StudentFirestoreSource @Inject constructor(
         awaitClose { listener.remove() }
     }
 
-    suspend fun updateStudentLevelByUid(uid: String, nextLevelId: String) {
-        try {
-            Log.d(TAG, "updateStudentLevelByUid: update student: $uid to $nextLevelId")
-            studentsCollection.document(uid)
-                .update("currentLevelId", nextLevelId).await()
+    suspend fun submitQuizAndPromote(answers: List<Any>): String {
+        return try {
+            val data = hashMapOf(
+                "answers" to answers
+            )
+
+            val result = functions
+                .getHttpsCallable("submitWeeklyQuizAndPromote")
+                .call(data)
+                .await()
+
+            val response = result.data as Map<*, *>
+
+            val success = response["success"] as Boolean
+            val passed = response["passed"] as Boolean
+
+            if (!success || !passed) {
+                throw Exception("Quiz not passed")
+            }
+
+            val newLevelId = response["newLevelId"] as String
+            newLevelId
+
         } catch (e: Exception) {
-            Log.e(TAG, "Error updating student level for uid: $uid", e)
+            Log.e("FirestoreSource", "submitQuizAndPromote error", e)
             throw e
         }
     }
