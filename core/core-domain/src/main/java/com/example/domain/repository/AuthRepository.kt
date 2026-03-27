@@ -11,7 +11,7 @@ interface AuthRepository {
         password: String
     ): LoginResult
 
-  suspend fun registerNewUserWithEmailPassword(
+    suspend fun registerNewUserWithEmailPassword(
         userName: String,
         email: String,
         password: String
@@ -19,5 +19,12 @@ interface AuthRepository {
 
     suspend fun getLoggedInUser(): LoginResult?
 
+    suspend fun sendEmailVerification(): Result<Unit>
+
+    suspend fun isEmailVerified(): Boolean
+
+    suspend fun reloadUser(): Result<Unit>
+
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit>
 
 }

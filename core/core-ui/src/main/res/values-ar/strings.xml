@@ -118,4 +118,9 @@
     <string name="at_least_6_digits">على الأقل 6 أحرف</string>
     <string name="containt_number">"يحتوي على رقم "</string>
     <string name="containt_capital_leter">يحتوي على حرف كبير</string>
+    <string name="email_not_verified">الرجاء تأكيد البريد الإلكتروني الخاص بك قبل تسجيل الدخول</string>
+    <string name="email_verification_msg">تم إرسال رابط تأكيد على الإيميل الخاص بكم الرجاء استعماله لتأكيد الحساب</string>
+    <string name="forgot_password">نسيت كلمة المرور؟</string>
+    <string name="enter_valid_email">الرجاء ادخال بريد الكتروني صالح لإعادة ضبط كلمة المرور</string>
+    <string name="password_reset_email_sent">"تم أرسال بريد إلكتروني لإعادة ضبط كلمة المرور الخاصة بكم "</string>
 </resources>

@@ -1,13 +1,17 @@
 package com.example.feature.auth.presentation
 
+import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.ui.R
 import com.example.domain.module.LoginResult
+import com.example.domain.repository.AuthRepository
 import com.example.domain.use_cases.LoginWithEmailAndPasswordUseCase
 import com.example.domain.use_cases.LoginWithGoogleUseCase
 import com.example.domain.use_cases.RegisterNewUserWithEmailPasswordUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -19,7 +23,9 @@ class AuthViewModel
 @Inject constructor(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val loginWithEmailAndPasswordUseCase: LoginWithEmailAndPasswordUseCase,
-    private val registerNewUserWithEmailPasswordUseCase: RegisterNewUserWithEmailPasswordUseCase
+    private val registerNewUserWithEmailPasswordUseCase: RegisterNewUserWithEmailPasswordUseCase,
+    private val authRepository: AuthRepository,
+    @ApplicationContext val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthScreenState())
@@ -51,7 +57,16 @@ class AuthViewModel
                     _state.value.enteredEmail.trim(),
                     _state.value.enteredPassword
                 )
-                handleResult(result)
+                if (result.data != null) {
+                    authRepository.reloadUser()
+                    if (authRepository.isEmailVerified()) {
+                        handleResult(result)
+                    } else {
+                        handleError(context.getString(R.string.email_not_verified))
+                    }
+                } else {
+                    handleResult(result)
+                }
             } catch (e: Exception) {
                 handleError(e.message)
             }
@@ -70,10 +85,45 @@ class AuthViewModel
                     _state.value.enteredEmail.trim(),
                     _state.value.enteredPassword
                 )
-                handleResult(result)
+                if (result.data != null) {
+                    authRepository.sendEmailVerification()
+                    _state.update {
+                        it.copy(
+                            isSignInSuccessful = false,
+                            showSignInProgressBar = false,
+                            errorMessage = context.getString(R.string.email_verification_msg)
+                        )
+                    }
+                } else {
+                    handleResult(result)
+                }
             } catch (e: Exception) {
                 handleError(e.message)
             }
+        }
+    }
+
+    fun sendPasswordResetEmail() {
+        val email = _state.value.enteredEmail.trim()
+        if (email.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            _state.update { it.copy(enterValidEmailMsg = context.getString(R.string.enter_valid_email)) }
+            return
+        }
+
+        viewModelScope.launch {
+            showLoading()
+            authRepository.sendPasswordResetEmail(email)
+                .onSuccess {
+                    _state.update {
+                        it.copy(
+                            showSignInProgressBar = false,
+                            errorMessage = context.getString(R.string.password_reset_email_sent)
+                        )
+                    }
+                }
+                .onFailure { e ->
+                    handleError(e.message)
+                }
         }
     }
 
@@ -133,7 +183,6 @@ class AuthViewModel
             it.copy(userName = userName)
         }
     }
-
 
 
     data class PasswordValidation(
