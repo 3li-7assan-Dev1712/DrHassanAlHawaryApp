@@ -114,6 +114,9 @@
     <string name="levels">المراحـــل</string>
     <string name="study_zone_description">اكتب بياناتك للدخول إلى دروس المعهد</string>
     <string name="search_illustration_description">اكتب كلمة للعثور على الدرس أو الخطبة</string>
+    <string name="at_least_6_digits">على الأقل 6 أحرف</string>
+    <string name="containt_number">"يحتوي على رقم "</string>
+    <string name="containt_capital_leter">يحتوي على حرف كبير</string>
 
 
 </resources>

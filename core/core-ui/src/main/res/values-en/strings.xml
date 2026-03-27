@@ -115,5 +115,8 @@
     <string name="benefit_fast_login">تسجيل دخول سريع (بدون كلمات مرور)</string>
     <string name="button_connect_telegram">الاتصال بتيليجرام</string>
     <string name="telegram_privacy_footnote">نحن نستخدم تيليجرام فقط للتحقق من عضويتك وإرسال إشعارات الدورة.</string>
+    <string name="at_least_6_digits">على الأقل 6 أحرف</string>
+    <string name="containt_number">"يحتوي على رقم "</string>
+    <string name="containt_capital_leter">يحتوي على حرف كبير</string>
 
 </resources>

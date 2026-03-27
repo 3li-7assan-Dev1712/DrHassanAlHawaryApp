@@ -1,6 +1,6 @@
 package com.example.feature.auth.presentation
 
-import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.LoginResult
@@ -21,150 +21,173 @@ class AuthViewModel
     private val loginWithEmailAndPasswordUseCase: LoginWithEmailAndPasswordUseCase,
     private val registerNewUserWithEmailPasswordUseCase: RegisterNewUserWithEmailPasswordUseCase
 ) : ViewModel() {
-    private val _state = MutableStateFlow(AuthScreenState())
 
-    val TAG = "AuthViewModel"
+    private val _state = MutableStateFlow(AuthScreenState())
     val state = _state.asStateFlow()
 
+
     fun loginWithGoogle() {
+        if (_state.value.showSignInProgressBar) return
 
         viewModelScope.launch {
-            // show progress
-            _state.update {
-                it.copy(
-                    showSignInProgressBar = true
-                )
-            }
+            showLoading()
             try {
-                val loginResult = loginWithGoogleUseCase()
-                onSignInResult(loginResult)
+                val result = loginWithGoogleUseCase()
+                handleResult(result)
             } catch (e: Exception) {
-                Log.d(TAG, "loginWithGoogle: ${e.message}")
-                e.printStackTrace()
-                _state.update {
-                    it.copy(
-                        errorMessage = e.message,
-                        showSignInProgressBar = false
-                    )
-                }
+                handleError(e.message)
             }
         }
     }
 
-    fun loginWithEmailPassword(email: String, password: String) {
+    fun loginWithEmailPassword() {
+        if (!validateInputs()) return
+        if (_state.value.showSignInProgressBar) return
 
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    showSignInProgressBar = true
+            showLoading()
+            try {
+                val result = loginWithEmailAndPasswordUseCase(
+                    _state.value.enteredEmail.trim(),
+                    _state.value.enteredPassword
                 )
+                handleResult(result)
+            } catch (e: Exception) {
+                handleError(e.message)
             }
-            val loginResult = loginWithEmailAndPasswordUseCase(email, password)
-            onSignInResult(loginResult)
         }
-
     }
 
-    fun registerNewUserWithEmailPassword(userName: String, email: String, password: String) {
+    fun registerNewUser() {
+        if (!validateInputs(isRegister = true)) return
+        if (_state.value.showSignInProgressBar) return
+
         viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    showSignInProgressBar = true
+            showLoading()
+            try {
+                val result = registerNewUserWithEmailPasswordUseCase(
+                    _state.value.userName.trim(),
+                    _state.value.enteredEmail.trim(),
+                    _state.value.enteredPassword
                 )
+                handleResult(result)
+            } catch (e: Exception) {
+                handleError(e.message)
             }
-            val loginResult = registerNewUserWithEmailPasswordUseCase(userName, email, password)
-            onSignInResult(loginResult)
         }
     }
 
-    fun onSignInResult(loginResult: LoginResult) {
+
+    private fun handleResult(result: LoginResult) {
         _state.update {
             it.copy(
-                isSignInSuccessful = loginResult.data != null,
-                errorMessage = loginResult.errorMessage,
+                isSignInSuccessful = result.data != null,
+                errorMessage = result.errorMessage,
+                showSignInProgressBar = false,
+                enterValidEmailMsg = "",
+                enterValidPasswordMsg = ""
+            )
+        }
+    }
+
+    private fun handleError(message: String?) {
+        _state.update {
+            it.copy(
+                errorMessage = message ?: "Something went wrong",
                 showSignInProgressBar = false
             )
         }
     }
 
-    fun resetState() {
+    private fun showLoading() {
         _state.update {
-            AuthScreenState()
+            it.copy(showSignInProgressBar = true)
         }
     }
 
-    fun userClickSignInBtn() {
-        if (_state.value.enteredEmail.isBlank()) {
-            _state.update {
-                it.copy(
-                    enterValidEmailMsg =
-                        "Please enter a vaild email"
-                )
-            }
-        } else if (_state.value.enteredPassword.isBlank()) {
-            _state.update {
-                it.copy(
-                    enterValidPasswordMsg =
-                        "Please enter a valid password"
-                )
-            }
-        } else {
-            // show progress bar indicator
-            _state.update {
-                it.copy(
-                    showSignInProgressBar = true
-                )
-            }
-        }
+    fun resetState() {
+        _state.update { AuthScreenState() }
     }
+
 
     fun emailChanged(email: String) {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(enteredEmail = email)
-            }
+        _state.update {
+            it.copy(
+                enteredEmail = email,
+                enterValidEmailMsg = ""
+            )
         }
-
     }
 
     fun passwordChanged(password: String) {
-
-        viewModelScope.launch {
-            _state.update {
-                it.copy(enteredPassword = password)
-            }
+        _state.update {
+            it.copy(
+                enteredPassword = password,
+                enterValidPasswordMsg = ""
+            )
         }
     }
 
     fun userNameChanged(userName: String) {
-
-        viewModelScope.launch {
-            _state.update {
-                it.copy(userName = userName)
-            }
+        _state.update {
+            it.copy(userName = userName)
         }
     }
 
-    fun showProgressBar() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    showSignInProgressBar = true
-                )
-            }
-        }
 
+
+    data class PasswordValidation(
+        val hasMinLength: Boolean = false,
+        val hasNumber: Boolean = false,
+        val hasUpperCase: Boolean = false
+    )
+
+    fun getPasswordValidation(password: String): PasswordValidation {
+        return PasswordValidation(
+            hasMinLength = password.length >= 6,
+            hasNumber = password.any { it.isDigit() },
+            hasUpperCase = password.any { it.isUpperCase() }
+        )
     }
 
-    fun hideProgressBar() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    showSignInProgressBar = false
-                )
-            }
+
+    private fun validateInputs(isRegister: Boolean = false): Boolean {
+        val email = _state.value.enteredEmail.trim()
+        val password = _state.value.enteredPassword
+        val userName = _state.value.userName.trim()
+
+        val passwordValidation = getPasswordValidation(password)
+
+        var emailError = ""
+        var passwordError = ""
+        var generalError: String? = null
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailError = "Enter a valid email"
         }
 
+        if (!passwordValidation.hasMinLength ||
+            !passwordValidation.hasNumber ||
+            !passwordValidation.hasUpperCase
+        ) {
+            passwordError = "Password is too weak"
+        }
+
+        if (isRegister && userName.isBlank()) {
+            generalError = "Enter your name"
+        }
+
+        _state.update {
+            it.copy(
+                enterValidEmailMsg = emailError,
+                enterValidPasswordMsg = passwordError,
+                errorMessage = generalError
+            )
+        }
+
+        return emailError.isEmpty() &&
+                passwordError.isEmpty() &&
+                generalError == null
     }
 
 

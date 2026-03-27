@@ -3,11 +3,14 @@ package com.example.feature.auth.presentation.components
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.core.ui.R
 import com.example.core.ui.theme.CairoTypography
 
@@ -19,7 +22,7 @@ fun WelcomeScreen(
 
 
     Column(
-        verticalArrangement = Arrangement.SpaceEvenly,
+        verticalArrangement = Arrangement.Top,
         modifier = modifier
     ) {
         Text(
@@ -27,6 +30,7 @@ fun WelcomeScreen(
             style = CairoTypography.headlineLarge
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
 
 
         Text(

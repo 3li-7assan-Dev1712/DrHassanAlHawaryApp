@@ -508,19 +508,19 @@ class MainActivity : ComponentActivity() {
                         }),
 
 
-                ) {
-                val videoUrl = it.arguments?.getString("videoUrl")
-                val videoTitle = it.arguments?.getString("videoTitle")
-                if (videoUrl != null) {
-                    VideoPlayerScreen(
-                        videoUrl = videoUrl, onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        videoTitle = videoTitle
-                    )
-                }
+                    ) {
+                    val videoUrl = it.arguments?.getString("videoUrl")
+                    val videoTitle = it.arguments?.getString("videoTitle")
+                    if (videoUrl != null) {
+                        VideoPlayerScreen(
+                            videoUrl = videoUrl, onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            videoTitle = videoTitle
+                        )
+                    }
 
-            }
+                }
                 composable(Routes.KHOTAB_SCREEN) {
 
                 }
@@ -609,30 +609,39 @@ class MainActivity : ComponentActivity() {
     fun AuthNavHost(
         onLoginSuccess: () -> Unit
     ) {
+
         val navController = rememberNavController()
-        NavHost(
-            navController = navController, startDestination = "login_screen"
-        ) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+
+            ) { innerPadding ->
+            NavHost(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController, startDestination = "login_screen"
+            ) {
 
 
-            composable(route = "login_screen") {
-                LoginScreen(
+                composable(route = "login_screen") {
+                    LoginScreen(
 
-                    onRegisterClick = {
-                        navController.navigate("register_screen")
-                        navController.clearBackStack("login_screen")
-                    }, onSuccessfulLogin = {
+                        onRegisterClick = {
+                            navController.navigate("register_screen")
+                            navController.clearBackStack("login_screen")
+                        }, onSuccessfulLogin = {
+                            onLoginSuccess()
+                        })
+                }
+                composable("register_screen") {
+                    RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
+                        navController.popBackStack()
+                    }, onSuccessfulRegister = {
                         onLoginSuccess()
                     })
-            }
-            composable("register_screen") {
-                RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
-                    navController.popBackStack()
-                }, onSuccessfulRegister = {
-                    onLoginSuccess()
-                })
+                }
             }
         }
     }
+
 
 }

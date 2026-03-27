@@ -1,7 +1,6 @@
 package com.example.study.presentation.quiz
 
 import android.util.Log
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.LeaderBoard
@@ -12,7 +11,6 @@ import com.example.domain.use_cases.study.GetLatestQuizUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.domain.use_cases.study.SubmitLeaderboardEntryUseCase
 import com.example.domain.use_cases.study.SubmitQuizAndPromoteUseCase
-import com.example.study.domain.use_case.GetStudentAuthDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,9 +35,7 @@ class AnswerQuizViewModel @Inject constructor(
     private val getLatestQuizUseCase: GetLatestQuizUseCase,
     private val submitLeaderboardEntryUseCase: SubmitLeaderboardEntryUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
-    private val getStudentAuthDataUseCase: GetStudentAuthDataUseCase,
     private val submitQuizAndPromoteUseCase: SubmitQuizAndPromoteUseCase,
-    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AnswerQuizUiState())
@@ -104,7 +100,6 @@ class AnswerQuizViewModel @Inject constructor(
 
                 // Promotion logic for Final Exam
                 Log.d("AnswerQuizViewModel", "submitQuiz: target id: ${quiz.targetLevelId}")
-                val uid = getStudentAuthDataUseCase()?.userId ?: ""
                 if (quiz.type == QuizType.FINAL_EXAM && quiz.targetLevelId != null) {
                     Log.d("AnswerQuizViewModel", "submitQuiz: should update 1")
                     val answersList = quiz.questions.map { question ->
