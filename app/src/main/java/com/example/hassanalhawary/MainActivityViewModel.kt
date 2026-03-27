@@ -50,7 +50,6 @@ class MainActivityViewModel @Inject constructor(
     private val _appConfig = MutableStateFlow<AppConfig?>(null)
     val appConfig = _appConfig.asStateFlow()
 
-    // ✅ 1) onboarding starts as null (unknown), then becomes true/false
     val onboardingCompleted = observeOnboardingCompletedUseCase()
         .map<Boolean, Boolean?> { it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

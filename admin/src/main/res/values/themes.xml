@@ -2,4 +2,19 @@
 <resources>
 
     <style name="Theme.HassanAlHawary" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.HassanAlHawary.Splash" parent="Theme.SplashScreen">
+
+
+        <!-- App icon -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+
+        <!-- Optional icon background (nice for adaptive icons) -->
+        <item name="windowSplashScreenIconBackgroundColor">@color/ic_launcher_background</item>
+
+        <item name="postSplashScreenTheme">@style/Theme.HassanAlHawary</item>
+
+    </style>
+
+
 </resources>

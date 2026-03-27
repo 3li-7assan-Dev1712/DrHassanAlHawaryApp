@@ -67,6 +67,7 @@ import com.example.profile.presentation.components.ProfileRoute
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    isAdmin: Boolean = false,
     onNavigate: (ProfileRoute) -> Unit,
     onLogout: () -> Unit,
     isDarkTheme: Boolean,
@@ -186,70 +187,72 @@ fun ProfileScreen(
                 Spacer(Modifier.height(18.dp))
             }
 
-            item {
-                SectionCard(title = "السمة") {
-                    ThemeSwitcher(isDarkTheme = isDarkTheme, onThemeChange = {
-                        onThemeChanged(it)
-                    })
-                }
-                Spacer(Modifier.height(12.dp))
-            }
-
-            item {
-                SectionCard(title = "التطبيق") {
-                    ProfileRow(
-                        icon = Icons.Default.Info,
-                        title = "عن التطبيق",
-                        subtitle = "الإصدار، المطور، المصادر",
-                        onClick = { onNavigate(ProfileRoute.About) }
-                    )
-                    ProfileRow(
-                        icon = Icons.Default.Share,
-                        title = "مشاركة التطبيق",
-                        subtitle = "أرسل رابط التطبيق لمن تحب",
-                        onClick = { onNavigate(ProfileRoute.Share) }
-                    )
-                    ProfileRow(
-                        icon = Icons.Default.Star,
-                        title = "تقييم التطبيق",
-                        subtitle = "ساعدنا بتقييمك على المتجر",
-                        onClick = { onNavigate(ProfileRoute.Rate) }
-                    )
+            if (!isAdmin) { // only show full polihsed screen for users not neccessary for admins
+                item {
+                    SectionCard(title = "السمة") {
+                        ThemeSwitcher(isDarkTheme = isDarkTheme, onThemeChange = {
+                            onThemeChanged(it)
+                        })
+                    }
+                    Spacer(Modifier.height(12.dp))
                 }
 
-                Spacer(Modifier.height(12.dp))
-            }
+                item {
+                    SectionCard(title = "التطبيق") {
+                        ProfileRow(
+                            icon = Icons.Default.Info,
+                            title = "عن التطبيق",
+                            subtitle = "الإصدار، المطور، المصادر",
+                            onClick = { onNavigate(ProfileRoute.About) }
+                        )
+                        ProfileRow(
+                            icon = Icons.Default.Share,
+                            title = "مشاركة التطبيق",
+                            subtitle = "أرسل رابط التطبيق لمن تحب",
+                            onClick = { onNavigate(ProfileRoute.Share) }
+                        )
+                        ProfileRow(
+                            icon = Icons.Default.Star,
+                            title = "تقييم التطبيق",
+                            subtitle = "ساعدنا بتقييمك على المتجر",
+                            onClick = { onNavigate(ProfileRoute.Rate) }
+                        )
+                    }
 
-
-            item {
-                SectionCard(title = "الدعم والسياسات") {
-                    ProfileRow(
-                        icon = Icons.Default.SupportAgent,
-                        title = "الدعم والتواصل",
-                        subtitle = "أسئلة، اقتراحات، مشاكل",
-                        onClick = { onNavigate(ProfileRoute.Support) }
-                    )
-                    ProfileRow(
-                        icon = Icons.Default.Policy,
-                        title = "سياسة الخصوصية",
-                        subtitle = "كيف نتعامل مع بياناتك",
-                        onClick = { onNavigate(ProfileRoute.Privacy) }
-                    )
-                    ProfileRow(
-                        icon = Icons.Default.Gavel,
-                        title = "الشروط والأحكام",
-                        subtitle = "بنود الاستخدام",
-                        onClick = { onNavigate(ProfileRoute.Terms) }
-                    )
-                    ProfileRow(
-                        icon = Icons.Default.Code,
-                        title = "التراخيص والمصادر المفتوحة",
-                        subtitle = "Open source licenses",
-                        onClick = { onNavigate(ProfileRoute.Licenses) }
-                    )
+                    Spacer(Modifier.height(12.dp))
                 }
 
-                Spacer(Modifier.height(18.dp))
+
+                item {
+                    SectionCard(title = "الدعم والسياسات") {
+                        ProfileRow(
+                            icon = Icons.Default.SupportAgent,
+                            title = "الدعم والتواصل",
+                            subtitle = "أسئلة، اقتراحات، مشاكل",
+                            onClick = { onNavigate(ProfileRoute.Support) }
+                        )
+                        ProfileRow(
+                            icon = Icons.Default.Policy,
+                            title = "سياسة الخصوصية",
+                            subtitle = "كيف نتعامل مع بياناتك",
+                            onClick = { onNavigate(ProfileRoute.Privacy) }
+                        )
+                        ProfileRow(
+                            icon = Icons.Default.Gavel,
+                            title = "الشروط والأحكام",
+                            subtitle = "بنود الاستخدام",
+                            onClick = { onNavigate(ProfileRoute.Terms) }
+                        )
+                        ProfileRow(
+                            icon = Icons.Default.Code,
+                            title = "التراخيص والمصادر المفتوحة",
+                            subtitle = "Open source licenses",
+                            onClick = { onNavigate(ProfileRoute.Licenses) }
+                        )
+                    }
+
+                    Spacer(Modifier.height(18.dp))
+                }
             }
 
             item {

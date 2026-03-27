@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -47,6 +49,7 @@ import com.example.admin.ui.upload_quiz.UploadQuizScreen
 import com.example.admin.ui.upload_video_screen.UploadVideoScreen
 import com.example.feature.auth.presentation.login.LoginScreen
 import com.example.feature.auth.presentation.register.RegisterScreen
+import com.example.profile.presentation.profile.ProfileScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -58,6 +61,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val splashScreen = installSplashScreen()
+
+
+        splashScreen.setKeepOnScreenCondition {
+            mainActivityViewModel.state.value.isLoading
+        }
+
         enableEdgeToEdge()
         setContent {
             HassanAlHawaryTheme {
@@ -72,6 +82,9 @@ class MainActivity : ComponentActivity() {
                     "articles_upload" -> "Upload Article"
                     "audios_upload" -> "Upload Audio"
                     "videos_upload" -> "Upload Video"
+                    "profile_screen" -> "Profile"
+                    "login_screen" -> "Login"
+                    "register_screen" -> "Register"
                     "images_upload" -> "Upload Images"
                     "telegram_login", "telegram_login?data={data}" -> "Institute Management"
                     "upload_quiz" -> "Upload Quiz"
@@ -116,7 +129,7 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = if (state.isAdminLoggedIn) "control_screen" else  "login_screen",
+                        startDestination = if (state.isAdminLoggedIn) "control_screen" else "login_screen",
                         modifier = Modifier.padding(innerPadding)
                     ) {
 
@@ -141,11 +154,6 @@ class MainActivity : ComponentActivity() {
                         }
 
 
-                        composable("control_screen") {
-                            ControlScreen {
-                                navController.navigate(it)
-                            }
-                        }
                         composable("control_screen") {
                             ControlScreen { route ->
                                 if (route == "telegram_login") {
@@ -202,6 +210,21 @@ class MainActivity : ComponentActivity() {
                                 onUploadMotivationalMessages = { navController.navigate("upload_motivational_messages") },
                                 onLevelClick = { levelName ->
                                     navController.navigate("playlists/$levelName")
+                                }
+                            )
+                        }
+                        composable("profile_screen") {
+                            ProfileScreen(
+                                isAdmin = true,
+                                onNavigate = { route ->
+
+                                },
+                                onThemeChanged = { isDarkTheme ->
+
+                                },
+                                isDarkTheme = isSystemInDarkTheme(),
+                                onLogout = {
+                                    mainActivityViewModel.logoutSuccess()
                                 }
                             )
                         }

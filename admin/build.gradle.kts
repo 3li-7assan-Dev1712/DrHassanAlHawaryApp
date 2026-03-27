@@ -70,6 +70,9 @@ dependencies {
 
 
 
+    // splash screen
+    implementation(libs.androidx.core.splashscreen)
+
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)

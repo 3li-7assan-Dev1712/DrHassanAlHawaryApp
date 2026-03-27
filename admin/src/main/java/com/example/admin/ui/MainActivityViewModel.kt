@@ -1,5 +1,6 @@
 package com.example.admin.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.GetUserIdTokenUseCase
@@ -24,7 +25,7 @@ class MainActivityViewModel @Inject constructor(
     private val getCurrentUserDataUseCase: GetUserDataUseCase,
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
-    private val deleteStudentDataUseCase: DeleteStudentDataUseCase
+    private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
 ) : ViewModel() {
 
     val TAG = "MainActivityViewModel"
@@ -58,6 +59,7 @@ class MainActivityViewModel @Inject constructor(
     fun checkUserAuthState() {
         viewModelScope.launch {
             val isLoggedIn = isUserLoggedInUseCase()
+            Log.d(TAG, "checkUserAuthState: isLoggedIn : $isLoggedIn")
             _state.update {
                 it.copy(
                     isAdminLoggedIn = isLoggedIn,
@@ -76,6 +78,7 @@ class MainActivityViewModel @Inject constructor(
             }
         }
     }
+
     fun loginSuccess() {
         viewModelScope.launch {
             _state.update { it.copy(isAdminLoggedIn = true) }

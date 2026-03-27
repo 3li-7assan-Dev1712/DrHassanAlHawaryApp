@@ -22,7 +22,6 @@ import androidx.compose.material.icons.automirrored.filled.Announcement
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Forum
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.AssistChip
@@ -42,12 +41,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
 import com.example.admin.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.R
 import com.example.domain.module.Student
 
 @Composable
@@ -56,7 +59,7 @@ fun InstituteMainScreen(
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onUploadMotivationalMessages: () -> Unit,
-    onLevelClick: (String) -> Unit
+    onLevelClick: (String) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -73,7 +76,7 @@ fun InstituteMainScreen(
                 onUploadQuiz = onUploadQuiz,
                 onUploadAnnouncement = onUploadAnnouncement,
                 onUploadMotivationalMessages = onUploadMotivationalMessages,
-                onLevelClick = onLevelClick
+                onLevelClick = onLevelClick,
             )
         }
 
@@ -91,7 +94,7 @@ fun AdminDashboard(
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onUploadMotivationalMessages: () -> Unit,
-    onLevelClick: (String) -> Unit
+    onLevelClick: (String) -> Unit,
 ) {
     val levels = (1..6).map { "level_$it" }
 
@@ -107,7 +110,7 @@ fun AdminDashboard(
                 name = student.name,
                 username = "@${student.username}",
                 photoUrl = student.photoUrl,
-                membershipState = student.membershipState
+                membershipState = student.membershipState,
             )
         }
 
@@ -179,7 +182,7 @@ fun TelegramProfileHeader(
     name: String,
     username: String,
     photoUrl: String,
-    membershipState: String
+    membershipState: String,
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -197,11 +200,13 @@ fun TelegramProfileHeader(
                 modifier = Modifier.size(64.dp)
             ) {
                 // In a real app, you'd use Coil or another image loader here
-                Icon(
-                    imageVector = Icons.Default.Person,
+                AsyncImage(
+                    model = photoUrl,
+                    contentScale = ContentScale.Crop,
                     contentDescription = "Profile Photo",
                     modifier = Modifier.padding(12.dp),
-                    tint = MaterialTheme.colorScheme.primary
+
+                    placeholder = painterResource(R.drawable.student_icon)
                 )
             }
 

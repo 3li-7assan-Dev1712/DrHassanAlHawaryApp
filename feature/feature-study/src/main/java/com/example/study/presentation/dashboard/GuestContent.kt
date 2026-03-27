@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -62,114 +63,123 @@ fun GuestContent(
 
     val telegramBlue = Color(0xFF2AABEE)
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(12.dp))
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth()
+    ) { contentPadding ->
 
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(contentPadding)
+                .padding(horizontal = 15.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Spacer(Modifier.height(12.dp))
+
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             ) {
-                Box(
+                Column(
                     modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(telegramBlue.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.telegram_img),
-                        contentDescription = "Telegram",
-                        modifier = Modifier.size(34.dp),
-                        tint = Color.Unspecified
-                    )
-                }
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .background(telegramBlue.copy(alpha = 0.12f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.telegram_img),
+                            contentDescription = "Telegram",
+                            modifier = Modifier.size(34.dp),
+                            tint = Color.Unspecified
+                        )
+                    }
 
-                Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(R.string.telegram_connect_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.telegram_connect_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(16.dp))
-
-                BenefitRow(stringResource(R.string.benefit_alerts))
-                Spacer(Modifier.height(8.dp))
-                BenefitRow(stringResource(R.string.benefit_sync))
-                Spacer(Modifier.height(8.dp))
-                BenefitRow(stringResource(R.string.benefit_fast_login))
-
-                Spacer(Modifier.height(18.dp))
-
-                Button(
-                    onClick = {
-                        val customTabsIntent = CustomTabsIntent.Builder().build()
-                        customTabsIntent.launchUrl(context, telegramLoginUrl.toUri())
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = telegramBlue,
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(vertical = 14.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.telegram_img),
-                        contentDescription = null,
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(10.dp))
                     Text(
-                        text = stringResource(R.string.button_connect_telegram),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        text = stringResource(R.string.telegram_connect_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
                     )
+
+                    Spacer(Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(R.string.telegram_connect_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(Modifier.height(16.dp))
+
+                    BenefitRow(stringResource(R.string.benefit_alerts))
+                    Spacer(Modifier.height(8.dp))
+                    BenefitRow(stringResource(R.string.benefit_sync))
+                    Spacer(Modifier.height(8.dp))
+                    BenefitRow(stringResource(R.string.benefit_fast_login))
+
+                    Spacer(Modifier.height(18.dp))
+
+                    Button(
+                        onClick = {
+                            val customTabsIntent = CustomTabsIntent.Builder().build()
+                            customTabsIntent.launchUrl(context, telegramLoginUrl.toUri())
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = telegramBlue,
+                            contentColor = Color.White
+                        ),
+                        contentPadding = PaddingValues(vertical = 14.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.telegram_img),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = stringResource(R.string.button_connect_telegram),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
+
+            Spacer(Modifier.height(14.dp))
+
+            Text(
+                text = stringResource(R.string.telegram_privacy_footnote),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
         }
-
-        Spacer(Modifier.height(14.dp))
-
-        Text(
-            text = stringResource(R.string.telegram_privacy_footnote),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
     }
+
 }
 
 @Composable
 private fun BenefitRow(text: String) {
+    val telegramBlue = Color(0xFF2AABEE)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -178,7 +188,7 @@ private fun BenefitRow(text: String) {
             modifier = Modifier
                 .size(8.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.9f))
+                .background(telegramBlue)
         )
         Spacer(Modifier.width(10.dp))
         Text(

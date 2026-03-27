@@ -123,4 +123,5 @@
     <string name="forgot_password">نسيت كلمة المرور؟</string>
     <string name="enter_valid_email">الرجاء ادخال بريد الكتروني صالح لإعادة ضبط كلمة المرور</string>
     <string name="password_reset_email_sent">"تم أرسال بريد إلكتروني لإعادة ضبط كلمة المرور الخاصة بكم "</string>
+    <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
 </resources>
