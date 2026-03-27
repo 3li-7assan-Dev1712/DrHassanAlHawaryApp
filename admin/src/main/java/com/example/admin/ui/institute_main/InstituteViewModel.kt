@@ -30,7 +30,7 @@ class InstituteViewModel @Inject constructor(
 
     val uiState: StateFlow<InstituteScreenUiState> = getStudentDataUseCase()
         .map { studentData ->
-            if (studentData != null) {
+            if (studentData != null && studentData.membershipState == "administrator" ||  studentData?.membershipState == "creator") {
                 InstituteScreenUiState.AdminDashboard(studentData)
             } else {
                 InstituteScreenUiState.Guest

@@ -202,9 +202,12 @@ fun TelegramProfileHeader(
                 // In a real app, you'd use Coil or another image loader here
                 AsyncImage(
                     model = photoUrl,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxSize(),
                     contentScale = ContentScale.Crop,
+
                     contentDescription = "Profile Photo",
-                    modifier = Modifier.padding(12.dp),
 
                     placeholder = painterResource(R.drawable.student_icon)
                 )

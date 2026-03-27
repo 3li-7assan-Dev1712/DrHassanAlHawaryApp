@@ -15,7 +15,7 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
 
     private val googleAuthUiClient: GoogleAuthUiClient,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
 )
 
     : AuthRepository {
@@ -149,6 +149,17 @@ class AuthRepositoryImpl @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    override suspend fun checkIfUserIsAdmin(email: String): Boolean {
+        return try {
+            // Force refresh the token to get the latest claims from the Cloud Function
+            val result = firebaseAuth.currentUser?.getIdToken(true)?.await()
+            val isAdmin = result?.claims?.get("admin") as? Boolean
+            isAdmin == true
+        } catch (e: Exception) {
+            false
         }
     }
 }

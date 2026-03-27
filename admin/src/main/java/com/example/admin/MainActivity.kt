@@ -6,10 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,7 +26,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -47,6 +55,7 @@ import com.example.admin.ui.upload_images_screen.UploadImagesScreen
 import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
 import com.example.admin.ui.upload_quiz.UploadQuizScreen
 import com.example.admin.ui.upload_video_screen.UploadVideoScreen
+import com.example.core.ui.animation.LoadingScreen
 import com.example.feature.auth.presentation.login.LoginScreen
 import com.example.feature.auth.presentation.register.RegisterScreen
 import com.example.profile.presentation.profile.ProfileScreen
@@ -86,6 +95,7 @@ class MainActivity : ComponentActivity() {
                     "login_screen" -> "Login"
                     "register_screen" -> "Register"
                     "images_upload" -> "Upload Images"
+                    "not_allowed" -> "Access Denied"
                     "telegram_login", "telegram_login?data={data}" -> "Institute Management"
                     "upload_quiz" -> "Upload Quiz"
                     "upload_announcement" -> "Upload Announcement"
@@ -115,7 +125,7 @@ class MainActivity : ComponentActivity() {
                                 navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                             ),
                             navigationIcon = {
-                                if (currentRoute != "control_screen" && currentRoute != null) {
+                                if (currentRoute != "control_screen" && currentRoute != "not_allowed" && currentRoute != null) {
                                     IconButton(onClick = { navController.popBackStack() }) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -129,10 +139,23 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = if (state.isAdminLoggedIn) "control_screen" else "login_screen",
+                        startDestination =
+                            if (state.isLoading) {
+                                "loading_screen"
+                            } else {
+                                if (state.isAdminLoggedIn) {
+                                    if (state.isUserAdmin) "control_screen" else "not_allowed"
+                                } else "login_screen"
+                            },
                         modifier = Modifier.padding(innerPadding)
                     ) {
 
+
+                        composable("loading_screen") {
+                            LoadingScreen(
+
+                            )
+                        }
 
                         // auth screens
                         composable(route = "login_screen") {
@@ -150,6 +173,12 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                             }, onSuccessfulRegister = {
                                 mainActivityViewModel.loginSuccess()
+                            })
+                        }
+
+                        composable("not_allowed") {
+                            NotAllowedScreen(onLogout = {
+                                mainActivityViewModel.logoutSuccess()
                             })
                         }
 
@@ -316,31 +345,28 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun AuthNavHost(
-        onLoginSuccess: () -> Unit
-    ) {
-        val navController = rememberNavController()
-        NavHost(
-            navController = navController, startDestination = "login_screen"
+    fun NotAllowedScreen(onLogout: () -> Unit) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-
-
-            composable(route = "login_screen") {
-                LoginScreen(
-
-                    onRegisterClick = {
-                        navController.navigate("register_screen")
-                        navController.clearBackStack("login_screen")
-                    }, onSuccessfulLogin = {
-                        onLoginSuccess()
-                    })
-            }
-            composable("register_screen") {
-                RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
-                    navController.popBackStack()
-                }, onSuccessfulRegister = {
-                    onLoginSuccess()
-                })
+            Text(
+                text = "Access Denied",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "You do not have administrative privileges to access this panel. If you believe this is a mistake, please contact the system administrator.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(onClick = onLogout) {
+                Text("Logout")
             }
         }
     }

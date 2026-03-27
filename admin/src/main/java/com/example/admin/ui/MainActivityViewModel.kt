@@ -3,6 +3,7 @@ package com.example.admin.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.use_cases.CheckIfUserIsAdminUseCase
 import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.study.DeleteStudentDataUseCase
@@ -26,6 +27,7 @@ class MainActivityViewModel @Inject constructor(
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
     private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
+    private val checkIfUserIsAdminUseCase: CheckIfUserIsAdminUseCase
 ) : ViewModel() {
 
     val TAG = "MainActivityViewModel"
@@ -39,7 +41,6 @@ class MainActivityViewModel @Inject constructor(
         checkUserAuthState()
         checkTelegramConnectionState()
     }
-
 
     fun checkTelegramConnectionState() {
         viewModelScope.launch {
@@ -60,39 +61,68 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             val isLoggedIn = isUserLoggedInUseCase()
             Log.d(TAG, "checkUserAuthState: isLoggedIn : $isLoggedIn")
-            _state.update {
-                it.copy(
-                    isAdminLoggedIn = isLoggedIn,
-                    isLoading = false
-                )
-            }
+            
             if (isLoggedIn) {
+                val userData = getCurrentUserDataUseCase()
                 val idToken = getUserIdTokenUseCase()
+                val email = userData?.email ?: ""
+                val isAdmin = checkIfUserIsAdminUseCase(email)
+                
                 _state.update {
                     it.copy(
-                        currentUserDate = getCurrentUserDataUseCase(),
-                        idToken = idToken
+                        isAdminLoggedIn = true,
+                        isUserAdmin = isAdmin,
+                        currentUserDate = userData,
+                        idToken = idToken,
+                        isLoading = false
                     )
                 }
-
+            } else {
+                _state.update {
+                    it.copy(
+                        isAdminLoggedIn = false,
+                        isUserAdmin = false,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
 
     fun loginSuccess() {
         viewModelScope.launch {
-            _state.update { it.copy(isAdminLoggedIn = true) }
+            _state.update { it.copy(isLoading = true) }
             val idToken = getUserIdTokenUseCase()
-            _state.update { it.copy(idToken = idToken) }
-            val uid = getCurrentUserDataUseCase()?.userId
-            if (uid != null)
+            val userData = getCurrentUserDataUseCase()
+            val email = userData?.email ?: ""
+            val isAdmin = checkIfUserIsAdminUseCase(email)
+
+            _state.update { 
+                it.copy(
+                    isAdminLoggedIn = true,
+                    isUserAdmin = isAdmin,
+                    currentUserDate = userData,
+                    idToken = idToken,
+                    isLoading = false
+                ) 
+            }
+            
+            val uid = userData?.userId
+            if (uid != null && isAdmin)
                 storeStudentDataUseCase(uid)
         }
     }
 
     fun logoutSuccess() {
         viewModelScope.launch {
-            _state.update { it.copy(isAdminLoggedIn = false) }
+            _state.update { 
+                it.copy(
+                    isAdminLoggedIn = false,
+                    isUserAdmin = false,
+                    currentUserDate = null,
+                    idToken = null
+                ) 
+            }
             deleteStudentDataUseCase()
         }
     }
