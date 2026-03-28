@@ -25,12 +25,14 @@ import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -73,6 +75,7 @@ fun InstituteMainScreen(
         is InstituteScreenUiState.AdminDashboard -> {
             AdminDashboard(
                 student = state.studentData,
+                isRefreshing = state.isRefreshing,
                 onUploadQuiz = onUploadQuiz,
                 onUploadAnnouncement = onUploadAnnouncement,
                 onUploadMotivationalMessages = onUploadMotivationalMessages,
@@ -81,16 +84,24 @@ fun InstituteMainScreen(
         }
 
         is InstituteScreenUiState.Guest -> {
-            GuestScreen()
+            GuestScreen(
+                isRefreshing = state.isRefreshing,
+                onRefresh = viewModel::onRefreshData
+            )
         }
 
-        else -> {} // No-op
+        is InstituteScreenUiState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(text = state.message, color = MaterialTheme.colorScheme.error)
+            }
+        }
     }
 }
 
 @Composable
 fun AdminDashboard(
     student: Student,
+    isRefreshing: Boolean,
     onUploadQuiz: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onUploadMotivationalMessages: () -> Unit,
@@ -98,82 +109,105 @@ fun AdminDashboard(
 ) {
     val levels = (1..6).map { "level_$it" }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        contentPadding = PaddingValues(bottom = 16.dp)
-    ) {
-        item {
-            TelegramProfileHeader(
-                name = student.name,
-                username = "@${student.username}",
-                photoUrl = student.photoUrl,
-                membershipState = student.membershipState,
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (isRefreshing) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                UploadActionCard(
-                    title = "Upload Quiz",
-                    icon = Icons.Default.Quiz,
-                    onClick = onUploadQuiz,
-                    modifier = Modifier.weight(1f)
-                )
-                UploadActionCard(
-                    title = "Upload Announcement",
-                    icon = Icons.AutoMirrored.Default.Announcement,
-                    onClick = onUploadAnnouncement,
-                    modifier = Modifier.weight(1f)
+        
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            item {
+                TelegramProfileHeader(
+                    name = student.name,
+                    username = "@${student.username}",
+                    photoUrl = student.photoUrl,
+                    membershipState = student.membershipState,
                 )
             }
-        }
 
-        item {
-            UploadActionCard(
-                title = "Motivational Messages",
-                icon = Icons.Default.Forum,
-                onClick = onUploadMotivationalMessages,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    UploadActionCard(
+                        title = "Upload Quiz",
+                        icon = Icons.Default.Quiz,
+                        onClick = onUploadQuiz,
+                        modifier = Modifier.weight(1f)
+                    )
+                    UploadActionCard(
+                        title = "Upload Announcement",
+                        icon = Icons.AutoMirrored.Default.Announcement,
+                        onClick = onUploadAnnouncement,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
 
-        item {
-            Text(
-                text = "Institute Levels",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
-            )
-        }
+            item {
+                UploadActionCard(
+                    title = "Motivational Messages",
+                    icon = Icons.Default.Forum,
+                    onClick = onUploadMotivationalMessages,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-        items(levels) { level ->
-            LevelListItem(
-                levelName = level,
-                onClick = { onLevelClick(level) }
-            )
+            item {
+                Text(
+                    text = "Institute Levels",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
+                )
+            }
+
+            items(levels) { level ->
+                LevelListItem(
+                    levelName = level,
+                    onClick = { onLevelClick(level) }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun GuestScreen() {
-    Box(
+fun GuestScreen(
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit = {}
+) {
+    Column (
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        contentAlignment = Alignment.Center
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "You are not allowed to upload admin data.",
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (isRefreshing) {
+            CircularProgressIndicator()
+        } else {
+            Button(
+                onClick = {
+                    onRefresh()
+                }
+            ) {
+                Text("Refresh")
+            }
+        }
     }
 }
 
@@ -199,16 +233,13 @@ fun TelegramProfileHeader(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                 modifier = Modifier.size(64.dp)
             ) {
-                // In a real app, you'd use Coil or another image loader here
                 AsyncImage(
                     model = photoUrl,
                     modifier = Modifier
-                        .padding(12.dp)
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop,
-
                     contentDescription = "Profile Photo",
-
                     placeholder = painterResource(R.drawable.student_icon)
                 )
             }
@@ -330,7 +361,7 @@ private fun InstituteMainScreenPreview() {
                 membershipState = "admin",
                 isConnectedToTelegram = false
             )
-            AdminDashboard(student, {}, {}, {}, {})
+            AdminDashboard(student, false, {}, {}, {}, {})
         }
     }
 }
@@ -340,7 +371,7 @@ private fun InstituteMainScreenPreview() {
 private fun GuestScreenPreview() {
     HassanAlHawaryTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
-            GuestScreen()
+            GuestScreen(false)
         }
     }
 }

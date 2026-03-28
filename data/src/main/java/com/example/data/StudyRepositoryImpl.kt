@@ -69,9 +69,9 @@ class StudyRepositoryImpl @Inject constructor(
 
 
     override suspend fun saveStudentData(uid: String) {
-        Log.d(TAG, "saveStudentData: telegram id = $uid")
         val studentData = studentFirestoreSource.getStudentDataById(uid)?.toEntity()
         if (studentData != null) {
+            studentDao.deleteAll()
             studentDao.storeStudent(studentData)
         }
 

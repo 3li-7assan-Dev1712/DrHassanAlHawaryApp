@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,8 +72,8 @@ fun AddEditLessonScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {
-        Box(modifier = Modifier.padding(it)) {
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
             when (val state = uiState) {
                 is AddEditLessonUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -125,9 +124,6 @@ private fun AddEditLessonContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onSaveClick,
-                modifier = if (state.isSaving) Modifier.clickable(
-                    enabled = false,
-                    onClick = { onSaveClick() }) else Modifier
             ) {
                 if (state.isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
@@ -136,12 +132,12 @@ private fun AddEditLessonContent(
                 }
             }
         }
-    ) {
+    ) { padding ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(padding)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -152,7 +148,8 @@ private fun AddEditLessonContent(
                 label = { Text("Lesson Title") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                isError = state.error != null
+                isError = state.error != null,
+                enabled = !state.isSaving
             )
 
             OutlinedTextField(
@@ -162,7 +159,8 @@ private fun AddEditLessonContent(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                isError = state.error != null
+                isError = state.error != null,
+                enabled = !state.isSaving
             )
 
             if (state.error != null) {
@@ -180,7 +178,8 @@ private fun AddEditLessonContent(
                 selectedLocalUri = state.selectedPdfUri,
                 onSelect = { pdfPickerLauncher.launch("application/pdf") },
                 onClear = onClearPdf,
-                isEditing = state.lessonId != null
+                isEditing = state.lessonId != null,
+                enabled = !state.isSaving
             )
 
             FileControl(
@@ -190,7 +189,8 @@ private fun AddEditLessonContent(
                 selectedLocalUri = state.selectedAudioUri,
                 onSelect = { audioPickerLauncher.launch("audio/*") },
                 onClear = onClearAudio,
-                isEditing = state.lessonId != null
+                isEditing = state.lessonId != null,
+                enabled = !state.isSaving
             )
         }
     }
@@ -204,7 +204,8 @@ private fun FileControl(
     selectedLocalUri: Uri?,
     onSelect: () -> Unit,
     onClear: () -> Unit,
-    isEditing: Boolean
+    isEditing: Boolean,
+    enabled: Boolean
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -255,7 +256,7 @@ private fun FileControl(
                     }
                 }
 
-                if (hasLocalFile) {
+                if (hasLocalFile && enabled) {
                     IconButton(onClick = onClear) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear selection")
                     }
@@ -264,7 +265,7 @@ private fun FileControl(
         }
 
         Spacer(Modifier.height(8.dp))
-        Button(onClick = onSelect, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onSelect, modifier = Modifier.fillMaxWidth(), enabled = enabled) {
             val buttonText = when {
                 selectedLocalUri != null -> "Change File"
                 isEditing && remoteUrl != null -> "Replace File"

@@ -112,6 +112,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":feature:feature-splash-screen"))
     implementation(project(":feature:feature-auth"))
+    implementation(project(":feature:feature-study"))
     implementation(project(":feature:feature-profile"))
     implementation(project(":core:core-domain"))
     implementation(project(":core:core-ui"))

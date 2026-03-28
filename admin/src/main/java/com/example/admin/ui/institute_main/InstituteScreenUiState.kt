@@ -8,10 +8,8 @@ sealed interface InstituteScreenUiState {
 
     data class Error(val message: String): InstituteScreenUiState
 
-    data class AdminDashboard(val studentData: Student): InstituteScreenUiState
+    data class AdminDashboard(val studentData: Student, val isRefreshing: Boolean = false): InstituteScreenUiState
 
-    data object Guest: InstituteScreenUiState
-
-
+    data class Guest(val isRefreshing: Boolean = false): InstituteScreenUiState
 
 }
