@@ -38,11 +38,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 
 @Composable
@@ -111,11 +113,11 @@ private fun AddEditPlaylistContent(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = onSaveClick/* modifier = if(state.isSaving) Modifier.clickable(enabled = false) else Modifier*/) {
+            FloatingActionButton(onClick = onSaveClick) {
                 if (state.isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(Icons.Default.Save, contentDescription = "Save Playlist")
+                    Icon(Icons.Default.Save, contentDescription = stringResource(R.string.save_playlist))
                 }
             }
         }
@@ -130,7 +132,7 @@ private fun AddEditPlaylistContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // --- Image Selector --- //
-            Text("Playlist Cover Image", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.playlist_cover_image), style = MaterialTheme.typography.titleMedium)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -145,7 +147,7 @@ private fun AddEditPlaylistContent(
                     if (imageToShow != null) {
                         AsyncImage(
                             model = imageToShow,
-                            contentDescription = "Playlist Image",
+                            contentDescription = stringResource(R.string.playlist_image),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
@@ -153,12 +155,12 @@ private fun AddEditPlaylistContent(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = Icons.Default.AddAPhoto,
-                                contentDescription = "Add Photo",
+                                contentDescription = stringResource(R.string.add_photo),
                                 modifier = Modifier.size(40.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                "Click to select an image",
+                                stringResource(R.string.click_to_select_image),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -170,7 +172,7 @@ private fun AddEditPlaylistContent(
             OutlinedTextField(
                 value = state.title,
                 onValueChange = onTitleChange,
-                label = { Text("Playlist Title") },
+                label = { Text(stringResource(R.string.playlist_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = state.error != null
@@ -179,7 +181,7 @@ private fun AddEditPlaylistContent(
             OutlinedTextField(
                 value = state.order,
                 onValueChange = onOrderChange,
-                label = { Text("Order") },
+                label = { Text(stringResource(R.string.order)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 isError = state.error != null
@@ -188,7 +190,7 @@ private fun AddEditPlaylistContent(
                 OutlinedTextField(
                     value = state.levelId,
                     onValueChange = onLevelChange,
-                    label = { Text("Level ID") },
+                    label = { Text(stringResource(R.string.level_id)) },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     isError = state.error != null

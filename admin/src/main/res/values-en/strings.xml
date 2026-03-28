@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Admin - Dr. Hassan Al-Hawary</string>
+
+    <!-- Navigation & Titles -->
+    <string name="admin_control_panel">Admin Control Panel</string>
+    <string name="upload_article">Upload Article</string>
+    <string name="upload_audio">Upload Audio</string>
+    <string name="upload_video">Upload Video</string>
+    <string name="upload_images">Upload Images</string>
+    <string name="profile">Profile</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="access_denied">Access Denied</string>
+    <string name="institute_management">Institute Management</string>
+    <string name="upload_quiz">Upload Quiz</string>
+    <string name="upload_announcement">Upload Announcement</string>
+    <string name="upload_motivational_messages">Motivational Messages</string>
+    <string name="super_admin_panel">Super Admin Panel</string>
+    <string name="playlists">Playlists</string>
+    <string name="lessons">Lessons</string>
+    <string name="add_playlist">Add Playlist</string>
+    <string name="edit_playlist">Edit Playlist</string>
+    <string name="add_lesson">Add Lesson</string>
+    <string name="edit_lesson">Edit Lesson</string>
+
+    <!-- Super Admin Screen -->
+    <string name="admin_management">Admin Management</string>
+    <string name="current_admins">Current Admins</string>
+    <string name="add_admin">Add Admin</string>
+    <string name="remove_admin">Remove Admin</string>
+    <string name="add_new_admin_title">Add New Admin</string>
+    <string name="email_address">Email Address</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="admin_added_success">Admin added successfully</string>
+    <string name="admin_removed_success">Admin removed successfully</string>
+    <string name="super_admin_restricted_msg">This area is only accessible to super administrators. If you need access, please contact the main developer.</string>
+
+    <!-- Auth & Access Denied -->
+    <string name="logout">Logout</string>
+    <string name="not_allowed_msg">You do not have administrative privileges to access this panel. If you believe this is a mistake, please contact the system administrator.</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="password_reset_sent">Password reset email sent. Please check your inbox.</string>
+    <string name="email_verification_msg">Verification email sent. Please activate your account from your email.</string>
+    <string name="email_not_verified">Please verify your email before logging in.</string>
+
+    <!-- Institute Main -->
+    <string name="not_allowed_upload_msg">You are not allowed to upload admin data.</string>
+    <string name="refresh">Refresh</string>
+    <string name="institute_levels">Institute Levels</string>
+    <string name="loading">Loading...</string>
+
+    <!-- Common Actions -->
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="error_loading">Error loading data</string>
+    <string name="success_save">Successfully saved</string>
+
+    <!-- Auth Labels -->
+    <string name="enter_email">Enter email</string>
+    <string name="enter_password">Enter password</string>
+    <string name="enter_name">Enter name</string>
+
+    <!-- Control Screen -->
+    <string name="manage_selection_title">ماذا تود أن تدير؟</string>
+    <string name="institute">المعهد</string>
+    <string name="articles">المقالات</string>
+    <string name="audios">الصوتيات</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="images">الصور</string>
+    <string name="super_admin">المشرف العام</string>
+
+    <!-- Add/Edit Playlist & Lesson -->
+    <string name="playlist_cover_image">صورة غلاف قائمة التشغيل</string>
+    <string name="click_to_select_image">انقر لاختيار صورة</string>
+    <string name="playlist_title">عنوان قائمة التشغيل</string>
+    <string name="order">الترتيب</string>
+    <string name="level_id">معرف المستوى</string>
+    <string name="save_playlist">حفظ قائمة التشغيل</string>
+    <string name="add_photo">إضافة صورة</string>
+    <string name="playlist_image">صورة قائمة التشغيل</string>
+    <string name="lesson_title">عنوان الدرس</string>
+    <string name="pdf_document">ملف PDF</string>
+    <string name="audio_file">ملف صوتي</string>
+    <string name="new_selection">اختيار جديد:</string>
+    <string name="current_file">الملف الحالي:</string>
+    <string name="no_file_selected">لم يتم اختيار ملف</string>
+    <string name="change_file">تغيير الملف</string>
+    <string name="replace_file">استبدال الملف</string>
+    <string name="select_file">اختر ملف</string>
+    <string name="file_name_not_available">اسم الملف غير متوفر</string>
+    <string name="clear_selection">مسح الاختيار</string>
+    <string name="save_lesson">حفظ الدرس</string>
+
+
+
+
+
+
+
+
+</resources>

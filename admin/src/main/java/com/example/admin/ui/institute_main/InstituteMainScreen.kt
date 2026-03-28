@@ -45,14 +45,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
-import com.example.core.ui.R
 import com.example.domain.module.Student
 
 @Composable
@@ -136,13 +137,13 @@ fun AdminDashboard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     UploadActionCard(
-                        title = "Upload Quiz",
+                        titleRes = R.string.upload_quiz,
                         icon = Icons.Default.Quiz,
                         onClick = onUploadQuiz,
                         modifier = Modifier.weight(1f)
                     )
                     UploadActionCard(
-                        title = "Upload Announcement",
+                        titleRes = R.string.upload_announcement,
                         icon = Icons.AutoMirrored.Default.Announcement,
                         onClick = onUploadAnnouncement,
                         modifier = Modifier.weight(1f)
@@ -152,7 +153,7 @@ fun AdminDashboard(
 
             item {
                 UploadActionCard(
-                    title = "Motivational Messages",
+                    titleRes = R.string.upload_motivational_messages,
                     icon = Icons.Default.Forum,
                     onClick = onUploadMotivationalMessages,
                     modifier = Modifier.fillMaxWidth()
@@ -161,7 +162,7 @@ fun AdminDashboard(
 
             item {
                 Text(
-                    text = "Institute Levels",
+                    text = stringResource(R.string.institute_levels),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
@@ -191,7 +192,7 @@ fun GuestScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "You are not allowed to upload admin data.",
+            text = stringResource(R.string.not_allowed_upload_msg),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
@@ -205,7 +206,7 @@ fun GuestScreen(
                     onRefresh()
                 }
             ) {
-                Text("Refresh")
+                Text(stringResource(R.string.refresh))
             }
         }
     }
@@ -240,7 +241,7 @@ fun TelegramProfileHeader(
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop,
                     contentDescription = "Profile Photo",
-                    placeholder = painterResource(R.drawable.student_icon)
+                    placeholder = painterResource(com.example.core.ui.R.drawable.student_icon)
                 )
             }
 
@@ -280,7 +281,7 @@ fun TelegramProfileHeader(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UploadActionCard(
-    title: String,
+    titleRes: Int,
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -300,13 +301,13 @@ fun UploadActionCard(
         ) {
             Icon(
                 imageVector = icon,
-                contentDescription = title,
+                contentDescription = null,
                 modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = title,
+                text = stringResource(titleRes),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )

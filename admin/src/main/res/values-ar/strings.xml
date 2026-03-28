@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">الإدارة - د. حسن الهواري</string>
 
@@ -62,7 +63,7 @@
     <string name="enter_name">أدخل الاسم</string>
 
     <!-- Control Screen -->
-    <string name="manage_selection_title">ماهو المحتوى الذي تريد إدارته؟</string>
+    <string name="manage_selection_title">ماذا تود أن تدير؟</string>
     <string name="institute">المعهد</string>
     <string name="articles">المقالات</string>
     <string name="audios">الصوتيات</string>
@@ -91,4 +92,8 @@
     <string name="file_name_not_available">اسم الملف غير متوفر</string>
     <string name="clear_selection">مسح الاختيار</string>
     <string name="save_lesson">حفظ الدرس</string>
+
+
+
+
 </resources>

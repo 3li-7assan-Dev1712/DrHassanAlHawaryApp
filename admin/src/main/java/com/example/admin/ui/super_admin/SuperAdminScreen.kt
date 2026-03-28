@@ -32,9 +32,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 
 @Composable
 fun SuperAdminScreen(
@@ -50,19 +52,19 @@ fun SuperAdminScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Access Restricted",
+                text = stringResource(R.string.access_denied),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.error
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "This area is only accessible to super administrators. If you need access, please contact the main developer.",
+                text = stringResource(R.string.super_admin_restricted_msg),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(32.dp))
             Button(onClick = onLogout) {
-                Text("Logout")
+                Text(stringResource(R.string.logout))
             }
         }
         return
@@ -80,7 +82,7 @@ fun SuperAdminScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "Administrator Management",
+            text = stringResource(R.string.admin_management),
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -90,10 +92,13 @@ fun SuperAdminScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "Current Admins", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = stringResource(R.string.current_admins),
+                style = MaterialTheme.typography.titleMedium
+            )
             Button(onClick = { showAddDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = null)
-                Text("Add Admin")
+                Text(stringResource(R.string.add_admin))
             }
         }
 
@@ -118,8 +123,7 @@ fun SuperAdminScreen(
             items(state.admins) { admin ->
                 AdminItem(
                     email = admin["email"] as? String ?: "",
-
-                    onRemove = { viewModel.removeAdmin(admin["id"] as? String ?: "") }
+                    onRemove = { viewModel.removeAdmin(admin["email"] as? String ?: "") }
                 )
             }
         }
@@ -128,12 +132,12 @@ fun SuperAdminScreen(
     if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { showAddDialog = false; viewModel.clearMessages() },
-            title = { Text("Add New Administrator") },
+            title = { Text(stringResource(R.string.add_new_admin_title)) },
             text = {
                 OutlinedTextField(
                     value = emailToAdd,
                     onValueChange = { emailToAdd = it },
-                    label = { Text("Email Address") },
+                    label = { Text(stringResource(R.string.email_address)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -144,12 +148,12 @@ fun SuperAdminScreen(
                     showAddDialog = false
                     emailToAdd = ""
                 }) {
-                    Text("Add")
+                    Text(stringResource(R.string.add))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -170,7 +174,11 @@ fun AdminItem(email: String, onRemove: () -> Unit) {
         ) {
             Text(text = email, style = MaterialTheme.typography.bodyLarge)
             IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete, contentDescription = "Remove Admin", tint = Color.Red)
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.remove_admin),
+                    tint = Color.Red
+                )
             }
         }
     }
