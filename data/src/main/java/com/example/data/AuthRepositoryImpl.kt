@@ -1,5 +1,6 @@
 package com.example.data
 
+import android.util.Log
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.domain.module.LoginResult
 import com.example.domain.module.UserData
@@ -152,14 +153,17 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun checkIfUserIsAdmin(email: String): Boolean {
+    override suspend fun getUserSecurityRole(): String {
         return try {
             // Force refresh the token to get the latest claims from the Cloud Function
-            val result = firebaseAuth.currentUser?.getIdToken(true)?.await()
-            val isAdmin = result?.claims?.get("admin") as? Boolean
-            isAdmin == true
+            val claims = firebaseAuth.currentUser?.getIdToken(true)?.await()?.claims
+            val role = claims?.get("role") as? String
+            role ?: "none"
         } catch (e: Exception) {
-            false
+            Log.d("AuthRepositoryImpl", "getUserSecurityRole: ${e.message}")
+            "none"
         }
     }
+
+
 }

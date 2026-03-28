@@ -44,7 +44,7 @@ class StudentFirestoreSource @Inject constructor(
     }
 
 
-    suspend fun checkMembership(uid: String, telegramId: Long) : Result<Unit> {
+    suspend fun checkMembership(uid: String, telegramId: Long): Result<Unit> {
         return try {
             val data = hashMapOf(
                 "uid" to uid,
@@ -590,6 +590,46 @@ class StudentFirestoreSource @Inject constructor(
         } catch (e: Exception) {
             Log.e("FirestoreSource", "submitQuizAndPromote error", e)
             throw e
+        }
+    }
+
+    suspend fun getAdmins(): Result<List<Map<String, Any>>> {
+        return try {
+            val result = functions
+                .getHttpsCallable("getAdmins")
+                .call()
+                .await()
+
+            val data = result.data as? Map<*, *>
+            val admins = data?.get("admins") as? List<Map<String, Any>> ?: emptyList()
+
+            Result.success(admins)
+
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun addAdmin(email: String, role: String): Result<Unit> {
+        return try {
+            functions.getHttpsCallable("setUserRole")
+                .call(mapOf("email" to email, "role" to role))
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun removeAdmin(uid: String): Result<Unit> {
+        return try {
+
+            functions.getHttpsCallable("removeAdmin")
+                .call(mapOf("uid" to uid))
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

@@ -86,4 +86,10 @@ interface StudyRepository {
     suspend fun  submitQuizAndPromote(answers: List<Any>): Result<Unit>
 
 
+    suspend fun getAdmins(): Result<List<Map<String, Any>>>
+    suspend fun addAdmin(email: String, role: String): Result<Unit>
+    suspend fun removeAdmin(email: String): Result<Unit>
+
+
+
 }

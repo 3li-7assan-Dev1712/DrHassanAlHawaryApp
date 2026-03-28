@@ -6,7 +6,7 @@ import javax.inject.Inject
 class CheckIfUserIsAdminUseCase @Inject constructor(
     private val authRepository: AuthRepository
 ) {
-    suspend operator fun invoke(email: String): Boolean {
-        return authRepository.checkIfUserIsAdmin(email)
+    suspend operator fun invoke(): String {
+        return authRepository.getUserSecurityRole()
     }
 }

@@ -10,6 +10,7 @@ import com.example.domain.use_cases.study.DeleteStudentDataUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.domain.use_cases.study.StoreStudentDataUseCase
 import com.example.profile.domain.use_case.GetUserDataUseCase
+import com.example.profile.domain.use_case.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +28,8 @@ class MainActivityViewModel @Inject constructor(
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
     private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
-    private val checkIfUserIsAdminUseCase: CheckIfUserIsAdminUseCase
+    private val checkIfUserIsAdminUseCase: CheckIfUserIsAdminUseCase,
+    private val signOutUseCase: SignOutUseCase
 ) : ViewModel() {
 
     val TAG = "MainActivityViewModel"
@@ -61,17 +63,19 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             val isLoggedIn = isUserLoggedInUseCase()
             Log.d(TAG, "checkUserAuthState: isLoggedIn : $isLoggedIn")
-            
+
             if (isLoggedIn) {
                 val userData = getCurrentUserDataUseCase()
                 val idToken = getUserIdTokenUseCase()
-                val email = userData?.email ?: ""
-                val isAdmin = checkIfUserIsAdminUseCase(email)
-                
+                val userSecurityRole = checkIfUserIsAdminUseCase()
+                val isAdmin = userSecurityRole == "admin" || userSecurityRole == "super_admin"
+                val isSuperAdmin = userSecurityRole == "super_admin"
+
                 _state.update {
                     it.copy(
                         isAdminLoggedIn = true,
                         isUserAdmin = isAdmin,
+                        isUserSuperAdmin = isSuperAdmin,
                         currentUserDate = userData,
                         idToken = idToken,
                         isLoading = false
@@ -82,6 +86,7 @@ class MainActivityViewModel @Inject constructor(
                     it.copy(
                         isAdminLoggedIn = false,
                         isUserAdmin = false,
+                        isUserSuperAdmin = false,
                         isLoading = false
                     )
                 }
@@ -94,19 +99,22 @@ class MainActivityViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             val idToken = getUserIdTokenUseCase()
             val userData = getCurrentUserDataUseCase()
-            val email = userData?.email ?: ""
-            val isAdmin = checkIfUserIsAdminUseCase(email)
+            val userSecurityRule = checkIfUserIsAdminUseCase()
+            val isAdmin = userSecurityRule == "admin" || userSecurityRule == "super_admin"
+            val isSuperAdmin = userSecurityRule == "super_admin"
 
-            _state.update { 
+
+            _state.update {
                 it.copy(
                     isAdminLoggedIn = true,
                     isUserAdmin = isAdmin,
+                    isUserSuperAdmin = isSuperAdmin,
                     currentUserDate = userData,
                     idToken = idToken,
                     isLoading = false
-                ) 
+                )
             }
-            
+
             val uid = userData?.userId
             if (uid != null && isAdmin)
                 storeStudentDataUseCase(uid)
@@ -114,14 +122,17 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun logoutSuccess() {
+
         viewModelScope.launch {
-            _state.update { 
+            signOutUseCase()
+            _state.update {
                 it.copy(
                     isAdminLoggedIn = false,
                     isUserAdmin = false,
+                    isUserSuperAdmin = false,
                     currentUserDate = null,
                     idToken = null
-                ) 
+                )
             }
             deleteStudentDataUseCase()
         }

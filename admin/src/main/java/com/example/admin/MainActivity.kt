@@ -47,6 +47,7 @@ import com.example.admin.ui.control_screen.ControlScreen
 import com.example.admin.ui.institute_main.InstituteMainScreen
 import com.example.admin.ui.lessons.LessonsScreen
 import com.example.admin.ui.playlist.PlaylistScreen
+import com.example.admin.ui.super_admin.SuperAdminScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
 import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
@@ -157,6 +158,13 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        composable("super_admin_panel") {
+                            SuperAdminScreen(
+                                isSuperAdmin = state.isUserSuperAdmin
+                            ) {
+                                mainActivityViewModel.logoutSuccess()
+                            }
+                        }
                         // auth screens
                         composable(route = "login_screen") {
                             LoginScreen(

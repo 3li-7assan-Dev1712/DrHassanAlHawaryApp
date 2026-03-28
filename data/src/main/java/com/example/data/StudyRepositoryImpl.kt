@@ -309,4 +309,16 @@ class StudyRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun getAdmins(): Result<List<Map<String, Any>>> =
+        studentFirestoreSource.getAdmins()
+
+
+    override suspend fun addAdmin(email: String, role: String): Result<Unit> =
+        studentFirestoreSource.addAdmin(email, role)
+
+    override suspend fun removeAdmin(uid: String): Result<Unit> =
+        studentFirestoreSource.removeAdmin(uid)
+
+
 }
