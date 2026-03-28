@@ -29,8 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,7 +68,7 @@ fun ArticleUploadScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            TopAppBar(title = { Text("Upload New Article") })
+            TopAppBar(title = { Text(stringResource(R.string.upload_new_article)) })
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
@@ -77,7 +79,7 @@ fun ArticleUploadScreen(
             ) {
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Uploading Article...")
+                Text(stringResource(R.string.uploading_article))
             }
         } else {
             // --- Input Form State ---
@@ -93,7 +95,7 @@ fun ArticleUploadScreen(
                 OutlinedTextField(
                     value = uiState.title,
                     onValueChange = { viewModel.onEvent(ArticleUserEvent.OnTitleChanged(it)) },
-                    label = { Text("Article Title") },
+                    label = { Text(stringResource(R.string.article_title_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -102,7 +104,7 @@ fun ArticleUploadScreen(
                 OutlinedTextField(
                     value = uiState.content,
                     onValueChange = { viewModel.onEvent(ArticleUserEvent.OnContentChanged(it)) },
-                    label = { Text("Article Content...") },
+                    label = { Text(stringResource(R.string.article_content_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
@@ -117,7 +119,7 @@ fun ArticleUploadScreen(
                     )
                 }
                 Button(onClick = { showDatePicker = true }) {
-                    Text("Publish Date: $formattedDate")
+                    Text(stringResource(R.string.publish_date_label, formattedDate))
                 }
 
                 // --- Upload Button ---
@@ -125,7 +127,7 @@ fun ArticleUploadScreen(
                     onClick = { viewModel.onEvent(ArticleUserEvent.OnUploadClicked) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Upload Article")
+                    Text(stringResource(R.string.upload_article_button))
                 }
             }
         }
@@ -145,11 +147,11 @@ fun ArticleUploadScreen(
                         showDatePicker = false
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)

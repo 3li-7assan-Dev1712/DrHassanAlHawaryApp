@@ -23,7 +23,7 @@
     <string name="edit_playlist">تعديل قائمة تشغيل</string>
     <string name="add_lesson">إضافة درس</string>
     <string name="edit_lesson">تعديل درس</string>
-
+    <string name="duration">المدة</string>
     <!-- Super Admin Screen -->
     <string name="admin_management">إدارة المسؤولين</string>
     <string name="current_admins">المسؤولون الحاليون</string>

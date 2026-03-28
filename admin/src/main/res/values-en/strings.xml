@@ -23,7 +23,7 @@
     <string name="edit_playlist">Edit Playlist</string>
     <string name="add_lesson">Add Lesson</string>
     <string name="edit_lesson">Edit Lesson</string>
-
+    <string name="duration">Duration</string>
     <!-- Super Admin Screen -->
     <string name="admin_management">Admin Management</string>
     <string name="current_admins">Current Admins</string>

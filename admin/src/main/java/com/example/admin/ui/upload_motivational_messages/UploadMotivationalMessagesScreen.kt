@@ -21,9 +21,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 
 @Composable
@@ -54,7 +56,7 @@ fun UploadMotivationalMessagesScreen(
                         if (state.isUploading) {
                             CircularProgressIndicator(modifier = Modifier.padding(8.dp))
                         } else {
-                            Icon(Icons.Default.CloudUpload, contentDescription = "Upload Messages")
+                            Icon(Icons.Default.CloudUpload, contentDescription = stringResource(R.string.upload_messages))
                         }
                     }
                 }
@@ -66,7 +68,7 @@ fun UploadMotivationalMessagesScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Enter each message on a new line.",
+                        text = stringResource(R.string.motivational_messages_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -74,7 +76,7 @@ fun UploadMotivationalMessagesScreen(
                     OutlinedTextField(
                         value = state.messagesText,
                         onValueChange = viewModel::onMessagesTextChange,
-                        label = { Text("Motivational Messages") },
+                        label = { Text(stringResource(R.string.motivational_messages_label)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)

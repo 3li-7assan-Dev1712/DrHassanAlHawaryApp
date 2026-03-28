@@ -27,15 +27,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Lesson
-
-// A simple data class for demonstration
 
 @Composable
 fun LessonsScreen(
@@ -44,23 +44,19 @@ fun LessonsScreen(
     lessonsViewModel: AdminLessonsViewModel = hiltViewModel(),
     onEditLesson: (String) -> Unit
 ) {
-
-
     val state by lessonsViewModel.uiState.collectAsState()
-
-
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = onAddLesson) {
-                Icon(Icons.Default.Add, contentDescription = "Add Lesson")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_lesson))
             }
         }
     ) {
 
-        when (state) {
+        when (val currentState = state) {
             is AdminLessonsUiState.Error -> {
-                Text(text = (state as AdminLessonsUiState.Error).message)
+                Text(text = currentState.message)
             }
 
             AdminLessonsUiState.Loading -> {
@@ -75,7 +71,7 @@ fun LessonsScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items((state as AdminLessonsUiState.Success).lessons) { lesson ->
+                    items(currentState.lessons) { lesson ->
                         LessonItem(
                             lesson = lesson,
                             onEditClick = { onEditLesson(lesson.id) }
@@ -84,8 +80,6 @@ fun LessonsScreen(
                 }
             }
         }
-
-
     }
 }
 
@@ -113,7 +107,7 @@ fun LessonItem(
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Duration: ${lesson.duration}",
+                    text = stringResource(R.string.duration, lesson.duration),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -121,7 +115,7 @@ fun LessonItem(
             IconButton(onClick = onEditClick) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Lesson"
+                    contentDescription = stringResource(R.string.edit_lesson)
                 )
             }
         }

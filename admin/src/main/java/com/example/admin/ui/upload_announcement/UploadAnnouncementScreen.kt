@@ -27,9 +27,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +64,7 @@ fun UploadAnnouncementScreen(
                         if (state.isSending) {
                             CircularProgressIndicator(modifier = Modifier.padding(8.dp))
                         } else {
-                            Icon(Icons.Default.Send, contentDescription = "Send Announcement")
+                            Icon(Icons.Default.Send, contentDescription = stringResource(R.string.send_announcement))
                         }
                     }
                 }
@@ -78,7 +80,7 @@ fun UploadAnnouncementScreen(
                     OutlinedTextField(
                         value = state.title,
                         onValueChange = viewModel::onTitleChange,
-                        label = { Text("Title") },
+                        label = { Text(stringResource(R.string.title_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -86,7 +88,7 @@ fun UploadAnnouncementScreen(
                     OutlinedTextField(
                         value = state.body,
                         onValueChange = viewModel::onBodyChange,
-                        label = { Text("Body") },
+                        label = { Text(stringResource(R.string.body_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 4
                     )
@@ -94,7 +96,7 @@ fun UploadAnnouncementScreen(
                     // --- Topic Selector --- //
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "Target Audience",
+                            text = stringResource(R.string.target_audience),
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
@@ -102,12 +104,15 @@ fun UploadAnnouncementScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            val topics = listOf("student_broadcasts", "all_users")
-                            topics.forEach { topic ->
+                            val topics = listOf(
+                                "student_broadcasts" to R.string.topic_student_broadcasts,
+                                "all_users" to R.string.topic_all_users
+                            )
+                            topics.forEach { (topicId, topicRes) ->
                                 FilterChip(
-                                    selected = state.topic == topic,
-                                    onClick = { viewModel.onTopicChange(topic) },
-                                    label = { Text(topic.replaceFirstChar { it.uppercase() }) }
+                                    selected = state.topic == topicId,
+                                    onClick = { viewModel.onTopicChange(topicId) },
+                                    label = { Text(stringResource(topicRes)) }
                                 )
                             }
                         }

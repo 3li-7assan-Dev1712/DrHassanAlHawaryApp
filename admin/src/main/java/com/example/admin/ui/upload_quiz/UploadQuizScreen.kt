@@ -15,10 +15,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,9 +36,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.core.ui.animation.LoadingScreen
+import com.example.admin.R
 import com.example.domain.module.Question
 import com.example.domain.module.QuestionType
 import com.example.domain.module.QuizType
@@ -59,7 +61,7 @@ fun UploadQuizScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Create Quiz") })
+            TopAppBar(title = { Text(stringResource(R.string.create_quiz)) })
         },
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
@@ -67,10 +69,10 @@ fun UploadQuizScreen(
                     onClick = { viewModel.addTfQuestion() },
                     modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    Text("TF", modifier = Modifier.padding(8.dp))
+                    Text(stringResource(R.string.add_tf), modifier = Modifier.padding(8.dp))
                 }
                 FloatingActionButton(onClick = { viewModel.addMcqQuestion() }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add MCQ")
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_mcq))
                 }
             }
         }
@@ -84,19 +86,24 @@ fun UploadQuizScreen(
             OutlinedTextField(
                 value = uiState.title,
                 onValueChange = viewModel::onTitleChange,
-                label = { Text("Quiz Title") },
+                label = { Text(stringResource(R.string.quiz_title_label)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- Quiz Type Selection ---
-            Text("Quiz Type", style = MaterialTheme.typography.titleSmall)
+            Text(
+                stringResource(R.string.quiz_type_label),
+                style = MaterialTheme.typography.titleSmall
+            )
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                QuizType.values().forEach { type ->
+                QuizType.entries.forEach { type ->
                     FilterChip(
                         selected = uiState.quizType == type,
                         onClick = { viewModel.onTypeChange(type) },
@@ -109,7 +116,7 @@ fun UploadQuizScreen(
                 OutlinedTextField(
                     value = uiState.targetLevelId ?: "",
                     onValueChange = viewModel::onTargetLevelChange,
-                    label = { Text("Target Level ID (e.g. level_1)") },
+                    label = { Text(stringResource(R.string.target_level_id_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -134,7 +141,7 @@ fun UploadQuizScreen(
                         onCorrectTfChange = { viewModel.setTfCorrectAnswer(question.id, it) },
                         onRemove = { viewModel.removeQuestion(question.id) }
                     )
-                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                 }
             }
 
@@ -144,9 +151,9 @@ fun UploadQuizScreen(
                 enabled = !uiState.isUploading
             ) {
                 if (uiState.isUploading) {
-                    LoadingScreen()
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
                 } else {
-                    Text("Upload Quiz")
+                    Text(stringResource(R.string.upload_quiz))
                 }
             }
 
@@ -180,14 +187,14 @@ fun QuestionItem(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = onRemove) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remove")
+                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove))
                 }
             }
 
             OutlinedTextField(
                 value = question.text,
                 onValueChange = onTextChange,
-                label = { Text("Question Text") },
+                label = { Text(stringResource(R.string.question_text_label)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -201,7 +208,7 @@ fun QuestionItem(
                         OutlinedTextField(
                             value = option,
                             onValueChange = { onOptionChange(optIndex, it) },
-                            label = { Text("Option ${optIndex + 1}") },
+                            label = { Text(stringResource(R.string.option_label, optIndex + 1)) },
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(vertical = 4.dp)
@@ -210,13 +217,13 @@ fun QuestionItem(
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Correct Answer: ")
-                    Text("False")
+                    Text(stringResource(R.string.correct_answer_label))
+                    Text(stringResource(R.string.false_text))
                     Switch(
                         checked = question.correctBooleanAnswer ?: true,
                         onCheckedChange = onCorrectTfChange
                     )
-                    Text("True")
+                    Text(stringResource(R.string.true_text))
                 }
             }
         }

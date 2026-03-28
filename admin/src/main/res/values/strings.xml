@@ -88,7 +88,68 @@
     <string name="change_file">تغيير الملف</string>
     <string name="replace_file">استبدال الملف</string>
     <string name="select_file">اختر ملف</string>
+    <string name="duration">المدة: %1$s</string>
     <string name="file_name_not_available">اسم الملف غير متوفر</string>
     <string name="clear_selection">مسح الاختيار</string>
     <string name="save_lesson">حفظ الدرس</string>
+
+    <!-- Upload Quiz -->
+    <string name="create_quiz">إنشاء اختبار</string>
+    <string name="add_tf">إضافة سؤال صح/خطأ</string>
+    <string name="add_mcq">إضافة سؤال اختيار من متعدد</string>
+    <string name="quiz_title_label">عنوان الاختبار</string>
+    <string name="quiz_type_label">نوع الاختبار</string>
+    <string name="target_level_id_label">معرف المستوى المستهدف (مثال: level_1)</string>
+    <string name="question_text_label">نص السؤال</string>
+    <string name="option_label">الخيار %1$d</string>
+    <string name="correct_answer_label">الإجابة الصحيحة:</string>
+    <string name="false_text">خطأ</string>
+    <string name="true_text">صح</string>
+    <string name="remove">حذف</string>
+
+    <!-- Upload Announcement -->
+    <string name="send_announcement">إرسال إعلان</string>
+    <string name="title_label">العنوان</string>
+    <string name="body_label">المحتوى</string>
+    <string name="target_audience">الجمهور المستهدف</string>
+    <string name="topic_student_broadcasts">بث للطلاب</string>
+    <string name="topic_all_users">جميع المستخدمين</string>
+
+    <!-- Upload Motivational Messages -->
+    <string name="motivational_messages_hint">أدخل كل رسالة في سطر جديد.</string>
+    <string name="motivational_messages_label">الرسائل التحفيزية</string>
+    <string name="upload_messages">رفع الرسائل</string>
+
+    <!-- Article Upload -->
+    <string name="upload_new_article">رفع مقال جديد</string>
+    <string name="uploading_article">جاري رفع المقال...</string>
+    <string name="article_title_label">عنوان المقال</string>
+    <string name="article_content_label">محتوى المقال...</string>
+    <string name="publish_date_label">تاريخ النشر: %1$s</string>
+    <string name="upload_article_button">رفع المقال</string>
+    <string name="ok">موافق</string>
+
+    <!-- Audio Upload -->
+    <string name="upload_new_audio">رفع ملف صوتي جديد</string>
+    <string name="upload_success">تم الرفع بنجاح!</string>
+    <string name="audio_title_label">عنوان المادة الصوتية</string>
+    <string name="upload_audio_button">رفع الملف الصوتي</string>
+    <string name="select_audio_file">اختر ملف صوتي (.mp3)</string>
+    <string name="selected_file_label">المختار: %1$s</string>
+    <string name="uploading">جاري الرفع...</string>
+    <string name="try_again">إعادة المحاولة</string>
+
+    <!-- Video Upload -->
+    <string name="video_upload_success">تم رفع الفيديو بنجاح!</string>
+    <string name="upload_new_video">رفع فيديو جديد</string>
+    <string name="video_title_label">عنوان الفيديو</string>
+    <string name="youtube_url_label">رابط يوتيوب</string>
+    <string name="upload_video_button">رفع إلى قائمة يوتيوب</string>
+
+    <!-- Images Upload -->
+    <string name="uploading_progress">جاري الرفع... (%1$d%%)</string>
+    <string name="upload_new_design_group">رفع مجموعة تصاميم جديدة</string>
+    <string name="group_title_label">عنوان المجموعة</string>
+    <string name="select_images_button">اختر صور (تم اختيار %1$d)</string>
+    <string name="upload_to_firebase">رفع إلى Firebase</string>
 </resources>

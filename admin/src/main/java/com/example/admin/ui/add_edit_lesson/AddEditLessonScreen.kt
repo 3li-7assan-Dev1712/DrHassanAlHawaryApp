@@ -44,12 +44,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.animation.LoadingScreen
 
@@ -128,7 +130,7 @@ private fun AddEditLessonContent(
                 if (state.isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
-                    Icon(Icons.Default.Save, contentDescription = "Save Lesson")
+                    Icon(Icons.Default.Save, contentDescription = stringResource(R.string.save_lesson))
                 }
             }
         }
@@ -145,7 +147,7 @@ private fun AddEditLessonContent(
             OutlinedTextField(
                 value = state.title,
                 onValueChange = onTitleChange,
-                label = { Text("Lesson Title") },
+                label = { Text(stringResource(R.string.lesson_title)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = state.error != null,
@@ -155,7 +157,7 @@ private fun AddEditLessonContent(
             OutlinedTextField(
                 value = state.order,
                 onValueChange = onOrderChange,
-                label = { Text("Order") },
+                label = { Text(stringResource(R.string.order)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -172,7 +174,7 @@ private fun AddEditLessonContent(
             }
 
             FileControl(
-                label = "PDF Document",
+                label = stringResource(R.string.pdf_document),
                 icon = Icons.Default.PictureAsPdf,
                 remoteUrl = state.existingPdfUrl,
                 selectedLocalUri = state.selectedPdfUri,
@@ -183,7 +185,7 @@ private fun AddEditLessonContent(
             )
 
             FileControl(
-                label = "Audio File",
+                label = stringResource(R.string.audio_file),
                 icon = Icons.Default.Audiotrack,
                 remoteUrl = state.existingAudioUrl,
                 selectedLocalUri = state.selectedAudioUri,
@@ -234,16 +236,16 @@ private fun FileControl(
                     val hasRemoteFile = isEditing && remoteUrl != null
 
                     if (hasLocalFile) {
-                        Text("New selection:", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.new_selection), style = MaterialTheme.typography.labelSmall)
                         Text(
-                            text = selectedLocalUri?.lastPathSegment ?: "File name not available",
+                            text = selectedLocalUri?.lastPathSegment ?: stringResource(R.string.file_name_not_available),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     } else if (hasRemoteFile) {
-                        Text("Current file:", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.current_file), style = MaterialTheme.typography.labelSmall)
                         Text(
                             text = remoteUrl ?: "",
                             style = MaterialTheme.typography.bodyMedium,
@@ -252,13 +254,13 @@ private fun FileControl(
                             overflow = TextOverflow.Ellipsis
                         )
                     } else {
-                        Text("No file selected", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.no_file_selected), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
                 if (hasLocalFile && enabled) {
                     IconButton(onClick = onClear) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear selection")
+                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.clear_selection))
                     }
                 }
             }
@@ -267,9 +269,9 @@ private fun FileControl(
         Spacer(Modifier.height(8.dp))
         Button(onClick = onSelect, modifier = Modifier.fillMaxWidth(), enabled = enabled) {
             val buttonText = when {
-                selectedLocalUri != null -> "Change File"
-                isEditing && remoteUrl != null -> "Replace File"
-                else -> "Select File"
+                selectedLocalUri != null -> stringResource(R.string.change_file)
+                isEditing && remoteUrl != null -> stringResource(R.string.replace_file)
+                else -> stringResource(R.string.select_file)
             }
             Text(buttonText)
         }

@@ -32,13 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.admin.R
 import com.example.admin.ui.theme.HassanAlHawaryTheme
-import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Playlist
 
@@ -51,30 +52,25 @@ fun PlaylistScreen(
     onEditPlaylist: (String) -> Unit,
     onPlaylistClick: (String) -> Unit
 ) {
-    // Dummy data for preview and demonstration
-    /* val playlists = List(5) {
-         Playlist(id = "$it", title = "Playlist ${it + 1} in $levelName", lessonCount = 10 + it)
-     }*/
-
     val uiState by adminPlaylistViewModel.uiState.collectAsState()
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = onAddPlaylist) {
-                Icon(Icons.Default.Add, contentDescription = "Add Playlist")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_playlist))
             }
         }
-    ) {
-        when (uiState) {
-            is AdminPlaylistUiState.Error -> Text(text = (uiState as AdminPlaylistUiState.Error).message)
+    ) { paddingValues ->
+        when (val currentState = uiState) {
+            is AdminPlaylistUiState.Error -> Text(text = currentState.message)
             AdminPlaylistUiState.Loading -> LoadingScreen()
             is AdminPlaylistUiState.Success -> {
 
-                val playlists = (uiState as AdminPlaylistUiState.Success).playlists
+                val playlists = currentState.playlists
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(it)
+                        .padding(paddingValues)
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -113,17 +109,17 @@ fun PlaylistItem(
 
             AsyncImage(
                 model = playlist.thumbnailUrl,
-                contentDescription = "Student Avatar",
+                contentDescription = null,
                 modifier = Modifier
                     .size(46.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                placeholder = painterResource(R.drawable.dr_hassan_photo),
-                error = painterResource(R.drawable.dr_hassan_photo),
+                placeholder = painterResource(com.example.core.ui.R.drawable.dr_hassan_photo),
+                error = painterResource(com.example.core.ui.R.drawable.dr_hassan_photo),
                 contentScale = ContentScale.Crop
             )
 
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
 
                 Text(
                     text = playlist.title,
@@ -136,7 +132,7 @@ fun PlaylistItem(
             IconButton(onClick = onEditClick) {
                 Icon(
                     imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Playlist"
+                    contentDescription = stringResource(R.string.edit_playlist)
                 )
             }
         }

@@ -41,11 +41,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,23 +57,12 @@ fun AudioUploadScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val audioTitle by viewModel.audioTitle.collectAsState()
-    val audioFileUri by viewModel.selectedAudioUri.collectAsState()
-    val context = LocalContext.current
-
     val selectedAudioUri by viewModel.selectedAudioUri.collectAsState()
-
-
-/*    val audioPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let { viewModel.onAudioSelected(it) }
-        }
-    )*/
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Upload New Audio") },
+                title = { Text(stringResource(R.string.upload_new_audio)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -111,7 +101,7 @@ fun AudioUploadScreen(
                         StatusIndicator(
                             icon = Icons.Default.CheckCircle,
                             iconColor = Color(0xFF4CAF50),
-                            message = "Upload Successful!"
+                            message = stringResource(R.string.upload_success)
                         )
                     }
 
@@ -156,7 +146,7 @@ private fun UploadForm(
             value = title,
             onValueChange = onTitleChange,
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Audio Title") },
+            label = { Text(stringResource(R.string.audio_title_label)) },
             singleLine = true
         )
 
@@ -175,7 +165,7 @@ private fun UploadForm(
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text("UPLOAD AUDIO", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.upload_audio_button), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -204,13 +194,13 @@ private fun FilePicker(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Select File")
-                Text("Select Audio File (.mp3)")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.select_file))
+                Text(stringResource(R.string.select_audio_file))
             }
         } else {
             // Shows the last part of the file path as the name
             Text(
-                text = "Selected: ${selectedUri.path?.substringAfterLast('/')}",
+                text = stringResource(R.string.selected_file_label, selectedUri.path?.substringAfterLast('/') ?: ""),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
@@ -226,7 +216,7 @@ private fun LoadingIndicator(progress: Int) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text("Uploading...", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.uploading), style = MaterialTheme.typography.titleLarge)
         LinearProgressIndicator(
             progress = { progress / 100f },
             modifier = Modifier
@@ -266,7 +256,7 @@ private fun StatusIndicator(
         if (isError && onRetry != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = onRetry) {
-                Text("TRY AGAIN")
+                Text(stringResource(R.string.try_again))
             }
         }
     }
