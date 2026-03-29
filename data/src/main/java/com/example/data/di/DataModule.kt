@@ -7,7 +7,7 @@ import com.example.data.DataStoreRepositoryImpl
 import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
 import com.example.data.StudyRepositoryImpl
-import com.example.data.VideosRepositoryImpl
+import com.example.data.VideoRepositoryImpl
 import com.example.data.WisdomRepositoryImpl
 import com.example.domain.repository.ArticlesRepository
 import com.example.domain.repository.AudiosRepository
@@ -65,7 +65,7 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindVideoRepository(
-        videosRepositoryImpl: VideosRepositoryImpl
+        videosRepositoryImpl: VideoRepositoryImpl
     ): VideosRepository
 
     @Binds

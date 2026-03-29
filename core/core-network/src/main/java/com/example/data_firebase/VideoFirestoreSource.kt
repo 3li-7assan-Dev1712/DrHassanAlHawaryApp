@@ -54,6 +54,25 @@ class VideoFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getVideoById(videoId: String): Video? {
+        return try {
+            val doc = videosCollection.document(videoId).get().await()
+            val dto = doc.toObject<VideoDto>()
+            dto?.let {
+                Video(
+                    id = doc.id,
+                    title = it.title,
+                    videoUrl = it.videoUrl,
+                    publishDate = Date(it.publishDate),
+                    youtubeVideoId = it.videoYoutubeId
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getVideoById failed", e)
+            null
+        }
+    }
+
     fun uploadVideo(
         title: String,
         videoUrl: String,
@@ -88,6 +107,44 @@ class VideoFirestoreSource @Inject constructor(
                 close()
             }
         awaitClose { }
+    }
+
+    fun updateVideo(
+        id: String,
+        title: String,
+        videoUrl: String
+    ): Flow<UploadResult> = callbackFlow {
+        trySend(UploadResult.Progress(0))
+
+        val youtubeId = getYoutubeVideoId(videoUrl)
+        if (youtubeId == null) {
+            trySend(UploadResult.Error("Invalid YouTube URL."))
+            close(); return@callbackFlow
+        }
+
+        try {
+            val updates = mapOf(
+                "title" to title,
+                "videoUrl" to videoUrl,
+                "videoYoutubeId" to youtubeId
+            )
+            videosCollection.document(id).update(updates).await()
+            trySend(UploadResult.Success)
+            close()
+        } catch (e: Exception) {
+            trySend(UploadResult.Error(e.message ?: "Update failed"))
+            close()
+        }
+        awaitClose { }
+    }
+
+    suspend fun deleteVideo(videoId: String): Result<Unit> {
+        return try {
+            videosCollection.document(videoId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     private fun getYoutubeVideoId(url: String): String? {

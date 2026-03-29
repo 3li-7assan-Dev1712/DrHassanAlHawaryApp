@@ -60,6 +60,7 @@ import com.example.admin.ui.upload_images_screen.UploadImagesScreen
 import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
 import com.example.admin.ui.upload_quiz.UploadQuizScreen
 import com.example.admin.ui.upload_video_screen.UploadVideoScreen
+import com.example.admin.ui.upload_video_screen.VideosListScreen
 import com.example.admin.util.LocaleForce
 import com.example.core.ui.animation.LoadingScreen
 import com.example.feature.auth.presentation.login.LoginScreen
@@ -109,9 +110,15 @@ class MainActivity : ComponentActivity() {
                         if (navBackStackEntry?.arguments?.getString("audioId") == null)
                             stringResource(R.string.upload_new_audio)
                         else
-                            stringResource(R.string.edit_lesson) // Reusing edit_lesson for audio edit title
+                            stringResource(R.string.edit_lesson)
                     }
-                    currentRoute == "videos_upload" -> stringResource(R.string.upload_video)
+                    currentRoute == "videos_list" -> stringResource(R.string.videos)
+                    currentRoute?.startsWith("videos_upload") == true -> {
+                        if (navBackStackEntry?.arguments?.getString("videoId") == null)
+                            stringResource(R.string.upload_new_video)
+                        else
+                            stringResource(R.string.edit_lesson)
+                    }
                     currentRoute == "profile_screen" -> stringResource(R.string.profile)
                     currentRoute == "login_screen" -> stringResource(R.string.login)
                     currentRoute == "register_screen" -> stringResource(R.string.register)
@@ -231,6 +238,9 @@ class MainActivity : ComponentActivity() {
                                     "audios_upload" -> {
                                         navController.navigate("audios_list")
                                     }
+                                    "videos_upload" -> {
+                                        navController.navigate("videos_list")
+                                    }
                                     else -> {
                                         navController.navigate(route)
                                     }
@@ -279,6 +289,27 @@ class MainActivity : ComponentActivity() {
                             )
                         ) {
                             AudioUploadScreen {
+                                navController.popBackStack()
+                            }
+                        }
+                        composable("videos_list") {
+                            VideosListScreen(
+                                onAddVideo = { navController.navigate("videos_upload") },
+                                onEditVideo = { videoId ->
+                                    navController.navigate("videos_upload?videoId=$videoId")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "videos_upload?videoId={videoId}",
+                            arguments = listOf(
+                                navArgument("videoId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) {
+                            UploadVideoScreen {
                                 navController.popBackStack()
                             }
                         }
