@@ -199,4 +199,23 @@ class AudioFirestoreSource @Inject constructor(
             awaitClose { uploadTask.cancel() }
         }
     }
+
+    suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit> {
+        return try {
+            // 1. Delete document from Firestore
+            audiosCollection.document(audioId).delete().await()
+            
+            // 2. Delete file from Storage
+            try {
+                storage.getReferenceFromUrl(audioUrl).delete().await()
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to delete audio file from storage", e)
+                // We still return success if the document was deleted
+            }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

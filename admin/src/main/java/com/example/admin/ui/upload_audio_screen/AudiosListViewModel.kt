@@ -3,6 +3,7 @@ package com.example.admin.ui.upload_audio_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.Audio
+import com.example.domain.use_cases.audios.DeleteAudioUseCase
 import com.example.domain.use_cases.audios.GetAllRemoteAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ sealed interface AudiosListUiState {
 
 @HiltViewModel
 class AudiosListViewModel @Inject constructor(
-    private val getAllRemoteAudiosUseCase: GetAllRemoteAudiosUseCase
+    private val getAllRemoteAudiosUseCase: GetAllRemoteAudiosUseCase,
+    private val deleteAudioUseCase: DeleteAudioUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AudiosListUiState>(AudiosListUiState.Loading)
@@ -38,6 +40,14 @@ class AudiosListViewModel @Inject constructor(
                 _uiState.update { AudiosListUiState.Success(audios) }
             } catch (e: Exception) {
                 _uiState.update { AudiosListUiState.Error(e.message ?: "Failed to load audios") }
+            }
+        }
+    }
+
+    fun deleteAudio(audioId: String, audioUrl: String) {
+        viewModelScope.launch {
+            deleteAudioUseCase(audioId, audioUrl).onSuccess {
+                loadAudios()
             }
         }
     }

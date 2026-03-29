@@ -3,6 +3,7 @@ package com.example.admin.ui.upload_video_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.Video
+import com.example.domain.use_cases.videos.DeleteVideoUseCase
 import com.example.domain.use_cases.videos.GetAllRemoteVideosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ sealed interface VideosListUiState {
 
 @HiltViewModel
 class VideosListViewModel @Inject constructor(
-    private val getAllRemoteVideosUseCase: GetAllRemoteVideosUseCase
+    private val getAllRemoteVideosUseCase: GetAllRemoteVideosUseCase,
+    private val deleteVideoUseCase: DeleteVideoUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<VideosListUiState>(VideosListUiState.Loading)
@@ -38,6 +40,14 @@ class VideosListViewModel @Inject constructor(
                 _uiState.update { VideosListUiState.Success(videos) }
             } catch (e: Exception) {
                 _uiState.update { VideosListUiState.Error(e.message ?: "Failed to load videos") }
+            }
+        }
+    }
+
+    fun deleteVideo(videoId: String) {
+        viewModelScope.launch {
+            deleteVideoUseCase(videoId).onSuccess {
+                loadVideos()
             }
         }
     }

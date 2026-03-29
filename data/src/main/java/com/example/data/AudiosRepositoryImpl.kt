@@ -64,6 +64,10 @@ class AudiosRepositoryImpl
         return audioFirestoreSource.updateAudio(id, title, newUriString, existingUrl, durationInMillis)
     }
 
+    override suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit> {
+        return audioFirestoreSource.deleteAudio(audioId, audioUrl)
+    }
+
     override suspend fun getAudioById(audioId: String): Audio? {
         return audioFirestoreSource.getAudioById(audioId)
     }

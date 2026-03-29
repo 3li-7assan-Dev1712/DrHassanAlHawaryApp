@@ -133,6 +133,7 @@
     <!-- Articles List -->
     <string name="manage_articles">إدارة المقالات</string>
     <string name="no_articles_found">لا توجد مقالات.</string>
+    <string name="delete_confirmation_msg">هل أنت متأكد أنك تريد حذف "%1$s"؟</string>
 
     <!-- Audio Upload -->
     <string name="upload_new_audio">رفع ملف صوتي جديد</string>

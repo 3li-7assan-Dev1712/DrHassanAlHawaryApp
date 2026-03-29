@@ -29,13 +29,14 @@ class VideoRemoteMediator @Inject constructor(
 
 
     override suspend fun initialize(): InitializeAction {
-        return if (videoDao.count() > 0) {
+        /*return if (videoDao.count() > 0) {
             Log.d(TAG, "DB has data. Skipping remote refresh on launch.")
             InitializeAction.SKIP_INITIAL_REFRESH
         } else {
             Log.d(TAG, "DB is empty. Launching remote refresh on launch.")
             InitializeAction.LAUNCH_INITIAL_REFRESH
-        }
+        }*/
+        return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
     override suspend fun load(

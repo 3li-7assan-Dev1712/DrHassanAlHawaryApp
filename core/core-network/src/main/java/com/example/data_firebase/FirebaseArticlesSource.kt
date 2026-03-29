@@ -65,6 +65,16 @@ class FirebaseArticlesSource
         }
     }
 
+    suspend fun deleteArticle(articleId: String) {
+        try {
+            articlesCollection.document(articleId).delete().await()
+            Log.d("FirebaseArticlesSource", "Article deleted successfully: $articleId")
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error deleting article: ${e.message}", e)
+            throw e
+        }
+    }
+
 
     suspend fun getArticles(lastDocumentId: String?, limit: Long): Pair<List<Article>, Boolean> {
         try {

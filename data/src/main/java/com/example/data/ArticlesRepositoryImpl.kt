@@ -46,11 +46,11 @@ class ArticlesRepositoryImpl
         firebaseArticlesSource.updateArticle(article)
     }
 
+    override suspend fun deleteArticle(articleId: String) {
+        firebaseArticlesSource.deleteArticle(articleId)
+    }
+
     override suspend fun getAllRemoteArticles(): List<Article> {
-        // Since we don't have a direct "get all" in source yet, we can use the existing getArticles with a large limit or implement a simple one
-        // For simplicity, let's implement a simple get all in source or repo. 
-        // Actually, let's add it to FirebaseArticlesSource if not there.
-        // I'll use a simplified version for admin list.
         val (list, _) = firebaseArticlesSource.getArticles(null, 100)
         return list
     }

@@ -3,6 +3,7 @@ package com.example.admin.ui.upload_article_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.Article
+import com.example.domain.use_cases.articles.DeleteArticleUseCase
 import com.example.domain.use_cases.articles.GetAllRemoteArticlesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ sealed interface ArticlesListUiState {
 
 @HiltViewModel
 class ArticlesListViewModel @Inject constructor(
-    private val getAllRemoteArticlesUseCase: GetAllRemoteArticlesUseCase
+    private val getAllRemoteArticlesUseCase: GetAllRemoteArticlesUseCase,
+    private val deleteArticleUseCase: DeleteArticleUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ArticlesListUiState>(ArticlesListUiState.Loading)
@@ -38,6 +40,17 @@ class ArticlesListViewModel @Inject constructor(
                 _uiState.update { ArticlesListUiState.Success(articles) }
             } catch (e: Exception) {
                 _uiState.update { ArticlesListUiState.Error(e.message ?: "Failed to load articles") }
+            }
+        }
+    }
+
+    fun deleteArticle(articleId: String) {
+        viewModelScope.launch {
+            try {
+                deleteArticleUseCase(articleId)
+                loadArticles() // Refresh list
+            } catch (e: Exception) {
+                // Optionally handle error in UI
             }
         }
     }

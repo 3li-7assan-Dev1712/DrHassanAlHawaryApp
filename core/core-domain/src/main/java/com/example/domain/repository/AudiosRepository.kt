@@ -28,6 +28,8 @@ interface AudiosRepository {
         durationInMillis: Long
     ): Flow<UploadResult>
 
+    suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit>
+
     suspend fun getAudioById(audioId: String): Audio?
 
     suspend fun getAllRemoteAudios(): List<Audio>
