@@ -453,16 +453,26 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun getUpdatedLessons(lastLessonSync: Long): List<LessonDto> {
         return try {
-            Log.d(TAG, "getPlaylists: last time: $lastLessonSync ${Date(lastLessonSync)}")
+            Log.d(TAG, "getUpdatedLessons: last time: $lastLessonSync ${Date(lastLessonSync)}")
             val lessonsCollection =
                 firestore.collection("lessons").whereGreaterThan("updatedAt", Date(lastLessonSync))
 
             val snapshot = lessonsCollection.get().await()
             snapshot.mapNotNull { document ->
-                document.toObject<LessonDto>()
+                LessonDto(
+                    id = document.getString("id") ?: "",
+                    title = document.getString("title") ?: "",
+                    playlistId = document.getString("playlistId") ?: "",
+                    order = document.getLong("order")?.toInt() ?: 0,
+                    audioUrl = document.getString("audioUrl") ?: "",
+                    duration = document.getLong("duration") ?: 0,
+                    pdfUrl = document.getString("pdfUrl") ?: "",
+                    updatedAt = document.getDate("updatedAt") ?: Date()
+                )
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.d(TAG, "getUpdatedLessons: error updating lessons : ${e.message}")
             emptyList() // Return an empty list on error
         }
     }

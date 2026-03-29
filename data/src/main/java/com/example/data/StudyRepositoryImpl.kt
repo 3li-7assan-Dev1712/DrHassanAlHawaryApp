@@ -148,14 +148,19 @@ class StudyRepositoryImpl @Inject constructor(
     override suspend fun syncLessons() {
         val lastLessonSync = versionStore.getLastLessonSync()
         val lessons = studentFirestoreSource.getUpdatedLessons(lastLessonSync)
+        Log.d(TAG, "syncLessons: lessons: ${lessons.size}")
         if (lessons.isNotEmpty()) {
             val entities = lessons.map {
                 it.toEntity()
             }
+
             lessonDao.upsertAll(entities)
             versionStore.setLastLessonSync(
                 entities.maxOf { it.updatedAt }
             )
+            entities.forEach {
+                ensureLessonFilesDownloaded(it.id)
+            }
 
         }
     }
@@ -170,22 +175,11 @@ class StudyRepositoryImpl @Inject constructor(
         val entity = lessonDao.getLessonById(id).first() ?: return
 
 
-        val audioFilePath = entity.audioFilePath
-            ?: entity.audioRemoteUrl.let {
-                fileDownloader.downloadAudio(it, entity.id)
-            }
+        // We let fileDownloader check if the specific version for THIS URL exists.
+        val audioFilePath = fileDownloader.downloadAudio(entity.audioRemoteUrl, entity.id)
+        val pdfFilePath = fileDownloader.downloadPdf(entity.pdfRemoteUrl, entity.id)
 
-        val pdfFilePath = entity.pdfFilePath
-            ?: entity.pdfRemoteUrl.let {
-                fileDownloader.downloadPdf(it, entity.id)
-            }
-
-
-        lessonDao.updateLessonFiles(
-            id,
-            audioFilePath,
-            pdfFilePath
-        )
+        lessonDao.updateLessonFiles(id, audioFilePath, pdfFilePath)
     }
 
 
