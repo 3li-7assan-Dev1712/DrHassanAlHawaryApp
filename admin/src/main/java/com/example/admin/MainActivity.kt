@@ -55,6 +55,7 @@ import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
 import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
 import com.example.admin.ui.upload_article_screen.ArticlesListScreen
 import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
+import com.example.admin.ui.upload_audio_screen.AudiosListScreen
 import com.example.admin.ui.upload_images_screen.UploadImagesScreen
 import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
 import com.example.admin.ui.upload_quiz.UploadQuizScreen
@@ -103,7 +104,13 @@ class MainActivity : ComponentActivity() {
                         else 
                             stringResource(R.string.edit_article)
                     }
-                    currentRoute == "audios_upload" -> stringResource(R.string.upload_audio)
+                    currentRoute == "audios_list" -> stringResource(R.string.audios)
+                    currentRoute?.startsWith("audios_upload") == true -> {
+                        if (navBackStackEntry?.arguments?.getString("audioId") == null)
+                            stringResource(R.string.upload_new_audio)
+                        else
+                            stringResource(R.string.edit_lesson) // Reusing edit_lesson for audio edit title
+                    }
                     currentRoute == "videos_upload" -> stringResource(R.string.upload_video)
                     currentRoute == "profile_screen" -> stringResource(R.string.profile)
                     currentRoute == "login_screen" -> stringResource(R.string.login)
@@ -210,17 +217,23 @@ class MainActivity : ComponentActivity() {
 
                         composable("control_screen") {
                             ControlScreen { route ->
-                                if (route == "telegram_login") {
-                                    if (state.isAdminConnectedToTelegram) {
-                                        navController.navigate(route)
-                                    } else {
-                                        navController.navigate("connect_telegram")
-
+                                when (route) {
+                                    "telegram_login" -> {
+                                        if (state.isAdminConnectedToTelegram) {
+                                            navController.navigate(route)
+                                        } else {
+                                            navController.navigate("connect_telegram")
+                                        }
                                     }
-                                } else if (route == "articles_upload") {
-                                    navController.navigate("articles_list")
-                                } else {
-                                    navController.navigate(route)
+                                    "articles_upload" -> {
+                                        navController.navigate("articles_list")
+                                    }
+                                    "audios_upload" -> {
+                                        navController.navigate("audios_list")
+                                    }
+                                    else -> {
+                                        navController.navigate(route)
+                                    }
                                 }
                             }
                         }
@@ -248,8 +261,26 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                             }
                         }
-                        composable("audios_upload") {
-                            AudioUploadScreen()
+                        composable("audios_list") {
+                            AudiosListScreen(
+                                onAddAudio = { navController.navigate("audios_upload") },
+                                onEditAudio = { audioId ->
+                                    navController.navigate("audios_upload?audioId=$audioId")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "audios_upload?audioId={audioId}",
+                            arguments = listOf(
+                                navArgument("audioId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) {
+                            AudioUploadScreen {
+                                navController.popBackStack()
+                            }
                         }
                         composable("videos_upload") {
                             UploadVideoScreen {

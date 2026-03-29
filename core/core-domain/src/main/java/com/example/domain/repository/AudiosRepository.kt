@@ -20,4 +20,16 @@ interface AudiosRepository {
         durationInMillis: Long
     ): Flow<UploadResult>
 
+    suspend fun updateAudio(
+        id: String,
+        title: String,
+        newUriString: String?,
+        existingUrl: String,
+        durationInMillis: Long
+    ): Flow<UploadResult>
+
+    suspend fun getAudioById(audioId: String): Audio?
+
+    suspend fun getAllRemoteAudios(): List<Audio>
+
 }

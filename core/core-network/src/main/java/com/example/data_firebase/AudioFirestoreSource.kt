@@ -66,6 +66,30 @@ class AudioFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getAudioById(audioId: String): Audio? {
+        return try {
+            val doc = audiosCollection.document(audioId).get().await()
+            val dto = doc.toObject<AudioDto>()
+            dto?.let {
+                Audio(
+                    id = doc.id,
+                    title = it.title,
+                    audioUrl = it.audioUrl,
+                    publishDate = java.util.Date(it.publishDate),
+                    durationInMillis = it.durationInMillis,
+                    isFavorite = false,
+                    isDownloaded = false,
+                    lastPlayedTimestamp = null,
+                    isPlaying = false,
+                    localFilePath = null
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getAudioById failed", e)
+            null
+        }
+    }
+
     /**
      * Uploads an audio file and its metadata to Firebase.
      */
@@ -111,5 +135,68 @@ class AudioFirestoreSource @Inject constructor(
             close()
         }
         awaitClose { uploadTask.cancel() }
+    }
+
+    fun updateAudio(
+        id: String,
+        title: String,
+        newUriString: String?,
+        existingUrl: String,
+        durationInMillis: Long
+    ): Flow<UploadResult> = callbackFlow {
+        if (newUriString == null) {
+            // Only update metadata
+            try {
+                audiosCollection.document(id).update(
+                    mapOf(
+                        "title" to title,
+                        "durationInMillis" to durationInMillis
+                    )
+                ).await()
+                trySend(UploadResult.Success)
+                close()
+            } catch (e: Exception) {
+                trySend(UploadResult.Error(e.message ?: "Update failed"))
+                close()
+            }
+        } else {
+            // Upload new file and update metadata
+            trySend(UploadResult.Progress(0))
+            val uri = newUriString.toUri()
+            val fileName = "audios/${System.currentTimeMillis()}"
+            val storageRef = storage.reference.child(fileName)
+            val uploadTask = storageRef.putFile(uri)
+
+            uploadTask.addOnProgressListener { taskSnapshot ->
+                val progress = ((100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount).toInt()
+                trySend(UploadResult.Progress(progress))
+            }.addOnSuccessListener {
+                it.storage.downloadUrl.addOnSuccessListener { downloadUri ->
+                    val updates = mapOf(
+                        "title" to title,
+                        "audioUrl" to downloadUri.toString(),
+                        "durationInMillis" to durationInMillis
+                    )
+                    audiosCollection.document(id).update(updates)
+                        .addOnSuccessListener {
+                            // Try to delete old file
+                            try {
+                                storage.getReferenceFromUrl(existingUrl).delete()
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to delete old audio file", e)
+                            }
+                            trySend(UploadResult.Success)
+                            close()
+                        }.addOnFailureListener { dbError ->
+                            trySend(UploadResult.Error(dbError.message ?: "Update failed"))
+                            close()
+                        }
+                }
+            }.addOnFailureListener { e ->
+                trySend(UploadResult.Error(e.message ?: "Upload failed"))
+                close()
+            }
+            awaitClose { uploadTask.cancel() }
+        }
     }
 }

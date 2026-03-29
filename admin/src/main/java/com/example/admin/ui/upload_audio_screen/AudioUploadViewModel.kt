@@ -3,92 +3,123 @@ package com.example.admin.ui.upload_audio_screen
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.use_cases.audios.GetAudioByIdUseCase
+import com.example.domain.use_cases.audios.UpdateAudioUseCase
 import com.example.domain.use_cases.audios.UploadAudioUseCase
 import com.example.domain.use_cases.audios.UploadResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
-sealed class AudioUploadUiState {
-    object Idle : AudioUploadUiState()
-    data class Loading(val progress: Int) : AudioUploadUiState()
-    object Success : AudioUploadUiState()
-    data class Error(val message: String) : AudioUploadUiState()
-}
+data class AudioUploadUiState(
+    val audioId: String? = null,
+    val title: String = "",
+    val selectedUri: Uri? = null,
+    val existingUrl: String? = null,
+    val isUploading: Boolean = false,
+    val progress: Int = 0,
+    val isSuccess: Boolean = false,
+    val error: String? = null
+)
 
 @HiltViewModel
 class AudioUploadViewModel @Inject constructor(
     private val uploadAudioUseCase: UploadAudioUseCase,
-    @ApplicationContext private val context: Context
+    private val updateAudioUseCase: UpdateAudioUseCase,
+    private val getAudioByIdUseCase: GetAudioByIdUseCase,
+    @ApplicationContext private val context: Context,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<AudioUploadUiState>(
-        AudioUploadUiState.Idle
-    )
+    private val _uiState = MutableStateFlow(AudioUploadUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _audioTitle = MutableStateFlow("")
-    val audioTitle = _audioTitle.asStateFlow()
+    private val audioId: String? = savedStateHandle["audioId"]
 
-    private val _selectedAudioUri = MutableStateFlow<Uri?>(null)
-    val selectedAudioUri = _selectedAudioUri.asStateFlow()
+    init {
+        if (audioId != null) {
+            loadAudio(audioId)
+        }
+    }
+
+    private fun loadAudio(id: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isUploading = true) }
+            val audio = getAudioByIdUseCase(id)
+            if (audio != null) {
+                _uiState.update {
+                    it.copy(
+                        audioId = audio.id,
+                        title = audio.title,
+                        existingUrl = audio.audioUrl,
+                        isUploading = false
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isUploading = false, error = "Failed to load audio data") }
+            }
+        }
+    }
 
     fun onTitleChange(newTitle: String) {
-        _audioTitle.value = newTitle
+        _uiState.update { it.copy(title = newTitle) }
     }
 
     fun onAudioSelected(uri: Uri) {
-        _selectedAudioUri.value = uri
+        _uiState.update { it.copy(selectedUri = uri) }
     }
 
-    fun uploadAudio() {
-        val title = _audioTitle.value
-        val uri = _selectedAudioUri.value
+    fun saveAudio() {
+        val currentState = _uiState.value
+        if (currentState.title.isBlank()) {
+            _uiState.update { it.copy(error = "Title cannot be empty") }
+            return
+        }
 
-        // Validate inputs
-        if (title.isBlank()) {
-            _uiState.value = AudioUploadUiState.Error("Title cannot be empty.")
+        if (currentState.audioId == null && currentState.selectedUri == null) {
+            _uiState.update { it.copy(error = "Please select an audio file") }
             return
         }
-        if (uri == null) {
-            _uiState.value =
-                AudioUploadUiState.Error("Please select an audio file.")
-            return
-        }
+
         viewModelScope.launch {
-            uploadAudioUseCase(
-                title = title,
-                uriString = uri.toString(), // Pass the Uri as a primitive string
-                durationInMillis = getAudioDuration(uri) ?: 0L
-            ).collect { result ->
-                // --- State Update ---
+            val duration = currentState.selectedUri?.let { getAudioDuration(it) } ?: 0L
+            
+            val flow = if (currentState.audioId == null) {
+                uploadAudioUseCase(
+                    title = currentState.title,
+                    uriString = currentState.selectedUri.toString(),
+                    durationInMillis = duration
+                )
+            } else {
+                updateAudioUseCase(
+                    id = currentState.audioId,
+                    title = currentState.title,
+                    newUriString = currentState.selectedUri?.toString(),
+                    existingUrl = currentState.existingUrl ?: "",
+                    durationInMillis = duration
+                )
+            }
+
+            flow.collect { result ->
                 when (result) {
                     is UploadResult.Progress -> {
-                        _uiState.value =
-                            AudioUploadUiState.Loading(result.percentage)
+                        _uiState.update { it.copy(isUploading = true, progress = result.percentage) }
                     }
-
                     is UploadResult.Success -> {
-                        _uiState.value = AudioUploadUiState.Success
-                        // Optionally reset the state after a brief success message
-                        // For example:
-                        delay(2000)
-                        resetState()
+                        _uiState.update { it.copy(isUploading = false, isSuccess = true) }
                     }
-
                     is UploadResult.Error -> {
-                        _uiState.value = AudioUploadUiState.Error(result.message)
+                        _uiState.update { it.copy(isUploading = false, error = result.message) }
                     }
                 }
             }
-
         }
     }
 
@@ -96,8 +127,7 @@ class AudioUploadViewModel @Inject constructor(
         return try {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(context, uri)
-            val durationStr =
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
             retriever.release()
             durationStr?.toLong()
         } catch (_: Exception) {
@@ -105,16 +135,7 @@ class AudioUploadViewModel @Inject constructor(
         }
     }
 
-    // Resets the state for a new upload after success
     fun resetState() {
-        _audioTitle.value = ""
-        _selectedAudioUri.value = null
-        _uiState.value = AudioUploadUiState.Idle
+        _uiState.value = AudioUploadUiState()
     }
-
-
 }
-
-
-
-

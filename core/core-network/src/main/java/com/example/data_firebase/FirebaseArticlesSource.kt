@@ -3,7 +3,6 @@ package com.example.data_firebase
 import android.util.Log
 import com.example.data_firebase.model.ArticleDto
 import com.example.domain.module.Article
-import com.example.domain.module.ArticlesResult
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
@@ -12,7 +11,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.util.Date
 import javax.inject.Inject
 
 class FirebaseArticlesSource
@@ -124,39 +122,11 @@ class FirebaseArticlesSource
     }
 
 
-    suspend fun getArticleById(articleId: String): ArticlesResult {
-
-        return try {
-
-            Log.d("ArticlesRepository", "getArticleById: $articleId")
-            val documentSnapshot =
-                firestoreDb.collection("articles").document(articleId).get().await()
-            if (documentSnapshot.exists()) {
-                val article = Article(
-                    id = documentSnapshot.id,
-                    title = documentSnapshot.getString("title") ?: "wwwway",
-                    content = documentSnapshot.getString("content") ?: "waaaaaay",
-                    publishDate = documentSnapshot.getDate("publishDate") ?: Date()
-                )
-                ArticlesResult(article = article) // Success, return the article
-
-            } else {
-                Log.d("ArticlesRepository", "getArticleById: dose not exists")
-                return ArticlesResult(errorMessage = "Article not found")
-            }
-        } catch (e: Exception) {
-            Log.d("ArticlesRepository", "getArticleById: ${e.message}")
-            ArticlesResult(errorMessage = e.message)
-
-        }
-
-    }
-
-
     fun syncArticlesDbWithServer(): Flow<List<Article>> {
         return callbackFlow {
             val listenerRegistration = articlesCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
+                .limit(10)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         close(error)

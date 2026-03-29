@@ -121,7 +121,7 @@
     <string name="upload_messages">رفع الرسائل</string>
 
     <!-- Article Upload/Edit -->
-    <string name="upload_new_article">رفع مقال جديد</string>
+    <string name="upload_new_article">إضافة مقال جديد</string>
     <string name="edit_article">تعديل مقال</string>
     <string name="uploading_article">جاري رفع المقال...</string>
     <string name="article_title_label">عنوان المقال</string>

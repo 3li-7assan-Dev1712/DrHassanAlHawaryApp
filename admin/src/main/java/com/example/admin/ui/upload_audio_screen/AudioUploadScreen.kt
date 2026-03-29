@@ -3,7 +3,6 @@ package com.example.admin.ui.upload_audio_screen
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -34,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -52,17 +51,29 @@ import com.example.admin.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioUploadScreen(
-    viewModel: AudioUploadViewModel = hiltViewModel()
+    viewModel: AudioUploadViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
 ) {
 
-    val uiState by viewModel.uiState.collectAsState()
-    val audioTitle by viewModel.audioTitle.collectAsState()
-    val selectedAudioUri by viewModel.selectedAudioUri.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onNavigateBack()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.upload_new_audio)) },
+                title = { 
+                    Text(
+                        if (state.audioId == null) 
+                            stringResource(R.string.upload_new_audio) 
+                        else 
+                            stringResource(R.string.edit_lesson)
+                    ) 
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -76,45 +87,24 @@ fun AudioUploadScreen(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            // Animate between the different states
-            AnimatedContent(
-                targetState = uiState,
-                label = "State Animation"
-            ) { state ->
-                when (state) {
-                    is AudioUploadUiState.Idle
-                        -> {
-                        UploadForm(
-                            title = audioTitle,
-                            onTitleChange = viewModel::onTitleChange,
-                            selectedUri = selectedAudioUri,
-                            onAudioSelected = viewModel::onAudioSelected,
-                            onUploadClick = viewModel::uploadAudio
-                        )
-                    }
-
-                    is AudioUploadUiState.Loading -> {
-                        LoadingIndicator(progress = state.progress)
-                    }
-
-                    is AudioUploadUiState.Success -> {
-                        StatusIndicator(
-                            icon = Icons.Default.CheckCircle,
-                            iconColor = Color(0xFF4CAF50),
-                            message = stringResource(R.string.upload_success)
-                        )
-                    }
-
-                    is AudioUploadUiState.Error -> {
-                        StatusIndicator(
-                            icon = Icons.Default.Warning,
-                            iconColor = MaterialTheme.colorScheme.error,
-                            message = state.message,
-                            isError = true,
-                            onRetry = viewModel::resetState
-                        )
-                    }
-                }
+            if (state.isUploading) {
+                LoadingIndicator(progress = state.progress)
+            } else if (state.isSuccess) {
+                StatusIndicator(
+                    icon = Icons.Default.CheckCircle,
+                    iconColor = Color(0xFF4CAF50),
+                    message = stringResource(R.string.upload_success)
+                )
+            } else {
+                UploadForm(
+                    title = state.title,
+                    onTitleChange = viewModel::onTitleChange,
+                    selectedUri = state.selectedUri,
+                    onAudioSelected = viewModel::onAudioSelected,
+                    onUploadClick = viewModel::saveAudio,
+                    isEditing = state.audioId != null,
+                    errorMessage = state.error
+                )
             }
         }
     }
@@ -126,9 +116,10 @@ private fun UploadForm(
     onTitleChange: (String) -> Unit,
     selectedUri: Uri?,
     onAudioSelected: (Uri) -> Unit,
-    onUploadClick: () -> Unit
+    onUploadClick: () -> Unit,
+    isEditing: Boolean,
+    errorMessage: String?
 ) {
-    // This launcher handles opening the file picker for audio files.
     val audioPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -153,19 +144,24 @@ private fun UploadForm(
         FilePicker(
             selectedUri = selectedUri,
             onClick = {
-                // Launch the file picker
                 audioPickerLauncher.launch("audio/*")
             }
         )
 
+        if (errorMessage != null) {
+            Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+        }
+
         Button(
             onClick = onUploadClick,
-            enabled = title.isNotBlank() && selectedUri != null,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text(stringResource(R.string.upload_audio_button), fontWeight = FontWeight.Bold)
+            Text(
+                if (isEditing) stringResource(R.string.save) else stringResource(R.string.upload_audio_button), 
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -183,7 +179,7 @@ private fun FilePicker(
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline,
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp)
             )
             .clickable(onClick = onClick)
             .padding(16.dp),
@@ -194,11 +190,10 @@ private fun FilePicker(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.select_file))
+                Icon(Icons.Default.Add, contentDescription = null)
                 Text(stringResource(R.string.select_audio_file))
             }
         } else {
-            // Shows the last part of the file path as the name
             Text(
                 text = stringResource(R.string.selected_file_label, selectedUri.path?.substringAfterLast('/') ?: ""),
                 style = MaterialTheme.typography.bodyLarge,

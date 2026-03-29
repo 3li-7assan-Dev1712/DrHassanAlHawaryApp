@@ -51,53 +51,24 @@ class AudiosRepositoryImpl
         uriString: String,
         durationInMillis: Long
     ): Flow<UploadResult> {
-
-
         return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis)
-
-
     }
 
-
-    /*override suspend fun syncAudios() {
-        try {
-            val networkAudios = firebaseAudioSource.getAllAudiosFromFirebase()
-            val audioEntities = networkAudios.map { audio ->
-                AudioEntity(audioUrl = audio.audioUrl, title = audio.title)
-            }
-            Log.d("TAG", "syncAudios: number of audios is: ${audioEntities.size}")
-            audioDao.saveAudios(audioEntities)
-        } catch (e: Exception) {
-            // Handle error (e.g., log it). The UI will still have the old data.
-            e.printStackTrace()
-            Log.d("TAG", "syncAudios: error 1712")
-        }
+    override suspend fun updateAudio(
+        id: String,
+        title: String,
+        newUriString: String?,
+        existingUrl: String,
+        durationInMillis: Long
+    ): Flow<UploadResult> {
+        return audioFirestoreSource.updateAudio(id, title, newUriString, existingUrl, durationInMillis)
     }
-    override suspend fun getAudiosFromStorage(): AudiosResult {
-        return try {
-            val storageRef = storage.reference.child("lectures")
-            // get last 5 audios
-            val listAllResultTask = storageRef.list(
 
-                3
+    override suspend fun getAudioById(audioId: String): Audio? {
+        return audioFirestoreSource.getAudioById(audioId)
+    }
 
-            ).await()
-            val audios = mutableListOf<Audio>()
-            for (item: StorageReference in listAllResultTask.items) {
-                val downloadUrl =
-                    item.downloadUrl.await().toString() // Suspend until URL is fetched
-                val audio = Audio(
-                    title = item.name.substringAfter("_").substringBeforeLast("."),
-                    audioUrl = downloadUrl
-                )
-                audios.add(audio)
-                Log.d("AllLecturesViewModel", "Fetched URL for ${item.name}: $downloadUrl")
-            }
-            AudiosResult(audios = audios)
-        } catch (e: Exception) {
-            AudiosResult(errorMessage = e.message)
-        }
-    }*/
+    override suspend fun getAllRemoteAudios(): List<Audio> {
+        return audioFirestoreSource.fetchAudioPage(null, 100)
+    }
 }
-
-
