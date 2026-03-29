@@ -14,6 +14,8 @@ interface ArticlesRepository {
 
     suspend fun getLatestArticlesFromDb(): Flow<List<Article>>
     suspend fun uploadArticle(article: Article)
+    suspend fun updateArticle(article: Article)
+    suspend fun getAllRemoteArticles(): List<Article>
 
 
 }

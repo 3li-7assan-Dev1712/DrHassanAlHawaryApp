@@ -22,8 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.admin.R
 import com.example.domain.use_cases.audios.UploadResult
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,11 +36,12 @@ fun UploadVideoScreen(
 ) {
     val uploadState by viewModel.uploadState.collectAsState()
     val context = LocalContext.current
+    val successMsg = stringResource(R.string.video_upload_success)
 
     LaunchedEffect(uploadState) {
         when (uploadState) {
             is UploadResult.Success -> {
-                Toast.makeText(context, "Video Uploaded Successfully!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
             }
             is UploadResult.Error -> {
@@ -54,7 +57,7 @@ fun UploadVideoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Upload New Video") },
+                title = { Text(stringResource(R.string.upload_new_video)) },
             )
         }
     ) { padding ->
@@ -69,14 +72,14 @@ fun UploadVideoScreen(
             OutlinedTextField(
                 value = viewModel.title,
                 onValueChange = { viewModel.title = it },
-                label = { Text("Video Title") },
+                label = { Text(stringResource(R.string.video_title_label)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = viewModel.videoUrl,
                 onValueChange = { viewModel.videoUrl = it },
-                label = { Text("YouTube URL") },
+                label = { Text(stringResource(R.string.youtube_url_label)) },
                 placeholder = { Text("https://www.youtube.com/watch?v=...") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -91,7 +94,7 @@ fun UploadVideoScreen(
                         .height(56.dp),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Upload to YouTube List")
+                    Text(stringResource(R.string.upload_video_button))
                 }
             }
         }

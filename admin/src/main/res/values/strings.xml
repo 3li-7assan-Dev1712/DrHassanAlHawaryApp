@@ -120,14 +120,19 @@
     <string name="motivational_messages_label">الرسائل التحفيزية</string>
     <string name="upload_messages">رفع الرسائل</string>
 
-    <!-- Article Upload -->
+    <!-- Article Upload/Edit -->
     <string name="upload_new_article">رفع مقال جديد</string>
+    <string name="edit_article">تعديل مقال</string>
     <string name="uploading_article">جاري رفع المقال...</string>
     <string name="article_title_label">عنوان المقال</string>
     <string name="article_content_label">محتوى المقال...</string>
     <string name="publish_date_label">تاريخ النشر: %1$s</string>
     <string name="upload_article_button">رفع المقال</string>
     <string name="ok">موافق</string>
+
+    <!-- Articles List -->
+    <string name="manage_articles">إدارة المقالات</string>
+    <string name="no_articles_found">لا توجد مقالات.</string>
 
     <!-- Audio Upload -->
     <string name="upload_new_audio">رفع ملف صوتي جديد</string>

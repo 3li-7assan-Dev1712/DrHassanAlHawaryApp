@@ -49,7 +49,6 @@ fun ArticleUploadScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     // --- Side Effects ---
-    // Show snackbar for user messages
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
@@ -57,32 +56,37 @@ fun ArticleUploadScreen(
         }
     }
 
-    // Navigate away on successful upload
     LaunchedEffect(uiState.isArticleUploaded) {
         if (uiState.isArticleUploaded) {
             onArticleUploaded()
         }
     }
 
-    //
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.upload_new_article)) })
+            TopAppBar(title = { 
+                Text(
+                    if (uiState.articleId == null) 
+                        stringResource(R.string.upload_new_article) 
+                    else 
+                        stringResource(R.string.edit_article)
+                ) 
+            })
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
+        // Keep showing loading if we are uploading OR if we just finished successfully (waiting for nav)
+        if (uiState.isLoading || uiState.isArticleUploaded) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(stringResource(R.string.uploading_article))
+                Text(stringResource(R.string.loading))
             }
         } else {
-            // --- Input Form State ---
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -91,7 +95,6 @@ fun ArticleUploadScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Title Input
                 OutlinedTextField(
                     value = uiState.title,
                     onValueChange = { viewModel.onEvent(ArticleUserEvent.OnTitleChanged(it)) },
@@ -100,7 +103,6 @@ fun ArticleUploadScreen(
                     singleLine = true
                 )
 
-                //  Content Input
                 OutlinedTextField(
                     value = uiState.content,
                     onValueChange = { viewModel.onEvent(ArticleUserEvent.OnContentChanged(it)) },
@@ -110,30 +112,30 @@ fun ArticleUploadScreen(
                         .weight(1f),
                 )
 
-                // --- Date Picker Button ---
                 val formattedDate = remember(uiState.publishDate) {
                     SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
-                        Date(
-                            uiState.publishDate
-                        )
+                        Date(uiState.publishDate)
                     )
                 }
                 Button(onClick = { showDatePicker = true }) {
                     Text(stringResource(R.string.publish_date_label, formattedDate))
                 }
 
-                // --- Upload Button ---
                 Button(
                     onClick = { viewModel.onEvent(ArticleUserEvent.OnUploadClicked) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(stringResource(R.string.upload_article_button))
+                    Text(
+                        if (uiState.articleId == null) 
+                            stringResource(R.string.upload_article_button) 
+                        else 
+                            stringResource(R.string.save)
+                    )
                 }
             }
         }
     }
 
-    // --- Date Picker Dialog ---
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = uiState.publishDate)
         DatePickerDialog(

@@ -51,6 +51,22 @@ class FirebaseArticlesSource
         }
     }
 
+    suspend fun updateArticle(article: Article) {
+        try {
+            val articleDto = ArticleDto(
+                id = article.id,
+                title = article.title,
+                content = article.content,
+                publishDate = article.publishDate
+            )
+            articlesCollection.document(article.id).set(articleDto).await()
+            Log.d("FirebaseArticlesSource", "Article updated successfully: ${article.title}")
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error updating article: ${e.message}", e)
+            throw e
+        }
+    }
+
 
     suspend fun getArticles(lastDocumentId: String?, limit: Long): Pair<List<Article>, Boolean> {
         try {

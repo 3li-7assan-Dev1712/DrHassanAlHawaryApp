@@ -53,6 +53,7 @@ import com.example.admin.ui.super_admin.SuperAdminScreen
 import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
 import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
+import com.example.admin.ui.upload_article_screen.ArticlesListScreen
 import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
 import com.example.admin.ui.upload_images_screen.UploadImagesScreen
 import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
@@ -93,33 +94,39 @@ class MainActivity : ComponentActivity() {
 
                 val state: MainActivityState by mainActivityViewModel.state.collectAsState()
 
-                val topBarTitle = when (currentRoute) {
-                    "control_screen" -> stringResource(R.string.admin_control_panel)
-                    "articles_upload" -> stringResource(R.string.upload_article)
-                    "audios_upload" -> stringResource(R.string.upload_audio)
-                    "videos_upload" -> stringResource(R.string.upload_video)
-                    "profile_screen" -> stringResource(R.string.profile)
-                    "login_screen" -> stringResource(R.string.login)
-                    "register_screen" -> stringResource(R.string.register)
-                    "images_upload" -> stringResource(R.string.upload_images)
-                    "not_allowed" -> stringResource(R.string.access_denied)
-                    "super_admin_panel" -> stringResource(R.string.super_admin_panel)
-                    "telegram_login", "telegram_login?data={data}" -> stringResource(R.string.institute_management)
-                    "upload_quiz" -> stringResource(R.string.upload_quiz)
-                    "upload_announcement" -> stringResource(R.string.upload_announcement)
-                    "upload_motivational_messages" -> stringResource(R.string.upload_motivational_messages)
-                    "playlists/{levelName}" -> navBackStackEntry?.arguments?.getString("levelName")
+                val topBarTitle = when {
+                    currentRoute == "control_screen" -> stringResource(R.string.admin_control_panel)
+                    currentRoute == "articles_list" -> stringResource(R.string.manage_articles)
+                    currentRoute?.startsWith("articles_upload") == true -> {
+                        if (navBackStackEntry?.arguments?.getString("articleId") == null) 
+                            stringResource(R.string.upload_new_article) 
+                        else 
+                            stringResource(R.string.edit_article)
+                    }
+                    currentRoute == "audios_upload" -> stringResource(R.string.upload_audio)
+                    currentRoute == "videos_upload" -> stringResource(R.string.upload_video)
+                    currentRoute == "profile_screen" -> stringResource(R.string.profile)
+                    currentRoute == "login_screen" -> stringResource(R.string.login)
+                    currentRoute == "register_screen" -> stringResource(R.string.register)
+                    currentRoute == "images_upload" -> stringResource(R.string.upload_images)
+                    currentRoute == "not_allowed" -> stringResource(R.string.access_denied)
+                    currentRoute == "super_admin_panel" -> stringResource(R.string.super_admin_panel)
+                    currentRoute == "telegram_login" || currentRoute?.startsWith("telegram_login") == true -> stringResource(R.string.institute_management)
+                    currentRoute == "upload_quiz" -> stringResource(R.string.upload_quiz)
+                    currentRoute == "upload_announcement" -> stringResource(R.string.upload_announcement)
+                    currentRoute == "upload_motivational_messages" -> stringResource(R.string.upload_motivational_messages)
+                    currentRoute?.startsWith("playlists") == true -> navBackStackEntry?.arguments?.getString("levelName")
                         ?: stringResource(R.string.playlists)
 
-                    "lessons/{playlistId}" -> stringResource(R.string.lessons)
-                    "add_edit_playlist?levelId={levelId}&playlistId={playlistId}" -> {
+                    currentRoute?.startsWith("lessons") == true -> stringResource(R.string.lessons)
+                    currentRoute?.startsWith("add_edit_playlist") == true -> {
                         if (navBackStackEntry?.arguments?.getString("playlistId") == null) 
                             stringResource(R.string.add_playlist) 
                         else 
                             stringResource(R.string.edit_playlist)
                     }
 
-                    "add_edit_lesson?playlistId={playlistId}&lessonId={lessonId}" -> {
+                    currentRoute?.startsWith("add_edit_lesson") == true -> {
                         if (navBackStackEntry?.arguments?.getString("lessonId") == null) 
                             stringResource(R.string.add_lesson) 
                         else 
@@ -210,6 +217,8 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate("connect_telegram")
 
                                     }
+                                } else if (route == "articles_upload") {
+                                    navController.navigate("articles_list")
                                 } else {
                                     navController.navigate(route)
                                 }
@@ -218,7 +227,23 @@ class MainActivity : ComponentActivity() {
                         composable("connect_telegram") {
                             ConnectTelegramScreen()
                         }
-                        composable("articles_upload") {
+                        composable("articles_list") {
+                            ArticlesListScreen(
+                                onAddArticle = { navController.navigate("articles_upload") },
+                                onEditArticle = { articleId ->
+                                    navController.navigate("articles_upload?articleId=$articleId")
+                                }
+                            )
+                        }
+                        composable(
+                            route = "articles_upload?articleId={articleId}",
+                            arguments = listOf(
+                                navArgument("articleId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) {
                             ArticleUploadScreen {
                                 navController.popBackStack()
                             }

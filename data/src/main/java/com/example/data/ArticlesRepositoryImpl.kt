@@ -38,33 +38,31 @@ class ArticlesRepositoryImpl
         }
     }
 
-    
-
     override suspend fun uploadArticle(article: Article) {
         firebaseArticlesSource.uploadArticle(article)
     }
 
+    override suspend fun updateArticle(article: Article) {
+        firebaseArticlesSource.updateArticle(article)
+    }
 
-
-
-
-
-
-
+    override suspend fun getAllRemoteArticles(): List<Article> {
+        // Since we don't have a direct "get all" in source yet, we can use the existing getArticles with a large limit or implement a simple one
+        // For simplicity, let's implement a simple get all in source or repo. 
+        // Actually, let's add it to FirebaseArticlesSource if not there.
+        // I'll use a simplified version for admin list.
+        val (list, _) = firebaseArticlesSource.getArticles(null, 100)
+        return list
+    }
 
     // fetching (user usage)
     override suspend fun getArticleById(articleId: String): Flow<Article> {
-
-
         return articleDao.getArticleById(articleId).map { art ->
             art.toDomainModel()
         }
-
     }
 
-
     override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {
-
         return articleDao.getLatestArticles().map {
             it.map { articleEntity ->
                 articleEntity.toDomainModel()
@@ -72,17 +70,14 @@ class ArticlesRepositoryImpl
         }
     }
 
-
     override suspend fun getPagingArticlesFromDb(query: String): Flow<List<Article>> {
         return flowOf()
     }
-
 
     @OptIn(ExperimentalPagingApi::class)
     fun getArticlesPagingData(query: String): Flow<PagingData<Article>> {
         return Pager(
             config = PagingConfig(
-                // Set a page size. This is passed to your RemoteMediator's 'state'.
                 pageSize = 10,
                 prefetchDistance = 5,
                 enablePlaceholders = false
@@ -90,21 +85,16 @@ class ArticlesRepositoryImpl
             remoteMediator = ArticleRemoteMediator(
                 appDatabase = appDatabase,
                 firebaseArticlesSource = firebaseArticlesSource
-                // when add search, I will pass the query here
             ),
-            // The PagingSourceFactory ALWAYS points to the local database (Room).
-            // The RemoteMediator will fill this database for the PagingSource to read.
             pagingSourceFactory = {
                 articleDao.getArticlesPagingSource(query)
             }
         ).flow.map { pagingData ->
-            // The data from the PagingSource is ArticleEntity, so we map it to the domain model
             pagingData.map { articleEntity ->
                 articleEntity.toDomainModel()
             }
         }
     }
-
 
     override suspend fun syncArticlesDbWithServer() {
         firebaseArticlesSource.syncArticlesDbWithServer()
@@ -120,10 +110,7 @@ class ArticlesRepositoryImpl
                 }
             }
             .collect { articlesFromFirestore ->
-                // This 'collect' block runs ONLY when the listener sends a new list.
-                //  sync the fresh data to our Room database.
                 articleDao.syncArticles(articlesFromFirestore)
             }
-
     }
 }

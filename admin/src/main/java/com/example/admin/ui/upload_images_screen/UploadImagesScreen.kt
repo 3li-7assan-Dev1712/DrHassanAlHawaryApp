@@ -36,9 +36,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.admin.R
 import kotlinx.coroutines.launch
 
 
@@ -63,16 +65,17 @@ fun UploadImagesScreen(
         }
     )
 
+    val successMsg = stringResource(R.string.upload_success)
+    val errorPrefix = stringResource(R.string.error_loading)
+
     // --- Side Effects ---
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is UploadImagesUiState.Success -> {
-                snackbarHostState.showSnackbar("Upload Successful!")
+                snackbarHostState.showSnackbar(successMsg)
             }
             is UploadImagesUiState.Error -> {
-                snackbarHostState.showSnackbar("Error: ${state.message}")
-                // Optional: After showing the error, you might want to return to Idle
-                // viewModel.resetState()
+                snackbarHostState.showSnackbar("$errorPrefix: ${state.message}")
             }
             else -> { /* No side effect needed for Idle or Loading */ }
         }
@@ -96,7 +99,7 @@ fun UploadImagesScreen(
                         CircularProgressIndicator(progress = { progress / 100f })
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Uploading... ($progress%)",
+                            text = stringResource(R.string.uploading_progress, progress),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -109,13 +112,13 @@ fun UploadImagesScreen(
                         .padding(paddingValues)
                         .padding(16.dp)
                 ) {
-                    Text("Upload New Design Group", style = MaterialTheme.typography.headlineSmall)
+                    Text(stringResource(R.string.upload_new_design_group), style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedTextField(
                         value = groupTitle,
                         onValueChange = viewModel::onTitleChange,
-                        label = { Text("Group Title") },
+                        label = { Text(stringResource(R.string.group_title_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         enabled = uiState is UploadImagesUiState.Idle
@@ -127,7 +130,7 @@ fun UploadImagesScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = uiState is UploadImagesUiState.Idle
                     ) {
-                        Text("Select Images (${selectedImageUris.size} selected)")
+                        Text(stringResource(R.string.select_images_button, selectedImageUris.size))
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -141,7 +144,7 @@ fun UploadImagesScreen(
                         items(selectedImageUris) { uri ->
                             AsyncImage(
                                 model = uri,
-                                contentDescription = "Selected image",
+                                contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .aspectRatio(1f)
@@ -149,7 +152,7 @@ fun UploadImagesScreen(
                                     .border(
                                         1.dp,
                                         MaterialTheme.colorScheme.outline,
-                                        androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                                        RoundedCornerShape(8.dp)
                                     )
                             )
                         }
@@ -168,7 +171,7 @@ fun UploadImagesScreen(
                             .fillMaxWidth()
                             .height(48.dp)
                     ) {
-                        Text("Upload to Firebase")
+                        Text(stringResource(R.string.upload_to_firebase))
                     }
                 }
             }

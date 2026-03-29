@@ -1,13 +1,17 @@
 package com.example.admin.ui.upload_article_screen
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.Article
+import com.example.domain.use_cases.GetArticleByIdUseCase
+import com.example.domain.use_cases.articles.UpdateArticleUseCase
 import com.example.domain.use_cases.articles.UploadArticleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -16,11 +20,39 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ArticleViewModel @Inject constructor(
-    private val uploadArticleUseCase: UploadArticleUseCase
+    private val uploadArticleUseCase: UploadArticleUseCase,
+    private val updateArticleUseCase: UpdateArticleUseCase,
+    private val getArticleByIdUseCase: GetArticleByIdUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ArticleUiState())
     val uiState: StateFlow<ArticleUiState> = _uiState.asStateFlow()
+
+    private val articleId: String? = savedStateHandle["articleId"]
+
+    init {
+        if (articleId != null) {
+            loadArticle(articleId)
+        }
+    }
+
+    private fun loadArticle(id: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            getArticleByIdUseCase(id).collectLatest { article ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        articleId = article.id,
+                        title = article.title,
+                        content = article.content,
+                        publishDate = article.publishDate.time
+                    )
+                }
+            }
+        }
+    }
 
     fun onEvent(event: ArticleUserEvent) {
         when (event) {
@@ -37,7 +69,7 @@ class ArticleViewModel @Inject constructor(
             }
 
             ArticleUserEvent.OnUploadClicked -> {
-                uploadArticle()
+                saveArticle()
             }
 
             ArticleUserEvent.OnUserMessageShown -> {
@@ -46,10 +78,9 @@ class ArticleViewModel @Inject constructor(
         }
     }
 
-    private fun uploadArticle() {
+    private fun saveArticle() {
         val currentState = _uiState.value
 
-        // Validate inputs before proceeding
         if (currentState.title.isBlank()) {
             _uiState.update { it.copy(userMessage = "Title cannot be empty.") }
             return
@@ -64,27 +95,37 @@ class ArticleViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
-                val newArticle = Article(
+                val article = Article(
+                    id = currentState.articleId ?: "",
                     title = currentState.title,
                     content = currentState.content,
                     publishDate = Date(currentState.publishDate),
                 )
-                uploadArticleUseCase(
-                    newArticle
-                )
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isArticleUploaded = true,
-                        userMessage = "Article uploaded successfully!"
-                    )
+                
+                if (currentState.articleId == null) {
+                    uploadArticleUseCase(article)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isArticleUploaded = true,
+                            userMessage = "Article uploaded successfully!"
+                        )
+                    }
+                } else {
+                    updateArticleUseCase(article)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isArticleUploaded = true,
+                            userMessage = "Article updated successfully!"
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        userMessage = "Upload failed: ${e.message}"
+                        userMessage = "Operation failed: ${e.message}"
                     )
                 }
             }
