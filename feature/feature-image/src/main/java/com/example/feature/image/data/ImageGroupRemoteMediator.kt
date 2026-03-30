@@ -65,9 +65,7 @@ class ImageGroupRemoteMediator @Inject constructor(
             )
 
             appDatabase.withTransaction {
-                // No more clearAll() to maintain local state and support offline-first sync.
-                // RemoteKeys are also removed as we use publishDate for direct pagination.
-                
+
                 val entities = fetchedImageGroupsPage.map {
                     ImageGroupEntity(
                         id = it.id,
@@ -75,7 +73,7 @@ class ImageGroupRemoteMediator @Inject constructor(
                         publishDate = it.publishDate.time,
                         previewImageUrl = it.previewImageUrl,
                         updatedAt = it.publishDate.time, // Default
-                        isDeleted = false
+                        isDeleted = it.isDeleted
                     )
                 }
                 imageDao.upsertImageGroups(entities)

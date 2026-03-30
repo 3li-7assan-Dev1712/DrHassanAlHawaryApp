@@ -1,5 +1,7 @@
 package com.example.data_firebase.model
 
+import com.google.firebase.firestore.PropertyName
+
 data class LessonDto(
     val id: String = "",
     val playlistId: String = "",
@@ -10,5 +12,10 @@ data class LessonDto(
     val pdfUrl: String = "",
     val publishDate: Long = 0L,
     val updatedAt: Long = 0L,
-    val isDeleted: Boolean = false
-)
+
+    @get:PropertyName("isDeleted")
+    @set:PropertyName("isDeleted")
+    @get:JvmName("isDeletedField")
+    var isDeleted: Boolean = false,
+
+    )

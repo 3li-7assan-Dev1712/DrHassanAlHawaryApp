@@ -5,6 +5,7 @@ import com.example.data_firebase.model.VideoDto
 import com.example.domain.module.Video
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -24,11 +25,43 @@ class VideoFirestoreSource @Inject constructor(
     private val TAG = "VideoFirestoreSource"
     private val videosCollection = firestore.collection("videos")
 
+    private fun DocumentSnapshot.toVideoDtoSafe(): VideoDto? {
+        return try {
+            this.toObject<VideoDto>()?.copy(id = this.id)
+        } catch (e: Exception) {
+            Log.w(TAG, "Standard deserialization failed for ${this.id}, trying manual mapping", e)
+            try {
+                val publishDate = try {
+                    this.getTimestamp("publishDate")
+                } catch (ex: Exception) {
+                    this.getLong("publishDate")?.let { Timestamp(Date(it)) }
+                }
+                
+                val updatedAt = try {
+                    this.getTimestamp("updatedAt")
+                } catch (ex: Exception) {
+                    this.getLong("updatedAt")?.let { Timestamp(Date(it)) }
+                }
 
-    suspend fun fetchVideoPage(startAfterPublishDate: Long?, limit: Int): List<Video> {
+                VideoDto(
+                    isDeleted = this.getBoolean("isDeleted") ?: this.getBoolean("deleted") ?: false,
+                    id = this.id,
+                    title = this.getString("title") ?: "",
+                    videoUrl = this.getString("videoUrl") ?: "",
+                    videoYoutubeId = this.getString("videoYoutubeId") ?: "",
+                    publishDate = publishDate,
+                    updatedAt = updatedAt
+                )
+            } catch (ex: Exception) {
+                Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
+                null
+            }
+        }
+    }
+
+    suspend fun fetchVideoPage(startAfterPublishDate: Long?, limit: Int): List<VideoDto> {
         try {
             var query = videosCollection
-                .whereEqualTo("isDeleted", false)
                 .orderBy("publishDate", Query.Direction.DESCENDING)
 
             if (startAfterPublishDate != null) {
@@ -37,18 +70,7 @@ class VideoFirestoreSource @Inject constructor(
 
             val snapshot = query.limit(limit.toLong()).get().await()
 
-            return snapshot.documents.mapNotNull { document ->
-                val dto = document.toObject<VideoDto>()
-                dto?.let {
-                    Video(
-                        id = document.id,
-                        title = it.title,
-                        videoUrl = it.videoUrl,
-                        publishDate = it.publishDate?.toDate() ?: Date(),
-                        youtubeVideoId = it.videoYoutubeId
-                    )
-                }
-            }
+            return snapshot.documents.mapNotNull { it.toVideoDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "fetchVideoPage failed: ${e.message}")
             return emptyList()
@@ -61,7 +83,7 @@ class VideoFirestoreSource @Inject constructor(
                 .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject<VideoDto>() }
+            snapshot.documents.mapNotNull { it.toVideoDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "getUpdatedVideos failed: ${e.message}")
             emptyList()
@@ -71,7 +93,7 @@ class VideoFirestoreSource @Inject constructor(
     suspend fun getVideoById(videoId: String): Video? {
         return try {
             val doc = videosCollection.document(videoId).get().await()
-            val dto = doc.toObject<VideoDto>()
+            val dto = doc.toVideoDtoSafe()
             dto?.let {
                 Video(
                     id = doc.id,
@@ -101,14 +123,14 @@ class VideoFirestoreSource @Inject constructor(
         }
 
         val now = Timestamp.now()
-        val videoDto = mapOf(
-            "id" to "", // Will be set by Firestore or use document ID
-            "title" to title,
-            "videoUrl" to videoUrl,
-            "videoYoutubeId" to youtubeId,
-            "publishDate" to Timestamp(Date(publishDate)),
-            "updatedAt" to now,
-            "isDeleted" to false
+        val videoDto = VideoDto(
+            id = "",
+            title = title,
+            videoUrl = videoUrl,
+            videoYoutubeId = youtubeId,
+            publishDate = Timestamp(Date(publishDate)),
+            updatedAt = now,
+            isDeleted = false
         )
 
         videosCollection.add(videoDto)
@@ -179,7 +201,6 @@ class VideoFirestoreSource @Inject constructor(
     fun syncVideosDbWithServer(): Flow<List<VideoDto>> {
         return callbackFlow {
             val listenerRegistration = videosCollection
-                .whereEqualTo("isDeleted", false)
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(20)
                 .addSnapshotListener { snapshot, error ->
@@ -190,7 +211,7 @@ class VideoFirestoreSource @Inject constructor(
                     }
 
                     if (snapshot != null) {
-                        trySend(snapshot.toObjects(VideoDto::class.java))
+                        trySend(snapshot.documents.mapNotNull { it.toVideoDtoSafe() })
                     }
                 }
             awaitClose { listenerRegistration.remove() }

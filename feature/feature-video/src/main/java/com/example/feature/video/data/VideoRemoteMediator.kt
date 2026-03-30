@@ -24,9 +24,8 @@ class VideoRemoteMediator @Inject constructor(
     private val videoDao = appDatabase.videoDao()
     private val TAG = "VideoRemoteMediator"
 
+
     override suspend fun initialize(): InitializeAction {
-        // LAUNCH_INITIAL_REFRESH ensures we check for new content on every app session.
-        // Paging 3 will display local Room data while the refresh is happening.
         return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
@@ -35,51 +34,66 @@ class VideoRemoteMediator @Inject constructor(
         state: PagingState<Int, VideoEntity>
     ): MediatorResult {
         return try {
-            val lastPublishDate = when (loadType) {
+            val initialPublishDate = when (loadType) {
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    val lastItem = state.lastItemOrNull()
-                    
+                    val lastLocalItem = videoDao.getLastVideo()
+
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        if (lastItem == null) {
+                        if (lastLocalItem == null) {
                             return MediatorResult.Success(endOfPaginationReached = true)
                         } else {
                             return MediatorResult.Success(endOfPaginationReached = false)
                         }
                     }
-                    lastItem?.publishDate
+                    lastLocalItem?.publishDate
                 }
             }
 
-            // Fetch from Firebase using publishDate for ordering and pagination cursor
-            val videosFromServer = videoFirestoreSource.fetchVideoPage(
-                startAfterPublishDate = lastPublishDate,
-                limit = state.config.pageSize
-            )
+            var currentLastPublishDate = initialPublishDate
+            var lastResultEndOfPaginationReached = false
 
-            val endOfPaginationReached = videosFromServer.size < state.config.pageSize
+            while (true) {
+                val videosFromServer = videoFirestoreSource.fetchVideoPage(
+                    startAfterPublishDate = currentLastPublishDate,
+                    limit = state.config.pageSize
+                )
 
-            appDatabase.withTransaction {
-                // IMPORTANT: We do NOT clearAll() here anymore.
-                // We only upsert the new/updated items to support offline persistence.
-                
-                val entities = videosFromServer.map {
-                    VideoEntity(
-                        id = it.id,
-                        title = it.title,
-                        videoUrl = it.videoUrl,
-                        publishDate = it.publishDate.time,
-                        youtubeVideoId = it.youtubeVideoId,
-                        updatedAt = it.publishDate.time,
-                        isDeleted = false
-                    )
+                lastResultEndOfPaginationReached = videosFromServer.size < state.config.pageSize
+
+                if (videosFromServer.isEmpty()) break
+
+                val (deletedItems, activeItems) = videosFromServer.partition { it.isDeleted }
+
+                appDatabase.withTransaction {
+                    deletedItems.forEach { dto ->
+                        videoDao.deleteById(dto.id)
+                    }
+
+                    if (activeItems.isNotEmpty()) {
+                        val entities = activeItems.map { dto ->
+                            VideoEntity(
+                                id = dto.id,
+                                title = dto.title,
+                                videoUrl = dto.videoUrl,
+                                publishDate = dto.publishDate?.toDate()?.time ?: 0L,
+                                youtubeVideoId = dto.videoYoutubeId,
+                                updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                                isDeleted = dto.isDeleted
+                            )
+                        }
+                        videoDao.upsertAll(entities)
+                    }
                 }
 
-                videoDao.upsertAll(entities)
+                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                    break
+                }
+                currentLastPublishDate = videosFromServer.last().publishDate?.toDate()?.time
             }
 
-            MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+            MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)
 
         } catch (e: IOException) {
             MediatorResult.Error(e)

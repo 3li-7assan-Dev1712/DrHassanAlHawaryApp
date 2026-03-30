@@ -1,22 +1,16 @@
 package com.example.data_local
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.data_local.model.PlaylistEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PlaylistDao {
 
-
-//    suspend fun storePlaylists(playlists: List<PlaylistEntity>)
-
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertAll(playlists: List<PlaylistEntity>)
-
 
     @Query(
         """
@@ -30,4 +24,6 @@ interface PlaylistDao {
     @Query("SELECT MAX(updatedAt) FROM playlists")
     suspend fun lastUpdatedAt(): Long?
 
+    @Query("SELECT id FROM playlists")
+    suspend fun getAllIds(): List<String>
 }

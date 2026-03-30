@@ -99,36 +99,53 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncPlaylists() {
-        val lastPlaylistSync = versionStore.getLastPlaylistSync()
-        val playlists = studentFirestoreSource.getUpdatedPlaylists(lastPlaylistSync)
+        try {
+            val lastPlaylistSync = versionStore.getLastPlaylistSync()
+            val playlists = studentFirestoreSource.getUpdatedPlaylists(lastPlaylistSync)
 
-        Log.d(TAG, "syncPlaylists: ${playlists.size}")
-        if (playlists.isNotEmpty()) {
-            val entities = playlists.map { it.toEntity() }
-            playlistDao.upsertAll(entities)
-            versionStore.setLastPlaylistSync(
-                entities.maxOf { it.updatedAt }
-            )
+            Log.d(TAG, "syncPlaylists: ${playlists.size}")
+            if (playlists.isNotEmpty()) {
+                val existingLevelIds = levelsDao.getAllIds().toSet()
+                
+                // Filter out playlists whose level doesn't exist locally to avoid FK constraint failure
+                val validEntities = playlists
+                    .map { it.toEntity() }
+                    .filter { it.levelId in existingLevelIds }
+
+                if (validEntities.isNotEmpty()) {
+                    playlistDao.upsertAll(validEntities)
+                    versionStore.setLastPlaylistSync(
+                        validEntities.maxOf { it.updatedAt }
+                    )
+                }
+                
+                if (validEntities.size < playlists.size) {
+                    Log.w(TAG, "syncPlaylists: Ignored ${playlists.size - validEntities.size} playlists due to missing levels.")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "syncPlaylists failed", e)
         }
-
     }
 
 
     override suspend fun syncLevels() {
-        val localLevelVersion = versionStore.getLevelsVersion()
-        val remoteLevelVersion = studentFirestoreSource.getLevelsVersion()
+        try {
+            val localLevelVersion = versionStore.getLevelsVersion()
+            val remoteLevelVersion = studentFirestoreSource.getLevelsVersion()
 
-        val counts = levelsDao.count()
-        Log.d(TAG, "syncLevels: count: $counts")
-        if (remoteLevelVersion == localLevelVersion && counts > 0)
-            return
+            val counts = levelsDao.count()
+            Log.d(TAG, "syncLevels: count: $counts")
+            if (remoteLevelVersion == localLevelVersion && counts > 0)
+                return
 
-        val levels = studentFirestoreSource.getRemoteLevels()
-        Log.d(TAG, "syncLevels: count: ${levels.count()}")
-        levelsDao.storeLevels(levels.map { it.toEntity() })
-        versionStore.updateLevelsVersion(remoteLevelVersion)
-
-
+            val levels = studentFirestoreSource.getRemoteLevels()
+            Log.d(TAG, "syncLevels: count: ${levels.count()}")
+            levelsDao.storeLevels(levels.map { it.toEntity() })
+            versionStore.updateLevelsVersion(remoteLevelVersion)
+        } catch (e: Exception) {
+            Log.e(TAG, "syncLevels failed", e)
+        }
     }
 
     override fun getLevels(): Flow<List<Level>> =
@@ -146,22 +163,34 @@ class StudyRepositoryImpl @Inject constructor(
         }
 
     override suspend fun syncLessons() {
-        val lastLessonSync = versionStore.getLastLessonSync()
-        val lessons = studentFirestoreSource.getUpdatedLessons(lastLessonSync)
-        Log.d(TAG, "syncLessons: lessons: ${lessons.size}")
-        if (lessons.isNotEmpty()) {
-            val entities = lessons.map {
-                it.toEntity()
-            }
+        try {
+            val lastLessonSync = versionStore.getLastLessonSync()
+            val lessons = studentFirestoreSource.getUpdatedLessons(lastLessonSync)
+            Log.d(TAG, "syncLessons: lessons: ${lessons.size}")
+            if (lessons.isNotEmpty()) {
+                val existingPlaylistIds = playlistDao.getAllIds().toSet()
+                
+                // Filter out lessons whose playlist doesn't exist locally to avoid FK constraint failure
+                val entities = lessons
+                    .map { it.toEntity() }
+                    .filter { it.playlistId in existingPlaylistIds }
 
-            lessonDao.upsertAll(entities)
-            versionStore.setLastLessonSync(
-                entities.maxOf { it.updatedAt }
-            )
-            entities.forEach {
-                ensureLessonFilesDownloaded(it.id)
+                if (entities.isNotEmpty()) {
+                    lessonDao.upsertAll(entities)
+                    versionStore.setLastLessonSync(
+                        entities.maxOf { it.updatedAt }
+                    )
+                    entities.forEach {
+                        ensureLessonFilesDownloaded(it.id)
+                    }
+                }
+                
+                if (entities.size < lessons.size) {
+                    Log.w(TAG, "syncLessons: Ignored ${lessons.size - entities.size} lessons due to missing playlists.")
+                }
             }
-
+        } catch (e: Exception) {
+            Log.e(TAG, "syncLessons failed", e)
         }
     }
 
@@ -172,14 +201,18 @@ class StudyRepositoryImpl @Inject constructor(
 
 
     override suspend fun ensureLessonFilesDownloaded(id: String) {
-        val entity = lessonDao.getLessonById(id).first() ?: return
+        try {
+            val entity = lessonDao.getLessonById(id).first() ?: return
 
 
-        // We let fileDownloader check if the specific version for THIS URL exists.
-        val audioFilePath = fileDownloader.downloadAudio(entity.audioRemoteUrl, entity.id)
-        val pdfFilePath = fileDownloader.downloadPdf(entity.pdfRemoteUrl, entity.id)
+            // We let fileDownloader check if the specific version for THIS URL exists.
+            val audioFilePath = fileDownloader.downloadAudio(entity.audioRemoteUrl, entity.id)
+            val pdfFilePath = fileDownloader.downloadPdf(entity.pdfRemoteUrl, entity.id)
 
-        lessonDao.updateLessonFiles(id, audioFilePath, pdfFilePath)
+            lessonDao.updateLessonFiles(id, audioFilePath, pdfFilePath)
+        } catch (e: Exception) {
+            Log.e(TAG, "ensureLessonFilesDownloaded failed for $id", e)
+        }
     }
 
 

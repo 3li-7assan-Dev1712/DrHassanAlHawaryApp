@@ -1,19 +1,16 @@
 package com.example.data_local
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.data_local.model.LessonEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface LessonDao {
 
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun upsertAll(lessons: List<LessonEntity>)
-
 
     @Query(
         """
@@ -29,8 +26,6 @@ interface LessonDao {
 
     @Query("SELECT MAX(updatedAt) FROM lessons")
     suspend fun lastUpdatedAt(): Long?
-
-
 
     @Query("UPDATE lessons SET audioFilePath = :audio, pdfFilePath = :pdf WHERE id = :id")
     suspend fun updateLessonFiles(id: String, audio: String?, pdf: String?)

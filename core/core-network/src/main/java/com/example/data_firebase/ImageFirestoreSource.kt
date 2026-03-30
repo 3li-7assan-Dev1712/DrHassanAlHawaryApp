@@ -8,6 +8,7 @@ import com.example.domain.module.Image
 import com.example.domain.module.ImageGroup
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -29,11 +30,42 @@ class ImageFirestoreSource @Inject constructor(
     private val TAG = "ImageFirestoreSource"
     private val imagesCollection = firestore.collection("image_groups")
 
+    private fun DocumentSnapshot.toImageGroupDtoSafe(): ImageGroupDto? {
+        return try {
+            this.toObject<ImageGroupDto>()?.copy(id = this.id)
+        } catch (e: Exception) {
+            Log.w(TAG, "Standard deserialization failed for image group ${this.id}, trying manual mapping", e)
+            try {
+                val publishDate = try {
+                    this.getTimestamp("publishDate")
+                } catch (ex: Exception) {
+                    this.getLong("publishDate")?.let { Timestamp(Date(it)) }
+                }
+                
+                val updatedAt = try {
+                    this.getTimestamp("updatedAt")
+                } catch (ex: Exception) {
+                    this.getLong("updatedAt")?.let { Timestamp(Date(it)) }
+                }
+
+                ImageGroupDto(
+                    isDeleted = this.getBoolean("isDeleted") ?: this.getBoolean("deleted") ?: false,
+                    id = this.id,
+                    title = this.getString("title") ?: "",
+                    previewImageUrl = this.getString("previewImageUrl") ?: "",
+                    publishDate = publishDate,
+                    updatedAt = updatedAt
+                )
+            } catch (ex: Exception) {
+                Log.e(TAG, "Manual mapping failed for image group ${this.id}", ex)
+                null
+            }
+        }
+    }
 
     suspend fun fetchLatestImageGroup(): ImageGroup? {
         try {
             val snapshot = imagesCollection
-                .whereEqualTo("isDeleted", false)
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
@@ -45,13 +77,14 @@ class ImageFirestoreSource @Inject constructor(
             }
 
             val document = snapshot.documents.first()
-            val dto = document.toObject<ImageGroupDto>()
+            val dto = document.toImageGroupDtoSafe()
             return dto?.let {
                 ImageGroup(
                     id = document.id,
                     title = it.title,
                     publishDate = it.publishDate?.toDate() ?: Date(),
-                    previewImageUrl = it.previewImageUrl
+                    previewImageUrl = it.previewImageUrl,
+                    isDeleted = it.isDeleted
                 )
             }
         } catch (e: Exception) {
@@ -88,7 +121,7 @@ class ImageFirestoreSource @Inject constructor(
 
             val now = Timestamp.now()
             val imageGroupDto = ImageGroupDto(
-                id = "", // Document ID will be used
+                id = "",
                 title = title,
                 publishDate = now,
                 updatedAt = now,
@@ -173,13 +206,14 @@ class ImageFirestoreSource @Inject constructor(
             val snapshot = query.get().await()
 
             val imageGroups = snapshot.documents.mapNotNull { document ->
-                val dto = document.toObject<ImageGroupDto>()
+                val dto = document.toImageGroupDtoSafe()
                 dto?.let {
                     ImageGroup(
                         id = document.id,
                         title = it.title,
                         publishDate = it.publishDate?.toDate() ?: Date(),
-                        previewImageUrl = it.previewImageUrl
+                        previewImageUrl = it.previewImageUrl,
+                        isDeleted = it.isDeleted
                     )
                 }
             }
@@ -197,7 +231,7 @@ class ImageFirestoreSource @Inject constructor(
                 .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject<ImageGroupDto>() }
+            snapshot.documents.mapNotNull { it.toImageGroupDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "getUpdatedImageGroups failed: ${e.message}")
             emptyList()
@@ -233,7 +267,7 @@ class ImageFirestoreSource @Inject constructor(
                     }
 
                     if (snapshot != null) {
-                        trySend(snapshot.toObjects(ImageGroupDto::class.java))
+                        trySend(snapshot.documents.mapNotNull { it.toImageGroupDtoSafe() })
                     }
                 }
             awaitClose { listenerRegistration.remove() }

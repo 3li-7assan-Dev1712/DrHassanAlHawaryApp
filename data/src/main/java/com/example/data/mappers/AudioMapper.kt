@@ -26,7 +26,7 @@ fun AudioEntity.toDomainModel(): Audio =
 /**
  * Convert Audio domain to model AudioEntity
  */
-fun Audio.toEntity(updatedAt: Long = System.currentTimeMillis(), isDeleted: Boolean = false): AudioEntity =
+fun Audio.toEntity(updatedAt: Long = System.currentTimeMillis()): AudioEntity =
     AudioEntity(
         id = this.id,
         title = this.title,
@@ -37,7 +37,6 @@ fun Audio.toEntity(updatedAt: Long = System.currentTimeMillis(), isDeleted: Bool
         localFilePath = this.localFilePath,
         lastPlayedTimestamp = this.lastPlayedTimestamp,
         updatedAt = updatedAt,
-        isDeleted = isDeleted,
         isDownloaded = isDownloaded
     )
 
@@ -48,8 +47,7 @@ fun AudioDto.toEntity(): AudioEntity =
         audioUrl = audioUrl,
         durationInMillis = durationInMillis,
         publishDate = publishDate?.toDate()?.time ?: 0L,
-        updatedAt = updatedAt?.toDate()?.time ?: 0L,
-        isDeleted = isDeleted
+        updatedAt = updatedAt?.toDate()?.time ?: 0L
     )
 
 fun AudioDto.toDomainModel(): Audio =

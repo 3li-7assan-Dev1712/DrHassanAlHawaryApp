@@ -9,6 +9,8 @@ import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.QuizDto
 import com.example.data_firebase.model.StudentDto
 import com.example.domain.use_cases.audios.UploadResult
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -18,6 +20,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
@@ -32,6 +35,73 @@ class StudentFirestoreSource @Inject constructor(
     private val playlistsCollection = firestore.collection("playlists")
     private val lessonsCollection = firestore.collection("lessons")
 
+    private fun DocumentSnapshot.toPlaylistDtoSafe(): PlaylistDto? {
+        return try {
+            this.toObject<PlaylistDto>()?.copy(id = this.id)
+        } catch (e: Exception) {
+            Log.w(
+                TAG,
+                "Standard deserialization failed for playlist ${this.id}, trying manual mapping",
+                e
+            )
+            try {
+                val publishDate = try {
+                    this.getTimestamp("publishDate")
+                } catch (ex: Exception) {
+                    this.getLong("publishDate")?.let { Timestamp(Date(it)) }
+                }
+
+                val updatedAt = try {
+                    this.getTimestamp("updatedAt")
+                } catch (ex: Exception) {
+                    this.getLong("updatedAt")?.let { Timestamp(Date(it)) }
+                }
+
+                PlaylistDto(
+                    isDeleted = this.getBoolean("isDeleted") ?: this.getBoolean("deleted") ?: false,
+                    id = this.id,
+                    title = this.getString("title") ?: "",
+                    levelId = this.getString("levelId") ?: "",
+                    order = this.getLong("order")?.toInt() ?: 0,
+                    thumbnailUrl = this.getString("thumbnailUrl") ?: "",
+                    publishDate = publishDate,
+                    updatedAt = updatedAt
+                )
+            } catch (ex: Exception) {
+                Log.e(TAG, "Manual mapping failed for playlist ${this.id}", ex)
+                null
+            }
+        }
+    }
+
+    private fun DocumentSnapshot.toLessonDtoSafe(): LessonDto? {
+        return try {
+            this.toObject<LessonDto>()?.copy(id = this.id)
+        } catch (e: Exception) {
+            Log.w(
+                TAG,
+                "Standard deserialization failed for lesson ${this.id}, trying manual mapping",
+                e
+            )
+            try {
+                LessonDto(
+                    id = this.id,
+                    playlistId = this.getString("playlistId") ?: "",
+                    order = this.getLong("order")?.toInt() ?: 0,
+                    title = this.getString("title") ?: "",
+                    audioUrl = this.getString("audioUrl") ?: "",
+                    duration = this.getLong("duration") ?: 0L,
+                    pdfUrl = this.getString("pdfUrl") ?: "",
+                    publishDate = this.getLong("publishDate") ?: 0L,
+                    updatedAt = this.getLong("updatedAt") ?: 0L,
+                    isDeleted = this.getBoolean("isDeleted") ?: this.getBoolean("deleted") ?: false
+                )
+            } catch (ex: Exception) {
+                Log.e(TAG, "Manual mapping failed for lesson ${this.id}", ex)
+                null
+            }
+        }
+    }
 
     suspend fun storeStudent(studentDto: StudentDto) {
         try {
@@ -117,10 +187,10 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun getUpdatedPlaylists(lastSyncTime: Long): List<PlaylistDto> {
         return try {
             val snapshot = playlistsCollection
-                .whereGreaterThan("updatedAt", lastSyncTime)
+                .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject<PlaylistDto>() }
+            snapshot.documents.mapNotNull { it.toPlaylistDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "getUpdatedPlaylists failed: ${e.message}")
             emptyList()
@@ -131,12 +201,12 @@ class StudentFirestoreSource @Inject constructor(
         return try {
             val snapshot = playlistsCollection
                 .whereEqualTo("levelId", levelId)
-                .whereEqualTo("isDeleted", false)
                 .orderBy("order", Query.Direction.ASCENDING)
                 .get()
                 .await()
-            snapshot.mapNotNull { it.toObject<PlaylistDto>() }
+            snapshot.mapNotNull { it.toPlaylistDtoSafe() }
         } catch (e: Exception) {
+            Log.d(TAG, "getRemotePlaylistForLevel: ${e.message}")
             emptyList()
         }
     }
@@ -145,12 +215,12 @@ class StudentFirestoreSource @Inject constructor(
         return try {
             val snapshot = lessonsCollection
                 .whereEqualTo("playlistId", playlistId)
-                .whereEqualTo("isDeleted", false)
                 .orderBy("order", Query.Direction.ASCENDING)
                 .get()
                 .await()
-            snapshot.mapNotNull { it.toObject<LessonDto>() }
+            snapshot.mapNotNull { it.toLessonDtoSafe() }
         } catch (e: Exception) {
+            Log.d(TAG, "getRemoteLessonsForPlaylist: ${e.message}")
             emptyList()
         }
     }
@@ -158,7 +228,7 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun getRemotePlaylistById(playlistId: String): PlaylistDto? {
         return try {
             val doc = playlistsCollection.document(playlistId).get().await()
-            doc.toObject<PlaylistDto>()
+            doc.toPlaylistDtoSafe()
         } catch (e: Exception) {
             null
         }
@@ -167,7 +237,7 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun getRemoteLessonById(lessonId: String): LessonDto? {
         return try {
             val doc = lessonsCollection.document(lessonId).get().await()
-            doc.toObject<LessonDto>()
+            doc.toLessonDtoSafe()
         } catch (e: Exception) {
             null
         }
@@ -182,7 +252,7 @@ class StudentFirestoreSource @Inject constructor(
             val downloadUrl = imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
 
             val newDocRef = playlistsCollection.document()
-            val now = System.currentTimeMillis()
+            val now = Timestamp.now()
             val finalDto = playlistDto.copy(
                 id = newDocRef.id,
                 thumbnailUrl = downloadUrl,
@@ -206,23 +276,25 @@ class StudentFirestoreSource @Inject constructor(
         try {
             val audioUri = lessonDto.audioUrl.toUri()
             val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
-            val audioDownloadUrl = audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
-            
+            val audioDownloadUrl =
+                audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
+
             trySend(UploadResult.Progress(50))
 
             val pdfUri = lessonDto.pdfUrl.toUri()
             val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
-            val pdfDownloadUrl = pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
+            val pdfDownloadUrl =
+                pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
 
             val newDocRef = lessonsCollection.document()
-            val now = System.currentTimeMillis()
+            val now = Timestamp.now()
             val finalDto = lessonDto.copy(
                 id = newDocRef.id,
                 playlistId = playlistId,
                 audioUrl = audioDownloadUrl,
                 pdfUrl = pdfDownloadUrl,
-                publishDate = now,
-                updatedAt = now,
+                publishDate = now.toDate().time,
+                updatedAt = now.toDate().time,
                 isDeleted = false
             )
             newDocRef.set(finalDto).await()
@@ -248,17 +320,21 @@ class StudentFirestoreSource @Inject constructor(
             newTitle?.let { updates["title"] = it }
             newLevelId?.let { updates["levelId"] = it }
             newOrder?.let { updates["order"] = it }
-            
-            if (!newThumbnailLocalOrRemote.isNullOrBlank() && !newThumbnailLocalOrRemote.startsWith("http")) {
+
+            if (!newThumbnailLocalOrRemote.isNullOrBlank() && !newThumbnailLocalOrRemote.startsWith(
+                    "http"
+                )
+            ) {
                 val uri = newThumbnailLocalOrRemote.toUri()
-                val imageRef = storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
+                val imageRef =
+                    storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
                 imageRef.putFile(uri).await()
                 updates["thumbnailUrl"] = imageRef.downloadUrl.await().toString()
             } else if (!newThumbnailLocalOrRemote.isNullOrBlank()) {
                 updates["thumbnailUrl"] = newThumbnailLocalOrRemote
             }
 
-            updates["updatedAt"] = System.currentTimeMillis()
+            updates["updatedAt"] = Timestamp.now()
             playlistsCollection.document(playlistId).update(updates).await()
             Result.success("Playlist updated")
         } catch (e: Exception) {
@@ -304,7 +380,7 @@ class StudentFirestoreSource @Inject constructor(
                 .whereGreaterThan("updatedAt", lastSyncTime)
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject<LessonDto>() }
+            snapshot.documents.mapNotNull { it.toLessonDtoSafe() }
         } catch (e: Exception) {
             emptyList()
         }
@@ -329,7 +405,8 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun getRemoteMotivationalMessages(): List<String> {
         return try {
-            val doc = firestore.collection("motivational_messages").document("daily_messages").get().await()
+            val doc = firestore.collection("motivational_messages").document("daily_messages").get()
+                .await()
             doc.get("messages") as? List<String> ?: emptyList()
         } catch (e: Exception) {
             emptyList()

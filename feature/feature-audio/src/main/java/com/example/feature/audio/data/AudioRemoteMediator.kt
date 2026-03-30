@@ -34,7 +34,7 @@ class AudioRemoteMediator @Inject constructor(
         state: PagingState<Int, AudioEntity>
     ): MediatorResult {
         return try {
-            val lastPublishDate = when (loadType) {
+            val initialPublishDate = when (loadType) {
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
@@ -51,48 +51,65 @@ class AudioRemoteMediator @Inject constructor(
                 }
             }
 
-            val audiosFromServer = firestoreSource.fetchAudioPage(
-                startAfterPublishDate = lastPublishDate,
-                limit = state.config.pageSize
-            )
+            var currentLastPublishDate = initialPublishDate
+            var lastResultEndOfPaginationReached = false
 
-            val endOfPaginationReached = audiosFromServer.size < state.config.pageSize
-            
-            appDatabase.withTransaction {
-                // Removed clearAll() to support incremental updates and offline-first
-                
-                val serverAudioIds = audiosFromServer.map { it.id }
-                val localAudiosMap = audioDao.getAudiosByIds(serverAudioIds).associateBy { it.id }
+            while (true) {
+                val audiosFromServer = firestoreSource.fetchAudioPage(
+                    startAfterPublishDate = currentLastPublishDate,
+                    limit = state.config.pageSize
+                )
 
-                val mergedEntities = audiosFromServer.map { dto ->
-                    val localAudio = localAudiosMap[dto.id]
+                lastResultEndOfPaginationReached = audiosFromServer.size < state.config.pageSize
 
-                    val serverEntity = AudioEntity(
-                        id = dto.id,
-                        title = dto.title,
-                        audioUrl = dto.audioUrl,
-                        durationInMillis = dto.durationInMillis,
-                        publishDate = dto.publishDate?.toDate()?.time ?: 0L,
-                        updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
-                        isDeleted = dto.isDeleted
-                    )
+                if (audiosFromServer.isEmpty()) break
 
-                    if (localAudio != null) {
-                        serverEntity.copy(
-                            isFavorite = localAudio.isFavorite,
-                            lastPlayedTimestamp = localAudio.lastPlayedTimestamp,
-                            localFilePath = localAudio.localFilePath,
-                            isDownloaded = localAudio.isDownloaded
-                        )
-                    } else {
-                        serverEntity
+                val (deletedItems, activeItems) = audiosFromServer.partition { it.isDeleted }
+
+                appDatabase.withTransaction {
+                    deletedItems.forEach { dto ->
+                        audioDao.deleteById(dto.id)
+                    }
+
+                    if (activeItems.isNotEmpty()) {
+                        val serverAudioIds = activeItems.map { it.id }
+                        val localAudiosMap = audioDao.getAudiosByIds(serverAudioIds).associateBy { it.id }
+
+                        val mergedEntities = activeItems.map { dto ->
+                            val localAudio = localAudiosMap[dto.id]
+
+                            val serverEntity = AudioEntity(
+                                id = dto.id,
+                                title = dto.title,
+                                audioUrl = dto.audioUrl,
+                                durationInMillis = dto.durationInMillis,
+                                publishDate = dto.publishDate?.toDate()?.time ?: 0L,
+                                updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                                isDeleted = dto.isDeleted
+                            )
+
+                            if (localAudio != null) {
+                                serverEntity.copy(
+                                    isFavorite = localAudio.isFavorite,
+                                    lastPlayedTimestamp = localAudio.lastPlayedTimestamp,
+                                    localFilePath = localAudio.localFilePath,
+                                    isDownloaded = localAudio.isDownloaded
+                                )
+                            } else {
+                                serverEntity
+                            }
+                        }
+                        audioDao.upsertAll(mergedEntities)
                     }
                 }
 
-                audioDao.upsertAll(mergedEntities)
+                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                    break
+                }
+                currentLastPublishDate = audiosFromServer.last().publishDate?.toDate()?.time
             }
 
-            MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+            MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)
 
         } catch (e: IOException) {
             MediatorResult.Error(e)

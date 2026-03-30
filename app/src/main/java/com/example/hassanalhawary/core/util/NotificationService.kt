@@ -34,18 +34,21 @@ class NotificationService : FirebaseMessagingService() {
     }
 
     private fun showNotification(title: String, body: String) {
-        val channelId = "general"
+        val channelId = "general_high"
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val large = BitmapFactory.decodeResource(resources, com.example.core.ui.R.drawable.logo)
-        // Create channel for Android 8+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
                 "General",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                enableLights(true)
+                enableVibration(true)
+            }
             manager.createNotificationChannel(channel)
         }
 
@@ -54,6 +57,8 @@ class NotificationService : FirebaseMessagingService() {
             .setLargeIcon(large)
             .setContentTitle(title)
             .setContentText(body)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .build()
 

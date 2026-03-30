@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.data.mappers.toDomainModel
 import com.example.data_firebase.VideoFirestoreSource
 import com.example.domain.module.Video
 import com.example.domain.repository.VideosRepository
@@ -29,5 +30,9 @@ class VideoRepositoryImpl @Inject constructor(
 
     override suspend fun getAllRemoteVideos(): List<Video> {
         return videoFirestoreSource.fetchVideoPage(null, 100)
+            .filter { !it.isDeleted }
+            .map {
+                it.toDomainModel()
+            }
     }
 }

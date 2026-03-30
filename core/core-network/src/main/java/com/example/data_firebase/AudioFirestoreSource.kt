@@ -6,6 +6,7 @@ import com.example.data_firebase.model.AudioDto
 import com.example.domain.module.Audio
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -24,16 +25,49 @@ class AudioFirestoreSource @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val storage: FirebaseStorage
 ) {
+
     private val TAG = "AudioFirestoreSource"
     private val audiosCollection = firestore.collection("audios")
 
+    private fun DocumentSnapshot.toAudioDtoSafe(): AudioDto? {
+        return try {
+            this.toObject<AudioDto>()?.copy(id = this.id)
+        } catch (e: Exception) {
+            Log.w(TAG, "Standard deserialization failed for ${this.id}, trying manual mapping", e)
+            try {
+                val publishDate = try {
+                    this.getTimestamp("publishDate")
+                } catch (ex: Exception) {
+                    this.getLong("publishDate")?.let { Timestamp(Date(it)) }
+                }
+                
+                val updatedAt = try {
+                    this.getTimestamp("updatedAt")
+                } catch (ex: Exception) {
+                    this.getLong("updatedAt")?.let { Timestamp(Date(it)) }
+                }
+
+                AudioDto(
+                    isDeleted = this.getBoolean("isDeleted") ?: this.getBoolean("deleted") ?: false,
+                    id = this.id,
+                    title = this.getString("title") ?: "",
+                    audioUrl = this.getString("audioUrl") ?: "",
+                    durationInMillis = this.getLong("durationInMillis") ?: 0L,
+                    publishDate = publishDate,
+                    updatedAt = updatedAt
+                )
+            } catch (ex: Exception) {
+                Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
+                null
+            }
+        }
+    }
 
     /**
      * Fetches a paginated list of audios from Firestore.
      */
     suspend fun fetchAudioPage(startAfterPublishDate: Long?, limit: Int): List<AudioDto> {
         try {
-            // Removed isDeleted filter to allow client to sync deletions
             var query = audiosCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
 
@@ -43,7 +77,7 @@ class AudioFirestoreSource @Inject constructor(
 
             val snapshot = query.limit(limit.toLong()).get().await()
 
-            return snapshot.documents.mapNotNull { it.toObject<AudioDto>() }
+            return snapshot.documents.mapNotNull { it.toAudioDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "fetchAudioPage failed: ${e.message}")
             return emptyList()
@@ -56,7 +90,7 @@ class AudioFirestoreSource @Inject constructor(
                 .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject<AudioDto>() }
+            snapshot.documents.mapNotNull { it.toAudioDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "getUpdatedAudios failed: ${e.message}")
             emptyList()
@@ -66,7 +100,7 @@ class AudioFirestoreSource @Inject constructor(
     suspend fun getAudioById(audioId: String): Audio? {
         return try {
             val doc = audiosCollection.document(audioId).get().await()
-            val dto = doc.toObject<AudioDto>()
+            val dto = doc.toAudioDtoSafe()
             dto?.let {
                 Audio(
                     id = doc.id,
@@ -109,14 +143,14 @@ class AudioFirestoreSource @Inject constructor(
         }.addOnSuccessListener {
             it.storage.downloadUrl.addOnSuccessListener { downloadUri ->
                 val now = Timestamp.now()
-                val audioDto = mapOf(
-                    "id" to "", // Set later
-                    "title" to title,
-                    "audioUrl" to downloadUri.toString(),
-                    "publishDate" to now,
-                    "durationInMillis" to durationInMillis,
-                    "updatedAt" to now,
-                    "isDeleted" to false
+                val audioDto = AudioDto(
+                    id = "",
+                    title = title,
+                    audioUrl = downloadUri.toString(),
+                    durationInMillis = durationInMillis,
+                    publishDate = now,
+                    updatedAt = now,
+                    isDeleted = false
                 )
                 audiosCollection.add(audioDto)
                     .addOnSuccessListener { docRef ->
@@ -234,7 +268,7 @@ class AudioFirestoreSource @Inject constructor(
                     }
 
                     if (snapshot != null) {
-                        trySend(snapshot.toObjects(AudioDto::class.java))
+                        trySend(snapshot.documents.mapNotNull { it.toAudioDtoSafe() })
                     }
                 }
             awaitClose { listenerRegistration.remove() }

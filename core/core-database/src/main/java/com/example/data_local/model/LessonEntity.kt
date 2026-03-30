@@ -11,7 +11,9 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = PlaylistEntity::class,
             parentColumns = ["id"],
-            childColumns = ["playlistId"]
+            childColumns = ["playlistId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [Index("playlistId")]

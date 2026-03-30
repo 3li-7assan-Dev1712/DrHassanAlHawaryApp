@@ -75,7 +75,9 @@ dependencies {
     implementation(libs.media3.session)
 
 
-
+    // Firebase (Required for Timestamp)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore.ktx)
 
 
 

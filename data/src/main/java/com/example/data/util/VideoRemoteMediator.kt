@@ -1,7 +1,6 @@
 package com.example.data.util
 
 
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -29,14 +28,11 @@ class VideoRemoteMediator @Inject constructor(
 
 
     override suspend fun initialize(): InitializeAction {
-        /*return if (videoDao.count() > 0) {
-            Log.d(TAG, "DB has data. Skipping remote refresh on launch.")
+        return if (videoDao.count() > 0) {
             InitializeAction.SKIP_INITIAL_REFRESH
         } else {
-            Log.d(TAG, "DB is empty. Launching remote refresh on launch.")
             InitializeAction.LAUNCH_INITIAL_REFRESH
-        }*/
-        return InitializeAction.LAUNCH_INITIAL_REFRESH
+        }
     }
 
     override suspend fun load(
@@ -44,48 +40,56 @@ class VideoRemoteMediator @Inject constructor(
         state: PagingState<Int, VideoEntity>
     ): MediatorResult {
         return try {
-            val lastItemPublishDate = when (loadType) {
+            val initialPublishDate = when (loadType) {
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    // Logic to get the last item for pagination key
                     val lastLocalItem = videoDao.getLastVideo()
 
-                    // Handle Offline/Flag Logic
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
                         if (lastLocalItem == null) {
-                            Log.d(TAG, "Offline/Flag True: Local data exhausted.")
                             return MediatorResult.Success(endOfPaginationReached = true)
                         } else {
-                            Log.d(TAG, "Offline/Flag True: Letting Room continue paging.")
                             return MediatorResult.Success(endOfPaginationReached = false)
                         }
                     }
-
-                    // Online: return the publishDate of the last item to start fetching after it
                     lastLocalItem?.publishDate
                 }
             }
 
-            // Fetch from Firebase
-            val videosFromServer = videoFirestoreSource.fetchVideoPage(
-                startAfterPublishDate = lastItemPublishDate,
-                limit = state.config.pageSize
-            )
+            var currentLastPublishDate = initialPublishDate
+            var lastResultEndOfPaginationReached = false
 
-            val endOfPaginationReached = videosFromServer.size < state.config.pageSize
+            while (true) {
+                val videosFromServer = videoFirestoreSource.fetchVideoPage(
+                    startAfterPublishDate = currentLastPublishDate,
+                    limit = state.config.pageSize
+                )
 
-            appDatabase.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    videoDao.clearAll()
+                lastResultEndOfPaginationReached = videosFromServer.size < state.config.pageSize
+
+                if (videosFromServer.isEmpty()) break
+
+                val (deletedItems, activeItems) = videosFromServer.partition { it.isDeleted }
+
+                appDatabase.withTransaction {
+                    deletedItems.forEach { 
+                        videoDao.deleteById(it.id)
+                    }
+
+                    if (activeItems.isNotEmpty()) {
+                        val entities = activeItems.map { it.toEntity() }
+                        videoDao.upsertAll(entities)
+                    }
                 }
 
-                val entities = videosFromServer.map { it.toEntity() }
-
-                videoDao.upsertAll(entities)
+                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                    break
+                }
+                currentLastPublishDate = videosFromServer.last().publishDate?.toDate()?.time
             }
 
-            MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+            MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)
 
         } catch (e: IOException) {
             MediatorResult.Error(e)

@@ -17,8 +17,7 @@ fun LessonDto.toEntity(): LessonEntity = LessonEntity(
     pdfRemoteUrl = pdfUrl,
     pdfFilePath = null,
     publishDate = publishDate,
-    updatedAt = updatedAt,
-    isDeleted = isDeleted
+    updatedAt = updatedAt
 )
 
 fun LessonDto.toDomain(): Lesson = Lesson(

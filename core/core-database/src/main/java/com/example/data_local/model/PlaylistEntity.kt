@@ -11,7 +11,9 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = LevelEntity::class,
             parentColumns = ["id"],
-            childColumns = ["levelId"]
+            childColumns = ["levelId"],
+            onDelete = ForeignKey.CASCADE,
+            onUpdate = ForeignKey.CASCADE
         )
     ],
     indices = [Index("levelId")]

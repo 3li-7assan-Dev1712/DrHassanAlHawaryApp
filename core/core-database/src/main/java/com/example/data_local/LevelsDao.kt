@@ -9,11 +9,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LevelsDao {
 
-
-
     @Upsert
     suspend fun storeLevels(levels: List<LevelEntity>)
-
 
     @Query("SELECT * FROM levels ORDER BY `order`")
     fun getLevels(): Flow<List<LevelEntity>?>
@@ -21,6 +18,6 @@ interface LevelsDao {
     @Query("SELECT COUNT(*) FROM levels")
     suspend fun count(): Int
 
-
-
+    @Query("SELECT id FROM levels")
+    suspend fun getAllIds(): List<String>
 }

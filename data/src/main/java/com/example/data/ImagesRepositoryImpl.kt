@@ -21,7 +21,19 @@ class ImagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllRemoteImageGroups(): List<ImageGroup> {
+        // fetchImageGroupsPage now returns DTOs via toImageGroupDtoSafe
+        // We filter out deleted items and map to domain
         return imageFirestoreSource.fetchImageGroupsPage(null, 100).first
+            .filter { !it.isDeleted }
+            .map { dto ->
+                ImageGroup(
+                    id = dto.id,
+                    title = dto.title,
+                    publishDate = dto.publishDate,
+                    previewImageUrl = dto.previewImageUrl,
+                    isDeleted = dto.isDeleted
+                )
+            }
     }
 
     override suspend fun deleteImageGroup(groupId: String): Result<Unit> {
