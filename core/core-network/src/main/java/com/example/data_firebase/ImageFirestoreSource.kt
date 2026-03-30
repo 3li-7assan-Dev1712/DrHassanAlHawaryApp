@@ -186,5 +186,34 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun deleteImageGroup(groupId: String): Result<Unit> {
+        return try {
+            // 1. Get all images in the group to get their URLs for deletion in Storage
+            val images = fetchImagesForGroup(groupId)
+            
+            // 2. Delete images from subcollection
+            val subcollection = imagesCollection.document(groupId).collection("images")
+            val subDocs = subcollection.get().await()
+            subDocs.forEach { it.reference.delete().await() }
+            
+            // 3. Delete the main document
+            imagesCollection.document(groupId).delete().await()
+            
+            // 4. Delete files from Storage
+            images.forEach { image ->
+                try {
+                    storage.getReferenceFromUrl(image.imageUrl).delete().await()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to delete image from storage: ${image.imageUrl}", e)
+                }
+            }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteImageGroup failed", e)
+            Result.failure(e)
+        }
+    }
+
 
 }

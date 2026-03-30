@@ -56,6 +56,7 @@ import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
 import com.example.admin.ui.upload_article_screen.ArticlesListScreen
 import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
 import com.example.admin.ui.upload_audio_screen.AudiosListScreen
+import com.example.admin.ui.upload_images_screen.ImageGroupsListScreen
 import com.example.admin.ui.upload_images_screen.UploadImagesScreen
 import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
 import com.example.admin.ui.upload_quiz.UploadQuizScreen
@@ -119,9 +120,7 @@ class MainActivity : ComponentActivity() {
                         else
                             stringResource(R.string.edit_lesson)
                     }
-                    currentRoute == "profile_screen" -> stringResource(R.string.profile)
-                    currentRoute == "login_screen" -> stringResource(R.string.login)
-                    currentRoute == "register_screen" -> stringResource(R.string.register)
+                    currentRoute == "images_list" -> stringResource(R.string.images)
                     currentRoute == "images_upload" -> stringResource(R.string.upload_images)
                     currentRoute == "not_allowed" -> stringResource(R.string.access_denied)
                     currentRoute == "super_admin_panel" -> stringResource(R.string.super_admin_panel)
@@ -241,6 +240,9 @@ class MainActivity : ComponentActivity() {
                                     "videos_upload" -> {
                                         navController.navigate("videos_list")
                                     }
+                                    "images_upload" -> {
+                                        navController.navigate("images_list")
+                                    }
                                     else -> {
                                         navController.navigate(route)
                                     }
@@ -288,9 +290,9 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) {
-                            AudioUploadScreen {
-                                navController.popBackStack()
-                            }
+                            AudioUploadScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
                         }
                         composable("videos_list") {
                             VideosListScreen(
@@ -309,14 +311,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) {
-                            UploadVideoScreen {
-                                navController.popBackStack()
-                            }
+                            UploadVideoScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
                         }
                         composable("videos_upload") {
-                            UploadVideoScreen {
-                                navController.popBackStack()
-                            }
+                            UploadVideoScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable("images_list") {
+                            ImageGroupsListScreen(
+                                onAddGroup = { navController.navigate("images_upload") }
+                            )
                         }
                         composable("images_upload") {
                             UploadImagesScreen()
