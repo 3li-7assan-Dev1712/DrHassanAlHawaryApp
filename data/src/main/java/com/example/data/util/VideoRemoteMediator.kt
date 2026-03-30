@@ -44,7 +44,7 @@ class VideoRemoteMediator @Inject constructor(
         state: PagingState<Int, VideoEntity>
     ): MediatorResult {
         return try {
-            val lastItemKey = when (loadType) {
+            val lastItemPublishDate = when (loadType) {
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
@@ -62,14 +62,14 @@ class VideoRemoteMediator @Inject constructor(
                         }
                     }
 
-                    // Online: return the ID of the last item to start fetching after it
-                    lastLocalItem?.id
+                    // Online: return the publishDate of the last item to start fetching after it
+                    lastLocalItem?.publishDate
                 }
             }
 
             // Fetch from Firebase
             val videosFromServer = videoFirestoreSource.fetchVideoPage(
-                startAfterKey = lastItemKey,
+                startAfterPublishDate = lastItemPublishDate,
                 limit = state.config.pageSize
             )
 

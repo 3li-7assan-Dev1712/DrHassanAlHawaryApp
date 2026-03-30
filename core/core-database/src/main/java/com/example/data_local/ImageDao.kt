@@ -15,35 +15,31 @@ interface ImageDao {
     @Upsert
     suspend fun upsertImageGroups(imageGroups: List<ImageGroupEntity>)
 
-    /**
-     * Retrieves a PagingSource of all image groups from the database, ordered by title.
-     * The Paging library will use this to asynchronously load pages of data.
-     */
-    @Query("SELECT * FROM image_groups ORDER BY publishDate DESC")
+    @Query("SELECT * FROM image_groups WHERE isDeleted = 0 ORDER BY publishDate DESC")
     fun pagingSource(): PagingSource<Int, ImageGroupEntity>
 
     @Query("DELETE FROM image_groups")
     suspend fun clearAll()
 
-
-/*    @Query("SELECT * FROM image_groups ORDER BY publishDate DESC LIMIT 5")
-    fun getLatestImages(): Flow<List<ImageEntity>>*/
+    @Query("DELETE FROM image_groups WHERE id = :groupId")
+    suspend fun deleteById(groupId: String)
 
     @Upsert
     suspend fun upsertImages(images: List<ImageEntity>)
 
-    @Query("SELECT COUNT(*) FROM image_groups")
+    @Query("SELECT COUNT(*) FROM image_groups WHERE isDeleted = 0")
     suspend fun count(): Int
 
     @Transaction
-    @Query("SELECT * FROM image_groups WHERE id = :groupId")
+    @Query("SELECT * FROM image_groups WHERE id = :groupId AND isDeleted = 0")
     suspend fun getImageGroupWithImages(groupId: String): ImageGroupWithImages?
 
     @Transaction
-    @Query("SELECT * FROM image_groups ORDER BY publishDate DESC LIMIT 1")
-    fun getLastImageGroup(): Flow<ImageGroupWithImages>
+    @Query("SELECT * FROM image_groups WHERE isDeleted = 0 ORDER BY publishDate DESC LIMIT 1")
+    fun getLastImageGroup(): Flow<ImageGroupWithImages?>
+
     @Transaction
-    @Query("SELECT * FROM image_groups WHERE id = :groupId")
+    @Query("SELECT * FROM image_groups WHERE id = :groupId AND isDeleted = 0")
     fun getObservableGroupWithImages(groupId: String): Flow<ImageGroupWithImages?>
 
 }

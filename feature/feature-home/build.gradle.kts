@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -73,7 +72,7 @@ dependencies {
     // coil
     implementation(libs.coil.compose)
 
-
-
-
+    // Firebase (Required for Timestamp)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore.ktx)
 }

@@ -1,15 +1,19 @@
 package com.example.data_firebase.model
 
-import java.util.Date
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
 
 /**
  * Data Transfer Object (DTO) for an article stored in Firestore.
- * This class exactly matches the structure of the documents in the 'articles' collection.
- * It prevents crashes if the domain 'Article' model changes.
  */
 data class ArticleDto(
     val id: String = "",
     val title: String = "",
     val content: String = "",
-    val publishDate: Date = Date()
+    val publishDate: Timestamp? = null,
+    val updatedAt: Timestamp? = null,
+
+    @get:PropertyName("isDeleted")
+    @set:PropertyName("isDeleted")
+    var isDeleted: Boolean = false
 )

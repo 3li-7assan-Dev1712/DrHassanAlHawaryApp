@@ -26,5 +26,7 @@ data class LessonEntity(
     val duration: Long,
     val pdfRemoteUrl: String,
     val pdfFilePath: String?,
-    val updatedAt: Long
+    val publishDate: Long,
+    val updatedAt: Long,
+    val isDeleted: Boolean = false
 )

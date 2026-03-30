@@ -53,7 +53,7 @@ class AudioRemoteMediator @Inject constructor(
 
 
             //  Determine the key of the last item to start fetching from.
-            val lastItemKey = when (loadType) {
+            val lastItemPublishDate = when (loadType) {
                 LoadType.REFRESH -> {
                     // For a refresh, we start from the beginning. No key needed.
                     null
@@ -84,7 +84,7 @@ class AudioRemoteMediator @Inject constructor(
                         }
                     }
 
-                    lastLocalItem?.id
+                    lastLocalItem?.publishDate
 
                 }
             }
@@ -92,7 +92,7 @@ class AudioRemoteMediator @Inject constructor(
 
             //  Fetch a page of audios from Firebase Realtime Database.
             val audiosFromServer = audioFirestoreSource.fetchAudioPage(
-                startAfterKey = lastItemKey,
+                startAfterPublishDate = lastItemPublishDate,
                 limit = state.config.pageSize
             )
 

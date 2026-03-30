@@ -7,6 +7,7 @@ import com.example.data_firebase.model.ImageGroupDto
 import com.example.domain.module.Image
 import com.example.domain.module.ImageGroup
 import com.example.domain.use_cases.audios.UploadResult
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -32,6 +33,7 @@ class ImageFirestoreSource @Inject constructor(
     suspend fun fetchLatestImageGroup(): ImageGroup? {
         try {
             val snapshot = imagesCollection
+                .whereEqualTo("isDeleted", false)
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
@@ -48,7 +50,7 @@ class ImageFirestoreSource @Inject constructor(
                 ImageGroup(
                     id = document.id,
                     title = it.title,
-                    publishDate = Date(it.publishDate),
+                    publishDate = it.publishDate?.toDate() ?: Date(),
                     previewImageUrl = it.previewImageUrl
                 )
             }
@@ -84,15 +86,19 @@ class ImageFirestoreSource @Inject constructor(
                 close(); return@callbackFlow
             }
 
+            val now = Timestamp.now()
             val imageGroupDto = ImageGroupDto(
+                id = "", // Document ID will be used
                 title = title,
-                publishDate = System.currentTimeMillis(),
+                publishDate = now,
+                updatedAt = now,
+                isDeleted = false,
                 previewImageUrl = uploadedImageUrls.first()
             )
 
             // Add the main group doc
             val groupDocRef = firestore.collection("image_groups").document()
-            groupDocRef.set(imageGroupDto).await()
+            groupDocRef.set(imageGroupDto.copy(id = groupDocRef.id)).await()
 
             // Add the images to a subcollection
             val imagesSubCollection = groupDocRef.collection("images")
@@ -152,7 +158,7 @@ class ImageFirestoreSource @Inject constructor(
 
 
     suspend fun fetchImageGroupsPage(
-        startAfterKey: String?,
+        startAfterPublishDate: Long?,
         limit: Int
     ): Pair<List<ImageGroup>, Boolean> {
         return try {
@@ -160,9 +166,8 @@ class ImageFirestoreSource @Inject constructor(
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(limit.toLong())
 
-            if (startAfterKey != null) {
-                val lastVisibleDoc = imagesCollection.document(startAfterKey).get().await()
-                query = query.startAfter(lastVisibleDoc)
+            if (startAfterPublishDate != null) {
+                query = query.startAfter(Timestamp(Date(startAfterPublishDate)))
             }
 
             val snapshot = query.get().await()
@@ -173,7 +178,7 @@ class ImageFirestoreSource @Inject constructor(
                     ImageGroup(
                         id = document.id,
                         title = it.title,
-                        publishDate = Date(it.publishDate),
+                        publishDate = it.publishDate?.toDate() ?: Date(),
                         previewImageUrl = it.previewImageUrl
                     )
                 }
@@ -186,28 +191,28 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun getUpdatedImageGroups(lastSyncTime: Long): List<ImageGroupDto> {
+        return try {
+            val snapshot = imagesCollection
+                .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject<ImageGroupDto>() }
+        } catch (e: Exception) {
+            Log.e(TAG, "getUpdatedImageGroups failed: ${e.message}")
+            emptyList()
+        }
+    }
+
     suspend fun deleteImageGroup(groupId: String): Result<Unit> {
         return try {
-            // 1. Get all images in the group to get their URLs for deletion in Storage
-            val images = fetchImagesForGroup(groupId)
-            
-            // 2. Delete images from subcollection
-            val subcollection = imagesCollection.document(groupId).collection("images")
-            val subDocs = subcollection.get().await()
-            subDocs.forEach { it.reference.delete().await() }
-            
-            // 3. Delete the main document
-            imagesCollection.document(groupId).delete().await()
-            
-            // 4. Delete files from Storage
-            images.forEach { image ->
-                try {
-                    storage.getReferenceFromUrl(image.imageUrl).delete().await()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to delete image from storage: ${image.imageUrl}", e)
-                }
-            }
-            
+            val now = Timestamp.now()
+            imagesCollection.document(groupId).update(
+                mapOf(
+                    "isDeleted" to true,
+                    "updatedAt" to now
+                )
+            ).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "deleteImageGroup failed", e)
@@ -215,5 +220,23 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
+    fun syncImageGroupsDbWithServer(): Flow<List<ImageGroupDto>> {
+        return callbackFlow {
+            val listenerRegistration = imagesCollection
+                .orderBy("publishDate", Query.Direction.DESCENDING)
+                .limit(20)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.e(TAG, "Listen failed: ${error.message}", error)
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
 
+                    if (snapshot != null) {
+                        trySend(snapshot.toObjects(ImageGroupDto::class.java))
+                    }
+                }
+            awaitClose { listenerRegistration.remove() }
+        }
+    }
 }

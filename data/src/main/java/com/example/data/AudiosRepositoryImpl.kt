@@ -73,6 +73,6 @@ class AudiosRepositoryImpl
     }
 
     override suspend fun getAllRemoteAudios(): List<Audio> {
-        return audioFirestoreSource.fetchAudioPage(null, 100)
+        return audioFirestoreSource.fetchAudioPage(null, 100).map { it.toDomainModel() }
     }
 }

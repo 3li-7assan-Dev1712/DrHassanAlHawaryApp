@@ -1,7 +1,5 @@
 package com.example.feature.video.data
 
-
-import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
@@ -26,15 +24,10 @@ class VideoRemoteMediator @Inject constructor(
     private val videoDao = appDatabase.videoDao()
     private val TAG = "VideoRemoteMediator"
 
-
     override suspend fun initialize(): InitializeAction {
-        return if (videoDao.count() > 0) {
-            Log.d(TAG, "DB has data. Skipping remote refresh on launch.")
-            InitializeAction.SKIP_INITIAL_REFRESH
-        } else {
-            Log.d(TAG, "DB is empty. Launching remote refresh on launch.")
-            InitializeAction.LAUNCH_INITIAL_REFRESH
-        }
+        // LAUNCH_INITIAL_REFRESH ensures we check for new content on every app session.
+        // Paging 3 will display local Room data while the refresh is happening.
+        return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
     override suspend fun load(
@@ -42,52 +35,45 @@ class VideoRemoteMediator @Inject constructor(
         state: PagingState<Int, VideoEntity>
     ): MediatorResult {
         return try {
-            val lastItemKey = when (loadType) {
+            val lastPublishDate = when (loadType) {
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    // Logic to get the last item for pagination key
-                    val lastLocalItem = videoDao.getLastVideo()
-
-                    // Handle Offline/Flag Logic
+                    val lastItem = state.lastItemOrNull()
+                    
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        if (lastLocalItem == null) {
-                            Log.d(TAG, "Offline/Flag True: Local data exhausted.")
+                        if (lastItem == null) {
                             return MediatorResult.Success(endOfPaginationReached = true)
                         } else {
-                            Log.d(TAG, "Offline/Flag True: Letting Room continue paging.")
                             return MediatorResult.Success(endOfPaginationReached = false)
                         }
                     }
-
-                    // Online: return the ID of the last item to start fetching after it
-                    lastLocalItem?.id
+                    lastItem?.publishDate
                 }
             }
 
-            // Fetch from Firebase
+            // Fetch from Firebase using publishDate for ordering and pagination cursor
             val videosFromServer = videoFirestoreSource.fetchVideoPage(
-                startAfterKey = lastItemKey,
+                startAfterPublishDate = lastPublishDate,
                 limit = state.config.pageSize
             )
 
             val endOfPaginationReached = videosFromServer.size < state.config.pageSize
 
             appDatabase.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    videoDao.clearAll()
-                }
-
+                // IMPORTANT: We do NOT clearAll() here anymore.
+                // We only upsert the new/updated items to support offline persistence.
+                
                 val entities = videosFromServer.map {
-
                     VideoEntity(
                         id = it.id,
                         title = it.title,
                         videoUrl = it.videoUrl,
                         publishDate = it.publishDate.time,
-                        youtubeVideoId = it.youtubeVideoId
+                        youtubeVideoId = it.youtubeVideoId,
+                        updatedAt = it.publishDate.time,
+                        isDeleted = false
                     )
-
                 }
 
                 videoDao.upsertAll(entities)

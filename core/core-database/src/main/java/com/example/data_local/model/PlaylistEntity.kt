@@ -22,5 +22,7 @@ data class PlaylistEntity(
     val levelId: String,
     val order: Int,
     val thumbnailUrl: String,
-    val updatedAt: Long
+    val publishDate: Long,
+    val updatedAt: Long,
+    val isDeleted: Boolean = false
 )

@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import com.example.data_firebase.model.AudioDto
 import com.example.domain.module.Audio
 import com.example.domain.use_cases.audios.UploadResult
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -13,6 +14,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.util.Date
 import javax.inject.Inject
 
 /**
@@ -29,40 +31,35 @@ class AudioFirestoreSource @Inject constructor(
     /**
      * Fetches a paginated list of audios from Firestore.
      */
-    suspend fun fetchAudioPage(startAfterKey: String?, limit: Int): List<Audio> {
-        Log.d(TAG, "fetchAudioPage: called from firestore")
+    suspend fun fetchAudioPage(startAfterPublishDate: Long?, limit: Int): List<AudioDto> {
         try {
+            // Removed isDeleted filter to allow client to sync deletions
             var query = audiosCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
 
-            if (startAfterKey != null) {
-                val lastVisibleDoc = audiosCollection.document(startAfterKey).get().await()
-                query = query.startAfter(lastVisibleDoc)
+            if (startAfterPublishDate != null) {
+                query = query.startAfter(Timestamp(Date(startAfterPublishDate)))
             }
 
             val snapshot = query.limit(limit.toLong()).get().await()
 
-            return snapshot.documents.mapNotNull { document ->
-                val dto = document.toObject<AudioDto>()
-                dto?.let {
-                    Audio(
-                        id = document.id,
-                        title = it.title,
-                        audioUrl = it.audioUrl,
-                        publishDate = java.util.Date(it.publishDate),
-                        durationInMillis = it.durationInMillis,
-                        // Local-only fields are defaulted
-                        isFavorite = false,
-                        isDownloaded = false,
-                        lastPlayedTimestamp = null,
-                        isPlaying = false,
-                        localFilePath = null
-                    )
-                }
-            }
+            return snapshot.documents.mapNotNull { it.toObject<AudioDto>() }
         } catch (e: Exception) {
             Log.e(TAG, "fetchAudioPage failed: ${e.message}")
             return emptyList()
+        }
+    }
+
+    suspend fun getUpdatedAudios(lastSyncTime: Long): List<AudioDto> {
+        return try {
+            val snapshot = audiosCollection
+                .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject<AudioDto>() }
+        } catch (e: Exception) {
+            Log.e(TAG, "getUpdatedAudios failed: ${e.message}")
+            emptyList()
         }
     }
 
@@ -75,7 +72,7 @@ class AudioFirestoreSource @Inject constructor(
                     id = doc.id,
                     title = it.title,
                     audioUrl = it.audioUrl,
-                    publishDate = java.util.Date(it.publishDate),
+                    publishDate = it.publishDate?.toDate() ?: Date(),
                     durationInMillis = it.durationInMillis,
                     isFavorite = false,
                     isDownloaded = false,
@@ -111,14 +108,19 @@ class AudioFirestoreSource @Inject constructor(
             trySend(UploadResult.Progress(progress))
         }.addOnSuccessListener {
             it.storage.downloadUrl.addOnSuccessListener { downloadUri ->
-                val audioDto = AudioDto(
-                    title = title,
-                    audioUrl = downloadUri.toString(),
-                    publishDate = System.currentTimeMillis(),
-                    durationInMillis = durationInMillis
+                val now = Timestamp.now()
+                val audioDto = mapOf(
+                    "id" to "", // Set later
+                    "title" to title,
+                    "audioUrl" to downloadUri.toString(),
+                    "publishDate" to now,
+                    "durationInMillis" to durationInMillis,
+                    "updatedAt" to now,
+                    "isDeleted" to false
                 )
                 audiosCollection.add(audioDto)
-                    .addOnSuccessListener {
+                    .addOnSuccessListener { docRef ->
+                        docRef.update("id", docRef.id)
                         Log.d(TAG, "Successfully uploaded audio and metadata for: $title")
                         trySend(UploadResult.Success)
                         close()
@@ -144,13 +146,15 @@ class AudioFirestoreSource @Inject constructor(
         existingUrl: String,
         durationInMillis: Long
     ): Flow<UploadResult> = callbackFlow {
+        val now = Timestamp.now()
         if (newUriString == null) {
             // Only update metadata
             try {
                 audiosCollection.document(id).update(
                     mapOf(
                         "title" to title,
-                        "durationInMillis" to durationInMillis
+                        "durationInMillis" to durationInMillis,
+                        "updatedAt" to now
                     )
                 ).await()
                 trySend(UploadResult.Success)
@@ -175,7 +179,8 @@ class AudioFirestoreSource @Inject constructor(
                     val updates = mapOf(
                         "title" to title,
                         "audioUrl" to downloadUri.toString(),
-                        "durationInMillis" to durationInMillis
+                        "durationInMillis" to durationInMillis,
+                        "updatedAt" to now
                     )
                     audiosCollection.document(id).update(updates)
                         .addOnSuccessListener {
@@ -202,20 +207,37 @@ class AudioFirestoreSource @Inject constructor(
 
     suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit> {
         return try {
-            // 1. Delete document from Firestore
-            audiosCollection.document(audioId).delete().await()
-            
-            // 2. Delete file from Storage
-            try {
-                storage.getReferenceFromUrl(audioUrl).delete().await()
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to delete audio file from storage", e)
-                // We still return success if the document was deleted
-            }
+            val now = Timestamp.now()
+            audiosCollection.document(audioId).update(
+                mapOf(
+                    "isDeleted" to true,
+                    "updatedAt" to now
+                )
+            ).await()
             
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    fun syncAudiosDbWithServer(): Flow<List<AudioDto>> {
+        return callbackFlow {
+            val listenerRegistration = audiosCollection
+                .orderBy("publishDate", Query.Direction.DESCENDING)
+                .limit(20)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.e(TAG, "Listen failed: ${error.message}", error)
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null) {
+                        trySend(snapshot.toObjects(AudioDto::class.java))
+                    }
+                }
+            awaitClose { listenerRegistration.remove() }
         }
     }
 }

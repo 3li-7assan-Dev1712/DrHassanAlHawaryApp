@@ -1,7 +1,5 @@
 package com.example.data_firebase.model
 
-import java.util.Date
-
 data class LessonDto(
     val id: String = "",
     val playlistId: String = "",
@@ -10,5 +8,7 @@ data class LessonDto(
     val audioUrl: String = "",
     val duration: Long = 0,
     val pdfUrl: String = "",
-    val updatedAt: Date = Date()
+    val publishDate: Long = 0L,
+    val updatedAt: Long = 0L,
+    val isDeleted: Boolean = false
 )

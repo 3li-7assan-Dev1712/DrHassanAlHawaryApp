@@ -11,10 +11,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ArticleDao {
 
-
     @Query("""
         SELECT * FROM articles
-        WHERE :query = '' OR title LIKE '%' || :query || '%'
+        WHERE isDeleted = 0 AND (:query = '' OR title LIKE '%' || :query || '%')
         ORDER BY publishDate DESC
     """)
     fun getArticlesPagingSource(query: String): PagingSource<Int, ArticleEntity>
@@ -25,15 +24,17 @@ interface ArticleDao {
     @Query("DELETE FROM articles")
     suspend fun clearAll()
 
+    @Query("DELETE FROM articles WHERE id = :articleId")
+    suspend fun deleteById(articleId: String)
+
     @Transaction
     suspend fun syncArticles(articles: List<ArticleEntity>) {
-        clearAll()
         upsertAll(articles)
     }
 
-    @Query("SELECT * FROM articles WHERE id = :articleId ")
-    fun getArticleById(articleId: String): Flow<ArticleEntity>
+    @Query("SELECT * FROM articles WHERE id = :articleId AND isDeleted = 0")
+    fun getArticleById(articleId: String): Flow<ArticleEntity?>
 
-    @Query("SELECT * FROM articles ORDER BY publishDate DESC LIMIT 5")
+    @Query("SELECT * FROM articles WHERE isDeleted = 0 ORDER BY publishDate DESC LIMIT 5")
     fun getLatestArticles(): Flow<List<ArticleEntity>>
 }

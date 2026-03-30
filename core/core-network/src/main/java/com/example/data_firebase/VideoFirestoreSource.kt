@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.data_firebase.model.VideoDto
 import com.example.domain.module.Video
 import com.example.domain.use_cases.audios.UploadResult
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -24,14 +25,14 @@ class VideoFirestoreSource @Inject constructor(
     private val videosCollection = firestore.collection("videos")
 
 
-    suspend fun fetchVideoPage(startAfterKey: String?, limit: Int): List<Video> {
+    suspend fun fetchVideoPage(startAfterPublishDate: Long?, limit: Int): List<Video> {
         try {
             var query = videosCollection
+                .whereEqualTo("isDeleted", false)
                 .orderBy("publishDate", Query.Direction.DESCENDING)
 
-            if (startAfterKey != null) {
-                val lastVisibleDoc = videosCollection.document(startAfterKey).get().await()
-                query = query.startAfter(lastVisibleDoc)
+            if (startAfterPublishDate != null) {
+                query = query.startAfter(Timestamp(Date(startAfterPublishDate)))
             }
 
             val snapshot = query.limit(limit.toLong()).get().await()
@@ -43,7 +44,7 @@ class VideoFirestoreSource @Inject constructor(
                         id = document.id,
                         title = it.title,
                         videoUrl = it.videoUrl,
-                        publishDate = Date(it.publishDate),
+                        publishDate = it.publishDate?.toDate() ?: Date(),
                         youtubeVideoId = it.videoYoutubeId
                     )
                 }
@@ -51,6 +52,19 @@ class VideoFirestoreSource @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "fetchVideoPage failed: ${e.message}")
             return emptyList()
+        }
+    }
+
+    suspend fun getUpdatedVideos(lastSyncTime: Long): List<VideoDto> {
+        return try {
+            val snapshot = videosCollection
+                .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject<VideoDto>() }
+        } catch (e: Exception) {
+            Log.e(TAG, "getUpdatedVideos failed: ${e.message}")
+            emptyList()
         }
     }
 
@@ -63,7 +77,7 @@ class VideoFirestoreSource @Inject constructor(
                     id = doc.id,
                     title = it.title,
                     videoUrl = it.videoUrl,
-                    publishDate = Date(it.publishDate),
+                    publishDate = it.publishDate?.toDate() ?: Date(),
                     youtubeVideoId = it.videoYoutubeId
                 )
             }
@@ -86,23 +100,25 @@ class VideoFirestoreSource @Inject constructor(
             close(); return@callbackFlow
         }
 
-        trySend(UploadResult.Progress(50)) // Indicate processing
-        val videoDto = VideoDto(
-            title = title,
-            videoUrl = videoUrl,
-            videoYoutubeId = youtubeId,
-            publishDate = publishDate
+        val now = Timestamp.now()
+        val videoDto = mapOf(
+            "id" to "", // Will be set by Firestore or use document ID
+            "title" to title,
+            "videoUrl" to videoUrl,
+            "videoYoutubeId" to youtubeId,
+            "publishDate" to Timestamp(Date(publishDate)),
+            "updatedAt" to now,
+            "isDeleted" to false
         )
 
         videosCollection.add(videoDto)
-            .addOnSuccessListener {
-                Log.d(TAG, "Successfully uploaded video metadata: $title")
+            .addOnSuccessListener { docRef ->
+                docRef.update("id", docRef.id)
                 trySend(UploadResult.Progress(100))
                 trySend(UploadResult.Success)
                 close()
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Failed to upload video metadata", e)
                 trySend(UploadResult.Error("Database Error: ${e.message}"))
                 close()
             }
@@ -126,7 +142,8 @@ class VideoFirestoreSource @Inject constructor(
             val updates = mapOf(
                 "title" to title,
                 "videoUrl" to videoUrl,
-                "videoYoutubeId" to youtubeId
+                "videoYoutubeId" to youtubeId,
+                "updatedAt" to Timestamp.now()
             )
             videosCollection.document(id).update(updates).await()
             trySend(UploadResult.Success)
@@ -140,7 +157,12 @@ class VideoFirestoreSource @Inject constructor(
 
     suspend fun deleteVideo(videoId: String): Result<Unit> {
         return try {
-            videosCollection.document(videoId).delete().await()
+            videosCollection.document(videoId).update(
+                mapOf(
+                    "isDeleted" to true,
+                    "updatedAt" to Timestamp.now()
+                )
+            ).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -152,5 +174,26 @@ class VideoFirestoreSource @Inject constructor(
             "(?<=watch\\?v=|/videos/|embed/|youtu.be/|/v/|/e/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%2F|youtu.be%2F|%2Fv%2F)[^#&?\\n]*"
         val matcher = java.util.regex.Pattern.compile(pattern).matcher(url)
         return if (matcher.find()) matcher.group() else null
+    }
+
+    fun syncVideosDbWithServer(): Flow<List<VideoDto>> {
+        return callbackFlow {
+            val listenerRegistration = videosCollection
+                .whereEqualTo("isDeleted", false)
+                .orderBy("publishDate", Query.Direction.DESCENDING)
+                .limit(20)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        Log.e(TAG, "Listen failed: ${error.message}", error)
+                        trySend(emptyList())
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null) {
+                        trySend(snapshot.toObjects(VideoDto::class.java))
+                    }
+                }
+            awaitClose { listenerRegistration.remove() }
+        }
     }
 }

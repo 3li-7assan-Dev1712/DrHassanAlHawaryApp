@@ -12,7 +12,7 @@ class GetArticleByIdUseCase @Inject constructor(
 ) {
 
 
-    suspend operator fun invoke(articleId: String): Flow<Article> {
+    suspend operator fun invoke(articleId: String): Flow<Article?> {
         return articlesRepository.getArticleById(articleId)
     }
 }

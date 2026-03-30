@@ -102,7 +102,7 @@ class ImageGroupRemoteMediator @Inject constructor(
                     }
 
                     // Return the key for the next page. If the key is null, the server will return the next page after the last known item.
-                    lastRemoteKey?.nextKey
+                    lastItem?.publishDate
                 }
             }
 
@@ -111,12 +111,13 @@ class ImageGroupRemoteMediator @Inject constructor(
             Log.d(TAG, "Proceeding to fetch from network with key: $loadKey")
 
             // 2. Fetch the page of data from Firebase
-            val fetchedImageGroupsPage = imageFirestoreSource.fetchImageGroupsPage(
-                startAfterKey = loadKey,
+            val fetchedImageGroupsPagePair = imageFirestoreSource.fetchImageGroupsPage(
+                startAfterPublishDate = loadKey,
                 limit = state.config.pageSize
-            ).first
+            )
+            val fetchedImageGroupsPage = fetchedImageGroupsPagePair.first
 
-            val endOfPaginationReached = fetchedImageGroupsPage.size < state.config.pageSize
+            val endOfPaginationReached = fetchedImageGroupsPagePair.second
 
             // 3. Save the new data and keys in a single database transaction
             appDatabase.withTransaction {

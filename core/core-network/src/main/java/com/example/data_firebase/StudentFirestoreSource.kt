@@ -9,7 +9,6 @@ import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.QuizDto
 import com.example.data_firebase.model.StudentDto
 import com.example.domain.use_cases.audios.UploadResult
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
@@ -19,7 +18,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.util.Date
 import javax.inject.Inject
 
 class StudentFirestoreSource @Inject constructor(
@@ -31,15 +29,16 @@ class StudentFirestoreSource @Inject constructor(
     private val TAG = "StudentFirestoreSource"
     private val studentsCollection = firestore.collection("students")
     private val adminCollection = firestore.collection("admins")
+    private val playlistsCollection = firestore.collection("playlists")
+    private val lessonsCollection = firestore.collection("lessons")
 
 
     suspend fun storeStudent(studentDto: StudentDto) {
         try {
-            // Using the telegramId as the document ID for easy lookups and to prevent duplicates
             studentsCollection.document(studentDto.id.toString()).set(studentDto).await()
         } catch (e: Exception) {
             Log.e(TAG, "Error storing student data in Firestore", e)
-            throw e // Re-throw the exception to be handled by the repository
+            throw e
         }
     }
 
@@ -65,11 +64,8 @@ class StudentFirestoreSource @Inject constructor(
         return try {
             val document = studentsCollection.document(uid).get().await()
             if (document.data == null) {
-                Log.d(TAG, "getStudentDataById: null student")
                 null
             } else {
-
-                Log.d(TAG, "getStudentDataById: there is data of ${document.data}")
                 StudentDto(
                     id = document.getLong("id") ?: 0,
                     firstName = document.getString("firstName") ?: "",
@@ -84,7 +80,7 @@ class StudentFirestoreSource @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error getting student by telegramId: $uid", e)
-            null // Return null on error so the app doesn't crash
+            null
         }
     }
 
@@ -101,13 +97,10 @@ class StudentFirestoreSource @Inject constructor(
                 membershipState = document.getString("membershipState") ?: "",
                 isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
             )
-            Log.d(
-                TAG, "getAdminDataByTelegramId: name: ${dto.firstName} -- ${dto.membershipState} "
-            )
             dto
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting student by telegramId: $telegramId", e)
-            null // Return null on error so the app doesn't crash
+            Log.e(TAG, "Error getting admin by telegramId: $telegramId", e)
+            null
         }
     }
 
@@ -117,219 +110,129 @@ class StudentFirestoreSource @Inject constructor(
                 .update("isConnectedToTelegram", isConnected).await()
         } catch (e: Exception) {
             Log.e(TAG, "Error updating student connection status for id: $telegramId", e)
-            throw e // Re-throw to be handled by the repository
+            throw e
         }
     }
 
-    suspend fun getUpdatedPlaylists(lastPlaylistSync: Long): List<PlaylistDto> {
+    suspend fun getUpdatedPlaylists(lastSyncTime: Long): List<PlaylistDto> {
         return try {
-            Log.d(TAG, "getPlaylists: last time: $lastPlaylistSync ${Date(lastPlaylistSync)}")
-            val playlistsCollection = firestore.collection("playlists")
-                .whereGreaterThan("updatedAt", Date(lastPlaylistSync))
-
-            val snapshot = playlistsCollection.get().await()
-            snapshot.mapNotNull { document ->
-
-                val dto = PlaylistDto(
-                    id = document.getString("id") ?: "",
-                    title = document.getString("title") ?: "",
-                    levelId = document.getString("levelId") ?: "",
-                    order = document.getLong("order")?.toInt() ?: 0,
-                    thumbnailUrl = document.getString("thumbnailUrl") ?: "",
-                    updatedAt = document.getDate("updatedAt") ?: Date()
-                )
-                Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
-                dto
-            }
+            val snapshot = playlistsCollection
+                .whereGreaterThan("updatedAt", lastSyncTime)
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject<PlaylistDto>() }
         } catch (e: Exception) {
-            emptyList() // Return an empty list on error
+            Log.e(TAG, "getUpdatedPlaylists failed: ${e.message}")
+            emptyList()
         }
     }
 
     suspend fun getRemotePlaylistForLevel(levelId: String): List<PlaylistDto> {
         return try {
-            val playlistsCollection =
-                firestore.collection("playlists").whereEqualTo("levelId", levelId)
-
-            val snapshot = playlistsCollection.get().await()
-            snapshot.mapNotNull { document ->
-
-                val dto = PlaylistDto(
-                    id = document.getString("id") ?: "",
-                    title = document.getString("title") ?: "",
-                    levelId = document.getString("levelId") ?: "",
-                    order = document.getLong("order")?.toInt() ?: 0,
-                    thumbnailUrl = document.getString("thumbnailUrl") ?: "",
-                    updatedAt = document.getDate("updatedAt") ?: Date()
-                )
-                Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
-                dto
-            }
+            val snapshot = playlistsCollection
+                .whereEqualTo("levelId", levelId)
+                .whereEqualTo("isDeleted", false)
+                .orderBy("order", Query.Direction.ASCENDING)
+                .get()
+                .await()
+            snapshot.mapNotNull { it.toObject<PlaylistDto>() }
         } catch (e: Exception) {
-            emptyList() // Return an empty list on error
+            emptyList()
         }
     }
 
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<LessonDto> {
         return try {
-            val lessonsCollection =
-                firestore.collection("lessons").whereEqualTo("playlistId", playlistId)
-
-            val snapshot = lessonsCollection.get().await()
-            snapshot.mapNotNull { document ->
-
-                val dto = document.toObject<LessonDto>()
-                Log.d(TAG, "getPlaylistForLevel: ${dto.title}")
-                dto
-                /* val dto = LessonDto(
-                     id = document.getString("id") ?: "",
-                     title = document.getString("title") ?: "",
-                     playlistId = document.getString("playlistId") ?: "",
-                     order = document.getLong("order")?.toInt() ?: 0,
-                     audioUrl = document.getString("audioRemoteUrl") ?: "",
-                     duration = ,
-                     pdfUrl = document.getString("audioFilePath") ?: "",
-                     updatedAt = document.getDate("updatedAt") ?: Date()
-                 )*/
-
-            }
+            val snapshot = lessonsCollection
+                .whereEqualTo("playlistId", playlistId)
+                .whereEqualTo("isDeleted", false)
+                .orderBy("order", Query.Direction.ASCENDING)
+                .get()
+                .await()
+            snapshot.mapNotNull { it.toObject<LessonDto>() }
         } catch (e: Exception) {
-            emptyList() // Return an empty list on error
+            emptyList()
         }
     }
 
     suspend fun getRemotePlaylistById(playlistId: String): PlaylistDto? {
         return try {
-            val doc = firestore.collection("playlists")
-                .document(playlistId)
-                .get()
-                .await()
-
-            if (!doc.exists()) return null
-
-            PlaylistDto(
-                id = doc.getString("id") ?: doc.id,
-                title = doc.getString("title") ?: "",
-                levelId = doc.getString("levelId") ?: "",
-                order = doc.getLong("order")?.toInt() ?: 0,
-                thumbnailUrl = doc.getString("thumbnailUrl") ?: "",
-                updatedAt = doc.getDate("updatedAt") ?: Date()
-            )
+            val doc = playlistsCollection.document(playlistId).get().await()
+            doc.toObject<PlaylistDto>()
         } catch (e: Exception) {
-            Log.d(TAG, "getRemotePlaylistById error: ${e.message}", e)
             null
         }
     }
 
     suspend fun getRemoteLessonById(lessonId: String): LessonDto? {
         return try {
-            val doc = firestore.collection("lessons")
-                .document(lessonId)
-                .get()
-                .await()
-
-            if (!doc.exists()) return null
-
+            val doc = lessonsCollection.document(lessonId).get().await()
             doc.toObject<LessonDto>()
         } catch (e: Exception) {
-            Log.d(TAG, "getRemotePlaylistById error: ${e.message}", e)
             null
         }
     }
 
 
-    fun uploadPlaylist(playlistDto: PlaylistDto): Flow<UploadResult> {
+    fun uploadPlaylist(playlistDto: PlaylistDto): Flow<UploadResult> = callbackFlow {
+        trySend(UploadResult.Progress(0))
+        try {
+            val uri = playlistDto.thumbnailUrl.toUri()
+            val imageRef = storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
+            val downloadUrl = imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
 
-        return callbackFlow {
-            if (playlistDto.thumbnailUrl.isEmpty()) {
-                trySend(UploadResult.Error("No images to upload."))
-                close(); return@callbackFlow
-            }
-            trySend(UploadResult.Progress(0))
+            val newDocRef = playlistsCollection.document()
+            val now = System.currentTimeMillis()
+            val finalDto = playlistDto.copy(
+                id = newDocRef.id,
+                thumbnailUrl = downloadUrl,
+                publishDate = now,
+                updatedAt = now,
+                isDeleted = false
+            )
 
-            try {
-
-                val uri = playlistDto.thumbnailUrl.toUri()
-                val imageRef =
-                    storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
-                val downloadUrl =
-                    imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
-
-
-                val playlistsRef = firestore.collection("playlists").document()
-                val newDocumentId = playlistsRef.id
-                val playlistToUpload = playlistDto.copy(
-                    id = newDocumentId, thumbnailUrl = downloadUrl
-                )
-
-                playlistsRef.set(playlistToUpload).await()
-
-                trySend(UploadResult.Progress(100))
-                trySend(UploadResult.Success)
-                close()
-
-                awaitClose { }
-
-
-                trySend(UploadResult.Progress(100))
-
-            } catch (e: Exception) {
-                trySend(UploadResult.Error("Failed to upload image: ${e.message}"))
-                close(); return@callbackFlow
-            }
-
-
+            newDocRef.set(finalDto).await()
+            trySend(UploadResult.Success)
+            close()
+        } catch (e: Exception) {
+            trySend(UploadResult.Error("Failed to upload: ${e.message}"))
+            close()
         }
-
+        awaitClose { }
     }
 
-    fun addLesson(lessonDto: LessonDto, playlistId: String): Flow<UploadResult> {
+    fun addLesson(lessonDto: LessonDto, playlistId: String): Flow<UploadResult> = callbackFlow {
+        trySend(UploadResult.Progress(0))
+        try {
+            val audioUri = lessonDto.audioUrl.toUri()
+            val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
+            val audioDownloadUrl = audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
+            
+            trySend(UploadResult.Progress(50))
 
-        return callbackFlow {
-            if (lessonDto.audioUrl.isEmpty() || lessonDto.pdfUrl.isEmpty()) {
-                trySend(UploadResult.Error("No files to upload."))
-                close(); return@callbackFlow
-            }
-            trySend(UploadResult.Progress(0))
+            val pdfUri = lessonDto.pdfUrl.toUri()
+            val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
+            val pdfDownloadUrl = pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
 
-            try {
-
-                val audioUri = lessonDto.audioUrl.toUri()
-                val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
-                val audioDownloadUrl =
-                    audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
-                trySend(UploadResult.Progress(45))
-
-                val pdfUri = lessonDto.pdfUrl.toUri()
-                val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
-                val pdfDownloadUrl =
-                    pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
-                trySend(UploadResult.Progress(90))
-
-                val lessonRef = firestore.collection("lessons").document()
-                val newDocumentId = lessonRef.id
-                val lessonToUpload = lessonDto.copy(
-                    id = newDocumentId,
-                    audioUrl = audioDownloadUrl,
-                    pdfUrl = pdfDownloadUrl,
-                    playlistId = playlistId
-                )
-                lessonRef.set(lessonToUpload).await()
-
-                trySend(UploadResult.Progress(100))
-                trySend(UploadResult.Success)
-                close()
-
-                awaitClose { }
-
-            } catch (e: Exception) {
-                trySend(UploadResult.Error("Failed to upload image: ${e.message}"))
-                close(); return@callbackFlow
-            }
-
-
+            val newDocRef = lessonsCollection.document()
+            val now = System.currentTimeMillis()
+            val finalDto = lessonDto.copy(
+                id = newDocRef.id,
+                playlistId = playlistId,
+                audioUrl = audioDownloadUrl,
+                pdfUrl = pdfDownloadUrl,
+                publishDate = now,
+                updatedAt = now,
+                isDeleted = false
+            )
+            newDocRef.set(finalDto).await()
+            trySend(UploadResult.Success)
+            close()
+        } catch (e: Exception) {
+            trySend(UploadResult.Error("Failed to upload: ${e.message}"))
+            close()
         }
-
+        awaitClose { }
     }
 
 
@@ -341,184 +244,96 @@ class StudentFirestoreSource @Inject constructor(
         newThumbnailLocalOrRemote: String? = null
     ): Result<String> {
         return try {
-
-            val playlistDoc = firestore.collection("playlists").document(playlistId)
-
-            // Upload new thumbnail if user picked a local uri, otherwise keep remote url as-is
-            val finalThumbnailUrl = when {
-                newThumbnailLocalOrRemote.isNullOrBlank() -> null
-                newThumbnailLocalOrRemote.startsWith("http") -> newThumbnailLocalOrRemote
-                else -> {
-                    val uri = newThumbnailLocalOrRemote.toUri()
-                    val imageRef =
-                        storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
-                    imageRef.putFile(uri).await()
-                    imageRef.downloadUrl.await().toString()
-                }
-            }
-
-            Log.d(TAG, "updatePlaylist: $newThumbnailLocalOrRemote")
-            //  Build a partial update map (only update provided fields)
-            val updates = hashMapOf<String, Any>()
+            val updates = mutableMapOf<String, Any>()
             newTitle?.let { updates["title"] = it }
             newLevelId?.let { updates["levelId"] = it }
             newOrder?.let { updates["order"] = it }
-            finalThumbnailUrl?.let { updates["thumbnailUrl"] = it }
-            updates["updatedAt"] = FieldValue.serverTimestamp()
-
-            //  Update
-            if (updates.isNotEmpty()) {
-                playlistDoc.update(updates).await()
+            
+            if (!newThumbnailLocalOrRemote.isNullOrBlank() && !newThumbnailLocalOrRemote.startsWith("http")) {
+                val uri = newThumbnailLocalOrRemote.toUri()
+                val imageRef = storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
+                imageRef.putFile(uri).await()
+                updates["thumbnailUrl"] = imageRef.downloadUrl.await().toString()
+            } else if (!newThumbnailLocalOrRemote.isNullOrBlank()) {
+                updates["thumbnailUrl"] = newThumbnailLocalOrRemote
             }
-            Result.success("Playlist updated successfully")
+
+            updates["updatedAt"] = System.currentTimeMillis()
+            playlistsCollection.document(playlistId).update(updates).await()
+            Result.success("Playlist updated")
         } catch (e: Exception) {
-            Log.d(TAG, "updatePlaylist: ${e.message}")
             Result.failure(e)
         }
     }
-
-
-    suspend fun deleteFileByUrl(fileUrl: String): Boolean {
-        val storage = FirebaseStorage.getInstance()
-        val ref = storage.getReferenceFromUrl(fileUrl)
-
-        ref.delete().await().also {
-            Log.d(TAG, "deleteFileByUrl: success")
-            return true
-        }
-
-    }
-
 
     suspend fun updateLesson(
         lessonId: String,
         newTitle: String? = null,
         newOrder: Int? = null,
         localAudioUrl: String? = null,
-        remoteAudioUrl: String? = null,
-        localPdfUrl: String? = null,
-        remotePdfUrl: String? = null
+        localPdfUrl: String? = null
     ): Result<String> {
         return try {
-            val lessonDoc = firestore.collection("lessons").document(lessonId)
-
-            val updates = hashMapOf<String, Any>()
-
-            // ---- AUDIO ----
-            var uploadedAudioUrl: String? = null
-            if (!localAudioUrl.isNullOrBlank()) {
-                val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
-                val localUri = localAudioUrl.toUri()
-
-                audioRef.putFile(localUri).await()
-                uploadedAudioUrl = audioRef.downloadUrl.await().toString()
-                updates["audioUrl"] = uploadedAudioUrl
-            }
-
-            // delete old audio AFTER successful upload
-            if (!uploadedAudioUrl.isNullOrBlank() && !remoteAudioUrl.isNullOrBlank()) {
-                runCatching { deleteFileByUrl(remoteAudioUrl) } // ignore not-found
-            }
-
-            // ---- PDF ----
-            var uploadedPdfUrl: String? = null
-            if (!localPdfUrl.isNullOrBlank()) {
-                val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
-                val localUri = localPdfUrl.toUri()
-
-                pdfRef.putFile(localUri).await()
-                uploadedPdfUrl = pdfRef.downloadUrl.await().toString()
-                updates["pdfUrl"] = uploadedPdfUrl
-            }
-
-            // delete old pdf AFTER successful upload
-            if (!uploadedPdfUrl.isNullOrBlank() && !remotePdfUrl.isNullOrBlank()) {
-                runCatching { deleteFileByUrl(remotePdfUrl) }
-            }
-
-            // ---- OTHER FIELDS ----
+            val updates = mutableMapOf<String, Any>()
             newTitle?.let { updates["title"] = it }
             newOrder?.let { updates["order"] = it }
-            updates["updatedAt"] = FieldValue.serverTimestamp()
 
-            if (updates.isNotEmpty()) lessonDoc.update(updates).await()
+            if (!localAudioUrl.isNullOrBlank()) {
+                val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
+                audioRef.putFile(localAudioUrl.toUri()).await()
+                updates["audioUrl"] = audioRef.downloadUrl.await().toString()
+            }
 
-            Result.success("lesson updated successfully")
+            if (!localPdfUrl.isNullOrBlank()) {
+                val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
+                pdfRef.putFile(localPdfUrl.toUri()).await()
+                updates["pdfUrl"] = pdfRef.downloadUrl.await().toString()
+            }
+
+            updates["updatedAt"] = System.currentTimeMillis()
+            lessonsCollection.document(lessonId).update(updates).await()
+            Result.success("Lesson updated")
         } catch (e: Exception) {
-            Log.d(TAG, "update lesson: ${e.message}", e)
             Result.failure(e)
         }
     }
 
-
-    suspend fun getUpdatedLessons(lastLessonSync: Long): List<LessonDto> {
+    suspend fun getUpdatedLessons(lastSyncTime: Long): List<LessonDto> {
         return try {
-            Log.d(TAG, "getUpdatedLessons: last time: $lastLessonSync ${Date(lastLessonSync)}")
-            val lessonsCollection =
-                firestore.collection("lessons").whereGreaterThan("updatedAt", Date(lastLessonSync))
-
-            val snapshot = lessonsCollection.get().await()
-            snapshot.mapNotNull { document ->
-                LessonDto(
-                    id = document.getString("id") ?: "",
-                    title = document.getString("title") ?: "",
-                    playlistId = document.getString("playlistId") ?: "",
-                    order = document.getLong("order")?.toInt() ?: 0,
-                    audioUrl = document.getString("audioUrl") ?: "",
-                    duration = document.getLong("duration") ?: 0,
-                    pdfUrl = document.getString("pdfUrl") ?: "",
-                    updatedAt = document.getDate("updatedAt") ?: Date()
-                )
-            }
+            val snapshot = lessonsCollection
+                .whereGreaterThan("updatedAt", lastSyncTime)
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject<LessonDto>() }
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.d(TAG, "getUpdatedLessons: error updating lessons : ${e.message}")
-            emptyList() // Return an empty list on error
+            emptyList()
         }
     }
 
     suspend fun getRemoteLevels(): List<LevelDto> {
-        val levelsCollection = firestore.collection("levels")
-        val snapshot = levelsCollection.get().await()
         return try {
-            snapshot.mapNotNull { document ->
-                Log.d(TAG, "getRemoteLevels: ${document.getString("title")}")
-//            document.toObject<LevelDto>()
-                val dto = LevelDto(
-                    id = document.getString("id") ?: "",
-                    title = document.getString("title") ?: "",
-                    order = document.getLong("order")?.toInt() ?: 0
-                )
-                dto
-            }
+            val snapshot = firestore.collection("levels")
+                .orderBy("order", Query.Direction.ASCENDING)
+                .get()
+                .await()
+            snapshot.mapNotNull { it.toObject<LevelDto>() }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting remote levels", e)
             emptyList()
         }
     }
 
     suspend fun getLevelsVersion(): Long {
-        val versionCollection =
-            firestore.collection("metadata").document("content_versions").get().await()
-        return versionCollection.getLong("levelsVersion") ?: 0
+        val doc = firestore.collection("metadata").document("content_versions").get().await()
+        return doc.getLong("levelsVersion") ?: 0
     }
 
     suspend fun getRemoteMotivationalMessages(): List<String> {
         return try {
-            val document = firestore.collection("motivational_messages")
-                .document("daily_messages")
-                .get()
-                .await()
-
-            // Firestore returns arrays as List<*>, so we cast to List<String>
-            // We use 'get' and a safe cast to avoid crashing if the field is missing or has a wrong type
-            document.get("messages") as? List<String> ?: emptyList()
-
+            val doc = firestore.collection("motivational_messages").document("daily_messages").get().await()
+            doc.get("messages") as? List<String> ?: emptyList()
         } catch (e: Exception) {
-            Log.d(TAG, "getRemoteMotivationalMessages: ${e.message}")
             emptyList()
         }
-
     }
 
     suspend fun getLatestQuiz(): QuizDto? {
@@ -528,10 +343,8 @@ class StudentFirestoreSource @Inject constructor(
                 .limit(1)
                 .get()
                 .await()
-
             snapshot.documents.firstOrNull()?.toObject<QuizDto>()
         } catch (e: Exception) {
-            Log.e(TAG, "getLatestQuiz error: ${e.message}")
             null
         }
     }
@@ -540,10 +353,8 @@ class StudentFirestoreSource @Inject constructor(
         try {
             val docRef = firestore.collection("leaderboard").document(entry.telegramId.toString())
             val existingDoc = docRef.get().await()
-
             if (existingDoc.exists()) {
                 val existingScore = existingDoc.getLong("score") ?: 0
-                // Update only if new score is better
                 if (entry.score > existingScore) {
                     docRef.set(entry).await()
                 }
@@ -551,7 +362,6 @@ class StudentFirestoreSource @Inject constructor(
                 docRef.set(entry).await()
             }
         } catch (e: Exception) {
-            Log.e(TAG, "submitLeaderboardEntry error: ${e.message}")
             throw e
         }
     }
@@ -567,54 +377,28 @@ class StudentFirestoreSource @Inject constructor(
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
-                    val leaderboard = snapshot.toObjects(LeaderboardDto::class.java)
-                    trySend(leaderboard)
+                    trySend(snapshot.toObjects(LeaderboardDto::class.java))
                 }
             }
         awaitClose { listener.remove() }
     }
 
     suspend fun submitQuizAndPromote(answers: List<Any>): String {
-        return try {
-            val data = hashMapOf(
-                "answers" to answers
-            )
-
-            val result = functions
-                .getHttpsCallable("submitWeeklyQuizAndPromote")
-                .call(data)
-                .await()
-
-            val response = result.data as Map<*, *>
-
-            val success = response["success"] as Boolean
-            val passed = response["passed"] as Boolean
-
-            if (!success || !passed) {
-                throw Exception("Quiz not passed")
-            }
-
-            val newLevelId = response["newLevelId"] as String
-            newLevelId
-
-        } catch (e: Exception) {
-            Log.e("FirestoreSource", "submitQuizAndPromote error", e)
-            throw e
+        val data = hashMapOf("answers" to answers)
+        val result = functions.getHttpsCallable("submitWeeklyQuizAndPromote").call(data).await()
+        val response = result.data as Map<*, *>
+        if (response["success"] != true || response["passed"] != true) {
+            throw Exception("Quiz not passed")
         }
+        return response["newLevelId"] as String
     }
 
     suspend fun getAdmins(): Result<List<Map<String, Any>>> {
         return try {
-            val result = functions
-                .getHttpsCallable("getAdmins")
-                .call()
-                .await()
-
+            val result = functions.getHttpsCallable("getAdmins").call().await()
             val data = result.data as? Map<*, *>
             val admins = data?.get("admins") as? List<Map<String, Any>> ?: emptyList()
-
             Result.success(admins)
-
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -633,14 +417,10 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun removeAdmin(uid: String): Result<Unit> {
         return try {
-
-            functions.getHttpsCallable("removeAdmin")
-                .call(mapOf("uid" to uid))
-                .await()
+            functions.getHttpsCallable("removeAdmin").call(mapOf("uid" to uid)).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-
 }

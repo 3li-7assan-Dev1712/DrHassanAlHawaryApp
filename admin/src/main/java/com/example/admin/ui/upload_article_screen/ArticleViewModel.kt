@@ -44,10 +44,10 @@ class ArticleViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        articleId = article.id,
-                        title = article.title,
-                        content = article.content,
-                        publishDate = article.publishDate.time
+                        articleId = article?.id ?: "",
+                        title = article?.title ?: "",
+                        content = article?.content ?: "",
+                        publishDate = article?.publishDate?.time ?: 0
                     )
                 }
             }

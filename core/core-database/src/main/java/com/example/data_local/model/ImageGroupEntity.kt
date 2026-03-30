@@ -11,7 +11,9 @@ data class ImageGroupEntity(
     val id: String,
     val title: String,
     val publishDate: Long,
-    val previewImageUrl: String
+    val previewImageUrl: String,
+    val updatedAt: Long,
+    val isDeleted: Boolean = false
 )
 
 /**

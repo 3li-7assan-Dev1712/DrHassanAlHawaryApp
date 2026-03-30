@@ -39,10 +39,15 @@ class DetailArticleViewModel @Inject constructor(
 
             try {
                 getArticleByIdUseCase(articleId).collect { art ->
-
-                    _uiState.value = DetailArticleUiState.Success(
-                        article = art
-                    )
+                    if (art != null) {
+                        _uiState.value = DetailArticleUiState.Success(
+                            article = art
+                        )
+                    } else {
+                        _uiState.value = DetailArticleUiState.Error(
+                            message = "Article not found"
+                        )
+                    }
                 }
 
             } catch (e: Exception) {

@@ -16,7 +16,9 @@ fun LessonDto.toEntity(): LessonEntity = LessonEntity(
     duration = duration,
     pdfRemoteUrl = pdfUrl,
     pdfFilePath = null,
-    updatedAt = updatedAt.time
+    publishDate = publishDate,
+    updatedAt = updatedAt,
+    isDeleted = isDeleted
 )
 
 fun LessonDto.toDomain(): Lesson = Lesson(
@@ -28,8 +30,7 @@ fun LessonDto.toDomain(): Lesson = Lesson(
     duration = formatDuration(duration),
 )
 
-fun Lesson.toDto(
-): LessonDto =
+fun Lesson.toDto(): LessonDto =
     LessonDto(
     id = id,
     title = title,
@@ -41,10 +42,10 @@ fun Lesson.toDto(
 fun LessonEntity.toDomain(): Lesson = Lesson(
     id = id,
     title = title,
+    order = order,
     audioUrl = audioFilePath ?: audioRemoteUrl,
     pdfUrl = pdfFilePath ?: pdfRemoteUrl,
     duration = formatDuration(duration)
-
 )
 
 fun formatDuration(millis: Long): String {
@@ -53,10 +54,8 @@ fun formatDuration(millis: Long): String {
     val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1)
 
     return if (hours > 0) {
-        // Include hours if the duration is an hour or longer
         String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     } else {
-        // Otherwise, just show minutes and seconds
         String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     }
 }

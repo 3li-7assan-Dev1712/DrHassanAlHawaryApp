@@ -234,8 +234,6 @@ class StudyRepositoryImpl @Inject constructor(
             newOrder = lesson.order,
             localAudioUrl = localAudioUrl,
             localPdfUrl = localPdfUrl,
-            remoteAudioUrl = lesson.audioUrl,
-            remotePdfUrl = lesson.pdfUrl,
             lessonId = lesson.id
         )
     }
@@ -246,9 +244,7 @@ class StudyRepositoryImpl @Inject constructor(
     ): Flow<UploadResult> {
         Log.d(TAG, "addLesson: playlistId: $playlistId")
         return studentFirestoreSource.addLesson(
-            lesson.toDto(
-
-            ),
+            lesson.toDto(),
             playlistId = playlistId,
         )
     }

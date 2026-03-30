@@ -8,68 +8,81 @@ import androidx.room.withTransaction
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.ArticleEntity
-import com.example.feature.article.data.mapper.toEntity
-
 import java.io.IOException
 import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
-
-class ArticleRemoteMediator @Inject  constructor(
+class ArticleRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
     private val firebaseArticlesSource: FirebaseArticlesSource
-): RemoteMediator<Int, ArticleEntity>() {
+) : RemoteMediator<Int, ArticleEntity>() {
 
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, ArticleEntity>
     ): MediatorResult {
         return try {
-
-            val lastDocumentId = when (loadType) {
-                LoadType.REFRESH -> {
-                    // For a refresh, we start from the beginning.
-                    null
-                }
-                LoadType.PREPEND -> {
-                    return MediatorResult.Success(endOfPaginationReached = true)
-                }
+            val initialPublishDate = when (loadType) {
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    // For appending, get the last item loaded from the PagingState.
-                    // Its publishDate will be our cursor.
                     val lastItem = state.lastItemOrNull()
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
-
-                    // We need the ID of the last item to tell Firestore where to start the next page.
-                    lastItem.id
+                    lastItem.publishDate
                 }
             }
 
-            val (articlesFromFirebase, endOfPaginationReached) = firebaseArticlesSource.getArticles(
-                lastDocumentId = lastDocumentId,
-                limit = state.config.pageSize.toLong()
-            )
+            var currentLastPublishDate = initialPublishDate
+            var lastResultEndOfPaginationReached = false
 
-            appDatabase.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    // Use your actual articleDao to clear the data
-                    appDatabase.articleDao().clearAll()
+            // We use a loop to handle the case where a page from the server 
+            // contains ONLY deleted items, ensuring we don't return an empty 
+            // result to the Pager until we either find active items or reach the end.
+            while (true) {
+                val (articlesPage, endOfPaginationReached) = firebaseArticlesSource.getArticlesPage(
+                    lastPublishDate = currentLastPublishDate,
+                    limit = state.config.pageSize.toLong()
+                )
+                
+                lastResultEndOfPaginationReached = endOfPaginationReached
+
+                if (articlesPage.isEmpty()) break
+
+                val (deletedItems, activeItems) = articlesPage.partition { it.isDeleted }
+
+                appDatabase.withTransaction {
+                    deletedItems.forEach { dto ->
+                        appDatabase.articleDao().deleteById(dto.id)
+                    }
+                    
+                    if (activeItems.isNotEmpty()) {
+                        val entities = activeItems.map { dto ->
+                            ArticleEntity(
+                                id = dto.id,
+                                title = dto.title,
+                                content = dto.content,
+                                publishDate = dto.publishDate?.toDate()?.time ?: 0L,
+                                updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                                isDeleted = dto.isDeleted
+                            )
+                        }
+                        appDatabase.articleDao().upsertAll(entities)
+                    }
                 }
 
-                val articleEntities = articlesFromFirebase.map { it.toEntity() }
+                // If we found some active items to show, or we reached the end of the server data, we stop.
+                if (activeItems.isNotEmpty() || endOfPaginationReached) {
+                    break
+                }
 
-                // Use your actual articleDao to insert the new data
-                appDatabase.articleDao().upsertAll(articleEntities)
+                // Otherwise, move currentLastPublishDate to the last item of the current (all-deleted) page and continue.
+                currentLastPublishDate = articlesPage.last().publishDate?.toDate()?.time
             }
 
-            // The result from firebaseArticlesSource already tells us if the end is reached
-            MediatorResult.Success(
-                endOfPaginationReached = endOfPaginationReached
-            )
-
-        } catch(e: IOException) {
+            MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)
+        } catch (e: IOException) {
             MediatorResult.Error(e)
-        } catch(e: Exception) {
+        } catch (e: Exception) {
             MediatorResult.Error(e)
         }
     }

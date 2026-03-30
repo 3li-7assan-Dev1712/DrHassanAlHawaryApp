@@ -18,7 +18,7 @@ data class AudioEntity(
     //User-Specific
     val isFavorite: Boolean = false,
     val localFilePath: String? = null,
-    val lastPlayedTimestamp: Long? = null // will be used to play from the last position
+    val lastPlayedTimestamp: Long? = null, // will be used to play from the last position
+    val updatedAt: Long,
+    val isDeleted: Boolean = false
 )
-
-

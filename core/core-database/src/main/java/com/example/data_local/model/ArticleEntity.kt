@@ -10,10 +10,7 @@ data class ArticleEntity (
     val id: String,
     val title: String,
     val content: String,
-    val publishDate: Long
+    val publishDate: Long,
+    val updatedAt: Long,
+    val isDeleted: Boolean = false
 )
-
-
-
-
-

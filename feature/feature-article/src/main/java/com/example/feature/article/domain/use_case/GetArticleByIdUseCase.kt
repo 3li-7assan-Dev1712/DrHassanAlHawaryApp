@@ -1,5 +1,7 @@
 package com.example.feature.article.domain.use_case
 
+
+
 import com.example.domain.module.Article
 import com.example.domain.repository.ArticlesRepository
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +12,7 @@ class GetArticleByIdUseCase @Inject constructor(
 ) {
 
 
-    suspend operator fun invoke(articleId: String): Flow<Article> {
+    suspend operator fun invoke(articleId: String): Flow<Article?> {
         return articlesRepository.getArticleById(articleId)
     }
 }

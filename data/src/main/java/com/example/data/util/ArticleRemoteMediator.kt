@@ -14,8 +14,7 @@ import java.io.IOException
 import javax.inject.Inject
 
 @OptIn(ExperimentalPagingApi::class)
-
-class ArticleRemoteMediator @Inject  constructor(
+class ArticleRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
     private val firebaseArticlesSource: FirebaseArticlesSource
 ): RemoteMediator<Int, ArticleEntity>() {
@@ -26,43 +25,38 @@ class ArticleRemoteMediator @Inject  constructor(
     ): MediatorResult {
         return try {
 
-            val lastDocumentId = when (loadType) {
+            val lastPublishDate = when (loadType) {
                 LoadType.REFRESH -> {
-                    // For a refresh, we start from the beginning.
                     null
                 }
                 LoadType.PREPEND -> {
                     return MediatorResult.Success(endOfPaginationReached = true)
                 }
                 LoadType.APPEND -> {
-                    // For appending, get the last item loaded from the PagingState.
-                    // Its publishDate will be our cursor.
                     val lastItem = state.lastItemOrNull()
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
 
-                    // We need the ID of the last item to tell Firestore where to start the next page.
-                    lastItem.id
+                    lastItem.publishDate
                 }
             }
 
-            val (articlesFromFirebase, endOfPaginationReached) = firebaseArticlesSource.getArticles(
-                lastDocumentId = lastDocumentId,
+            val (articlesFromFirebase, endOfPaginationReached) = firebaseArticlesSource.getArticlesPage(
+                lastPublishDate = lastPublishDate,
                 limit = state.config.pageSize.toLong()
             )
 
             appDatabase.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    // Use your actual articleDao to clear the data
-                    appDatabase.articleDao().clearAll()
+                // Partition results: delete items marked as isDeleted on server, upsert the rest
+                val (deletedItems, activeItems) = articlesFromFirebase.partition { it.isDeleted }
+
+                deletedItems.forEach { 
+                    appDatabase.articleDao().deleteById(it.id)
                 }
 
-                val articleEntities = articlesFromFirebase.map { it.toEntity() }
-
-                // Use your actual articleDao to insert the new data
+                val articleEntities = activeItems.map { it.toEntity() }
                 appDatabase.articleDao().upsertAll(articleEntities)
             }
 
-            // The result from firebaseArticlesSource already tells us if the end is reached
             MediatorResult.Success(
                 endOfPaginationReached = endOfPaginationReached
             )

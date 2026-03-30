@@ -30,8 +30,8 @@ class HomeRepositoryImpl @Inject constructor(
 
 
     override fun getLatestArticles(): Flow<List<ArticleFeed>> {
-        return articleDao.getLatestArticles().map {
-            it.map { article ->
+        return articleDao.getLatestArticles().map { list ->
+            list.map { article ->
                 ArticleFeed(
                     id = article.id,
                     title = article.title,
@@ -42,92 +42,110 @@ class HomeRepositoryImpl @Inject constructor(
     }
 
     override fun getLatestAudios(): Flow<List<AudioFeed>> {
-        return audioDao.getLatestAudios().map {
-            it.map { audio ->
-
+        return audioDao.getLatestAudios().map { list ->
+            list.map { audio ->
                 AudioFeed(
                     id = audio.id,
                     title = audio.title,
                     duration = audio.durationInMillis,
                     audioUrl = audio.audioUrl
                 )
-
             }
         }
     }
 
     override fun getLatestImages(): Flow<List<ImageFeed>> {
-        return imageDao.getLastImageGroup().map { imageGroup ->
-            imageGroup.images.map { imageEntity ->
+        return imageDao.getLastImageGroup().map { imageGroupWithImages ->
+            imageGroupWithImages?.images?.map { imageEntity ->
                 ImageFeed(
                     imageUrl = imageEntity.imageUrl,
                 )
-            }
+            } ?: emptyList()
         }
-
     }
 
 
     override suspend fun syncLatestArticles(limit: Long) {
-        val latestArticlesFromApi = firebaseArticlesSource.getArticles(null, limit).first
-        // You'll need a mapper to convert Network DTOs to DB Entities
-        val articleEntities = latestArticlesFromApi.map {
-            ArticleEntity(
-                id = it.id,
-                title = it.title,
-                content = it.content,
-                publishDate = it.publishDate.time
-            )
+        try {
+            val (articlesPage, _) = firebaseArticlesSource.getArticlesPage(null, limit)
+            
+            val (deletedItems, activeItems) = articlesPage.partition { it.isDeleted }
+
+            deletedItems.forEach { articleDao.deleteById(it.id) }
+
+            val articleEntities = activeItems.map { dto ->
+                ArticleEntity(
+                    id = dto.id,
+                    title = dto.title,
+                    content = dto.content,
+                    publishDate = dto.publishDate?.toDate()?.time ?: 0L,
+                    updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                    isDeleted = dto.isDeleted
+                )
+            }
+            articleDao.upsertAll(articleEntities)
+        } catch (e: Exception) {
+            Log.e("HomeRepositoryImpl", "syncLatestArticles failed", e)
         }
-        articleDao.upsertAll(articleEntities)
     }
 
     override suspend fun syncLatestAudios(limit: Int) {
-        val latestAudiosFromFirebase =
-            audioFirestoreSource.fetchAudioPage(startAfterKey = null, limit)
-        val audioEntities = latestAudiosFromFirebase.map {
-            AudioEntity(
-                id = it.id,
-                title = it.title,
-                audioUrl = it.audioUrl,
-                publishDate = it.publishDate.time,
-                durationInMillis = it.durationInMillis,
-            )
+        try {
+            val latestAudiosFromFirebase =
+                audioFirestoreSource.fetchAudioPage(startAfterPublishDate = null, limit)
+            
+            val (deletedItems, activeItems) = latestAudiosFromFirebase.partition { it.isDeleted }
+
+            deletedItems.forEach { audioDao.deleteById(it.id) }
+
+            val audioEntities = activeItems.map { dto ->
+                AudioEntity(
+                    id = dto.id,
+                    title = dto.title,
+                    audioUrl = dto.audioUrl,
+                    durationInMillis = dto.durationInMillis,
+                    publishDate = dto.publishDate?.toDate()?.time ?: 0L,
+                    updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                    isDeleted = dto.isDeleted
+                )
+            }
+            audioDao.upsertAll(audioEntities)
+        } catch (e: Exception) {
+            Log.e("HomeRepositoryImpl", "syncLatestAudios failed", e)
         }
-        audioDao.upsertAll(audioEntities)
     }
 
     override suspend fun syncLatestImageGroup() {
-//        val group = firebaseMediaSource.fetchLatestImageGroup() ?: return
-        val group = imageFirestoreSource.fetchLatestImageGroup() ?: return
-//        val group = group.firstOrNull()
-        Log.d("syncLatestImageGroup", "syncLatestImageGroup: group == $group")
-        /*if (group == null)
-            return*/
-        val groupId = group.id
-        // saving group
-        val imageGroupEntity = ImageGroupEntity(
-            id = groupId,
-            title = group.title,
-            publishDate = group.publishDate.time,
-            previewImageUrl = group.previewImageUrl
-        )
-        imageDao.upsertImageGroups(listOf(imageGroupEntity))
-        // saving images
-        val remoteImages = imageFirestoreSource.fetchImagesForGroup(groupId)
-        Log.d("syncLatestImageGroup", "syncLatestImageGroup: images count = ${remoteImages.size}")
-        if (remoteImages.isNotEmpty()) {
-            val imageEntities = remoteImages.map {
-                ImageEntity(
-                    id = it.id.ifBlank { it.imageUrl },
-                    groupId = groupId,
-                    orderIndex = it.orderIndex,
-                    imageUrl = it.imageUrl
-                )
+        try {
+            val group = imageFirestoreSource.fetchLatestImageGroup() ?: return
+            val groupId = group.id
+            
+            // saving group
+            val imageGroupEntity = ImageGroupEntity(
+                id = groupId,
+                title = group.title,
+                publishDate = group.publishDate.time,
+                previewImageUrl = group.previewImageUrl,
+                updatedAt = System.currentTimeMillis(),
+                isDeleted = false
+            )
+            imageDao.upsertImageGroups(listOf(imageGroupEntity))
+            
+            // saving images
+            val remoteImages = imageFirestoreSource.fetchImagesForGroup(groupId)
+            if (remoteImages.isNotEmpty()) {
+                val imageEntities = remoteImages.map { img ->
+                    ImageEntity(
+                        id = img.id.ifBlank { img.imageUrl },
+                        groupId = groupId,
+                        orderIndex = img.orderIndex,
+                        imageUrl = img.imageUrl
+                    )
+                }
+                imageDao.upsertImages(imageEntities)
             }
-            imageDao.upsertImages(imageEntities)
+        } catch (e: Exception) {
+            Log.e("HomeRepositoryImpl", "syncLatestImageGroup failed", e)
         }
-
-
     }
 }

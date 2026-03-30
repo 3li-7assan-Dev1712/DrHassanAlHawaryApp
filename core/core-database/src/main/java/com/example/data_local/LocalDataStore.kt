@@ -20,8 +20,12 @@ val Context.contentDataStore: DataStore<Preferences> by preferencesDataStore(nam
 
 private const val LEVELS_VERSION_KEY = "levels_version"
 private const val LAST_PLAYLIST_SYNC = "last_playlist_sync"
-
 private const val LAST_LESSON_SYNC = "last_lesson_sync"
+private const val LAST_ARTICLE_SYNC = "last_article_sync"
+private const val LAST_VIDEO_SYNC = "last_video_sync"
+private const val LAST_AUDIO_SYNC = "last_audio_sync"
+private const val LAST_IMAGE_GROUP_SYNC = "last_image_group_sync"
+private const val LAST_SYNC_TIME = "last_sync_time"
 
 val KEY_COMPLETED = booleanPreferencesKey("onboarding_completed")
 val KEY_DARK_THEME = booleanPreferencesKey("dark_theme_enabled")
@@ -46,7 +50,6 @@ class LocalDataStore @Inject constructor(
         return dataStore.data.map {
             it[longPreferencesKey(LAST_PLAYLIST_SYNC)] ?: 0
         }.firstOrNull() ?: 0
-
     }
 
     suspend fun setLastPlaylistSync(timestamp: Long) {
@@ -55,18 +58,48 @@ class LocalDataStore @Inject constructor(
         }
     }
 
-
     suspend fun getLastLessonSync(): Long {
         return dataStore.data.map {
             it[longPreferencesKey(LAST_LESSON_SYNC)] ?: 0
         }.firstOrNull() ?: 0
-
     }
 
     suspend fun setLastLessonSync(timestamp: Long) {
         dataStore.edit {
             it[longPreferencesKey(LAST_LESSON_SYNC)] = timestamp
         }
+    }
+
+    suspend fun getLastArticleSync(): Long {
+        return dataStore.data.map { it[longPreferencesKey(LAST_ARTICLE_SYNC)] ?: 0 }.firstOrNull() ?: 0
+    }
+
+    suspend fun setLastArticleSync(timestamp: Long) {
+        dataStore.edit { it[longPreferencesKey(LAST_ARTICLE_SYNC)] = timestamp }
+    }
+
+    suspend fun getLastVideoSync(): Long {
+        return dataStore.data.map { it[longPreferencesKey(LAST_VIDEO_SYNC)] ?: 0 }.firstOrNull() ?: 0
+    }
+
+    suspend fun setLastVideoSync(timestamp: Long) {
+        dataStore.edit { it[longPreferencesKey(LAST_VIDEO_SYNC)] = timestamp }
+    }
+
+    suspend fun getLastAudioSync(): Long {
+        return dataStore.data.map { it[longPreferencesKey(LAST_AUDIO_SYNC)] ?: 0 }.firstOrNull() ?: 0
+    }
+
+    suspend fun setLastAudioSync(timestamp: Long) {
+        dataStore.edit { it[longPreferencesKey(LAST_AUDIO_SYNC)] = timestamp }
+    }
+
+    suspend fun getLastImageGroupSync(): Long {
+        return dataStore.data.map { it[longPreferencesKey(LAST_IMAGE_GROUP_SYNC)] ?: 0 }.firstOrNull() ?: 0
+    }
+
+    suspend fun setLastImageGroupSync(timestamp: Long) {
+        dataStore.edit { it[longPreferencesKey(LAST_IMAGE_GROUP_SYNC)] = timestamp }
     }
 
     fun observeCompleted(): Flow<Boolean> {
@@ -105,6 +138,18 @@ class LocalDataStore @Inject constructor(
         Log.d(TAG, "setDarkTheme: $enabled")
         dataStore.edit { prefs ->
             prefs[KEY_DARK_THEME] = enabled
+        }
+    }
+
+    fun getLastSyncTime(): Flow<Long> {
+        return dataStore.data.map {
+            it[longPreferencesKey(LAST_SYNC_TIME)] ?: 0L
+        }
+    }
+
+    suspend fun updateLastSyncTime(time: Long) {
+        dataStore.edit {
+            it[longPreferencesKey(LAST_SYNC_TIME)] = time
         }
     }
 

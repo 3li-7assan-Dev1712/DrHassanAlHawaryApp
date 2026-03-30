@@ -2,8 +2,6 @@ package com.example.data_firebase.model
 
 import androidx.annotation.Keep
 import com.google.firebase.database.IgnoreExtraProperties
-import java.util.Date
-
 
 @Keep
 @IgnoreExtraProperties
@@ -13,5 +11,7 @@ data class PlaylistDto(
     val levelId: String = "",
     val order: Int = 0,
     val thumbnailUrl: String = "",
-    val updatedAt: Date = Date()
+    val publishDate: Long = 0L,
+    val updatedAt: Long = 0L,
+    val isDeleted: Boolean = false
 )

@@ -6,6 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import androidx.room.withTransaction
 import com.example.data.di.ApplicationScope
 import com.example.data.mappers.toDomainModel
 import com.example.data.util.ArticleRemoteMediator
@@ -46,20 +47,19 @@ class ArticlesRepositoryImpl
         firebaseArticlesSource.updateArticle(article)
     }
 
+    override suspend fun getArticleById(articleId: String): Flow<Article?> {
+        return articleDao.getArticleById(articleId).map { art ->
+            art?.toDomainModel()
+        }
+    }
+
     override suspend fun deleteArticle(articleId: String) {
         firebaseArticlesSource.deleteArticle(articleId)
     }
 
     override suspend fun getAllRemoteArticles(): List<Article> {
-        val (list, _) = firebaseArticlesSource.getArticles(null, 100)
-        return list
-    }
-
-    // fetching (user usage)
-    override suspend fun getArticleById(articleId: String): Flow<Article> {
-        return articleDao.getArticleById(articleId).map { art ->
-            art.toDomainModel()
-        }
+        val (list, _) = firebaseArticlesSource.getArticlesPage(null, 100)
+        return list.map { it.toDomainModel() }
     }
 
     override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {
@@ -98,19 +98,30 @@ class ArticlesRepositoryImpl
 
     override suspend fun syncArticlesDbWithServer() {
         firebaseArticlesSource.syncArticlesDbWithServer()
-            .map { articles ->
-                Log.d("ArtRepoImpl", "syncArticlesDbWithServer: from server num: ${articles.size}")
-                articles.map { article ->
-                    ArticleEntity(
-                        id = article.id,
-                        title = article.title,
-                        content = article.content,
-                        publishDate = article.publishDate.time
-                    )
+            .collect { articles ->
+                Log.d("ArtRepoImpl", "syncArticlesDbWithServer: received ${articles.size} articles")
+                
+                appDatabase.withTransaction {
+                    val (deleted, active) = articles.partition { it.isDeleted }
+
+                    // Physically remove deleted items
+                    deleted.forEach { article ->
+                        articleDao.deleteById(article.id)
+                    }
+
+                    // Map and upsert active ones
+                    val activeEntities = active.map { article ->
+                        ArticleEntity(
+                            id = article.id,
+                            title = article.title,
+                            content = article.content,
+                            publishDate = article.publishDate.time,
+                            updatedAt = article.updatedAt,
+                            isDeleted = article.isDeleted
+                        )
+                    }
+                    articleDao.upsertAll(activeEntities)
                 }
-            }
-            .collect { articlesFromFirestore ->
-                articleDao.syncArticles(articlesFromFirestore)
             }
     }
 }

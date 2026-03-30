@@ -11,5 +11,7 @@ data class VideoEntity(
     val title: String,
     val videoUrl: String,
     val publishDate: Long, // Stored as Long (timestamp) for Room compatibility
-    val youtubeVideoId: String? // Extracted ID for showing thumbnails (e.g., "ogfYd705cRs")
+    val youtubeVideoId: String?, // Extracted ID for showing thumbnails (e.g., "ogfYd705cRs")
+    val updatedAt: Long,
+    val isDeleted: Boolean = false
 )

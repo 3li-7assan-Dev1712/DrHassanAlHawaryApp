@@ -1,29 +1,46 @@
 package com.example.data.mappers
 
+import com.example.data_firebase.model.ArticleDto
 import com.example.data_local.model.ArticleEntity
 import com.example.domain.module.Article
 import java.util.Date
 
-/**
- * Converts an Article from the domain layer to an ArticleEntity for the data (Room) layer.
- */
 fun Article.toEntity(): ArticleEntity =
     ArticleEntity(
         id = this.id,
         title = this.title,
         publishDate = this.publishDate.time,
-        content = this.content
+        content = this.content,
+        updatedAt = this.updatedAt,
+        isDeleted = this.isDeleted
     )
 
-
-/**
- * Convert ArticleAudio to Article domain model
- */
 fun ArticleEntity.toDomainModel(): Article =
     Article(
         id = this.id,
         title = this.title,
         content = this.content,
-        publishDate = Date(this.publishDate)
+        publishDate = Date(this.publishDate),
+        updatedAt = this.updatedAt,
+        isDeleted = this.isDeleted
+    )
 
+fun ArticleDto.toEntity(): ArticleEntity =
+    ArticleEntity(
+        id = id,
+        title = title,
+        content = content,
+        publishDate = publishDate?.toDate()?.time ?: 0L,
+        updatedAt = updatedAt?.toDate()?.time ?: 0L,
+        isDeleted = isDeleted
+    )
+
+fun ArticleDto.toDomainModel(): Article =
+    Article(
+        id = id,
+        title = title,
+        content = content,
+        publishDate = publishDate?.toDate() ?: Date(),
+        updatedAt = updatedAt?.toDate()?.time ?: 0L,
+        isDeleted = isDeleted
     )
