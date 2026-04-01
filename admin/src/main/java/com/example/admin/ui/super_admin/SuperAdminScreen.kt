@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -76,6 +77,10 @@ fun SuperAdminScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var emailToAdd by remember { mutableStateOf("") }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var adminToDeleteUid by remember { mutableStateOf("") }
+    var adminToDeleteEmail by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -121,9 +126,15 @@ fun SuperAdminScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(state.admins) { admin ->
+                val email = admin["email"] as? String ?: ""
+                val uid = admin["uid"] as? String ?: ""
                 AdminItem(
-                    email = admin["email"] as? String ?: "",
-                    onRemove = { viewModel.removeAdmin(admin["email"] as? String ?: "") }
+                    email = email,
+                    onRemove = {
+                        adminToDeleteUid = uid
+                        adminToDeleteEmail = email
+                        showDeleteDialog = true
+                    }
                 )
             }
         }
@@ -153,6 +164,35 @@ fun SuperAdminScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.remove_admin)) },
+            text = {
+                Text(
+                    text = stringResource(R.string.delete_confirmation_msg, adminToDeleteEmail),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.removeAdmin(adminToDeleteUid)
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }

@@ -84,6 +84,18 @@ class StudentFirestoreSource @Inject constructor(
                 e
             )
             try {
+                val publishDate = try {
+                    this.getTimestamp("publishDate")
+                } catch (ex: Exception) {
+                    this.getLong("publishDate")?.let { Timestamp(Date(it)) }
+                }
+
+                val updatedAt = try {
+                    this.getTimestamp("updatedAt")
+                } catch (ex: Exception) {
+                    this.getLong("updatedAt")?.let { Timestamp(Date(it)) }
+                }
+
                 LessonDto(
                     id = this.id,
                     playlistId = this.getString("playlistId") ?: "",
@@ -92,8 +104,8 @@ class StudentFirestoreSource @Inject constructor(
                     audioUrl = this.getString("audioUrl") ?: "",
                     duration = this.getLong("duration") ?: 0L,
                     pdfUrl = this.getString("pdfUrl") ?: "",
-                    publishDate = this.getLong("publishDate") ?: 0L,
-                    updatedAt = this.getLong("updatedAt") ?: 0L,
+                    publishDate = publishDate,
+                    updatedAt = updatedAt,
                     isDeleted = this.getBoolean("isDeleted") ?: this.getBoolean("deleted") ?: false
                 )
             } catch (ex: Exception) {
@@ -293,8 +305,8 @@ class StudentFirestoreSource @Inject constructor(
                 playlistId = playlistId,
                 audioUrl = audioDownloadUrl,
                 pdfUrl = pdfDownloadUrl,
-                publishDate = now.toDate().time,
-                updatedAt = now.toDate().time,
+                publishDate = now,
+                updatedAt = now,
                 isDeleted = false
             )
             newDocRef.set(finalDto).await()
@@ -366,7 +378,7 @@ class StudentFirestoreSource @Inject constructor(
                 updates["pdfUrl"] = pdfRef.downloadUrl.await().toString()
             }
 
-            updates["updatedAt"] = System.currentTimeMillis()
+            updates["updatedAt"] = Timestamp.now()
             lessonsCollection.document(lessonId).update(updates).await()
             Result.success("Lesson updated")
         } catch (e: Exception) {
@@ -377,7 +389,7 @@ class StudentFirestoreSource @Inject constructor(
     suspend fun getUpdatedLessons(lastSyncTime: Long): List<LessonDto> {
         return try {
             val snapshot = lessonsCollection
-                .whereGreaterThan("updatedAt", lastSyncTime)
+                .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
                 .get()
                 .await()
             snapshot.documents.mapNotNull { it.toLessonDtoSafe() }

@@ -1,5 +1,6 @@
 package com.example.hassanalhawary
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.AppConfig
@@ -11,6 +12,7 @@ import com.example.domain.use_cases.datastore.ObserveOnboardingCompletedUseCase
 import com.example.domain.use_cases.datastore.UpdateDarkThemePreference
 import com.example.domain.use_cases.datastore.UpdateOnboardingCompletedUseCase
 import com.example.domain.use_cases.study.DeleteStudentDataUseCase
+import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.domain.use_cases.study.StoreStudentDataUseCase
 import com.example.profile.domain.use_case.GetUserDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -41,8 +44,11 @@ class MainActivityViewModel @Inject constructor(
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
     private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
-    private val getAppConfigUseCase: GetAppConfigUseCase
+    private val getAppConfigUseCase: GetAppConfigUseCase,
+    private val getStudentDataUseCase: GetStudentDataUseCase,
 ) : ViewModel() {
+
+    private val TAG = "MainActivityViewModel"
 
     private val _state = MutableStateFlow(MainActivityState())
     val state = _state.asStateFlow()
@@ -79,6 +85,7 @@ class MainActivityViewModel @Inject constructor(
     init {
         checkUserAuthState()
         observeAppConfig()
+        storeUserData()
     }
 
     private fun observeAppConfig() {
@@ -93,6 +100,18 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch { updateOnboardingCompletedUseCase() }
     }
 
+    private fun storeUserData() {
+        viewModelScope.launch {
+            // if no data in the room db (user may close the app before deep link happen so we fill the database again if deeplink fail)
+            val studentData = getStudentDataUseCase().first()
+            if (studentData == null) {
+                val uid = getCurrentUserDataUseCase()?.userId
+                Log.d(TAG, "uid : $uid")
+                storeStudentDataUseCase(uid ?: "")
+            } else
+                Log.d(TAG, "data is not null: ${studentData.name}")
+        }
+    }
     fun updateDarkThemePreference(isDarkTheme: Boolean) {
         viewModelScope.launch { updateDarkThemePreferenceUseCase(isDarkTheme) }
     }

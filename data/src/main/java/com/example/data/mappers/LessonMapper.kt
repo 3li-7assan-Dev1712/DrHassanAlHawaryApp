@@ -16,8 +16,8 @@ fun LessonDto.toEntity(): LessonEntity = LessonEntity(
     duration = duration,
     pdfRemoteUrl = pdfUrl,
     pdfFilePath = null,
-    publishDate = publishDate,
-    updatedAt = updatedAt
+    publishDate = publishDate?.toDate()?.time ?: 0L,
+    updatedAt = updatedAt?.toDate()?.time ?: 0L
 )
 
 fun LessonDto.toDomain(): Lesson = Lesson(
