@@ -15,7 +15,7 @@ class ImagesRepositoryImpl @Inject constructor(
 
     override suspend fun uploadDesignGroup(
         title: String,
-        imageUris: List<String>
+        imageUris: List<String>,
     ): Flow<UploadResult> {
         return imageFirestoreSource.uploadImageGroup(title, imageUris)
     }
@@ -25,15 +25,7 @@ class ImagesRepositoryImpl @Inject constructor(
         // We filter out deleted items and map to domain
         return imageFirestoreSource.fetchImageGroupsPage(null, 100).first
             .filter { !it.isDeleted }
-            .map { dto ->
-                ImageGroup(
-                    id = dto.id,
-                    title = dto.title,
-                    publishDate = dto.publishDate,
-                    previewImageUrl = dto.previewImageUrl,
-                    isDeleted = dto.isDeleted
-                )
-            }
+            .map { it }
     }
 
     override suspend fun deleteImageGroup(groupId: String): Result<Unit> {

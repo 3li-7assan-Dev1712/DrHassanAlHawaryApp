@@ -11,7 +11,9 @@ data class SearchHit(
     val type: String?,
     val title: String?,
     val content: String?,
-    val url: String?,
+    val previewImageUrl: String?,
+    val videoUrl: String?,
+    val audioUrl: String?,
     val youtubeVideoId: String?,
     val highlightedTitle: AnnotatedString?,
     val highlightedContent: AnnotatedString?

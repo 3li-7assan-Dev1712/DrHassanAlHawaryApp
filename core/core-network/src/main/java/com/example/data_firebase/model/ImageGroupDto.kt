@@ -13,5 +13,6 @@ data class ImageGroupDto(
     val title: String = "",
     val previewImageUrl: String = "",
     val publishDate: Timestamp? = null,
-    val updatedAt: Timestamp? = null
+    val updatedAt: Timestamp? = null,
+    val type: String = ""
 )

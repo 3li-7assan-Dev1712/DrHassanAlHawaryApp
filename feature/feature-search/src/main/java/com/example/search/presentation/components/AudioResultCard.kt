@@ -35,7 +35,7 @@ fun AudioResultCard(
                     objectID = hit.objectID,
                     title = hit.title,
                     type = hit.type,
-                    url = hit.url
+                    url = hit.audioUrl
                 )
             )
         },

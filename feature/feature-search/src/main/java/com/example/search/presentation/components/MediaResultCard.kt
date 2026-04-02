@@ -29,23 +29,30 @@ fun MediaResultCard(hit: SearchHit, modifier: Modifier = Modifier, onItemClick: 
     Card(
         modifier = modifier
             .clickable {
+                val type = hit.type
+                val url = when(type) {
+                    "video" -> hit.videoUrl
+                    "audio" -> hit.audioUrl
+                    else -> hit.previewImageUrl
+                }
                 onItemClick(
                     SearchResultMetaData(
                         objectID = hit.objectID,
                         title = hit.title,
                         type = hit.type,
-                        url = hit.url
+                        url = url
                     )
                 )
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
+        Log.d("MediaResultCard", "MediaResultCard: $hit")
         Log.d("ResultItems", "MediaResultCard: ${hit.youtubeVideoId}")
         Column {
             AsyncImage(
                 model = if (hit.type == "video")
                     "https://img.youtube.com/vi/${hit.youtubeVideoId}/hqdefault.jpg"
-                else hit.url,
+                else hit.previewImageUrl,
                 contentDescription = hit.title,
                 modifier = Modifier
                     .fillMaxWidth()

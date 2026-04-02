@@ -6,16 +6,19 @@ import com.example.data_firebase.model.ImageDto
 import com.example.data_firebase.model.ImageGroupDto
 import com.example.domain.module.Image
 import com.example.domain.module.ImageGroup
+import com.example.domain.module.toIsoString
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -25,10 +28,11 @@ import javax.inject.Inject
  */
 class ImageFirestoreSource @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    private val firebaseFunctions: FirebaseFunctions
 ) {
     private val TAG = "ImageFirestoreSource"
-    private val imagesCollection = firestore.collection("image_groups")
+    private val imagesGroupCollection = firestore.collection("image_groups")
 
     private fun DocumentSnapshot.toImageGroupDtoSafe(): ImageGroupDto? {
         return try {
@@ -54,7 +58,8 @@ class ImageFirestoreSource @Inject constructor(
                     title = this.getString("title") ?: "",
                     previewImageUrl = this.getString("previewImageUrl") ?: "",
                     publishDate = publishDate,
-                    updatedAt = updatedAt
+                    updatedAt = updatedAt,
+                    type = this.getString("type") ?: ""
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for image group ${this.id}", ex)
@@ -65,7 +70,7 @@ class ImageFirestoreSource @Inject constructor(
 
     suspend fun fetchLatestImageGroup(): ImageGroup? {
         try {
-            val snapshot = imagesCollection
+            val snapshot = imagesGroupCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(1)
                 .get()
@@ -84,7 +89,8 @@ class ImageFirestoreSource @Inject constructor(
                     title = it.title,
                     publishDate = it.publishDate?.toDate() ?: Date(),
                     previewImageUrl = it.previewImageUrl,
-                    isDeleted = it.isDeleted
+                    isDeleted = it.isDeleted,
+                    type = it.type
                 )
             }
         } catch (e: Exception) {
@@ -119,32 +125,36 @@ class ImageFirestoreSource @Inject constructor(
                 close(); return@callbackFlow
             }
 
-            val now = Timestamp.now()
-            val imageGroupDto = ImageGroupDto(
-                id = "",
-                title = title,
-                publishDate = now,
-                updatedAt = now,
-                isDeleted = false,
-                previewImageUrl = uploadedImageUrls.first()
-            )
+            launch {
+                try {
+                    val publishDateIso = Date().toIsoString()
+                    val contentMap = hashMapOf(
+                        "title" to title,
+                        "publishDate" to publishDateIso,
+                        "previewImageUrl" to uploadedImageUrls.first(),
+                        "images" to uploadedImageUrls.mapIndexed { index, url ->
+                            mapOf("imageUrl" to url, "orderIndex" to index)
+                        }
+                    )
 
-            // Add the main group doc
-            val groupDocRef = firestore.collection("image_groups").document()
-            groupDocRef.set(imageGroupDto.copy(id = groupDocRef.id)).await()
+                    val payload = hashMapOf(
+                        "collectionName" to "image_groups",
+                        "contentData" to contentMap
+                    )
 
-            // Add the images to a subcollection
-            val imagesSubCollection = groupDocRef.collection("images")
-            uploadedImageUrls.forEachIndexed { index, url ->
-                val imageDto = ImageDto(
-                    imageUrl = url,
-                    orderIndex = index
-                )
-                imagesSubCollection.add(imageDto).await()
+                    firebaseFunctions
+                        .getHttpsCallable("uploadContent")
+                        .call(payload)
+                        .await()
+
+                    trySend(UploadResult.Progress(100))
+                    trySend(UploadResult.Success)
+                    close()
+                } catch (e: Exception) {
+                    trySend(UploadResult.Error("Failed to save metadata via Cloud Function: ${e.message}"))
+                    close()
+                }
             }
-            trySend(UploadResult.Progress(100))
-            trySend(UploadResult.Success)
-            close()
 
             awaitClose { }
         }
@@ -158,7 +168,7 @@ class ImageFirestoreSource @Inject constructor(
      * @return A list of Image domain models, ordered by their index.
      */
     suspend fun fetchImagesForGroup(groupId: String): List<Image> {
-        val query = imagesCollection
+        val query = imagesGroupCollection
             .document(groupId)
             .collection("images")
             .orderBy(
@@ -195,7 +205,7 @@ class ImageFirestoreSource @Inject constructor(
         limit: Int
     ): Pair<List<ImageGroup>, Boolean> {
         return try {
-            var query = imagesCollection
+            var query = imagesGroupCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(limit.toLong())
 
@@ -213,7 +223,8 @@ class ImageFirestoreSource @Inject constructor(
                         title = it.title,
                         publishDate = it.publishDate?.toDate() ?: Date(),
                         previewImageUrl = it.previewImageUrl,
-                        isDeleted = it.isDeleted
+                        isDeleted = it.isDeleted,
+                        type = it.type
                     )
                 }
             }
@@ -227,7 +238,7 @@ class ImageFirestoreSource @Inject constructor(
 
     suspend fun getUpdatedImageGroups(lastSyncTime: Long): List<ImageGroupDto> {
         return try {
-            val snapshot = imagesCollection
+            val snapshot = imagesGroupCollection
                 .whereGreaterThan("updatedAt", Timestamp(Date(lastSyncTime)))
                 .get()
                 .await()
@@ -240,13 +251,16 @@ class ImageFirestoreSource @Inject constructor(
 
     suspend fun deleteImageGroup(groupId: String): Result<Unit> {
         return try {
-            val now = Timestamp.now()
-            imagesCollection.document(groupId).update(
-                mapOf(
-                    "isDeleted" to true,
-                    "updatedAt" to now
-                )
-            ).await()
+            val payload = hashMapOf(
+                "collectionName" to "image_groups",
+                "documentId" to groupId
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("deleteContent")
+                .call(payload)
+                .await()
+            
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "deleteImageGroup failed", e)
@@ -256,7 +270,7 @@ class ImageFirestoreSource @Inject constructor(
 
     fun syncImageGroupsDbWithServer(): Flow<List<ImageGroupDto>> {
         return callbackFlow {
-            val listenerRegistration = imagesCollection
+            val listenerRegistration = imagesGroupCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
                 .limit(20)
                 .addSnapshotListener { snapshot, error ->

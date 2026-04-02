@@ -8,5 +8,6 @@ data class ImageGroup(
     val id: String,
     val title: String,
     val publishDate: Date = Date(),
-    val previewImageUrl: String
+    val previewImageUrl: String,
+    val type: String = ""
 )

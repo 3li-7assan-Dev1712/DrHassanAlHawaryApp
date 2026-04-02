@@ -18,6 +18,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object LocalDataModule {
 
+    private val MIGRATION_29_30 = object : Migration(29, 30) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE students ADD COLUMN batch TEXT")
+        }
+    }
+
+    private val MIGRATION_30_31 = object : Migration(30, 31) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE articles ADD COLUMN type TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
     private val MIGRATION_31_32 = object : Migration(31, 32) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE audios ADD COLUMN type TEXT NOT NULL DEFAULT ''")
@@ -30,6 +42,12 @@ object LocalDataModule {
         }
     }
 
+    private val MIGRATION_33_34 = object : Migration(33, 34) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE image_groups ADD COLUMN type TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -37,7 +55,13 @@ object LocalDataModule {
         return Room.databaseBuilder(
             context, AppDatabase::class.java, "hassan_al_hawary_db"
         )
-        .addMigrations(MIGRATION_31_32, MIGRATION_32_33)
+        .addMigrations(
+            MIGRATION_29_30,
+            MIGRATION_30_31,
+            MIGRATION_31_32,
+            MIGRATION_32_33,
+            MIGRATION_33_34
+        )
         .build()
     }
 

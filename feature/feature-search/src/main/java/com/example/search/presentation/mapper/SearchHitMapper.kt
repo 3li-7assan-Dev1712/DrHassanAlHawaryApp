@@ -22,7 +22,10 @@ fun parseHit(hit: ResponseSearch.Hit): SearchHit {
     val type = hit["type"]?.jsonPrimitive?.content
     val title = hit["title"]?.jsonPrimitive?.content
     val content = hit["content"]?.jsonPrimitive?.content
-    val url = hit["url"]?.jsonPrimitive?.content ?: ""
+    val previewImageUrl = hit["previewImageUrl"]?.jsonPrimitive?.content
+    val videoUrl = hit["videoUrl"]?.jsonPrimitive?.content
+    val audioUrl = hit["audioUrl"]?.jsonPrimitive?.content
+
     val videoId = hit["videoYoutubeId"]?.jsonPrimitive?.content
 
     val highlightResult = hit["_highlightResult"] as? JsonObject
@@ -44,7 +47,9 @@ fun parseHit(hit: ResponseSearch.Hit): SearchHit {
         type = type,
         title = title,
         content = content,
-        url = url,
+        previewImageUrl = previewImageUrl,
+        videoUrl = videoUrl,
+        audioUrl = audioUrl,
         youtubeVideoId = videoId,
         highlightedTitle = highlightedTitle,
         highlightedContent = highlightedContent

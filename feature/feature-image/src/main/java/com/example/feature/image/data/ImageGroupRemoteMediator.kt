@@ -73,7 +73,8 @@ class ImageGroupRemoteMediator @Inject constructor(
                         publishDate = it.publishDate.time,
                         previewImageUrl = it.previewImageUrl,
                         updatedAt = it.publishDate.time, // Default
-                        isDeleted = it.isDeleted
+                        isDeleted = it.isDeleted,
+                        type = it.type
                     )
                 }
                 imageDao.upsertImageGroups(entities)

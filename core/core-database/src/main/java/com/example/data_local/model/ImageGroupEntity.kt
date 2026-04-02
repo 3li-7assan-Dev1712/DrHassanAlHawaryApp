@@ -13,7 +13,8 @@ data class ImageGroupEntity(
     val publishDate: Long,
     val previewImageUrl: String,
     val updatedAt: Long,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val type: String = ""
 )
 
 /**
@@ -25,6 +26,8 @@ fun ImageGroupEntity.toDomainModel(): ImageGroup {
         id = this.id,
         title = this.title,
         publishDate = Date(this.publishDate),
-        previewImageUrl = this.previewImageUrl
+        previewImageUrl = this.previewImageUrl,
+        type = this.type,
+        isDeleted = this.isDeleted
     )
 }

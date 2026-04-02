@@ -9,5 +9,6 @@ data class ImageGroup(
     val title: String,
     val publishDate: Date = Date(),
     val previewImageUrl: String,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val type: String = ""
 )

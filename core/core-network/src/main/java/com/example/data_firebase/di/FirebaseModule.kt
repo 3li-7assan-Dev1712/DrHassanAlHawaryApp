@@ -54,8 +54,9 @@ object FirebaseModule {
     fun provideFirebaseImageFirestoreSource(
         firestore: FirebaseFirestore,
         storage: FirebaseStorage,
+        functions: FirebaseFunctions
     ): ImageFirestoreSource {
-        return ImageFirestoreSource(firestore, storage)
+        return ImageFirestoreSource(firestore, storage, functions)
     }
 
     @Provides
