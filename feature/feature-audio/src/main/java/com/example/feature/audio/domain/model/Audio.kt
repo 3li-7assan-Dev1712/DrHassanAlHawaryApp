@@ -12,6 +12,7 @@ data class Audio(
     val audioUrl: String,
     val durationInMillis: Long,
     val publishDate: Date,
+    val type: String = "",
 
     val isFavorite: Boolean = false,
     val isDownloaded: Boolean = false,

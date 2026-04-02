@@ -13,6 +13,7 @@ data class Audio(
     val audioUrl: String,
     val durationInMillis: Long,
     val publishDate: Date,
+    val type: String = "",
 
     // for user and local cache
     val isFavorite: Boolean = false,

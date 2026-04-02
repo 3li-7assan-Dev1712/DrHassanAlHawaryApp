@@ -17,7 +17,8 @@ interface AudiosRepository {
     suspend fun uploadAudio(
         title: String,
         uriString: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String = ""
     ): Flow<UploadResult>
 
     suspend fun updateAudio(
@@ -25,7 +26,8 @@ interface AudiosRepository {
         title: String,
         newUriString: String?,
         existingUrl: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String? = null
     ): Flow<UploadResult>
 
     suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit>

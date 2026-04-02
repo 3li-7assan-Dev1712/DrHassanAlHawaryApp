@@ -32,15 +32,17 @@ class UploadAudioUseCase @Inject constructor(
      * @param title The title for the audio metadata.
      * @param uriString The String representation of the file's content URI.
      * @param durationInMillis The duration of the audio.
+     * @param type The category or type of the audio.
      * @return A Flow that emits the current state of the upload (Progress, Success, or Error).
      */
     suspend operator fun invoke(
         title: String,
         uriString: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String = ""
     ): Flow<UploadResult> {
         // The use case now delegates without needing the file size.
         // This is cleaner and more robust.
-        return audiosRepository.uploadAudio(title, uriString, durationInMillis)
+        return audiosRepository.uploadAudio(title, uriString, durationInMillis, type)
     }
 }

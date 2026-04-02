@@ -20,6 +20,7 @@ fun AudioEntity.toDomain(
     isDownloaded = isDownloaded,
     lastPlayedTimestamp = lastPlayedTimestamp,
     localFilePath = localFilePath,
-    isPlaying = false
+    isPlaying = false,
+    type = this.type
 
 )

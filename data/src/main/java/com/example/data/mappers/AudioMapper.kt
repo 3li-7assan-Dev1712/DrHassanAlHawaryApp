@@ -20,7 +20,8 @@ fun AudioEntity.toDomainModel(): Audio =
         isPlaying = false,
         isDownloaded = this.isDownloaded,
         localFilePath = this.localFilePath,
-        lastPlayedTimestamp = this.lastPlayedTimestamp
+        lastPlayedTimestamp = this.lastPlayedTimestamp,
+        type = this.type
     )
 
 /**
@@ -37,7 +38,8 @@ fun Audio.toEntity(updatedAt: Long = System.currentTimeMillis()): AudioEntity =
         localFilePath = this.localFilePath,
         lastPlayedTimestamp = this.lastPlayedTimestamp,
         updatedAt = updatedAt,
-        isDownloaded = isDownloaded
+        isDownloaded = isDownloaded,
+        type = this.type
     )
 
 fun AudioDto.toEntity(): AudioEntity =
@@ -47,7 +49,8 @@ fun AudioDto.toEntity(): AudioEntity =
         audioUrl = audioUrl,
         durationInMillis = durationInMillis,
         publishDate = publishDate?.toDate()?.time ?: 0L,
-        updatedAt = updatedAt?.toDate()?.time ?: 0L
+        updatedAt = updatedAt?.toDate()?.time ?: 0L,
+        type = type
     )
 
 fun AudioDto.toDomainModel(): Audio =
@@ -61,5 +64,6 @@ fun AudioDto.toDomainModel(): Audio =
         isPlaying = false,
         isDownloaded = false,
         localFilePath = null,
-        lastPlayedTimestamp = null
+        lastPlayedTimestamp = null,
+        type = type
     )

@@ -2,6 +2,8 @@ package com.example.data_local.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.data_local.AppDatabase
 import com.example.data_local.AudioDao
 import com.example.data_local.ImageGroupRemoteKeysDao
@@ -16,6 +18,12 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object LocalDataModule {
 
+    private val MIGRATION_31_32 = object : Migration(31, 32) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE audios ADD COLUMN type TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -23,6 +31,7 @@ object LocalDataModule {
         return Room.databaseBuilder(
             context, AppDatabase::class.java, "hassan_al_hawary_db"
         )
+        .addMigrations(MIGRATION_31_32)
         .build()
     }
 

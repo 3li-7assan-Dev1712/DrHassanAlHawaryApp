@@ -12,8 +12,9 @@ class UpdateAudioUseCase @Inject constructor(
         title: String,
         newUriString: String?,
         existingUrl: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String? = null
     ): Flow<UploadResult> {
-        return repository.updateAudio(id, title, newUriString, existingUrl, durationInMillis)
+        return repository.updateAudio(id, title, newUriString, existingUrl, durationInMillis, type)
     }
 }

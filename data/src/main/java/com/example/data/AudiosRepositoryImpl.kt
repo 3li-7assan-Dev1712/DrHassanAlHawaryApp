@@ -49,9 +49,10 @@ class AudiosRepositoryImpl
     override suspend fun uploadAudio(
         title: String,
         uriString: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String
     ): Flow<UploadResult> {
-        return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis)
+        return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis, type)
     }
 
     override suspend fun updateAudio(
@@ -59,9 +60,10 @@ class AudiosRepositoryImpl
         title: String,
         newUriString: String?,
         existingUrl: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String?
     ): Flow<UploadResult> {
-        return audioFirestoreSource.updateAudio(id, title, newUriString, existingUrl, durationInMillis)
+        return audioFirestoreSource.updateAudio(id, title, newUriString, existingUrl, durationInMillis, type)
     }
 
     override suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit> {

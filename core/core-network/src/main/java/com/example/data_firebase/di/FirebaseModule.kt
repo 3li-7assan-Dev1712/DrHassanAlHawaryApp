@@ -44,8 +44,9 @@ object FirebaseModule {
     fun provideFirebaseAudioFirestoreSource(
         firestore: FirebaseFirestore,
         storage: FirebaseStorage,
+        functions: FirebaseFunctions
     ): AudioFirestoreSource {
-        return AudioFirestoreSource(firestore, storage)
+        return AudioFirestoreSource(firestore, storage, functions)
     }
 
     @Provides
@@ -79,7 +80,10 @@ object FirebaseModule {
 
     @Singleton
     @Provides
-    fun provideFirebaseArticlesSource(firestore: FirebaseFirestore, functions: FirebaseFunctions): FirebaseArticlesSource {
+    fun provideFirebaseArticlesSource(
+        firestore: FirebaseFirestore,
+        functions: FirebaseFunctions
+    ): FirebaseArticlesSource {
         return FirebaseArticlesSource(firestore, functions)
     }
 

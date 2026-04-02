@@ -4,16 +4,19 @@ import android.util.Log
 import androidx.core.net.toUri
 import com.example.data_firebase.model.AudioDto
 import com.example.domain.module.Audio
+import com.example.domain.module.toIsoString
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
+import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -23,7 +26,8 @@ import javax.inject.Inject
  */
 class AudioFirestoreSource @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    private val firebaseFunctions: FirebaseFunctions
 ) {
 
     private val TAG = "AudioFirestoreSource"
@@ -54,7 +58,8 @@ class AudioFirestoreSource @Inject constructor(
                     audioUrl = this.getString("audioUrl") ?: "",
                     durationInMillis = this.getLong("durationInMillis") ?: 0L,
                     publishDate = publishDate,
-                    updatedAt = updatedAt
+                    updatedAt = updatedAt,
+                    type = this.getString("type") ?: ""
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -112,7 +117,8 @@ class AudioFirestoreSource @Inject constructor(
                     isDownloaded = false,
                     lastPlayedTimestamp = null,
                     isPlaying = false,
-                    localFilePath = null
+                    localFilePath = null,
+                    type = it.type
                 )
             }
         } catch (e: Exception) {
@@ -127,7 +133,8 @@ class AudioFirestoreSource @Inject constructor(
     fun uploadAudio(
         title: String,
         uriString: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String = ""
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -140,31 +147,37 @@ class AudioFirestoreSource @Inject constructor(
             val progress =
                 ((100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount).toInt()
             trySend(UploadResult.Progress(progress))
-        }.addOnSuccessListener {
-            it.storage.downloadUrl.addOnSuccessListener { downloadUri ->
-                val now = Timestamp.now()
-                val audioDto = AudioDto(
-                    id = "",
-                    title = title,
-                    audioUrl = downloadUri.toString(),
-                    durationInMillis = durationInMillis,
-                    publishDate = now,
-                    updatedAt = now,
-                    isDeleted = false
-                )
-                audiosCollection.add(audioDto)
-                    .addOnSuccessListener { docRef ->
-                        docRef.update("id", docRef.id)
-                        Log.d(TAG, "Successfully uploaded audio and metadata for: $title")
-                        trySend(UploadResult.Success)
-                        close()
-                    }.addOnFailureListener { dbError ->
-                        trySend(UploadResult.Error("Failed to save metadata: ${dbError.message}"))
-                        close()
-                    }
-            }.addOnFailureListener { urlError ->
-                trySend(UploadResult.Error("Failed to get download URL: ${urlError.message}"))
-                close()
+        }.addOnSuccessListener { taskSnapshot ->
+            launch {
+                try {
+                    val downloadUri = taskSnapshot.storage.downloadUrl.await()
+                    val publishDateIso = Date().toIsoString()
+
+                    val contentMap = hashMapOf(
+                        "title" to title,
+                        "audioUrl" to downloadUri.toString(),
+                        "durationInMillis" to durationInMillis,
+                        "publishDate" to publishDateIso,
+                    )
+
+                    val payload = hashMapOf(
+                        "collectionName" to "audios",
+                        "contentData" to contentMap
+                    )
+
+                    firebaseFunctions
+                        .getHttpsCallable("uploadContent")
+                        .call(payload)
+                        .await()
+
+                    Log.d(TAG, "Successfully uploaded audio and metadata for: $title")
+                    trySend(UploadResult.Success)
+                    close()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to save metadata via Cloud Function", e)
+                    trySend(UploadResult.Error("Failed to save metadata: ${e.message}"))
+                    close()
+                }
             }
         }.addOnFailureListener { uploadError ->
             trySend(UploadResult.Error("Upload failed: ${uploadError.message}"))
@@ -178,24 +191,36 @@ class AudioFirestoreSource @Inject constructor(
         title: String,
         newUriString: String?,
         existingUrl: String,
-        durationInMillis: Long
+        durationInMillis: Long,
+        type: String? = null
     ): Flow<UploadResult> = callbackFlow {
-        val now = Timestamp.now()
         if (newUriString == null) {
             // Only update metadata
-            try {
-                audiosCollection.document(id).update(
-                    mapOf(
+            launch {
+                try {
+                    val updates = hashMapOf<String, Any>(
                         "title" to title,
-                        "durationInMillis" to durationInMillis,
-                        "updatedAt" to now
+                        "durationInMillis" to durationInMillis
                     )
-                ).await()
-                trySend(UploadResult.Success)
-                close()
-            } catch (e: Exception) {
-                trySend(UploadResult.Error(e.message ?: "Update failed"))
-                close()
+                    type?.let { updates["type"] = it }
+
+                    val payload = hashMapOf(
+                        "collectionName" to "audios",
+                        "documentId" to id,
+                        "updates" to updates
+                    )
+
+                    firebaseFunctions
+                        .getHttpsCallable("updateContent")
+                        .call(payload)
+                        .await()
+
+                    trySend(UploadResult.Success)
+                    close()
+                } catch (e: Exception) {
+                    trySend(UploadResult.Error(e.message ?: "Update failed"))
+                    close()
+                }
             }
         } else {
             // Upload new file and update metadata
@@ -208,28 +233,40 @@ class AudioFirestoreSource @Inject constructor(
             uploadTask.addOnProgressListener { taskSnapshot ->
                 val progress = ((100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount).toInt()
                 trySend(UploadResult.Progress(progress))
-            }.addOnSuccessListener {
-                it.storage.downloadUrl.addOnSuccessListener { downloadUri ->
-                    val updates = mapOf(
-                        "title" to title,
-                        "audioUrl" to downloadUri.toString(),
-                        "durationInMillis" to durationInMillis,
-                        "updatedAt" to now
-                    )
-                    audiosCollection.document(id).update(updates)
-                        .addOnSuccessListener {
-                            // Try to delete old file
-                            try {
-                                storage.getReferenceFromUrl(existingUrl).delete()
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Failed to delete old audio file", e)
-                            }
-                            trySend(UploadResult.Success)
-                            close()
-                        }.addOnFailureListener { dbError ->
-                            trySend(UploadResult.Error(dbError.message ?: "Update failed"))
-                            close()
+            }.addOnSuccessListener { taskSnapshot ->
+                launch {
+                    try {
+                        val downloadUri = taskSnapshot.storage.downloadUrl.await()
+                        val updates = hashMapOf<String, Any>(
+                            "title" to title,
+                            "audioUrl" to downloadUri.toString(),
+                            "durationInMillis" to durationInMillis
+                        )
+                        type?.let { updates["type"] = it }
+
+                        val payload = hashMapOf(
+                            "collectionName" to "audios",
+                            "documentId" to id,
+                            "updates" to updates
+                        )
+
+                        firebaseFunctions
+                            .getHttpsCallable("updateContent")
+                            .call(payload)
+                            .await()
+
+                        // Try to delete old file
+                        try {
+                            storage.getReferenceFromUrl(existingUrl).delete().await()
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to delete old audio file", e)
                         }
+                        trySend(UploadResult.Success)
+                        close()
+                    } catch (e: Exception) {
+                        trySend(UploadResult.Error(e.message ?: "Update failed"))
+                        close()
+                    }
                 }
             }.addOnFailureListener { e ->
                 trySend(UploadResult.Error(e.message ?: "Upload failed"))
@@ -241,13 +278,15 @@ class AudioFirestoreSource @Inject constructor(
 
     suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit> {
         return try {
-            val now = Timestamp.now()
-            audiosCollection.document(audioId).update(
-                mapOf(
-                    "isDeleted" to true,
-                    "updatedAt" to now
-                )
-            ).await()
+            val payload = hashMapOf(
+                "collectionName" to "audios",
+                "documentId" to audioId
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("deleteContent")
+                .call(payload)
+                .await()
             
             Result.success(Unit)
         } catch (e: Exception) {
