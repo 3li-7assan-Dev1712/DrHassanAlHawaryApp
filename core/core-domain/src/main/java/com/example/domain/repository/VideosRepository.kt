@@ -8,13 +8,13 @@ interface VideosRepository {
 
     fun uploadVideo(
         title: String,
-        youtubeUrl: String
+        youtubeUrl: String,
     ): Flow<UploadResult>
 
     fun updateVideo(
         id: String,
         title: String,
-        youtubeUrl: String
+        youtubeUrl: String,
     ): Flow<UploadResult>
 
     suspend fun deleteVideo(videoId: String): Result<Unit>

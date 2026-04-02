@@ -7,5 +7,6 @@ data class Video(
     val title: String,
     val videoUrl: String,
     val publishDate: Date,
-    val youtubeVideoId: String?
+    val youtubeVideoId: String?,
+    val type: String = ""
 )

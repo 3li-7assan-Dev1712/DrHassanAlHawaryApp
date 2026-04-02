@@ -24,6 +24,12 @@ object LocalDataModule {
         }
     }
 
+    private val MIGRATION_32_33 = object : Migration(32, 33) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE videos ADD COLUMN type TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -31,7 +37,7 @@ object LocalDataModule {
         return Room.databaseBuilder(
             context, AppDatabase::class.java, "hassan_al_hawary_db"
         )
-        .addMigrations(MIGRATION_31_32)
+        .addMigrations(MIGRATION_31_32, MIGRATION_32_33)
         .build()
     }
 

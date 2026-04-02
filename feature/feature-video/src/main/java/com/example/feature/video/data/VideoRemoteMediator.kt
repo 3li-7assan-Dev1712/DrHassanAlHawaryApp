@@ -80,7 +80,8 @@ class VideoRemoteMediator @Inject constructor(
                                 publishDate = dto.publishDate?.toDate()?.time ?: 0L,
                                 youtubeVideoId = dto.videoYoutubeId,
                                 updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
-                                isDeleted = dto.isDeleted
+                                isDeleted = dto.isDeleted,
+                                type = dto.type
                             )
                         }
                         videoDao.upsertAll(entities)

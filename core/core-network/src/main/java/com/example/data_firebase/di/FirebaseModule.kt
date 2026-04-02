@@ -62,8 +62,9 @@ object FirebaseModule {
     @Singleton
     fun provideFirebaseVideoFirestoreSource(
         firestore: FirebaseFirestore,
+        functions: FirebaseFunctions
     ): VideoFirestoreSource {
-        return VideoFirestoreSource(firestore)
+        return VideoFirestoreSource(firestore, functions)
     }
 
     @Singleton

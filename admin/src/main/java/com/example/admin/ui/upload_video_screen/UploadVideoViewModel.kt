@@ -27,6 +27,7 @@ class UploadVideoViewModel @Inject constructor(
 
     var title by mutableStateOf("")
     var videoUrl by mutableStateOf("")
+    var type by mutableStateOf("")
     var videoId: String? by mutableStateOf(savedStateHandle["videoId"])
 
     private val _uploadState = MutableStateFlow<UploadResult?>(null)
@@ -45,6 +46,7 @@ class UploadVideoViewModel @Inject constructor(
             if (video != null) {
                 title = video.title
                 videoUrl = video.videoUrl
+                type = video.type
                 _uploadState.value = null
             } else {
                 _uploadState.value = UploadResult.Error("Failed to load video data")
@@ -70,6 +72,7 @@ class UploadVideoViewModel @Inject constructor(
                 if (result is UploadResult.Success && videoId == null) {
                     title = ""
                     videoUrl = ""
+                    type = ""
                 }
             }
         }

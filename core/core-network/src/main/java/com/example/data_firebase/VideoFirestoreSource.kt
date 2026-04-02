@@ -3,15 +3,18 @@ package com.example.data_firebase
 import android.util.Log
 import com.example.data_firebase.model.VideoDto
 import com.example.domain.module.Video
+import com.example.domain.module.toIsoString
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -20,7 +23,8 @@ import javax.inject.Inject
  * Handles all interactions with Firestore for the Video feature.
  */
 class VideoFirestoreSource @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val firebaseFunctions: FirebaseFunctions
 ) {
     private val TAG = "VideoFirestoreSource"
     private val videosCollection = firestore.collection("videos")
@@ -50,7 +54,8 @@ class VideoFirestoreSource @Inject constructor(
                     videoUrl = this.getString("videoUrl") ?: "",
                     videoYoutubeId = this.getString("videoYoutubeId") ?: "",
                     publishDate = publishDate,
-                    updatedAt = updatedAt
+                    updatedAt = updatedAt,
+                    type = this.getString("type") ?: ""
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -100,7 +105,8 @@ class VideoFirestoreSource @Inject constructor(
                     title = it.title,
                     videoUrl = it.videoUrl,
                     publishDate = it.publishDate?.toDate() ?: Date(),
-                    youtubeVideoId = it.videoYoutubeId
+                    youtubeVideoId = it.videoYoutubeId,
+                    type = it.type
                 )
             }
         } catch (e: Exception) {
@@ -112,7 +118,7 @@ class VideoFirestoreSource @Inject constructor(
     fun uploadVideo(
         title: String,
         videoUrl: String,
-        publishDate: Long = System.currentTimeMillis()
+        publishDate: Long = System.currentTimeMillis(),
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -122,35 +128,41 @@ class VideoFirestoreSource @Inject constructor(
             close(); return@callbackFlow
         }
 
-        val now = Timestamp.now()
-        val videoDto = VideoDto(
-            id = "",
-            title = title,
-            videoUrl = videoUrl,
-            videoYoutubeId = youtubeId,
-            publishDate = Timestamp(Date(publishDate)),
-            updatedAt = now,
-            isDeleted = false
-        )
+        launch {
+            try {
+                val publishDateIso = Date(publishDate).toIsoString()
+                val contentMap = hashMapOf(
+                    "title" to title,
+                    "videoUrl" to videoUrl,
+                    "videoYoutubeId" to youtubeId,
+                    "publishDate" to publishDateIso,
+                )
 
-        videosCollection.add(videoDto)
-            .addOnSuccessListener { docRef ->
-                docRef.update("id", docRef.id)
+                val payload = hashMapOf(
+                    "collectionName" to "videos",
+                    "contentData" to contentMap
+                )
+
+                firebaseFunctions
+                    .getHttpsCallable("uploadContent")
+                    .call(payload)
+                    .await()
+
                 trySend(UploadResult.Progress(100))
                 trySend(UploadResult.Success)
                 close()
-            }
-            .addOnFailureListener { e ->
+            } catch (e: Exception) {
                 trySend(UploadResult.Error("Database Error: ${e.message}"))
                 close()
             }
+        }
         awaitClose { }
     }
 
     fun updateVideo(
         id: String,
         title: String,
-        videoUrl: String
+        videoUrl: String,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -160,31 +172,47 @@ class VideoFirestoreSource @Inject constructor(
             close(); return@callbackFlow
         }
 
-        try {
-            val updates = mapOf(
-                "title" to title,
-                "videoUrl" to videoUrl,
-                "videoYoutubeId" to youtubeId,
-                "updatedAt" to Timestamp.now()
-            )
-            videosCollection.document(id).update(updates).await()
-            trySend(UploadResult.Success)
-            close()
-        } catch (e: Exception) {
-            trySend(UploadResult.Error(e.message ?: "Update failed"))
-            close()
+        launch {
+            try {
+                val updates = mutableMapOf<String, Any>(
+                    "title" to title,
+                    "videoUrl" to videoUrl,
+                    "videoYoutubeId" to youtubeId
+                )
+
+                val payload = hashMapOf(
+                    "collectionName" to "videos",
+                    "documentId" to id,
+                    "updates" to updates
+                )
+
+                firebaseFunctions
+                    .getHttpsCallable("updateContent")
+                    .call(payload)
+                    .await()
+
+                trySend(UploadResult.Success)
+                close()
+            } catch (e: Exception) {
+                trySend(UploadResult.Error(e.message ?: "Update failed"))
+                close()
+            }
         }
         awaitClose { }
     }
 
     suspend fun deleteVideo(videoId: String): Result<Unit> {
         return try {
-            videosCollection.document(videoId).update(
-                mapOf(
-                    "isDeleted" to true,
-                    "updatedAt" to Timestamp.now()
-                )
-            ).await()
+            val payload = hashMapOf(
+                "collectionName" to "videos",
+                "documentId" to videoId
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("deleteContent")
+                .call(payload)
+                .await()
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

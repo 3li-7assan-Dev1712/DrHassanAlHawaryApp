@@ -41,7 +41,8 @@ class VideoRepositoryImpl @Inject constructor(
                     title = entity.title,
                     videoUrl = entity.videoUrl,
                     publishDate = Date(entity.publishDate),
-                    youtubeVideoId = entity.youtubeVideoId
+                    youtubeVideoId = entity.youtubeVideoId,
+                    type = entity.type
                 )
             }
         }
