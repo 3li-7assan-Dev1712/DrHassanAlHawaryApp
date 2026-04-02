@@ -59,7 +59,7 @@ class ArticlesRepositoryImpl
 
     override suspend fun getAllRemoteArticles(): List<Article> {
         val (list, _) = firebaseArticlesSource.getArticlesPage(null, 100)
-        return list.map { it.toDomainModel() }
+        return list.filter { !it.isDeleted }.map { it.toDomainModel() }
     }
 
     override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {
@@ -117,7 +117,8 @@ class ArticlesRepositoryImpl
                             content = article.content,
                             publishDate = article.publishDate.time,
                             updatedAt = article.updatedAt,
-                            isDeleted = article.isDeleted
+                            isDeleted = article.isDeleted,
+                            type = article.type
                         )
                     }
                     articleDao.upsertAll(activeEntities)

@@ -3,11 +3,13 @@ package com.example.data_firebase
 import android.util.Log
 import com.example.data_firebase.model.ArticleDto
 import com.example.domain.module.Article
+import com.example.domain.module.toIsoString
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.toObject
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -16,60 +18,97 @@ import java.util.Date
 import javax.inject.Inject
 
 class FirebaseArticlesSource @Inject constructor(
-    private val firestoreDb: FirebaseFirestore
+    private val firestoreDb: FirebaseFirestore,
+    private val firebaseFunctions: FirebaseFunctions
 ) {
 
     private val articlesCollection = firestoreDb.collection("articles")
 
     suspend fun uploadArticle(article: Article) {
         try {
-            val newArticleRef = articlesCollection.document()
-            val articleId = newArticleRef.id
-            val now = Timestamp.now()
+            val publishDateIso = article.publishDate.toIsoString()
 
-            val articleDto = ArticleDto(
-                id = articleId,
-                title = article.title,
-                content = article.content,
-                publishDate = now,
-                updatedAt = now,
-                isDeleted = false
+
+            val contentMap = hashMapOf(
+                "title" to article.title,
+                "content" to article.content,
+                "publishDate" to publishDateIso
             )
 
-            newArticleRef.set(articleDto).await()
-            Log.d("FirebaseArticlesSource", "Article uploaded successfully: ${article.title}")
+            val payload = hashMapOf(
+                "collectionName" to "articles",
+                "contentData" to contentMap
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("uploadContent")
+                .call(payload)
+                .await()
+
+            Log.d(
+                "FirebaseArticlesSource",
+                "Article uploaded successfully via Cloud Function: ${article.title}"
+            )
+
         } catch (e: Exception) {
-            Log.e("FirebaseArticlesSource", "Error uploading article: ${e.message}", e)
+            Log.e(
+                "FirebaseArticlesSource",
+                "Error uploading article via Cloud Function: ${e.message}", e
+            )
             throw e
         }
     }
 
     suspend fun updateArticle(article: Article) {
         try {
-            val updates = mapOf(
+            val updates = hashMapOf<String, Any>(
                 "title" to article.title,
-                "content" to article.content,
-                "updatedAt" to Timestamp.now()
+                "content" to article.content
             )
-            articlesCollection.document(article.id).update(updates).await()
-            Log.d("FirebaseArticlesSource", "Article updated successfully: ${article.title}")
+
+            val payload = hashMapOf(
+                "collectionName" to "articles",
+                "documentId" to article.id,
+                "updates" to updates
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("updateContent")
+                .call(payload)
+                .await()
+
+            Log.d("FirebaseArticlesSource",
+                "Article updated successfully via Cloud Function: ${article.title}"
+            )
+
         } catch (e: Exception) {
-            Log.e("FirebaseArticlesSource", "Error updating article: ${e.message}", e)
+            Log.e("FirebaseArticlesSource",
+                "Error updating article via Cloud Function: ${e.message}", e
+            )
             throw e
         }
     }
 
     suspend fun deleteArticle(articleId: String) {
         try {
-            articlesCollection.document(articleId).update(
-                mapOf(
-                    "isDeleted" to true,
-                    "updatedAt" to Timestamp.now()
-                )
-            ).await()
-            Log.d("FirebaseArticlesSource", "Article soft-deleted successfully: $articleId")
+            val payload = hashMapOf(
+                "collectionName" to "articles",
+                "documentId" to articleId
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("deleteContent")
+                .call(payload)
+                .await()
+
+            Log.d("FirebaseArticlesSource",
+                "Article soft-deleted via Cloud Function: $articleId"
+            )
+
         } catch (e: Exception) {
-            Log.e("FirebaseArticlesSource", "Error deleting article: ${e.message}", e)
+            Log.e("FirebaseArticlesSource",
+                "Error deleting article via Cloud Function: ${e.message}", e
+            )
             throw e
         }
     }

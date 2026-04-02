@@ -80,6 +80,7 @@ class HomeRepositoryImpl @Inject constructor(
                     content = dto.content,
                     publishDate = dto.publishDate?.toDate()?.time ?: 0L,
                     updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                    type = dto.type,
                     isDeleted = dto.isDeleted
                 )
             }

@@ -25,7 +25,7 @@ object SearchModule {
         return HitsSearcher(
             applicationID = ApplicationID(BuildConfig.ALGOLIA_APP_ID),
             apiKey = APIKey(BuildConfig.ALGOLIA_API_KEY),
-            indexName = IndexName("content_search")
+            indexName = IndexName("content_index")
         )
     }
 

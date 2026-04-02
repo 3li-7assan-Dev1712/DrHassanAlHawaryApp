@@ -12,7 +12,7 @@ data class ArticleDto(
     val content: String = "",
     val publishDate: Timestamp? = null,
     val updatedAt: Timestamp? = null,
-
+    val type: String= "",
     @get:PropertyName("isDeleted")
     @set:PropertyName("isDeleted")
     var isDeleted: Boolean = false

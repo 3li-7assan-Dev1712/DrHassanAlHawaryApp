@@ -63,7 +63,8 @@ class ArticleRemoteMediator @Inject constructor(
                                 content = dto.content,
                                 publishDate = dto.publishDate?.toDate()?.time ?: 0L,
                                 updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
-                                isDeleted = dto.isDeleted
+                                isDeleted = dto.isDeleted,
+                                type = dto.type
                             )
                         }
                         appDatabase.articleDao().upsertAll(entities)

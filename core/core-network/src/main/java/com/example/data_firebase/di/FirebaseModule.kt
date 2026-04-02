@@ -79,8 +79,8 @@ object FirebaseModule {
 
     @Singleton
     @Provides
-    fun provideFirebaseArticlesSource(firestore: FirebaseFirestore): FirebaseArticlesSource {
-        return FirebaseArticlesSource(firestore)
+    fun provideFirebaseArticlesSource(firestore: FirebaseFirestore, functions: FirebaseFunctions): FirebaseArticlesSource {
+        return FirebaseArticlesSource(firestore, functions)
     }
 
     @Singleton

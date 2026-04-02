@@ -35,8 +35,10 @@ class SearchViewModel @Inject constructor(
     private var currentQuery: String = ""
 
     init {
+        // Set default filter to not show deleted items
+        searcher.query.facetFilters = listOf(listOf("isDeleted:false"))
+        
         viewModelScope.launch {
-
             searcher.response.subscribe { res ->
                 Log.d(TAG, "res value: ${res?.hits?.size}")
                 res?.let { _uiState.value = SearchUiState.Success(it) }
@@ -48,8 +50,8 @@ class SearchViewModel @Inject constructor(
         _selectedFilter.value = filter
 
         searcher.query.facetFilters =
-            if (filter == SearchFilter.ALL) null
-            else listOf(listOf("type:${filter.type}"))
+            if (filter == SearchFilter.ALL) listOf(listOf("isDeleted:false"))
+            else listOf(listOf("type:${filter.type}"), listOf("isDeleted:false"))
 
         _uiState.value = SearchUiState.Loading
         searcher.searchAsync()
