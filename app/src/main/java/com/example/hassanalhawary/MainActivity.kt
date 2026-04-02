@@ -521,8 +521,8 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
-                composable(Routes.KHOTAB_SCREEN) {
-
+                composable(Routes.Q_A_SCREEN) {
+                    com.example.hassanalhawary.ui.q_a.QAScreen()
                 }
 
                 // profile screens

@@ -23,7 +23,7 @@ object Routes {
     const val ARTICLES_SCREEN = "articles_screen"
     const val AUDIO_LIST_SCREEN = "audio_list_screen"
     const val VIDEOS_SCREEN = "videos_screen"
-    const val KHOTAB_SCREEN = "khotab_screen"
+    const val Q_A_SCREEN = "q_a_screen"
     const val IMAGES_SCREEN = "images_screen"
 
     const val IMPORTANT_QUESTIONS_SCREEN = "important_questions_screen"

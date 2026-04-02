@@ -92,9 +92,9 @@ fun HomeScreen(
                     R.drawable.videos_icon
                 ),
                 Category(
-                    Routes.KHOTAB_SCREEN,
-                    stringResource(R.string.khotab_aljumah),
-                    R.drawable.jummah_icon
+                    Routes.Q_A_SCREEN,
+                    stringResource(R.string.fasalo),
+                    com.example.core.ui.R.drawable.fasalo_logo
                 ),
                 Category(
                     Routes.IMAGES_SCREEN,

@@ -19,9 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.ui.R
 import com.example.study.presentation.dashboard.GuestContent
 import com.example.study.presentation.dashboard.NotChannelMemberContent
 import com.example.study.presentation.dashboard.StudentDashboardContent
@@ -52,7 +54,9 @@ fun StudyScreen(
                 StudyTopAppBar()
 //                CustomTopAppBar()
             } else
-                CenterAlignedTopAppBar(title = { Text("My Study Dashboard") })
+                CenterAlignedTopAppBar(title = { Text(
+                    text = stringResource(R.string.dr_hassan_institute)
+                ) })
         }
 
     ) { paddingValues ->

@@ -15,7 +15,7 @@
     <string name="favorite_articles">Favorite Articles</string>
     <string name="favorite_lectures">Favorite Lectures</string>
     <string name="questions">Questions</string>
-    <string name="study_zone">Study Zone</string>">
+    <string name="study_zone">Study Zone</string>
     <string name="videos">Videos</string>
     <string name="lectures">Lectures</string>
     <string name="summary">Summary</string>
@@ -33,7 +33,7 @@
     <string name="audio_detail_description_title">Audio With Title</string>
     <string name="wisdom_of_the_day">Quote of the Day</string>
     <string name="no_audios_available">No Available Audios</string>
-    <string name="khotab_aljumah">Khotab Al Jumah</string>
+    <string name="fasalo">Khotab Al Jumah</string>
     <string name="war">War</string>
     <string name="most_important">Most Important</string>
     <string name="audios">Audios</string>
@@ -43,5 +43,8 @@
     <string name="search_illustration_description">Search to find any content you love</string>
     <string name="study_zone_description">Enter you data to join to the study zone</string>
 
+    <string name="q_a_title">Fasalo</string>
+    <string name="q_a_description">Fasalo is the unified platform for all fatawa questions. You can press the button below to open Fasalo in Telegram and send your question.</string>
+    <string name="q_a_open_telegram">Open in Telegram</string>
 
 </resources>

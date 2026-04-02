@@ -35,15 +35,20 @@
     <string name="error_msg">حـــدث خــــطأ</string>
     <string name="shaikh_hassan_cv">عن الشيــخ</string>
 
-    <string name="study_zone">المعهـــد</string>">
+    <string name="study_zone">المعهـــد</string>
     <string name="latest_articles">أحدث المــــقالات</string>
     <string name="latest_audios">أحدث الصــــوتيات</string>
     <string name="images">الصـــور</string>
     <string name="wisdom_of_the_day">رسالــــة اليـــــوم</string>
-    <string name="khotab_aljumah">خــطب الجـــمعة</string>
+    <string name="fasalo">خــطب الجـــمعة</string>
     <string name="war">نـــوازل الحـــرب</string>
     <string name="most_important">أهـــم المســـائل</string>
     <string name="lessons">الــمـحـــتويات</string>
     <string name="study_zone_description">اكتب بياناتك للدخول إلى دروس المعهد</string>
     <string name="search_illustration_description">اكتب كلمة للعثور على الدرس أو الخطبة</string>
+
+    <string name="q_a_title">فاسألوا</string>
+    <string name="q_a_description">فاسألوا هي المنصة الموحدة لجميع أسئلة الفتاوى. يمكنك الضغط على الزر أدناه لفتح فاسألوا في تيليجرام وإرسال سؤالك مباشرة.</string>
+    <string name="q_a_open_telegram">افتح في تيليجرام</string>
+    <string name="fasalo_telegram_url" translatable="false">https://t.me/fasalooo</string>
 </resources>
