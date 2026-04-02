@@ -2,6 +2,8 @@ package com.example.data_local.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.data_local.AppDatabase
 import com.example.data_local.AudioDao
 import com.example.data_local.ImageGroupRemoteKeysDao
@@ -19,9 +21,18 @@ object LocalDataModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        val MIGRATION_29_30 = object : Migration(29, 30) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE students ADD COLUMN batch TEXT")
+            }
+        }
+        
         return Room.databaseBuilder(
             context, AppDatabase::class.java, "hassan_al_hawary_db"
-        ).fallbackToDestructiveMigration(true).build()
+        )
+        .addMigrations(MIGRATION_29_30)
+        .fallbackToDestructiveMigration(true)
+        .build()
     }
 
     @Provides

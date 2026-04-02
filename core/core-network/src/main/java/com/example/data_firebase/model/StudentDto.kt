@@ -11,5 +11,6 @@ data class StudentDto(
     val isChannelMember: Boolean = false,
     val membershipState: String = "",
     val isConnectedToTelegram: Boolean = false,
-    val currentLevelId: String = "level_1"
+    val currentLevelId: String = "level_1",
+    val batch: String? = null
 )

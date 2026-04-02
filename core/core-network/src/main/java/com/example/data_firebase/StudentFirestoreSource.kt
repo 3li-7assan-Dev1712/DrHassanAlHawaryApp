@@ -157,7 +157,8 @@ class StudentFirestoreSource @Inject constructor(
                     isChannelMember = document.getBoolean("isChannelMember") ?: false,
                     membershipState = document.getString("membershipState") ?: "",
                     isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false,
-                    currentLevelId = document.getString("currentLevelId") ?: "1"
+                    currentLevelId = document.getString("currentLevelId") ?: "1",
+                    batch = document.getString("batch")
                 )
             }
         } catch (e: Exception) {
@@ -177,7 +178,8 @@ class StudentFirestoreSource @Inject constructor(
                 photoUrl = document.getString("photoUrl") ?: "",
                 isChannelMember = document.getBoolean("isChannelMember") ?: false,
                 membershipState = document.getString("membershipState") ?: "",
-                isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false
+                isConnectedToTelegram = document.getBoolean("isConnectedToTelegram") ?: false,
+                batch = document.getString("batch")
             )
             dto
         } catch (e: Exception) {

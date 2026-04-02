@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -22,6 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,10 +37,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.admin.R
+import com.example.domain.module.Channel
+
+fun formatBatchNameForChannel(batchId: String?): String {
+    if (batchId.isNullOrBlank()) return "قناة غير معروفة"
+    val batchName = when (batchId) {
+        "batch_1" -> "الدفعة الأولى"
+        "batch_2" -> "الدفعة الثانية"
+        "batch_3" -> "الدفعة الثالثة"
+        "batch_4" -> "الدفعة الرابعة"
+        "batch_5" -> "الدفعة الخامسة"
+        "batch_6" -> "الدفعة السادسة"
+        "batch_7" -> "الدفعة السابعة"
+        "batch_8" -> "الدفعة الثامنة"
+        "batch_9" -> "الدفعة التاسعة"
+        "batch_10" -> "الدفعة العاشرة"
+        else -> batchId
+    }
+    return "قناة $batchName"
+}
 
 @Composable
 fun SuperAdminScreen(
@@ -71,6 +94,29 @@ fun SuperAdminScreen(
         return
     }
 
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf(stringResource(R.string.tab_admins), stringResource(R.string.tab_channels))
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        TabRow(selectedTabIndex = selectedTabIndex) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index },
+                    text = { Text(title) }
+                )
+            }
+        }
+
+        when (selectedTabIndex) {
+            0 -> AdminsTabContent()
+            1 -> ChannelsTabContent()
+        }
+    }
+}
+
+@Composable
+fun AdminsTabContent() {
     val viewModel: SuperAdminViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsState()
 
@@ -201,6 +247,154 @@ fun SuperAdminScreen(
 }
 
 @Composable
+fun ChannelsTabContent() {
+    val viewModel: ChannelsViewModel = hiltViewModel()
+    val state by viewModel.uiState.collectAsState()
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var channelIdToAdd by remember { mutableStateOf("") }
+    var batchToAdd by remember { mutableStateOf("") }
+    var orderToAdd by remember { mutableStateOf("") }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var channelToDelete by remember { mutableStateOf<Channel?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.channels_management),
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.tab_channels),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Button(onClick = { showAddDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Text(stringResource(R.string.add_channel))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (state.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        }
+
+        state.error?.let {
+            Text(text = it, color = Color.Red, modifier = Modifier.padding(vertical = 8.dp))
+        }
+
+        state.successMessage?.let {
+            Text(text = it, color = Color.Green, modifier = Modifier.padding(vertical = 8.dp))
+        }
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(state.channels, key = { it.channelId }) { channel ->
+                ChannelItem(
+                    channel = channel,
+                    onRemove = {
+                        channelToDelete = channel
+                        showDeleteDialog = true
+                    }
+                )
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false; viewModel.clearMessages() },
+            title = { Text(stringResource(R.string.add_new_channel_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = channelIdToAdd,
+                        onValueChange = { channelIdToAdd = it },
+                        label = { Text(stringResource(R.string.channel_id)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = batchToAdd,
+                        onValueChange = { batchToAdd = it },
+                        label = { Text(stringResource(R.string.channel_batch)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = orderToAdd,
+                        onValueChange = { orderToAdd = it },
+                        label = { Text(stringResource(R.string.channel_order)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.addChannel(channelIdToAdd, batchToAdd, orderToAdd)
+                    showAddDialog = false
+                    channelIdToAdd = ""
+                    batchToAdd = ""
+                    orderToAdd = ""
+                }) {
+                    Text(stringResource(R.string.add))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showDeleteDialog && channelToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.remove_channel)) },
+            text = {
+                Text(
+                    text = stringResource(R.string.delete_confirmation_msg, formatBatchNameForChannel(channelToDelete!!.batch)),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteChannel(channelToDelete!!.channelId)
+                        showDeleteDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Composable
 fun AdminItem(email: String, onRemove: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -217,6 +411,45 @@ fun AdminItem(email: String, onRemove: () -> Unit) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = stringResource(R.string.remove_admin),
+                    tint = Color.Red
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ChannelItem(channel: Channel, onRemove: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = formatBatchNameForChannel(channel.batch), 
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "ID: ${channel.channelId}", 
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Order: ${channel.order}", 
+                    style = MaterialTheme.typography.bodySmall, 
+                    color = Color.Gray
+                )
+            }
+            IconButton(onClick = onRemove) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.remove_channel),
                     tint = Color.Red
                 )
             }

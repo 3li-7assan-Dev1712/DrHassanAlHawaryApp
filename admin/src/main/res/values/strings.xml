@@ -36,6 +36,16 @@
     <string name="admin_removed_success">تم حذف المسؤول بنجاح</string>
     <string name="super_admin_restricted_msg">هذه المنطقة مخصصة للمشرفين العامين فقط. إذا كنت بحاجة إلى وصول، يرجى التواصل مع المطور الأساسي.</string>
 
+    <string name="tab_admins">المسؤولون</string>
+    <string name="tab_channels">القنوات</string>
+    <string name="channels_management">إدارة القنوات</string>
+    <string name="add_channel">إضافة قناة</string>
+    <string name="remove_channel">حذف القناة</string>
+    <string name="add_new_channel_title">إضافة قناة جديدة</string>
+    <string name="channel_id">معرف القناة (ID)</string>
+    <string name="channel_batch">الدفعة (مثال: batch_1)</string>
+    <string name="channel_order">الترتيب</string>
+
     <!-- Auth & Access Denied -->
     <string name="logout">تسجيل الخروج</string>
     <string name="not_allowed_msg">ليس لديك صلاحيات إدارية للوصول إلى هذه اللوحة. إذا كنت تعتقد أن هذا خطأ، يرجى الاتصال بمسؤول النظام.</string>

@@ -9,5 +9,6 @@ data class Student(
     val membershipState: String,
     val isConnectedToTelegram: Boolean,
     val currentLevelId: String = "level_1", // Default starting level
-    val completedLessonIds: List<String> = emptyList() // To track progress
+    val completedLessonIds: List<String> = emptyList(), // To track progress
+    val batch: String? = null
 )

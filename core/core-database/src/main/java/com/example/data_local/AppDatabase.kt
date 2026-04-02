@@ -26,7 +26,7 @@ import com.example.data_local.model.VideoEntity
         LessonEntity::class,
         PlaylistEntity::class],
 
-    version = 29,
+    version = 30,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -48,8 +48,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun lessonDao(): LessonDao
 
     abstract fun levelDao(): LevelsDao
-
-
-
 
 }

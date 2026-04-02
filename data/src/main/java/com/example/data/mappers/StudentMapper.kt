@@ -12,7 +12,8 @@ fun StudentEntity.toDomain(): Student = Student(
     isCourseMember = isChannelMember,
     currentLevelId = currentLevelId,
     membershipState = membershipState,
-    isConnectedToTelegram = isConnectedToTelegram
+    isConnectedToTelegram = isConnectedToTelegram,
+    batch = batch
 )
 
 fun StudentDto.toEntity(): StudentEntity = StudentEntity(
@@ -23,5 +24,6 @@ fun StudentDto.toEntity(): StudentEntity = StudentEntity(
     isChannelMember = isChannelMember,
     currentLevelId = currentLevelId,
     membershipState = membershipState,
-    isConnectedToTelegram = isConnectedToTelegram
+    isConnectedToTelegram = isConnectedToTelegram,
+    batch = batch
 )
