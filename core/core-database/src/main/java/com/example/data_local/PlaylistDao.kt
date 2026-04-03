@@ -26,4 +26,7 @@ interface PlaylistDao {
 
     @Query("SELECT id FROM playlists")
     suspend fun getAllIds(): List<String>
+
+    @Query("DELETE FROM playlists WHERE id = :id")
+    fun deletePlaylistById(id: String)
 }

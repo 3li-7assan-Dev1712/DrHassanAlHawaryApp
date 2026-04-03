@@ -68,31 +68,10 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun saveStudentData(uid: String) {
-
-        val studentData = studentFirestoreSource.getStudentDataById(uid)?.toEntity()
-        if (studentData != null) {
-            studentDao.deleteAll()
-            studentDao.storeStudent(studentData)
-        }
-
-
-    }
-
-    override suspend fun storeAdminDataToRoom(telegramId: Long) {
-        Log.d(TAG, "saveStudentData: telegram id = $telegramId")
-        val studentData = studentFirestoreSource.getAdminDataByTelegramId(telegramId)?.toEntity()
-        if (studentData != null) {
-            studentDao.storeStudent(studentData)
-        }
-
-
-    }
-
     override fun getPlaylistsForLevel(levelId: String): Flow<List<Playlist>?> {
 
         return playlistDao.getPlaylistsForLevel(levelId).map { playlistsEntities ->
-            playlistsEntities?.map { playlistEntity ->
+            playlistsEntities?.filter { !it.isDeleted }?.map { playlistEntity ->
                 playlistEntity.toDomain()
             }
         }
@@ -106,7 +85,7 @@ class StudyRepositoryImpl @Inject constructor(
             Log.d(TAG, "syncPlaylists: ${playlists.size}")
             if (playlists.isNotEmpty()) {
                 val existingLevelIds = levelsDao.getAllIds().toSet()
-                
+
                 // Filter out playlists whose level doesn't exist locally to avoid FK constraint failure
                 val validEntities = playlists
                     .map { it.toEntity() }
@@ -117,10 +96,19 @@ class StudyRepositoryImpl @Inject constructor(
                     versionStore.setLastPlaylistSync(
                         validEntities.maxOf { it.updatedAt }
                     )
+                    playlists.forEach { playlist ->
+                        if(playlist.isDeleted) {
+                            playlistDao.deletePlaylistById(playlist.id)
+                            return@forEach
+                        }
+                    }
                 }
-                
+
                 if (validEntities.size < playlists.size) {
-                    Log.w(TAG, "syncPlaylists: Ignored ${playlists.size - validEntities.size} playlists due to missing levels.")
+                    Log.w(
+                        TAG,
+                        "syncPlaylists: Ignored ${playlists.size - validEntities.size} playlists due to missing levels."
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -157,7 +145,7 @@ class StudyRepositoryImpl @Inject constructor(
 
     override fun getLessonsForPlaylist(playlistId: String): Flow<List<Lesson>> =
         lessonDao.getLessonsForPlaylist(playlistId).map { lessonsEntities ->
-            lessonsEntities?.map { lessonEntity ->
+            lessonsEntities?.filter { !it.isDeleted }?.map { lessonEntity ->
                 lessonEntity.toDomain()
             } ?: emptyList()
         }
@@ -169,24 +157,33 @@ class StudyRepositoryImpl @Inject constructor(
             Log.d(TAG, "syncLessons: lessons: ${lessons.size}")
             if (lessons.isNotEmpty()) {
                 val existingPlaylistIds = playlistDao.getAllIds().toSet()
-                
+
                 // Filter out lessons whose playlist doesn't exist locally to avoid FK constraint failure
                 val entities = lessons
                     .map { it.toEntity() }
                     .filter { it.playlistId in existingPlaylistIds }
 
                 if (entities.isNotEmpty()) {
+
                     lessonDao.upsertAll(entities)
                     versionStore.setLastLessonSync(
                         entities.maxOf { it.updatedAt }
                     )
-                    entities.forEach {
-                        ensureLessonFilesDownloaded(it.id)
+                    entities.forEach { entity ->
+                        if (entity.isDeleted) {
+                            lessonDao.deleteLessonById(entity.id)
+                            return@forEach
+                        } else {
+                            ensureLessonFilesDownloaded(entity.id)
+                        }
                     }
                 }
-                
+
                 if (entities.size < lessons.size) {
-                    Log.w(TAG, "syncLessons: Ignored ${lessons.size - entities.size} lessons due to missing playlists.")
+                    Log.w(
+                        TAG,
+                        "syncLessons: Ignored ${lessons.size - entities.size} lessons due to missing playlists."
+                    )
                 }
             }
         } catch (e: Exception) {
@@ -216,6 +213,27 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
 
+    override suspend fun saveStudentData(uid: String) {
+
+        val studentData = studentFirestoreSource.getStudentDataById(uid)?.toEntity()
+        if (studentData != null) {
+            studentDao.deleteAll()
+            studentDao.storeStudent(studentData)
+        }
+
+
+    }
+
+    override suspend fun storeAdminDataToRoom(telegramId: Long) {
+        Log.d(TAG, "saveStudentData: telegram id = $telegramId")
+        val studentData = studentFirestoreSource.getAdminDataByTelegramId(telegramId)?.toEntity()
+        if (studentData != null) {
+            studentDao.storeStudent(studentData)
+        }
+
+
+    }
+
     // admin
     override suspend fun getRemotePlaylistForLevel(levelId: String): List<Playlist> {
         val playlists = studentFirestoreSource.getRemotePlaylistForLevel(levelId)
@@ -233,6 +251,9 @@ class StudyRepositoryImpl @Inject constructor(
         return studentFirestoreSource.uploadPlaylist(playlist.toDto())
     }
 
+    override suspend fun deletePlaylist(playlistId: String): Result<Unit> {
+        return studentFirestoreSource.deletePlaylist(playlistId)
+    }
 
     override suspend fun updatePlaylist(
         playlistId: String,
@@ -280,6 +301,10 @@ class StudyRepositoryImpl @Inject constructor(
             lesson.toDto(),
             playlistId = playlistId,
         )
+    }
+
+    override suspend fun deleteLesson(lessonId: String): Result<Unit> {
+        return studentFirestoreSource.deleteLesson(lessonId)
     }
 
     override suspend fun getRemoteMotivationalMessages(): List<String> {

@@ -63,6 +63,7 @@ interface StudyRepository {
 
     suspend fun getRemotePlaylistForLevel(levelId: String): List<Playlist>
     suspend fun uploadPlaylist(playlist: Playlist): Flow<UploadResult>
+    suspend fun deletePlaylist(playlistId: String): Result<Unit>
 
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<Lesson>
 
@@ -74,6 +75,7 @@ interface StudyRepository {
     ): Result<String>
 
     suspend fun addLesson(lesson: Lesson, playlistId: String): Flow<UploadResult>
+    suspend fun deleteLesson(lessonId: String): Result<Unit>
 
     suspend fun getRemoteLessonById(lessonId: String): Lesson?
     suspend fun getRemotePlaylistById(playlistId: String): Playlist?
@@ -88,7 +90,7 @@ interface StudyRepository {
 
     suspend fun getAdmins(): Result<List<Map<String, Any>>>
     suspend fun addAdmin(email: String, role: String): Result<Unit>
-    suspend fun removeAdmin(email: String): Result<Unit>
+    suspend fun removeAdmin(uid: String): Result<Unit>
 
 
 

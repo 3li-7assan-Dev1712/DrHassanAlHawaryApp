@@ -15,6 +15,7 @@ fun LessonDto.toEntity(): LessonEntity = LessonEntity(
     audioFilePath = null,
     duration = duration,
     pdfRemoteUrl = pdfUrl,
+    isDeleted = isDeleted,
     pdfFilePath = null,
     publishDate = publishDate?.toDate()?.time ?: 0L,
     updatedAt = updatedAt?.toDate()?.time ?: 0L
@@ -33,6 +34,7 @@ fun Lesson.toDto(): LessonDto =
     LessonDto(
     id = id,
     title = title,
+
     order = order,
     audioUrl = audioUrl,
     pdfUrl = pdfUrl,

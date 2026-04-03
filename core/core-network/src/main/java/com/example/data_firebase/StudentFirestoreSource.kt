@@ -19,6 +19,7 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
@@ -213,10 +214,12 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun getRemotePlaylistForLevel(levelId: String): List<PlaylistDto> {
         return try {
-            val snapshot = playlistsCollection
+            val snapshot = playlistsCollection.limit(50)
                 .whereEqualTo("levelId", levelId)
+                .whereEqualTo("isDeleted", false)
                 .orderBy("order", Query.Direction.ASCENDING)
                 .get()
+
                 .await()
             snapshot.mapNotNull { it.toPlaylistDtoSafe() }
         } catch (e: Exception) {
@@ -227,8 +230,9 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun getRemoteLessonsForPlaylist(playlistId: String): List<LessonDto> {
         return try {
-            val snapshot = lessonsCollection
+            val snapshot = lessonsCollection.limit(100)
                 .whereEqualTo("playlistId", playlistId)
+                .whereEqualTo("isDeleted", false)
                 .orderBy("order", Query.Direction.ASCENDING)
                 .get()
                 .await()
@@ -260,63 +264,82 @@ class StudentFirestoreSource @Inject constructor(
 
     fun uploadPlaylist(playlistDto: PlaylistDto): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
-        try {
-            val uri = playlistDto.thumbnailUrl.toUri()
-            val imageRef = storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
-            val downloadUrl = imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
+        launch {
+            try {
+                val uri = playlistDto.thumbnailUrl.toUri()
+                val imageRef =
+                    storage.reference.child("playlists/${System.currentTimeMillis()}.jpg")
+                val downloadUrl =
+                    imageRef.putFile(uri).await().storage.downloadUrl.await().toString()
 
-            val newDocRef = playlistsCollection.document()
-            val now = Timestamp.now()
-            val finalDto = playlistDto.copy(
-                id = newDocRef.id,
-                thumbnailUrl = downloadUrl,
-                publishDate = now,
-                updatedAt = now,
-                isDeleted = false
-            )
+                val contentMap = hashMapOf(
+                    "title" to playlistDto.title,
+                    "levelId" to playlistDto.levelId,
+                    "order" to playlistDto.order,
+                    "thumbnailUrl" to downloadUrl,
+                )
 
-            newDocRef.set(finalDto).await()
-            trySend(UploadResult.Success)
-            close()
-        } catch (e: Exception) {
-            trySend(UploadResult.Error("Failed to upload: ${e.message}"))
-            close()
+                val payload = hashMapOf(
+                    "collectionName" to "playlists",
+                    "contentData" to contentMap
+                )
+
+                functions
+                    .getHttpsCallable("uploadContent")
+                    .call(payload)
+                    .await()
+
+                trySend(UploadResult.Success)
+                close()
+            } catch (e: Exception) {
+                trySend(UploadResult.Error("Failed to upload: ${e.message}"))
+                close()
+            }
         }
         awaitClose { }
     }
 
     fun addLesson(lessonDto: LessonDto, playlistId: String): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
-        try {
-            val audioUri = lessonDto.audioUrl.toUri()
-            val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
-            val audioDownloadUrl =
-                audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
+        launch {
+            try {
+                val audioUri = lessonDto.audioUrl.toUri()
+                val audioRef = storage.reference.child("audios/${System.currentTimeMillis()}")
+                val audioDownloadUrl =
+                    audioRef.putFile(audioUri).await().storage.downloadUrl.await().toString()
 
-            trySend(UploadResult.Progress(50))
+                trySend(UploadResult.Progress(50))
 
-            val pdfUri = lessonDto.pdfUrl.toUri()
-            val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
-            val pdfDownloadUrl =
-                pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
+                val pdfUri = lessonDto.pdfUrl.toUri()
+                val pdfRef = storage.reference.child("pdf/${System.currentTimeMillis()}")
+                val pdfDownloadUrl =
+                    pdfRef.putFile(pdfUri).await().storage.downloadUrl.await().toString()
 
-            val newDocRef = lessonsCollection.document()
-            val now = Timestamp.now()
-            val finalDto = lessonDto.copy(
-                id = newDocRef.id,
-                playlistId = playlistId,
-                audioUrl = audioDownloadUrl,
-                pdfUrl = pdfDownloadUrl,
-                publishDate = now,
-                updatedAt = now,
-                isDeleted = false
-            )
-            newDocRef.set(finalDto).await()
-            trySend(UploadResult.Success)
-            close()
-        } catch (e: Exception) {
-            trySend(UploadResult.Error("Failed to upload: ${e.message}"))
-            close()
+                val contentMap = hashMapOf(
+                    "playlistId" to playlistId,
+                    "order" to lessonDto.order,
+                    "title" to lessonDto.title,
+                    "audioUrl" to audioDownloadUrl,
+                    "duration" to lessonDto.duration,
+                    "pdfUrl" to pdfDownloadUrl,
+                )
+
+                val payload = hashMapOf(
+                    "collectionName" to "lessons",
+                    "contentData" to contentMap
+                )
+
+                functions
+                    .getHttpsCallable("uploadContent")
+                    .call(payload)
+                    .await()
+
+                trySend(UploadResult.Success)
+                close()
+            } catch (e: Exception) {
+                trySend(UploadResult.Error("Failed to upload: ${e.message}"))
+                close()
+            }
         }
         awaitClose { }
     }
@@ -348,8 +371,17 @@ class StudentFirestoreSource @Inject constructor(
                 updates["thumbnailUrl"] = newThumbnailLocalOrRemote
             }
 
-            updates["updatedAt"] = Timestamp.now()
-            playlistsCollection.document(playlistId).update(updates).await()
+            val payload = hashMapOf(
+                "collectionName" to "playlists",
+                "documentId" to playlistId,
+                "updates" to updates
+            )
+
+            functions
+                .getHttpsCallable("updateContent")
+                .call(payload)
+                .await()
+
             Result.success("Playlist updated")
         } catch (e: Exception) {
             Result.failure(e)
@@ -380,9 +412,44 @@ class StudentFirestoreSource @Inject constructor(
                 updates["pdfUrl"] = pdfRef.downloadUrl.await().toString()
             }
 
-            updates["updatedAt"] = Timestamp.now()
-            lessonsCollection.document(lessonId).update(updates).await()
+            val payload = hashMapOf(
+                "collectionName" to "lessons",
+                "documentId" to lessonId,
+                "updates" to updates
+            )
+
+            functions
+                .getHttpsCallable("updateContent")
+                .call(payload)
+                .await()
+
             Result.success("Lesson updated")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deletePlaylist(playlistId: String): Result<Unit> {
+        return try {
+            val payload = hashMapOf(
+                "collectionName" to "playlists",
+                "documentId" to playlistId
+            )
+            functions.getHttpsCallable("deleteContent").call(payload).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteLesson(lessonId: String): Result<Unit> {
+        return try {
+            val payload = hashMapOf(
+                "collectionName" to "lessons",
+                "documentId" to lessonId
+            )
+            functions.getHttpsCallable("deleteContent").call(payload).await()
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

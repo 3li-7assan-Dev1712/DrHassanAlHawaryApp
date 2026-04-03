@@ -11,6 +11,7 @@ fun PlaylistDto.toEntity(): PlaylistEntity = PlaylistEntity(
     title = title,
     levelId = levelId,
     order = order,
+    isDeleted = isDeleted,
     thumbnailUrl = thumbnailUrl,
     publishDate = publishDate?.toDate()?.time ?: 0L,
     updatedAt = updatedAt?.toDate()?.time ?: 0L
@@ -20,6 +21,7 @@ fun PlaylistDto.toDomain(): Playlist = Playlist(
     id = id,
     title = title,
     levelId = levelId,
+
     order = order,
     thumbnailUrl = thumbnailUrl,
     updatedAt = updatedAt?.toDate() ?: Date()

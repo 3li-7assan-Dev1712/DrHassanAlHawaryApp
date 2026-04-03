@@ -29,4 +29,7 @@ interface LessonDao {
 
     @Query("UPDATE lessons SET audioFilePath = :audio, pdfFilePath = :pdf WHERE id = :id")
     suspend fun updateLessonFiles(id: String, audio: String?, pdf: String?)
+
+    @Query("DELETE FROM lessons WHERE id = :id")
+    fun deleteLessonById(id: String)
 }
