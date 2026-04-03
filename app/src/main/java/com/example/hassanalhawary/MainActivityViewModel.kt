@@ -84,8 +84,7 @@ class MainActivityViewModel @Inject constructor(
 
     init {
         checkUserAuthState()
-        observeAppConfig()
-        storeUserData()
+
     }
 
     private fun observeAppConfig() {
@@ -133,6 +132,9 @@ class MainActivityViewModel @Inject constructor(
                         idToken = idToken
                     )
                 }
+                // auth first to be able to read from db
+                observeAppConfig()
+                storeUserData()
 
             }
         }

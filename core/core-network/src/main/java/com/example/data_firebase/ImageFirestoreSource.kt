@@ -72,6 +72,7 @@ class ImageFirestoreSource @Inject constructor(
         try {
             val snapshot = imagesGroupCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
+                .whereEqualTo("isDeleted", false)
                 .limit(1)
                 .get()
                 .await()

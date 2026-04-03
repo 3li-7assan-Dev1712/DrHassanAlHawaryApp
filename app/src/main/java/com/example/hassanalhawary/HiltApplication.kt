@@ -7,6 +7,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.data.di.ApplicationScope
+import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.hassanalhawary.core.util.LocaleForce
 import com.example.study.domain.use_case.GetLevelsUseCase
@@ -37,6 +38,10 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     lateinit var getLevelsUseCase: GetLevelsUseCase
 
     @Inject
+    lateinit var isUserLoggedInUseCase: IsUserLoggedInUseCase
+
+
+    @Inject
     lateinit var getStudentDataUseCase: GetStudentDataUseCase
 
     @Inject
@@ -61,24 +66,30 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     override fun onStart(owner: LifecycleOwner) {
         Log.d(TAG, "onStart: start app")
         appScope.launch {
-            getLevelsUseCase().collectLatest {
-                Log.d(TAG, "onStart: $it")
-                if (!it.isNullOrEmpty()) {
-                    syncPlaylistsUseCase()
-                    syncLessons()
+            if (isUserLoggedInUseCase()) {
+                getLevelsUseCase().collectLatest {
+                    Log.d(TAG, "onStart: $it")
+                    if (!it.isNullOrEmpty()) {
+                        syncPlaylistsUseCase()
+                        syncLessons()
+                    }
                 }
             }
         }
+
         appScope.launch {
-            getStudentDataUseCase().collectLatest {
-                FirebaseMessaging.getInstance()
-                    .subscribeToTopic("all_users")
-                if (it != null) {
+            if (isUserLoggedInUseCase()) {
+                getStudentDataUseCase().collectLatest {
                     FirebaseMessaging.getInstance()
-                        .subscribeToTopic("student_broadcasts")
+                        .subscribeToTopic("all_users")
+                    if (it != null) {
+                        FirebaseMessaging.getInstance()
+                            .subscribeToTopic("student_broadcasts")
+                    }
                 }
             }
         }
+
     }
 
     private suspend fun syncLessons() {
