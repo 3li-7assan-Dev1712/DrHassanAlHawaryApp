@@ -5,6 +5,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
@@ -49,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -61,6 +62,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
@@ -98,9 +100,6 @@ fun AudioDetailScreen(
         val serviceIntent = Intent(context, PlaybackService::class.java)
         context.startService(serviceIntent)
         Log.d("TAG", "AudioDetailRoute: Start intent")
-        /* onDepose {
-              context.stopService(serviceIntent)
-         }*/
     }
 
     AudioDetailScreen(
@@ -210,18 +209,15 @@ private fun AudioDetailContent(
                 )
             )
             .padding(paddingValues)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.Center
     ) {
 
         AudioTitleSection(uiState)
 
 
-        Spacer(modifier = Modifier.height(8.dp)) // Reduced spacer
+        Spacer(modifier = Modifier.height(16.dp)) // Reduced spacer
 
-        AudioDescriptionSection(onDownload, uiState)
-
-
-        Spacer(modifier = Modifier.weight(1f))
 
         // --- Player Controls Section ---
         ThemedPlayerControls(
@@ -271,52 +267,72 @@ private fun AudioDescriptionSection(
 private fun AudioTitleSection(
     uiState: AudioDetailUiState,
 ) {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1.5f) // Adjust aspect ratio for a pleasing look
-            .padding(horizontal = 24.dp, vertical = 16.dp)
-            .clip(RoundedCornerShape(20.dp)) // Softer corners
-            .background(
-                MaterialTheme.colorScheme.surfaceColorAtElevation(
-                    3.dp
-                )
-            ), // Elevated look
-        contentAlignment = Alignment.Center
+            .padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Image(
-            painter = painterResource(id = R.drawable.dr_hassan_img),
-            contentDescription = uiState.title,
-            contentScale = ContentScale.Crop, // Crop to fill bounds
-            modifier = Modifier.fillMaxSize()
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(300.dp)) {
+            
+            // Static High-quality Image Container with Premium Border
+            Surface(
+                modifier = Modifier
+                    .size(270.dp)
+                    .shadow(
+                        elevation = 15.dp,
+                        shape = CircleShape,
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    ),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(
+                    width = 4.dp,
+                    brush = Brush.linearGradient(
                         colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.6f)
-                        ),
-                        startY = 0.6f * 220.dp.value // Adjust gradient start
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                            MaterialTheme.colorScheme.primaryContainer
+                        )
                     )
                 )
-        )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp) // Gap between frame and image
+                        .clip(CircleShape)
+                ) {
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        painter = painterResource(id = R.drawable.dr_hassan_image),
+                        contentDescription = uiState.title,
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Refined Title Display
         Text(
             text = uiState.title,
             style = MaterialTheme.typography.headlineSmall.copy(
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                lineHeight = 32.sp,
+                letterSpacing = 0.5.sp
             ),
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
-
 }
 
 @Composable
