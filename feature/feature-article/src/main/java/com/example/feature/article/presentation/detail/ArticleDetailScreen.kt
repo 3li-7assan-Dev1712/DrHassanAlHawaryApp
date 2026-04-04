@@ -27,7 +27,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -48,14 +47,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Article
-import com.example.feature.article.data.util.formatDate
 import java.util.Date
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleDetailScreen(
-//    paragraphIndex: Int?,
     viewModel: DetailArticleViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
@@ -63,7 +60,6 @@ fun ArticleDetailScreen(
     val context = LocalContext.current
     val lazyListState = rememberLazyListState()
 
-    val paragraphIndex = viewModel.index
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -138,20 +134,10 @@ fun ArticleDetailScreen(
                         state.article.content.split("\n").filter { it.isNotBlank() }
                     }
 
-                    LaunchedEffect(paragraphs, paragraphIndex) {
-                        if (paragraphIndex >= 0 && paragraphIndex < paragraphs.size) {
-                            // Use animateScrollToItem for a smooth scroll.
-                            // The paragraphIndex corresponds directly to the item index in the LazyColumn.
-                            // We add 1 to the index to account for the header Text composable.
-                            lazyListState.animateScrollToItem(index = paragraphIndex)
-                        }
-                    }
 
                     ArticleContent(
-                        article = state.article,
                         paragraphs = paragraphs,
                         lazyListState = lazyListState,
-                        formatDate = { date -> formatDate(date) }
                     )
                 }
             }
@@ -161,10 +147,8 @@ fun ArticleDetailScreen(
 
 @Composable
 fun ArticleContent(
-    article: Article,
     paragraphs: List<String>,
     lazyListState: LazyListState,
-    formatDate: (Date) -> String,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -243,10 +227,9 @@ fun DetailArticleScreenPreview_Success() {
         ) { padding ->
             Box(Modifier.padding(padding)) {
                 ArticleContent(
-                    article = previewArticle,
                     listOf(),
-                    rememberLazyListState(),
-                    formatDate = { date -> formatDate(date) })
+                    rememberLazyListState()
+                )
             }
         }
     }

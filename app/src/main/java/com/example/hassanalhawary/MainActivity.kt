@@ -254,7 +254,7 @@ class MainActivity : ComponentActivity() {
 
                 composable("home_screen") {
                     HomeScreen(onNavigateToDetailArticle = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId/-1")
+                        navController.navigate("detail_article_screen/$articleId")
 
                     }, onNavigateToDetailAudio = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
@@ -274,17 +274,8 @@ class MainActivity : ComponentActivity() {
                             "article" -> {
 
                                 val objectID = searchResultMetaData.objectID
-                                val articleId = if (objectID.contains("_")) {
-                                    objectID.substringBeforeLast("_")
-                                } else {
-                                    objectID
-                                }
-                                val paragraphIndex = if (objectID.contains("_")) {
-                                    objectID.substringAfterLast("_")
-                                } else {
-                                    objectID
-                                }
-                                val route = "detail_article_screen/$articleId/$paragraphIndex"
+
+                                val route = "detail_article_screen/$objectID"
                                 Log.d(TAG, "MainAppContent: route")
                                 navController.navigate(route)
                             }
@@ -301,24 +292,19 @@ class MainActivity : ComponentActivity() {
                 composable("articles_screen") {
 
                     ArticleListScreen(onNavigateToArticleDetail = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId/-1")
+                        navController.navigate("detail_article_screen/$articleId")
                     }, onNavigateBack = {
                         navController.popBackStack()
                     })
                 }
                 composable(
                     // Update the route to include an optional parameter
-                    route = "detail_article_screen/{articleId}/{paragraphIndex}",
+                    route = "detail_article_screen/{articleId}",
                     arguments = listOf(
                         navArgument("articleId") { type = NavType.StringType },
-                        navArgument("paragraphIndex") {
-                            type = NavType.IntType
-                            defaultValue = -1
-                        }
                     )
                 ) { backStackEntry ->
                     ArticleDetailScreen(
-//                        paragraphIndex = backStackEntry.arguments?.getInt("paragraphIndex")?.takeIf { it != -1 },
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }

@@ -23,7 +23,6 @@ class DetailArticleViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<DetailArticleUiState>(DetailArticleUiState.Loading)
     val uiState: StateFlow<DetailArticleUiState> = _uiState.asStateFlow()
-    val index: Int = savedStateHandle.get<Int>("paragraphIndex") ?: -1
 
 
     init {
