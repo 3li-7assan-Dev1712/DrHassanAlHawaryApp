@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.study.domain.use_case.GetPlaylistsForLevelUseCase
+import com.example.study.domain.use_case.SyncLessonsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
     getPlaylistsForLevelUseCase: GetPlaylistsForLevelUseCase,
+    syncLessonsUseCase: SyncLessonsUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -32,9 +34,11 @@ class PlaylistViewModel @Inject constructor(
                     getPlaylistsForLevelUseCase(levelId).collect { playlists ->
 
                         Log.d(TAG, "levelId is: $levelId")
-                        if (!playlists.isNullOrEmpty()) _uiState.value =
-                            PlaylistUiState.Success(playlists)
-                        else _uiState.value = PlaylistUiState.Error("No playlists found")
+                        if (!playlists.isNullOrEmpty()) {
+                            _uiState.value =
+                                PlaylistUiState.Success(playlists)
+                            syncLessonsUseCase()
+                        } else _uiState.value = PlaylistUiState.Error("No playlists found")
                     }
                 } else {
                     throw NullPointerException("levelId is null")

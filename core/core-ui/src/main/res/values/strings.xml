@@ -38,7 +38,16 @@
     <string name="button_connect_telegram">الاتصال بتيليجرام</string>
     <string name="telegram_privacy_footnote">نحن نستخدم تيليجرام فقط للتحقق من عضويتك وإرسال إشعارات الدورة.</string>
 
-
+    <!-- Support -->
+    <string name="support_title">الدعم والتواصل</string>
+    <string name="email_support">راسلنا عبر البريد</string>
+    <string name="email_support_desc">للأسئلة والمشاكل والاقتراحات</string>
+    <string name="website_support">الموقع الرسمي</string>
+    <string name="website_support_desc">معلومات وروابط إضافية</string>
+    <string name="support_email_address">support@itqan.com</string>
+    <string name="support_email_subject">قسم التواصل - تطبيق د. حسن الهواري</string>
+    <string name="support_email_body">السلام عليكم ورحمة الله وبركاته,\n\n</string>
+    <string name="support_website_url">https://itqan-team.com</string>
 
     <!-- Study -->
     <string name="leaderboard_title">قائمة المتصدرين</string>

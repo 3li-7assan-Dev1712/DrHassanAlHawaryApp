@@ -9,6 +9,7 @@ import com.example.domain.use_cases.study.GetMotivationalMessagesUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.SyncLevelsUseCase
+import com.example.study.domain.use_case.SyncPlaylistsUseCase
 import com.example.study.presentation.model.DashboardUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     private val getLevelsUseCase: GetLevelsUseCase,
     private val syncLevelsUseCase: SyncLevelsUseCase,
+    private val syncPlaylistsUseCase: SyncPlaylistsUseCase,
     private val getMotivationalMessagesUseCase: GetMotivationalMessagesUseCase,
     private val getLatestQuizUseCase: GetLatestQuizUseCase,
     private val getLeaderboardUseCase: GetLeaderboardUseCase,
@@ -40,10 +42,11 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun loadDashboardData() {
-        // Levels
+        // Levels, Playlists and Lessons
         viewModelScope.launch {
             try {
                 syncLevelsUseCase()
+                syncPlaylistsUseCase()
                 getLevelsUseCase().collect { levels ->
                     if (levels.isNullOrEmpty()) {
                         _uiState.update {
@@ -54,6 +57,7 @@ class DashboardViewModel @Inject constructor(
                         }
                     } else {
                         _uiState.update { it.copy(levels = levels, loadingLevels = false) }
+
                     }
                 }
             } catch (e: Exception) {

@@ -4,30 +4,31 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,9 +37,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,14 +53,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,6 +77,7 @@ import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
+import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Lesson
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -116,7 +129,7 @@ fun LessonDetailScreen(
     }
 
     LessonDetailContent(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onPlayPauseClick = viewModel::onPlayPauseClick,
@@ -143,53 +156,72 @@ fun LessonDetailContent(
         modifier = modifier.fillMaxSize(),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(text = uiState.lesson?.title ?: "", maxLines = 1) },
+                title = {
+                    Text(
+                        text = uiState.lesson?.title ?: "",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.5.sp
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = onOpenPdfClick) {
-                        Icon(Icons.Default.Description, "Open PDF Summary")
+                        Icon(
+                            Icons.Default.Description,
+                            contentDescription = "Open PDF Summary",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color.Transparent
+                ),
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp),
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             if (uiState.isLoading) {
-                LoadingScreen()
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    LoadingScreen()
+                }
             } else if (uiState.lesson != null) {
-                // Player UI
-                Image(
-                    painter = painterResource(id = R.drawable.institute_logo),
-                    contentDescription = "Lesson Art",
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(16.dp)),
-                    contentScale = ContentScale.Crop
-                )
-
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Text(
-                    text = uiState.lesson.title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center
-                )
+                // Lesson Art Section
+                LessonTitleSection(uiState)
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(56.dp))
 
+                // Player UI
                 PlayerControls(
                     isPlaying = uiState.isPlaying,
                     isBuffering = uiState.isBuffering,
@@ -198,38 +230,90 @@ fun LessonDetailContent(
                     onPlayPauseClick = onPlayPauseClick,
                     onSeekForward = onSeekForward,
                     onSeekBackward = onSeekBackward,
-                    onSeekBarPositionChanged = onSeekBarPositionChanged
+                    onSeekBarPositionChanged = onSeekBarPositionChanged,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
+
+                Spacer(modifier = Modifier.height(48.dp))
+                
+                AudioDescriptionSection(uiState)
+                
+                Spacer(modifier = Modifier.height(64.dp))
             }
         }
     }
 }
 
 @Composable
-fun ThemedControlButton(
-    onClick: () -> Unit,
-    painter: Painter,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    iconSize: androidx.compose.ui.unit.Dp = 24.dp,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), // Elevated button look
-    iconTint: Color = MaterialTheme.colorScheme.onSurface // Default tint
+private fun AudioDescriptionSection(
+    uiState: PlayerUiState
 ) {
-    Box(
-        modifier = modifier
-            .size(iconSize + 16.dp) // Make touch target larger than icon
-            .clip(CircleShape)
-            .background(
-                containerColor
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+    // Note: If Lesson model had a description field, it would be shown here.
+    // Since the Lesson model currently doesn't show one in LessonDetailScreen,
+    // we keep the structure but skip if content is empty to match the polish of AudioDetail.
+}
+
+@Composable
+private fun LessonTitleSection(
+    uiState: PlayerUiState,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            painter = painter,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(iconSize),
-            tint = iconTint
+        // Highly Polished Image Container
+        Surface(
+            modifier = Modifier
+                .size(280.dp)
+                .shadow(
+                    elevation = 24.dp,
+                    shape = CircleShape,
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                ),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(
+                width = 5.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                        MaterialTheme.colorScheme.primaryContainer
+                    )
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp)
+                    .clip(CircleShape)
+            ) {
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    painter = painterResource(id = R.drawable.institute_logo),
+                    contentDescription = "Lesson Art",
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Text(
+            text = uiState.lesson?.title ?: "",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                lineHeight = 36.sp,
+                letterSpacing = 0.25.sp
+            ),
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 36.dp),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -244,6 +328,7 @@ private fun PlayerControls(
     onSeekForward: () -> Unit,
     onSeekBackward: () -> Unit,
     onSeekBarPositionChanged: (Long) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var isUserSeeking by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf(currentPosition.toFloat()) }
@@ -255,73 +340,166 @@ private fun PlayerControls(
         }
     }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp, horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-        Slider(
-            value = sliderPosition,
-            onValueChange = {
-                isUserSeeking = true
-                sliderPosition = it
-            },
-            onValueChangeFinished = {
-                isUserSeeking = false
-                onSeekBarPositionChanged(sliderPosition.toLong())
-            },
-            valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(0f)),
-            modifier = Modifier.fillMaxWidth()
-        )
+        // --- Seek Bar ---
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Slider(
+                value = sliderPosition,
+                valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(1f)),
+                onValueChange = {
+                    isUserSeeking = true
+                    sliderPosition = it
+                },
+                onValueChangeFinished = {
+                    isUserSeeking = false
+                    onSeekBarPositionChanged(sliderPosition.toLong())
+                },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                enabled = totalDuration > 0 && !isBuffering,
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                )
+            )
+            if (isBuffering && totalDuration > 0) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = 12.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = formatDuration(sliderPosition.toLong()),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = formatDuration(totalDuration),
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // --- Main Player Action Buttons ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ThemedControlButton(
+            ControlIconButton(
                 onClick = onSeekBackward,
+                enabled = !isBuffering,
                 painter = painterResource(id = R.drawable.round_backword_icon),
-                contentDescription = "Forward 5 seconds",
-                iconSize = 32.dp
+                contentDescription = "Rewind 10 seconds",
+                iconSize = 36.dp
             )
 
-            if (isBuffering) {
-                CircularProgressIndicator(modifier = Modifier.size(64.dp))
-            } else {
-                Card(shape = CircleShape, elevation = CardDefaults.cardElevation(4.dp)) {
-                    IconButton(onClick = onPlayPauseClick, modifier = Modifier.size(64.dp)) {
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            modifier = Modifier.size(48.dp)
+            // Play/Pause with standard fade transition
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
+                if (isBuffering && totalDuration == 0L) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(72.dp),
+                        strokeWidth = 4.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    AnimatedContent(
+                        targetState = isPlaying,
+                        label = "PlayPause",
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(250)) togetherWith fadeOut(animationSpec = tween(250))
+                        }
+                    ) { playing ->
+                        MainPlayButton(
+                            isPlaying = playing,
+                            onClick = onPlayPauseClick,
+                            enabled = !isBuffering && totalDuration > 0
                         )
                     }
                 }
             }
 
-            ThemedControlButton(
+            ControlIconButton(
                 onClick = onSeekForward,
+                enabled = !isBuffering,
                 painter = painterResource(id = R.drawable.round_forward_icon),
-                contentDescription = "Forward 5 seconds",
-                iconSize = 32.dp
+                contentDescription = "Forward 10 seconds",
+                iconSize = 36.dp
             )
         }
+    }
+}
+
+@Composable
+fun MainPlayButton(
+    isPlaying: Boolean,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .size(90.dp)
+            .shadow(20.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+        enabled = enabled,
+        onClick = onClick
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(
+                    id = if (isPlaying) R.drawable.round_pause_icon else R.drawable.round_play_icon
+                ),
+                contentDescription = if (isPlaying) "Pause" else "Play",
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun ControlIconButton(
+    onClick: () -> Unit,
+    painter: Painter,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    iconSize: androidx.compose.ui.unit.Dp = 24.dp
+) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.size(iconSize + 24.dp)
+    ) {
+        Icon(
+            painter = painter,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(iconSize),
+            tint = if (enabled) MaterialTheme.colorScheme.onSurface 
+                   else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+        )
     }
 }
 
@@ -331,30 +509,35 @@ private fun formatDuration(millis: Long): String {
     return String.format("%02d:%02d", minutes, seconds)
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = false, device = Devices.PIXEL_7, name = "تفاصيل الدرس العلمي", )
 @Composable
-private fun LessonDetailScreenPreview() {
-    MaterialTheme {
-        LessonDetailContent(
-            uiState = PlayerUiState(
-                lesson = Lesson(
-                    id = "1",
-                    title = "Introduction to Islamic Beliefs",
-                    audioUrl = "",
-                    pdfUrl = "",
-                    duration = "12:34"
+fun LessonDetailPolishedPreview() {
+    val dummyLesson = Lesson(
+        id = "101",
+        title = "شرح متن الآجرومية - الدرس الثالث",
+        order = 3,
+        audioUrl = "",
+        pdfUrl = "summary.pdf",
+        duration = "45:00"
+    )
+
+    HassanAlHawaryTheme {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            LessonDetailContent(
+                uiState = PlayerUiState(
+                    lesson = dummyLesson,
+                    isPlaying = false,
+                    currentPosition = 300000L,
+                    totalDuration = 2700000L,
+                    isLoading = false
                 ),
-                isPlaying = false,
-                currentPosition = 120000L, // 2 minutes
-                totalDuration = 754000L, // 12 minutes 34 seconds
-                isLoading = false
-            ),
-            onNavigateBack = {},
-            onPlayPauseClick = {},
-            onSeekForward = {},
-            onSeekBackward = {},
-            onSeekBarPositionChanged = {},
-            onOpenPdfClick = {}
-        )
+                onNavigateBack = {},
+                onPlayPauseClick = {},
+                onSeekForward = {},
+                onSeekBackward = {},
+                onSeekBarPositionChanged = {},
+                onOpenPdfClick = {}
+            )
+        }
     }
 }
