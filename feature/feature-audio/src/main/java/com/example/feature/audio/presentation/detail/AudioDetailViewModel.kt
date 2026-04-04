@@ -8,6 +8,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import com.example.domain.module.Audio
+import com.example.domain.use_cases.audios.DownloadAudioUseCase
+import com.example.domain.use_cases.audios.DownloadResult
+import com.example.domain.use_cases.audios.GetAudioByUrlUseCase
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -23,14 +27,19 @@ import javax.inject.Inject
 @HiltViewModel
 class AudioDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val getAudioByUrlUseCase: GetAudioByUrlUseCase,
+    private val downloadAudioUseCase: DownloadAudioUseCase
 ) : ViewModel() {
 
 
+    private val TAG = "AudioDetailViewModel"
     private val audioUrl: String = savedStateHandle.get<String>("audioUrl") ?: ""
     private val audioTitle: String = savedStateHandle.get<String>("title") ?: ""
 
     private val _uiState = MutableStateFlow(AudioDetailUiState())
     val uiState = _uiState.asStateFlow()
+
+    private var currentAudio: Audio? = null
 
     var mediaControllerFuture: ListenableFuture<MediaController>? = null
         set(value) {
@@ -46,9 +55,33 @@ class AudioDetailViewModel @Inject constructor(
         Log.d("Ali 1712", "audio url is $audioUrl: ")
         if (audioUrl.isNotBlank()) {
             _uiState.update { it.copy(audioUrl = audioUrl, title = audioTitle) }
-
+            loadAudioDetails()
         } else {
-            _uiState.update { it.copy(playbackErrorMessage = "Audio ID missing.") }
+            _uiState.update {
+                it.copy(
+                    playbackErrorMessage = "Audio ID missing.",
+                    isLoadingDetails = false
+                )
+            }
+        }
+    }
+
+    private fun loadAudioDetails() {
+        viewModelScope.launch {
+            getAudioByUrlUseCase(audioUrl).collect { audio ->
+                Log.d(TAG, "loadAudioDetails: $audio")
+                if (audio != null) {
+                    Log.d(TAG, "loadAudioDetails: local file path ${audio.localFilePath}")
+                    currentAudio = audio
+                    _uiState.update {
+                        it.copy(
+                            isDownloaded = audio.isDownloaded,
+                            isFavorite = audio.isFavorite,
+                            isLoadingDetails = false
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -71,9 +104,20 @@ class AudioDetailViewModel @Inject constructor(
                 .setTitle(audioTitle)
                 .build()
 
+            // Use local file path if downloaded, else use remote URL
+            val uriToPlay =
+                if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
+                    currentAudio!!.localFilePath!!
+
+                } else {
+                    audioUrl
+                }
+
+            Log.d("AudioDetailViewModel", "onPlayPauseToggle: uri to play : $uriToPlay")
             val mediaItem = MediaItem.Builder()
-                .setUri(audioUrl)
+                .setUri(uriToPlay)
                 .setMediaMetadata(metadata)
+                .setMediaId(audioUrl) // keep original ID for reference
                 .build()
 
             controller.setMediaItem(mediaItem)
@@ -115,7 +159,28 @@ class AudioDetailViewModel @Inject constructor(
     }
 
     fun onDownloadClicked() {
-        // Handle download logic
+        val audioToDownload = currentAudio ?: return
+
+        if (audioToDownload.isDownloaded) return
+
+        viewModelScope.launch {
+            downloadAudioUseCase(audioToDownload).collect { result ->
+                when (result) {
+                    is DownloadResult.Progress -> {
+                        _uiState.update { it.copy(downloadProgress = result.percentage.toFloat()) }
+                    }
+
+                    is DownloadResult.Success -> {
+                        _uiState.update { it.copy(isDownloaded = true, downloadProgress = 100f) }
+                    }
+
+                    is DownloadResult.Error -> {
+                        Log.e("AudioDetailVM", "Download error: ${result.message}")
+                        // Optionally set an error state here to show a toast
+                    }
+                }
+            }
+        }
     }
 
 
@@ -130,8 +195,16 @@ class AudioDetailViewModel @Inject constructor(
                     .setTitle(audioTitle)
                     .build()
 
+                val uriToPlay =
+                    if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
+                        currentAudio!!.localFilePath!!
+                    } else {
+                        audioUrl
+                    }
+
+                Log.d("AudioDetailViewModel", "listenToController: uriToPlay $uriToPlay")
                 val mediaItem = MediaItem.Builder()
-                    .setUri(audioUrl)
+                    .setUri(uriToPlay)
                     .setMediaId(audioUrl)
                     .setMediaMetadata(metadata)
                     .build()
@@ -160,8 +233,7 @@ class AudioDetailViewModel @Inject constructor(
                     if (playbackState == Player.STATE_READY) {
                         _uiState.update {
                             it.copy(
-                                totalDurationMillis = controller.duration,
-                                isLoadingDetails = false
+                                totalDurationMillis = controller.duration
                             )
                         }
                     }

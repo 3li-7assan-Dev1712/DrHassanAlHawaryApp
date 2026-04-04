@@ -26,7 +26,7 @@ import com.example.data_local.model.VideoEntity
         LessonEntity::class,
         PlaylistEntity::class],
 
-    version = 34,
+    version = 36,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

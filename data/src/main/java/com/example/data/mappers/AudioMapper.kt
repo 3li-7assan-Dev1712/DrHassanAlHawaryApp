@@ -21,7 +21,7 @@ fun AudioEntity.toDomainModel(): Audio =
         isDownloaded = this.isDownloaded,
         localFilePath = this.localFilePath,
         lastPlayedTimestamp = this.lastPlayedTimestamp,
-        type = this.type
+        type = this.type,
     )
 
 /**
@@ -39,7 +39,7 @@ fun Audio.toEntity(updatedAt: Long = System.currentTimeMillis()): AudioEntity =
         lastPlayedTimestamp = this.lastPlayedTimestamp,
         updatedAt = updatedAt,
         isDownloaded = isDownloaded,
-        type = this.type
+        type = this.type,
     )
 
 fun AudioDto.toEntity(): AudioEntity =

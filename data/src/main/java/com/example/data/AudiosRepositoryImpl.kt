@@ -1,21 +1,26 @@
 package com.example.data
 
+import android.util.Log
 import com.example.data.mappers.toDomainModel
+import com.example.data.mappers.toEntity
 import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
 import com.example.domain.repository.AudiosRepository
+import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 
 class AudiosRepositoryImpl
 @Inject constructor(
-    appDatabase: AppDatabase,
+    private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
+    private val fileDownloader: FileDownloader
 ) : AudiosRepository {
 
 
@@ -78,5 +83,25 @@ class AudiosRepositoryImpl
         return audioFirestoreSource.fetchAudioPage(null, 100)
             .filter { !it.isDeleted }
             .map { it.toDomainModel() }
+    }
+
+    override suspend fun downloadAudio(audio: Audio): Flow<DownloadResult> {
+        return fileDownloader.downloadAudioWithProgress(audio.audioUrl, audio.id)
+            .onEach { result ->
+                if (result is DownloadResult.Success) {
+                    Log.d("AudiosRepositoryImpl", "downloadAudio: file path ${result.localPath}")
+                    val entity = audio.toEntity().copy(
+                        isDownloaded = true,
+                        localFilePath = result.localPath
+                    )
+                    audioDao.upsertAll(listOf(entity))
+                } else {
+                    Log.d("AudiosRepositoryImpl", "downloadAudio: failed with ${result.toString()}")
+                }
+            }
+    }
+
+    override fun getAudioByUrl(url: String): Flow<Audio?> {
+        return audioDao.getAudioByUrl(url).map { it?.toDomainModel() }
     }
 }

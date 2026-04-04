@@ -21,5 +21,5 @@ data class AudioEntity(
     val lastPlayedTimestamp: Long? = null, // will be used to play from the last position
     val updatedAt: Long,
     val isDeleted: Boolean = false,
-    val type: String = ""
+    val type: String = "",
 )

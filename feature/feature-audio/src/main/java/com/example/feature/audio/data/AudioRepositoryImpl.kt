@@ -40,17 +40,10 @@ class AudioRepositoryImpl
         ).flow.map { pagingData ->
             // The data from the PagingSource is ArticleEntity, so we map it to the domain model
             pagingData.map { audioEntity ->
-                audioEntity.toDomain(
-                    isFavorite = audioEntity.isFavorite,
-                    isDownloaded = audioEntity.isDownloaded,
-                    lastPlayedTimestamp = audioEntity.lastPlayedTimestamp,
-                    localFilePath = audioEntity.localFilePath
-                )
+                audioEntity.toDomain()
             }
         }
     }
 
 
 }
-
-

@@ -6,10 +6,10 @@ import java.util.Date
 
 
 fun AudioEntity.toDomain(
-    isFavorite: Boolean,
-    isDownloaded: Boolean,
-    lastPlayedTimestamp: Long?,
-    localFilePath: String?
+    isFavorite: Boolean = this.isFavorite,
+    isDownloaded: Boolean = this.isDownloaded,
+    lastPlayedTimestamp: Long? = this.lastPlayedTimestamp,
+    localFilePath: String? = this.localFilePath,
 ): Audio = Audio(
     id = this.id,
     title = this.title,
@@ -21,6 +21,5 @@ fun AudioEntity.toDomain(
     lastPlayedTimestamp = lastPlayedTimestamp,
     localFilePath = localFilePath,
     isPlaying = false,
-    type = this.type
-
+    type = this.type,
 )

@@ -48,6 +48,12 @@ object LocalDataModule {
         }
     }
 
+    private val MIGRATION_34_35 = object : Migration(34, 35) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE audios ADD COLUMN filePathUrl TEXT")
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -60,8 +66,10 @@ object LocalDataModule {
             MIGRATION_30_31,
             MIGRATION_31_32,
             MIGRATION_32_33,
-            MIGRATION_33_34
+            MIGRATION_33_34,
+            MIGRATION_34_35
         )
+        .fallbackToDestructiveMigration(true)
         .build()
     }
 

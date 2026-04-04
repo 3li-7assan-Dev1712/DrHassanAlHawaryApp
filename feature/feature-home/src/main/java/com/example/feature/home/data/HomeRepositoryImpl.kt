@@ -1,9 +1,11 @@
 package com.example.feature.home.data
 
 import android.util.Log
+import androidx.room.withTransaction
 import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_firebase.ImageFirestoreSource
+import com.example.data_local.AppDatabase
 import com.example.data_local.ArticleDao
 import com.example.data_local.AudioDao
 import com.example.data_local.ImageDao
@@ -23,6 +25,7 @@ class HomeRepositoryImpl @Inject constructor(
     private val articleDao: ArticleDao,
     private val audioDao: AudioDao,
     private val imageDao: ImageDao,
+    private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
     private val imageFirestoreSource: ImageFirestoreSource,
     private val firebaseArticlesSource: FirebaseArticlesSource
@@ -68,7 +71,7 @@ class HomeRepositoryImpl @Inject constructor(
     override suspend fun syncLatestArticles(limit: Long) {
         try {
             val (articlesPage, _) = firebaseArticlesSource.getArticlesPage(null, limit)
-            
+
             val (deletedItems, activeItems) = articlesPage.partition { it.isDeleted }
 
             deletedItems.forEach { articleDao.deleteById(it.id) }
@@ -94,23 +97,49 @@ class HomeRepositoryImpl @Inject constructor(
         try {
             val latestAudiosFromFirebase =
                 audioFirestoreSource.fetchAudioPage(startAfterPublishDate = null, limit)
-            
+
             val (deletedItems, activeItems) = latestAudiosFromFirebase.partition { it.isDeleted }
 
-            deletedItems.forEach { audioDao.deleteById(it.id) }
 
-            val audioEntities = activeItems.map { dto ->
-                AudioEntity(
-                    id = dto.id,
-                    title = dto.title,
-                    audioUrl = dto.audioUrl,
-                    durationInMillis = dto.durationInMillis,
-                    publishDate = dto.publishDate?.toDate()?.time ?: 0L,
-                    updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
-                    isDeleted = dto.isDeleted
-                )
+            appDatabase.withTransaction {
+                deletedItems.forEach { dto ->
+                    audioDao.deleteById(dto.id)
+                }
+
+                if (activeItems.isNotEmpty()) {
+                    val serverAudioIds = activeItems.map { it.id }
+                    val localAudiosMap =
+                        audioDao.getAudiosByIds(serverAudioIds).associateBy { it.id }
+
+                    val mergedEntities = activeItems.map { dto ->
+                        val localAudio = localAudiosMap[dto.id]
+
+                        val serverEntity = AudioEntity(
+                            id = dto.id,
+                            title = dto.title,
+                            audioUrl = dto.audioUrl,
+                            durationInMillis = dto.durationInMillis,
+                            publishDate = dto.publishDate?.toDate()?.time ?: 0L,
+                            updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
+                            isDeleted = dto.isDeleted,
+                            type = dto.type
+                        )
+
+                        if (localAudio != null) {
+                            serverEntity.copy(
+                                isFavorite = localAudio.isFavorite,
+                                lastPlayedTimestamp = localAudio.lastPlayedTimestamp,
+                                localFilePath = localAudio.localFilePath,
+                                isDownloaded = localAudio.isDownloaded,
+                            )
+                        } else {
+                            Log.d("HomeRepositoryImpl", "syncLatestAudios: going to use server entity")
+                            serverEntity
+                        }
+                    }
+                    audioDao.upsertAll(mergedEntities)
+                }
             }
-            audioDao.upsertAll(audioEntities)
         } catch (e: Exception) {
             Log.e("HomeRepositoryImpl", "syncLatestAudios failed", e)
         }
@@ -120,7 +149,7 @@ class HomeRepositoryImpl @Inject constructor(
         try {
             val group = imageFirestoreSource.fetchLatestImageGroup() ?: return
             val groupId = group.id
-            
+
             // saving group
             val imageGroupEntity = ImageGroupEntity(
                 id = groupId,
@@ -131,7 +160,7 @@ class HomeRepositoryImpl @Inject constructor(
                 isDeleted = false
             )
             imageDao.upsertImageGroups(listOf(imageGroupEntity))
-            
+
             // saving images
             val remoteImages = imageFirestoreSource.fetchImagesForGroup(groupId)
             if (remoteImages.isNotEmpty()) {

@@ -85,7 +85,8 @@ class AudioRemoteMediator @Inject constructor(
                                 durationInMillis = dto.durationInMillis,
                                 publishDate = dto.publishDate?.toDate()?.time ?: 0L,
                                 updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
-                                isDeleted = dto.isDeleted
+                                isDeleted = dto.isDeleted,
+                                type = dto.type
                             )
 
                             if (localAudio != null) {
@@ -93,7 +94,7 @@ class AudioRemoteMediator @Inject constructor(
                                     isFavorite = localAudio.isFavorite,
                                     lastPlayedTimestamp = localAudio.lastPlayedTimestamp,
                                     localFilePath = localAudio.localFilePath,
-                                    isDownloaded = localAudio.isDownloaded
+                                    isDownloaded = localAudio.isDownloaded,
                                 )
                             } else {
                                 serverEntity

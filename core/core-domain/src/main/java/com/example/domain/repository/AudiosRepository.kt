@@ -2,6 +2,7 @@ package com.example.domain.repository
 
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
+import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 
@@ -35,5 +36,9 @@ interface AudiosRepository {
     suspend fun getAudioById(audioId: String): Audio?
 
     suspend fun getAllRemoteAudios(): List<Audio>
+
+    suspend fun downloadAudio(audio: Audio): Flow<DownloadResult>
+    
+    fun getAudioByUrl(url: String): Flow<Audio?>
 
 }

@@ -21,5 +21,6 @@ data class Audio(
     val isPlaying: Boolean = false,
 
     val localFilePath: String? = null,
+    val filePathUrl: String? = null
 
     )

@@ -5,10 +5,14 @@ import android.content.Intent
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -139,7 +144,10 @@ fun AudioDetailScreen(
                         uiState.title,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Normal)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            letterSpacing = 0.5.sp
+                        )
                     )
                 },
                 navigationIcon = {
@@ -161,12 +169,12 @@ fun AudioDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.Transparent // Make TopAppBar transparent
+                    containerColor = Color.Transparent
                 ),
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface // Main background
+        containerColor = MaterialTheme.colorScheme.surface
     ) { paddingValues ->
         if (uiState.isLoadingDetails) {
             LoadingSection(paddingValues)
@@ -199,64 +207,82 @@ private fun AudioDetailContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background( // Adding a subtle gradient background
+            .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                         MaterialTheme.colorScheme.surface
                     )
                 )
             )
             .padding(paddingValues)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         AudioTitleSection(uiState)
 
+        Spacer(modifier = Modifier.height(56.dp))
 
-        Spacer(modifier = Modifier.height(16.dp)) // Reduced spacer
-
-
-        // --- Player Controls Section ---
         ThemedPlayerControls(
-            uiState = uiState, // Pass full uiState for theming potential
+            uiState = uiState,
             onPlayPauseToggle = onPlayPauseToggle,
             currentPosition = currentPosition,
             onSeek = onSeek,
             totalDuration = uiState.totalDurationMillis,
             onRewind = onRewind,
             onForward = onForward,
-            modifier = Modifier.padding(
-                horizontal = 16.dp,
-                vertical = 12.dp
-            )
+            onDownload = onDownload,
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
-
-
+        
+        Spacer(modifier = Modifier.height(48.dp))
+        
+        AudioDescriptionSection(uiState)
+        
+        Spacer(modifier = Modifier.height(64.dp))
     }
 }
 
 @Composable
 private fun AudioDescriptionSection(
-    onDownload: () -> Unit,
     uiState: AudioDetailUiState
 ) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-
-        if (uiState.description != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+    if (uiState.description != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+                    shape = RoundedCornerShape(28.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(28.dp)
+                )
+                .padding(28.dp)
+        ) {
             Text(
                 text = stringResource(R.string.audio_detail_description_title),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
+                ),
+                color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = uiState.description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    lineHeight = 28.sp,
+                    letterSpacing = 0.25.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
                 modifier = Modifier.animateContentSize()
             )
         }
@@ -268,67 +294,60 @@ private fun AudioTitleSection(
     uiState: AudioDetailUiState,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 32.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(300.dp)) {
-            
-            // Static High-quality Image Container with Premium Border
-            Surface(
-                modifier = Modifier
-                    .size(270.dp)
-                    .shadow(
-                        elevation = 15.dp,
-                        shape = CircleShape,
-                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                        ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                    ),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(
-                    width = 4.dp,
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
-                            MaterialTheme.colorScheme.primaryContainer
-                        )
+        // Highly Polished Image Container
+        Surface(
+            modifier = Modifier
+                .size(280.dp)
+                .shadow(
+                    elevation = 24.dp,
+                    shape = CircleShape,
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                ),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(
+                width = 5.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                        MaterialTheme.colorScheme.primaryContainer
                     )
                 )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp)
+                    .clip(CircleShape)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp) // Gap between frame and image
-                        .clip(CircleShape)
-                ) {
-                    Image(
-                        modifier = Modifier.fillMaxSize(),
-                        painter = painterResource(id = R.drawable.dr_hassan_image),
-                        contentDescription = uiState.title,
-                        contentScale = ContentScale.Crop,
-                    )
-                }
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    painter = painterResource(id = R.drawable.dr_hassan_image),
+                    contentDescription = uiState.title,
+                    contentScale = ContentScale.Crop,
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // Refined Title Display
         Text(
             text = uiState.title,
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
-                lineHeight = 32.sp,
-                letterSpacing = 0.5.sp
+                lineHeight = 36.sp,
+                letterSpacing = 0.25.sp
             ),
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 36.dp),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -342,7 +361,10 @@ private fun LoadingSection(paddingValues: PaddingValues) {
             .fillMaxSize()
             .padding(paddingValues), contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        CircularProgressIndicator(
+            strokeWidth = 3.dp,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
@@ -350,13 +372,14 @@ private fun LoadingSection(paddingValues: PaddingValues) {
 @Composable
 fun ThemedPlayerControls(
     modifier: Modifier = Modifier,
-    uiState: AudioDetailUiState, // Use full uiState for potential theming
+    uiState: AudioDetailUiState,
     onPlayPauseToggle: () -> Unit,
     currentPosition: Long,
     totalDuration: Long,
     onSeek: (Long) -> Unit,
     onRewind: () -> Unit,
     onForward: () -> Unit,
+    onDownload: () -> Unit
 ) {
     var isUserSeeking by remember { mutableStateOf(false) }
     var sliderPosition by remember { mutableStateOf(currentPosition.toFloat()) }
@@ -368,20 +391,17 @@ fun ThemedPlayerControls(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
-            )
-            .padding(vertical = 16.dp, horizontal = 12.dp),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // --- Seek Bar ---
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
             Slider(
                 value = sliderPosition,
-                valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(0f)),
+                valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(1f)),
                 onValueChange = {
                     isUserSeeking = true
                     sliderPosition = it
@@ -390,14 +410,12 @@ fun ThemedPlayerControls(
                     isUserSeeking = false
                     onSeek(sliderPosition.toLong())
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 enabled = uiState.totalDurationMillis > 0 && !uiState.isBuffering,
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.primary,
                     activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                    inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
             )
             if (uiState.isBuffering && uiState.totalDurationMillis > 0) {
@@ -412,22 +430,28 @@ fun ThemedPlayerControls(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 formatDuration(uiState.currentPositionMillis),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 formatDuration(uiState.totalDurationMillis),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 1.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // --- Main Player Action Buttons ---
         Row(
@@ -435,116 +459,169 @@ fun ThemedPlayerControls(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ThemedControlButton(
+            ControlIconButton(
                 onClick = onRewind,
                 enabled = !uiState.isBuffering,
-                // ** THEMED ICON EXAMPLE **
                 painter = painterResource(id = R.drawable.round_backword_icon),
-                contentDescription = "Rewind 5 seconds",
-                iconSize = 32.dp
+                contentDescription = "Rewind 10 seconds",
+                iconSize = 36.dp
             )
 
-            // Play/Pause with animated content
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(72.dp)) {
-                AnimatedContent(
-                    targetState = uiState.isPlaying,
-                    label = "PlayPauseAnimation"
-                ) { playing ->
-                    ThemedControlButton(
-                        onClick = onPlayPauseToggle,
-                        enabled = !uiState.isBuffering && uiState.totalDurationMillis > 0,
-                        painter = painterResource(id = if (playing) R.drawable.round_pause_icon else R.drawable.round_play_icon),
-                        contentDescription = if (playing) "Pause" else "Play",
-                        iconSize = 68.dp, // Larger for main action
-                        containerColor = Color.Transparent, // No background for the main button if icon is rich
-                        iconTint = MaterialTheme.colorScheme.primary
-                    )
-                }
+            // Play/Pause with standard fade transition
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
                 if (uiState.isBuffering && uiState.totalDurationMillis == 0L) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(68.dp),
+                        modifier = Modifier.size(72.dp),
+                        strokeWidth = 4.dp,
                         color = MaterialTheme.colorScheme.primary
                     )
+                } else {
+                    AnimatedContent(
+                        targetState = uiState.isPlaying,
+                        label = "PlayPause",
+                        transitionSpec = {
+                            fadeIn(animationSpec = tween(250)) togetherWith fadeOut(animationSpec = tween(250))
+                        }
+                    ) { playing ->
+                        MainPlayButton(
+                            isPlaying = playing,
+                            onClick = onPlayPauseToggle,
+                            enabled = !uiState.isBuffering && uiState.totalDurationMillis > 0
+                        )
+                    }
                 }
             }
 
-            ThemedControlButton(
+            ControlIconButton(
                 onClick = onForward,
                 enabled = !uiState.isBuffering,
                 painter = painterResource(id = R.drawable.round_forward_icon),
-                contentDescription = "Forward 5 seconds",
-                iconSize = 32.dp
+                contentDescription = "Forward 10 seconds",
+                iconSize = 36.dp
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // --- Download Status / Button ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (uiState.isDownloaded) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_download), // Replace with actual downloaded icon if you have one
+                        contentDescription = "Downloaded",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = "تم التنزيل",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else if (uiState.downloadProgress > 0f) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CircularProgressIndicator(
+                        progress = { uiState.downloadProgress / 100f },
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "جاري التنزيل ${uiState.downloadProgress.toInt()}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                ControlIconButton(
+                    onClick = onDownload,
+                    enabled = true,
+                    painter = painterResource(id = R.drawable.ic_download),
+                    contentDescription = "Download Audio",
+                    iconSize = 28.dp
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun ThemedControlButton(
+fun MainPlayButton(
+    isPlaying: Boolean,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier
+            .size(90.dp)
+            .shadow(20.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+        enabled = enabled,
+        onClick = onClick
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                painter = painterResource(
+                    id = if (isPlaying) R.drawable.round_pause_icon else R.drawable.round_play_icon
+                ),
+                contentDescription = if (isPlaying) "Pause" else "Play",
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Composable
+fun ControlIconButton(
     onClick: () -> Unit,
     painter: Painter,
     contentDescription: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    iconSize: androidx.compose.ui.unit.Dp = 24.dp,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp), // Elevated button look
-    iconTint: Color = MaterialTheme.colorScheme.onSurface // Default tint
+    iconSize: androidx.compose.ui.unit.Dp = 24.dp
 ) {
-    Box(
-        modifier = modifier
-            .size(iconSize + 16.dp) // Make touch target larger than icon
-            .clip(CircleShape)
-            .background(
-                if (enabled) containerColor else MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.05f
-                )
-            )
-            .clickable(onClick = onClick, enabled = enabled),
-        contentAlignment = Alignment.Center
+    IconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.size(iconSize + 24.dp)
     ) {
         Icon(
             painter = painter,
             contentDescription = contentDescription,
             modifier = Modifier.size(iconSize),
-            tint = if (enabled) iconTint else MaterialTheme.colorScheme.onSurface.copy(alpha = .5f)
+            tint = if (enabled) MaterialTheme.colorScheme.onSurface 
+                   else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
         )
     }
 }
 
 
 // --- Previews ---
-@Preview(showBackground = true, name = "Audio Detail Screen (Themed)")
+@Preview(showBackground = true, name = "Audio Detail Screen (Highly Polished)")
 @Composable
-fun AudioDetailScreenThemedPreview() {
-    MaterialTheme { // Apply your app's theme
+fun AudioDetailScreenPolishedPreview() {
+    MaterialTheme {
         val sampleUiState = AudioDetailUiState(
-            title = "The Art of Patience in Trials",
-            description = "A deep dive into the concept of Sabr (patience) in Islam...",
+            title = "أهمية العلم في حياة المسلم",
+            description = "شرح مفصل حول أهمية طلب العلم وفضله في الإسلام والمجتمع، مع استعراض الأدلة من الكتاب والسنة وكيفية تطبيق ذلك في الحياة اليومية لرفع شأن الأمة.",
             totalDurationMillis = 3600000L,
             currentPositionMillis = 1200000L,
             isPlaying = false,
             isFavorite = true,
             isLoadingDetails = false,
-        )
-        AudioDetailScreen(
-            uiState = sampleUiState,
-            onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {},
-            onForward = {}, onDownload = {}, onShare = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "Audio Detail Screen - Playing (Themed)")
-@Composable
-fun AudioDetailScreenPlayingThemedPreview() {
-    MaterialTheme {
-        val sampleUiState = AudioDetailUiState(
-            title = "Understanding Sincerity (Ikhlas)",
-            totalDurationMillis = 1800000L,
-            currentPositionMillis = 600000L,
-            isPlaying = true,
-            isLoadingDetails = false
         )
         AudioDetailScreen(
             uiState = sampleUiState,

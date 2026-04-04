@@ -33,6 +33,8 @@ interface AudioDao {
     @Query("SELECT * FROM audios WHERE id IN (:serverAudioIds)")
     fun getAudiosByIds(serverAudioIds: List<String>): List<AudioEntity>
 
+    @Query("SELECT * FROM audios WHERE audioUrl = :url LIMIT 1")
+    fun getAudioByUrl(url: String): Flow<AudioEntity?>
 
     @Query("SELECT EXISTS(SELECT 1 FROM audios WHERE isDeleted = 0 LIMIT 1)")
     suspend fun isCacheEmpty(): Boolean
