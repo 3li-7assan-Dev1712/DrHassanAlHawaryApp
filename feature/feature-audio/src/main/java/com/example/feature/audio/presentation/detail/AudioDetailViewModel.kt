@@ -192,11 +192,12 @@ class AudioDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val controller = controllerFuture.await()
 
-            val uriToPlay = if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
-                currentAudio!!.localFilePath!!
-            } else {
-                audioUrl
-            }
+            val uriToPlay =
+                if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
+                    currentAudio!!.localFilePath!!
+                } else {
+                    audioUrl
+                }
 
             // 1. Handle Media Item and Force Restart
             if (controller.currentMediaItem?.mediaId != audioUrl) {
@@ -226,7 +227,8 @@ class AudioDetailViewModel @Inject constructor(
                     isPlaying = controller.isPlaying,
                     currentPositionMillis = controller.currentPosition,
                     totalDurationMillis = if (controller.duration > 0) controller.duration else it.totalDurationMillis,
-                    isBuffering = controller.playbackState == Player.STATE_BUFFERING
+                    isBuffering = if (currentAudio?.isDownloaded == true) false
+                    else controller.playbackState == Player.STATE_BUFFERING
                 )
             }
 
@@ -239,7 +241,8 @@ class AudioDetailViewModel @Inject constructor(
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     _uiState.update {
                         it.copy(
-                            isBuffering = playbackState == Player.STATE_BUFFERING,
+                            isBuffering = if (currentAudio?.isDownloaded == true) false
+                            else controller.playbackState == Player.STATE_BUFFERING,
                             isPlaybackEnded = playbackState == Player.STATE_ENDED
                         )
                     }
