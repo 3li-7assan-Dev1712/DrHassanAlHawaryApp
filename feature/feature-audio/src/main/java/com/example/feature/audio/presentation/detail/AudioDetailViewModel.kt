@@ -172,6 +172,10 @@ class AudioDetailViewModel @Inject constructor(
 
                     is DownloadResult.Success -> {
                         _uiState.update { it.copy(isDownloaded = true, downloadProgress = 100f) }
+                        loadAudioDetails()
+
+                        // Switch the player to the newly downloaded file
+                        switchToLocalPlayback(result.localPath)
                     }
 
                     is DownloadResult.Error -> {
@@ -259,5 +263,38 @@ class AudioDetailViewModel @Inject constructor(
             MediaController.releaseFuture(it)
         }
         super.onCleared()
+    }
+
+    private fun switchToLocalPlayback(localFilePath: String) {
+        viewModelScope.launch {
+            val controller = mediaControllerFuture?.await() ?: return@launch
+
+            // 1. Save the current playback state and position
+            val wasPlaying = controller.isPlaying
+            val currentPosition = controller.currentPosition
+
+            // 2. Create new MediaItem with the LOCAL file path, but KEEP the original ID
+            val metadata = MediaMetadata.Builder()
+                .setTitle(audioTitle)
+                .build()
+
+            val localMediaItem = MediaItem.Builder()
+                .setUri(localFilePath)
+                .setMediaId(audioUrl) // Must remain audioUrl so listenToController doesn't reset it
+                .setMediaMetadata(metadata)
+                .build()
+
+            Log.d(TAG, "Switching to local playback: $localFilePath at position $currentPosition")
+
+            // 3. Swap the item, seek to the exact same position, and prepare
+            controller.setMediaItem(localMediaItem)
+            controller.seekTo(currentPosition)
+            controller.prepare()
+
+            // 4. Resume playing if it was playing before the swap
+            if (wasPlaying) {
+                controller.play()
+            }
+        }
     }
 }
