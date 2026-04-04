@@ -192,21 +192,16 @@ class AudioDetailViewModel @Inject constructor(
         viewModelScope.launch {
             val controller = controllerFuture.await()
 
+            val uriToPlay = if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
+                currentAudio!!.localFilePath!!
+            } else {
+                audioUrl
+            }
 
+            // 1. Handle Media Item and Force Restart
             if (controller.currentMediaItem?.mediaId != audioUrl) {
-                Log.d("AudioVM", "Controller has wrong audio. Setting new media item: $audioUrl")
-                val metadata = MediaMetadata.Builder()
-                    .setTitle(audioTitle)
-                    .build()
-
-                val uriToPlay =
-                    if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
-                        currentAudio!!.localFilePath!!
-                    } else {
-                        audioUrl
-                    }
-
-                Log.d("AudioDetailViewModel", "listenToController: uriToPlay $uriToPlay")
+                Log.d("AudioVM", "Controller has wrong audio. Setting new media item.")
+                val metadata = MediaMetadata.Builder().setTitle(audioTitle).build()
                 val mediaItem = MediaItem.Builder()
                     .setUri(uriToPlay)
                     .setMediaId(audioUrl)
@@ -215,13 +210,27 @@ class AudioDetailViewModel @Inject constructor(
                 controller.setMediaItem(mediaItem)
                 controller.prepare()
             } else {
-                Log.d("AudioVM", "Controller already has correct audio. Ensuring it plays.")
-                controller.play()
+                Log.d("AudioVM", "Same audio. Restarting from the beginning.")
+                // Reset to the beginning as requested
+                controller.seekTo(0L)
+
+                // If the audio had previously finished, it needs to be prepared again
+                if (controller.playbackState == Player.STATE_ENDED || controller.playbackState == Player.STATE_IDLE) {
+                    controller.prepare()
+                }
             }
 
 
+            _uiState.update {
+                it.copy(
+                    isPlaying = controller.isPlaying,
+                    currentPositionMillis = controller.currentPosition,
+                    totalDurationMillis = if (controller.duration > 0) controller.duration else it.totalDurationMillis,
+                    isBuffering = controller.playbackState == Player.STATE_BUFFERING
+                )
+            }
 
-
+            // 3. Add Listener for future changes
             controller.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     _uiState.update { it.copy(isPlaying = isPlaying) }
@@ -236,23 +245,20 @@ class AudioDetailViewModel @Inject constructor(
                     }
                     if (playbackState == Player.STATE_READY) {
                         _uiState.update {
-                            it.copy(
-                                totalDurationMillis = controller.duration
-                            )
+                            it.copy(totalDurationMillis = controller.duration)
                         }
                     }
                 }
             })
 
-            // Progress updater
-
+            // 4. Progress updater loop
             while (isActive) {
-
-                _uiState.update { it.copy(currentPositionMillis = controller.currentPosition) }
-
+                val pos = controller.currentPosition
+                if (_uiState.value.currentPositionMillis != pos) {
+                    _uiState.update { it.copy(currentPositionMillis = pos) }
+                }
                 delay(300)
             }
-
         }
     }
 
