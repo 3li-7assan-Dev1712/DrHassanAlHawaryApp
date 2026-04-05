@@ -165,5 +165,9 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun signOut() {
+        googleAuthUiClient.signOut()
+        firebaseAuth.signOut()
+    }
 
 }

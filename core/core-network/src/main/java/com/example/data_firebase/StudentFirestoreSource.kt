@@ -525,20 +525,26 @@ class StudentFirestoreSource @Inject constructor(
     }
 
     fun getLeaderboardFlow(): Flow<List<LeaderboardDto>> = callbackFlow {
-        val listener = firestore.collection("leaderboard")
-            .orderBy("score", Query.Direction.DESCENDING)
-            .orderBy("answerTimestamp", Query.Direction.ASCENDING)
-            .limit(20)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
+        try {
+
+            val listener = firestore.collection("leaderboard")
+                .orderBy("score", Query.Direction.DESCENDING)
+                .orderBy("answerTimestamp", Query.Direction.ASCENDING)
+                .limit(20)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(error)
+                        return@addSnapshotListener
+                    }
+                    if (snapshot != null) {
+                        trySend(snapshot.toObjects(LeaderboardDto::class.java))
+                    }
                 }
-                if (snapshot != null) {
-                    trySend(snapshot.toObjects(LeaderboardDto::class.java))
-                }
-            }
-        awaitClose { listener.remove() }
+            awaitClose { listener.remove() }
+        } catch (e: Exception) {
+            Log.d(TAG, "getLeaderboardFlow: ${e.message}")
+            close(e)
+        }
     }
 
     suspend fun submitQuizAndPromote(answers: List<Any>): String {

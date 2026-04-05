@@ -89,7 +89,7 @@ fun AudioDetailScreen(
 
     val context = LocalContext.current
     val sessionToken = remember {
-        SessionToken(context, ComponentName(context, PlaybackService::class.java))
+        SessionToken(context, ComponentName(context,  PlaybackService::class.java))
     }
 
     val controllerFuture: ListenableFuture<MediaController> = remember {

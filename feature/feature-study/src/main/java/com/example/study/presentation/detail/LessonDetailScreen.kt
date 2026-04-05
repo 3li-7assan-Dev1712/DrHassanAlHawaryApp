@@ -61,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -158,7 +159,7 @@ fun LessonDetailContent(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = uiState.lesson?.title ?: "",
+                        text = uiState.lesson?.title ?: stringResource(R.string.downloading_msg),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleMedium.copy(
@@ -211,7 +212,8 @@ fun LessonDetailContent(
         ) {
             if (uiState.isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    LoadingScreen()
+                    LoadingScreen(
+                    )
                 }
             } else if (uiState.lesson != null) {
                 Spacer(modifier = Modifier.height(32.dp))
@@ -236,21 +238,9 @@ fun LessonDetailContent(
 
                 Spacer(modifier = Modifier.height(48.dp))
                 
-                AudioDescriptionSection(uiState)
-                
-                Spacer(modifier = Modifier.height(64.dp))
             }
         }
     }
-}
-
-@Composable
-private fun AudioDescriptionSection(
-    uiState: PlayerUiState
-) {
-    // Note: If Lesson model had a description field, it would be shown here.
-    // Since the Lesson model currently doesn't show one in LessonDetailScreen,
-    // we keep the structure but skip if content is empty to match the polish of AudioDetail.
 }
 
 @Composable

@@ -30,4 +30,5 @@ interface AuthRepository {
     suspend fun getUserSecurityRole(): String
 
 
+    suspend fun signOut()
 }

@@ -1,10 +1,12 @@
 package com.example.feature.auth.presentation.login
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,37 +26,51 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.R
 import com.example.core.ui.theme.CairoTypography
+import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.feature.auth.presentation.AuthScreenState
 import com.example.feature.auth.presentation.AuthViewModel
 import com.example.feature.auth.presentation.components.LoginRegisterSection
 import com.example.feature.auth.presentation.components.LoginWithGoogleComp
 import com.example.feature.auth.presentation.components.OutlinedField
-import com.example.feature.auth.presentation.components.WelcomeScreen
 
 
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
-    onSuccessfulLogin: () -> Unit
+    onSuccessfulLogin: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
 
-    val viewModel: AuthViewModel = hiltViewModel()
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(state.isSignInSuccessful) {
@@ -69,6 +86,100 @@ fun LoginScreen(
         }
     }
 
+    LoginScreenContent(
+        state = state,
+        onEmailChanged = viewModel::emailChanged,
+        onPasswordChanged = viewModel::passwordChanged,
+        onLoginClick = viewModel::loginWithEmailPassword,
+        onGoogleLoginClick = viewModel::loginWithGoogle,
+        onForgotPasswordClick = viewModel::sendPasswordResetEmail,
+        onRegisterClick = onRegisterClick
+    )
+}
+
+@Composable
+fun PremiumWelcomeHeader(title: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            modifier = Modifier
+                .size(140.dp)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = CircleShape,
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                ),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(
+                width = 3.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                        MaterialTheme.colorScheme.primaryContainer
+                    )
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(6.dp)
+                    .clip(CircleShape)
+            ) {
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    painter = painterResource(id = R.drawable.dr_hassan_image),
+                    contentDescription = "Doctor Hassan Logo",
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            text = "مرحباً بك في تطبيق",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        
+        Spacer(Modifier.height(4.dp))
+        
+        Text(
+            text = stringResource(R.string.app_name),
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp
+            ),
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+
+@Composable
+fun LoginScreenContent(
+    state: AuthScreenState,
+    onEmailChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
+    onLoginClick: () -> Unit,
+    onGoogleLoginClick: () -> Unit,
+    onForgotPasswordClick: () -> Unit,
+    onRegisterClick: () -> Unit
+) {
     val isButtonEnabled =
         state.enteredEmail.isNotBlank() &&
                 state.enteredPassword.length >= 6
@@ -78,13 +189,21 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
         ) {
 
             val scrollState = rememberScrollState()
             Column(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 24.dp)
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .imePadding(),
@@ -95,49 +214,45 @@ fun LoginScreen(
 
                 if (state.showSignInProgressBar) {
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(24.dp))
 
-                WelcomeScreen(
-                    loginRegister = R.string.login,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(.25f)
-                )
+                PremiumWelcomeHeader(title = stringResource(R.string.login))
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(32.dp))
 
                 OutlinedField(
                     modifier = Modifier.fillMaxWidth(),
                     label = R.string.enter_email,
                     icon = Icons.Default.Email,
                     value = state.enteredEmail,
-                    onValueChange = { viewModel.emailChanged(it) },
+                    onValueChange = onEmailChanged,
                     showError = state.enterValidEmailMsg.isNotEmpty(),
                     errorMessage = state.enterValidEmailMsg
                 )
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
 
                 OutlinedField(
                     modifier = Modifier.fillMaxWidth(),
                     label = R.string.enter_password,
                     icon = Icons.Default.Lock,
                     value = state.enteredPassword,
-                    onValueChange = { viewModel.passwordChanged(it) },
+                    onValueChange = onPasswordChanged,
                     showError = state.enterValidPasswordMsg.isNotEmpty(),
                     errorMessage = state.enterValidPasswordMsg,
                     isPasswordField = true
                 )
 
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                    TextButton(onClick = { viewModel.sendPasswordResetEmail() }) {
+                    TextButton(onClick = onForgotPasswordClick) {
                         Text(
                             text = stringResource(R.string.forgot_password),
-                            style = CairoTypography.bodySmall,
+                            style = CairoTypography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -156,49 +271,70 @@ fun LoginScreen(
                 Spacer(Modifier.weight(1f))
 
                 Button(
-                    onClick = { viewModel.loginWithEmailPassword() },
+                    onClick = onLoginClick,
                     enabled = isButtonEnabled && !state.showSignInProgressBar,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    elevation = ButtonDefaults.buttonElevation(8.dp)
+                    elevation = ButtonDefaults.buttonElevation(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     if (state.showSignInProgressBar) {
                         CircularProgressIndicator(
                             strokeWidth = 2.dp,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
                         Text(
                             text = stringResource(R.string.login),
-                            style = CairoTypography.bodyMedium
+                            style = CairoTypography.titleMedium
                         )
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
 
                 LoginWithGoogleComp(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
                     isLogin = true
                 ) {
-                    viewModel.loginWithGoogle()
+                    onGoogleLoginClick()
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
             }
         }
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, widthDp = 320, heightDp = 640)
+@Preview(
+    showBackground = true,
+    showSystemUi = false,
+    device = Devices.PIXEL_7,
+    name = "شاشة تسجيل الدخول"
+)
 @Composable
-fun LoginScreenPreview(modifier: Modifier = Modifier) {
-
-    LoginScreen(
-        onRegisterClick = {
-
+fun LoginScreenArabicPreview() {
+    HassanAlHawaryTheme {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            Surface(color = MaterialTheme.colorScheme.surface) {
+                LoginScreenContent(
+                    state = AuthScreenState(),
+                    onEmailChanged = {},
+                    onPasswordChanged = {},
+                    onLoginClick = {},
+                    onGoogleLoginClick = {},
+                    onForgotPasswordClick = {},
+                    onRegisterClick = {}
+                )
+            }
         }
-    ) { }
+    }
 }

@@ -96,7 +96,7 @@ class LessonDetailViewModel @Inject constructor(
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     _uiState.update {
-                        it.copy(isBuffering = playbackState == Player.STATE_BUFFERING)
+                        it.copy(isBuffering = false)
                     }
                     if (playbackState == Player.STATE_READY) {
                         _uiState.update { it.copy(totalDuration = controller.duration) }

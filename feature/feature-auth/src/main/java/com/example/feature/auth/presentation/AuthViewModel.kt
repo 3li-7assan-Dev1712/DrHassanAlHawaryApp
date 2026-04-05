@@ -86,7 +86,9 @@ class AuthViewModel
                     _state.value.enteredPassword
                 )
                 if (result.data != null) {
+
                     authRepository.sendEmailVerification()
+                    authRepository.signOut()
                     _state.update {
                         it.copy(
                             isSignInSuccessful = false,
