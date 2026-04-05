@@ -13,22 +13,28 @@ class ConfigRepositoryImpl @Inject constructor(
 ) : ConfigRepository {
 
     override fun getAppConfig(): Flow<AppConfig> = callbackFlow {
-        val subscription = firestore.collection("config")
-            .document("app_config")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                if (snapshot != null && snapshot.exists()) {
-                    val config = snapshot.toObject(AppConfig::class.java)
-                    if (config != null) {
-                        trySend(config)
+        try {
+            val subscription = firestore.collection("config")
+                .document("app_config")
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        close(error)
+                        return@addSnapshotListener
                     }
-                } else {
-                    trySend(AppConfig())
+                    if (snapshot != null && snapshot.exists()) {
+                        val config = snapshot.toObject(AppConfig::class.java)
+                        if (config != null) {
+                            trySend(config)
+                        }
+                    } else {
+                        trySend(AppConfig())
+                    }
                 }
-            }
-        awaitClose { subscription.remove() }
+            awaitClose { subscription.remove() }
+
+        } catch (e: Exception) {
+            close(e)
+        }
+
     }
 }

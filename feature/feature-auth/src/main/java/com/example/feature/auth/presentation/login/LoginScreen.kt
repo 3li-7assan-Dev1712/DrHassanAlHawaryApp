@@ -1,8 +1,6 @@
 package com.example.feature.auth.presentation.login
 
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -35,22 +32,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.R
@@ -61,6 +51,7 @@ import com.example.feature.auth.presentation.AuthViewModel
 import com.example.feature.auth.presentation.components.LoginRegisterSection
 import com.example.feature.auth.presentation.components.LoginWithGoogleComp
 import com.example.feature.auth.presentation.components.OutlinedField
+import com.example.feature.auth.presentation.components.WelcomeScreen
 
 
 @Composable
@@ -96,79 +87,6 @@ fun LoginScreen(
         onRegisterClick = onRegisterClick
     )
 }
-
-@Composable
-fun PremiumWelcomeHeader(title: String) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Surface(
-            modifier = Modifier
-                .size(140.dp)
-                .shadow(
-                    elevation = 16.dp,
-                    shape = CircleShape,
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                ),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(
-                width = 3.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
-                        MaterialTheme.colorScheme.primaryContainer
-                    )
-                )
-            )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(6.dp)
-                    .clip(CircleShape)
-            ) {
-                Image(
-                    modifier = Modifier.fillMaxSize(),
-                    painter = painterResource(id = R.drawable.dr_hassan_image),
-                    contentDescription = "Doctor Hassan Logo",
-                    contentScale = ContentScale.Crop,
-                )
-            }
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        Text(
-            text = "مرحباً بك في تطبيق",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        Spacer(Modifier.height(4.dp))
-        
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            ),
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
-
 
 @Composable
 fun LoginScreenContent(
@@ -221,7 +139,7 @@ fun LoginScreenContent(
 
                 Spacer(Modifier.height(24.dp))
 
-                PremiumWelcomeHeader(title = stringResource(R.string.login))
+                WelcomeScreen(loginRegister = R.string.login)
 
                 Spacer(Modifier.height(32.dp))
 

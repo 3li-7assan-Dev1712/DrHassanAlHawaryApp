@@ -111,7 +111,7 @@
     <string name="about_dr_hassan">عن الشيــخ</string>
 
 
-    <string name="study_zone">المعهـــد</string>">
+    <string name="study_zone">المعهـــد</string>
     <string name="latest_articles">أحدث المــــقالات</string>
     <string name="latest_audios">أحدث الصــــوتيات</string>
     <string name="images">التصاميم</string>
@@ -133,6 +133,7 @@
     <string name="password_reset_email_sent">"تم أرسال بريد إلكتروني لإعادة ضبط كلمة المرور الخاصة بكم "</string>
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
+    <string name="welcome_to_app">مرحباً بك في تطبيق</string>
 
 
 </resources>

@@ -152,6 +152,7 @@ class MainActivityViewModel @Inject constructor(
     }
 
     fun logoutSuccess() {
+
         viewModelScope.launch {
             _state.update { it.copy(isUserLoggedIn = false) }
             deleteStudentDataUseCase()
