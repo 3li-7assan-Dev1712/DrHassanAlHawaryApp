@@ -1,6 +1,5 @@
 package com.example.search.presentation
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,8 +15,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,12 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
-
 import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.SearchResultMetaData
@@ -50,58 +56,87 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onNavigateToDetail: (SearchResultMetaData) -> Unit
 ) {
-    val TAG  = "SearchScreen"
     var query by remember { mutableStateOf("") }
-
     val state by viewModel.uiState.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
 
+    SearchScreenContent(
+        modifier = modifier,
+        searchQuery = query,
+        onQueryChanged = { query = it },
+        onSearchClicked = { viewModel.search(query) },
+        selectedFilter = selectedFilter,
+        onFilterSelected = { viewModel.onFilterSelected(it) },
+        state = state,
+        onNavigateToDetail = onNavigateToDetail
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchScreenContent(
+    modifier: Modifier = Modifier,
+    searchQuery: String,
+    onQueryChanged: (String) -> Unit,
+    onSearchClicked: () -> Unit,
+    selectedFilter: SearchFilter,
+    onFilterSelected: (SearchFilter) -> Unit,
+    state: SearchUiState,
+    onNavigateToDetail: (SearchResultMetaData) -> Unit
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 16.dp)
             .background(
-                color = MaterialTheme.colorScheme.surface
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        MaterialTheme.colorScheme.surface
+                    )
+                )
             )
+            .padding(top = 16.dp)
     ) {
-
         SearchBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            searchQuery = query,
-            onQueryChanged = { 
-                query = it
-            },
-            onSearchClicked = {
-                viewModel.search(query)
-            },
+            searchQuery = searchQuery,
+            onQueryChanged = onQueryChanged,
+            onSearchClicked = onSearchClicked,
             hint = stringResource(R.string.search_hint),
         )
 
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
+                .padding(vertical = 12.dp),
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(SearchFilter.entries) { filter ->
                 FilterChip(
                     selected = selectedFilter == filter,
-                    onClick = { viewModel.onFilterSelected(filter) },
+                    onClick = { onFilterSelected(filter) },
                     label = { Text(text = filter.label) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = selectedFilter == filter,
+                        borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        selectedBorderColor = Color.Transparent
                     )
                 )
             }
         }
 
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             when (state) {
@@ -114,9 +149,12 @@ fun SearchScreen(
                 }
 
                 is SearchUiState.Success -> {
-                    val successState = state as SearchUiState.Success
-                    if (successState.results.hits.isEmpty()) {
-                        Text(text = stringResource(R.string.error_msg))
+                    if (state.results.hits.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.error_msg),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
@@ -124,10 +162,8 @@ fun SearchScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
-                                items = successState.results.hits,
-                                key = { hit ->
-                                    parseHit(hit).objectID
-                                }
+                                items = state.results.hits,
+                                key = { hit -> parseHit(hit).objectID }
                             ) { hit ->
                                 val parsedHit = parseHit(hit)
 
@@ -151,9 +187,12 @@ fun SearchScreen(
                 }
 
                 is SearchUiState.Error -> {
-                    Log.d(TAG, "SearchScreen: error")
                     Text(
-                        text = "Error: ${(state as SearchUiState.Error).throwable.message}"
+                        text = "حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(24.dp)
                     )
                 }
             }
@@ -161,12 +200,22 @@ fun SearchScreen(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7, name = "شاشة البحث")
 @Composable
-private fun SearchScreenPreview() {
+fun SearchScreenPreview() {
     HassanAlHawaryTheme {
-        SearchScreen(
-            onNavigateToDetail = {}
-        )
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            Surface(color = MaterialTheme.colorScheme.surface) {
+                SearchScreenContent(
+                    searchQuery = "العقيدة",
+                    onQueryChanged = {},
+                    onSearchClicked = {},
+                    selectedFilter = SearchFilter.ALL,
+                    onFilterSelected = {},
+                    state = SearchUiState.Idle,
+                    onNavigateToDetail = {}
+                )
+            }
+        }
     }
 }
