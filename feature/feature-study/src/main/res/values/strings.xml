@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weekly_quiz" translatable="false">الاختبار الأسبوعي</string>
+    <string name="back" translatable="false">رجوع</string>
+    <string name="return_back" translatable="false">العودة</string>
+    <string name="quiz_submitted_successfully" translatable="false">تم تسليم الاختبار بنجاح!</string>
+    <string name="your_score" translatable="false">نتيجتك: %1$s</string>
+    <string name="retry" translatable="false">إعادة المحاولة</string>
+    <string name="return_to_home" translatable="false">العودة للرئيسية</string>
+    <string name="submit_answers" translatable="false">تسليم الإجابات</string>
+    <string name="true_text" translatable="false">صح</string>
+    <string name="false_text" translatable="false">خطأ</string>
+</resources>

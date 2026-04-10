@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Admin - Dr. Hassan Al-Hawary</string>
+    <string name="app_name">الإدارة - د. حسن الهواري</string>
 
     <!-- Navigation & Titles -->
     <string name="admin_control_panel">Admin Control Panel</string>

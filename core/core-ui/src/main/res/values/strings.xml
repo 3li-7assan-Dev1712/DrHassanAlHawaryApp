@@ -45,7 +45,7 @@
     <string name="website_support">الموقع الرسمي</string>
     <string name="website_support_desc">معلومات وروابط إضافية</string>
     <string name="support_email_address">support@itqan.com</string>
-    <string name="support_email_subject">قسم التواصل - تطبيق د. حسن الهواري</string>
+    <string name="support_email_subject">قسم التواصل - تطبيق d. حسن الهواري</string>
     <string name="support_email_body">السلام عليكم ورحمة الله وبركاته,\n\n</string>
     <string name="support_website_url">https://itqan-team.com</string>
 
@@ -134,6 +134,7 @@
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
     <string name="welcome_to_app">مرحباً بك في تطبيق</string>
+    <string name="feature_coming_soon">هذه الميزة ستكون متاحة قريباً</string>
 
 
 </resources>

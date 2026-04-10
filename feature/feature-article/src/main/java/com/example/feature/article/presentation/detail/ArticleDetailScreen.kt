@@ -22,6 +22,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -30,6 +32,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentDataType
@@ -47,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Article
+import kotlinx.coroutines.launch
 import java.util.Date
 
 
@@ -59,9 +63,13 @@ fun ArticleDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val lazyListState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val comingSoonMsg = stringResource(id = R.string.feature_coming_soon)
 
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
@@ -80,7 +88,7 @@ fun ArticleDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.back))
                     }
                 },
                 windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
@@ -91,13 +99,9 @@ fun ArticleDetailScreen(
             if (uiState is DetailArticleUiState.Success) {
                 FloatingActionButton(
                     onClick = {
-                        val article = (uiState as DetailArticleUiState.Success).article
-                        shareArticle(
-                            context,
-                            article.title,
-                            // Share the full article content
-                            "Check out this article: ${article.content}"
-                        )
+                        scope.launch {
+                            snackbarHostState.showSnackbar(comingSoonMsg)
+                        }
                     },
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer

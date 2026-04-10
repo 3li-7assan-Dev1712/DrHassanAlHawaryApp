@@ -6,11 +6,8 @@
     <style name="Theme.HassanAlHawary.Splash" parent="Theme.SplashScreen">
 
 
-        <!-- App icon -->
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_admin_app</item>
 
-        <!-- Optional icon background (nice for adaptive icons) -->
-        <item name="windowSplashScreenIconBackgroundColor">@color/ic_launcher_background</item>
 
         <item name="postSplashScreenTheme">@style/Theme.HassanAlHawary</item>
 

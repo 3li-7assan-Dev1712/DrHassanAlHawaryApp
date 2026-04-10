@@ -24,6 +24,7 @@ class AuthRepositoryImpl @Inject constructor(
         return googleAuthUiClient.login()
     }
 
+    private val TAG = "AuthRepositoryImpl"
     override suspend fun loginWithEmailAndPassword(
         email: String, password: String
     ): LoginResult {
@@ -106,19 +107,25 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getLoggedInUser(): LoginResult? {
-        val firebaseUser = firebaseAuth.currentUser
-        return if (firebaseUser != null) {
-            LoginResult(
-                data = UserData(
-                    userId = firebaseUser.uid,
-                    username = firebaseUser.displayName,
-                    email = firebaseUser.email,
-                    idToken = firebaseUser.getIdToken(false).await().token,
-                    userProfilePictureUrl = firebaseUser.photoUrl?.toString()
-                ), errorMessage = null
-            )
-        } else {
-            null
+        try {
+            val firebaseUser = firebaseAuth.currentUser
+
+            return if (firebaseUser != null) {
+                LoginResult(
+                    data = UserData(
+                        userId = firebaseUser.uid,
+                        username = firebaseUser.displayName,
+                        email = firebaseUser.email,
+                        idToken = firebaseUser.getIdToken(false).await().token,
+                        userProfilePictureUrl = firebaseUser.photoUrl?.toString()
+                    ), errorMessage = null
+                )
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "getLoggedInUser: ${e.message}")
+            return null
         }
     }
 
@@ -166,8 +173,13 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun signOut() {
-        googleAuthUiClient.signOut()
-        firebaseAuth.signOut()
+        try {
+            googleAuthUiClient.signOut()
+
+            firebaseAuth.signOut()
+        } catch (e: Exception) {
+            Log.d(TAG, "signOut: ${e.message}")
+        }
     }
 
 }

@@ -47,7 +47,6 @@ class AuthViewModel
     }
 
     fun loginWithEmailPassword() {
-        if (!validateInputs()) return
         if (_state.value.showSignInProgressBar) return
 
         viewModelScope.launch {
