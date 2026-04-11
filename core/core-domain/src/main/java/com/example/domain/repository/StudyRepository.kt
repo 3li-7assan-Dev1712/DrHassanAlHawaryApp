@@ -81,6 +81,7 @@ interface StudyRepository {
     suspend fun getRemotePlaylistById(playlistId: String): Playlist?
 
     // Quiz and Leaderboard
+    suspend fun uploadQuiz(quiz: Quiz): Result<Unit>
     suspend fun getLatestQuiz(): Quiz?
     suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>
     fun getLeaderboard(): Flow<List<LeaderBoard>>

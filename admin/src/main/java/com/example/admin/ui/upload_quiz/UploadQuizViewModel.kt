@@ -2,17 +2,18 @@ package com.example.admin.ui.upload_quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.module.Channel
 import com.example.domain.module.Question
 import com.example.domain.module.QuestionType
 import com.example.domain.module.Quiz
 import com.example.domain.module.QuizType
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.domain.use_cases.channel.GetChannelsUseCase
+import com.example.domain.use_cases.study.UploadQuizUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import java.util.UUID
 import javax.inject.Inject
 
@@ -21,6 +22,8 @@ data class UploadQuizUiState(
     val questions: List<Question> = emptyList(),
     val quizType: QuizType = QuizType.WEEKLY,
     val targetLevelId: String? = null,
+    val availableChannels: List<Channel> = emptyList(),
+    val selectedChannelIds: Set<String> = emptySet(),
     val isUploading: Boolean = false,
     val uploadSuccess: Boolean = false,
     val error: String? = null
@@ -28,11 +31,35 @@ data class UploadQuizUiState(
 
 @HiltViewModel
 class UploadQuizViewModel @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val getChannelsUseCase: GetChannelsUseCase,
+    private val uploadQuizUseCase: UploadQuizUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UploadQuizUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        fetchChannels()
+    }
+
+    private fun fetchChannels() {
+        viewModelScope.launch {
+            getChannelsUseCase().collect { channels ->
+                _uiState.update { it.copy(availableChannels = channels) }
+            }
+        }
+    }
+
+    fun toggleChannelSelection(channelId: String) {
+        _uiState.update { state ->
+            val newSelection = if (state.selectedChannelIds.contains(channelId)) {
+                state.selectedChannelIds - channelId
+            } else {
+                state.selectedChannelIds + channelId
+            }
+            state.copy(selectedChannelIds = newSelection)
+        }
+    }
 
     fun onTitleChange(title: String) {
         _uiState.update { it.copy(title = title) }
@@ -116,42 +143,34 @@ class UploadQuizViewModel @Inject constructor(
             return
         }
 
+        if (state.selectedChannelIds.isEmpty()) {
+            _uiState.update { it.copy(error = "Please select at least one channel.") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isUploading = true, error = null) }
-            try {
-                // 1. Clear existing quizzes and leaderboard
-                val batch = firestore.batch()
-                
-                // Clear "weekly_quiz" collection
-                val quizzes = firestore.collection("weekly_quiz").get().await()
-                quizzes.documents.forEach { batch.delete(it.reference) }
-                
-                // Clear "leaderboard" collection
-                val leaderboard = firestore.collection("leaderboard").get().await()
-                leaderboard.documents.forEach { batch.delete(it.reference) }
-                
-                // 2. Add the new quiz
-                val quizRef = firestore.collection("weekly_quiz").document()
-                val quiz = Quiz(
-                    id = quizRef.id,
-                    title = state.title,
-                    questions = state.questions,
-                    type = state.quizType,
-                    targetLevelId = state.targetLevelId
-                )
-                batch.set(quizRef, quiz)
-                
-                // 3. Commit everything
-                batch.commit().await()
-
+            
+            val quiz = Quiz(
+                id = UUID.randomUUID().toString(),
+                title = state.title,
+                questions = state.questions,
+                type = state.quizType,
+                targetLevelId = state.targetLevelId,
+                batchIds = state.selectedChannelIds.toList()
+            )
+            
+            val result = uploadQuizUseCase(quiz)
+            
+            result.onSuccess {
                 _uiState.update { it.copy(isUploading = false, uploadSuccess = true) }
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 _uiState.update { it.copy(isUploading = false, error = e.message ?: "Upload failed") }
             }
         }
     }
     
     fun resetState() {
-        _uiState.value = UploadQuizUiState()
+        _uiState.value = UploadQuizUiState(availableChannels = _uiState.value.availableChannels)
     }
 }

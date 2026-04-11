@@ -23,5 +23,6 @@ data class QuizDto(
     val targetLevelId: String? = null,
     val type: QuizType = QuizType.WEEKLY,
     val questions: List<QuestionDto> = emptyList(),
+    val batchIds: List<String> = emptyList(),
     @ServerTimestamp val createdAt: Date? = null
 )

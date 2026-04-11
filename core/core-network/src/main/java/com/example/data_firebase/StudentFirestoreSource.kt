@@ -507,6 +507,41 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
+    suspend fun uploadQuiz(quizDto: QuizDto): Result<Unit> {
+        return try {
+            val contentMap = hashMapOf(
+                "title" to quizDto.title,
+                "type" to quizDto.type.name,
+                "targetLevelId" to quizDto.targetLevelId,
+                "batchIds" to quizDto.batchIds,
+                "questions" to quizDto.questions.map { q ->
+                    hashMapOf(
+                        "id" to q.id,
+                        "text" to q.text,
+                        "type" to q.type.name,
+                        "options" to q.options,
+                        "correctAnswerIndex" to q.correctAnswerIndex,
+                        "correctBooleanAnswer" to q.correctBooleanAnswer
+                    )
+                }
+            )
+
+            val payload = hashMapOf(
+                "quizData" to contentMap
+            )
+
+            functions
+                .getHttpsCallable("uploadQuiz")
+                .call(payload)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "uploadQuiz failed", e)
+            Result.failure(e)
+        }
+    }
+
     suspend fun submitLeaderboardEntry(entry: LeaderboardDto) {
         try {
             val docRef = firestore.collection("leaderboard").document(entry.telegramId.toString())

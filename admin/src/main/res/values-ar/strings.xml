@@ -4,9 +4,6 @@
 
     <!-- Navigation & Titles -->
     <string name="admin_control_panel">لوحة تحكم المسؤول</string>
-    <string name="upload_article">رفع مقال</string>
-    <string name="upload_audio">رفع صوتي</string>
-    <string name="upload_video">رفع فيديو</string>
     <string name="upload_images">رفع صور</string>
     <string name="profile">الملف الشخصي</string>
     <string name="login">تسجيل الدخول</string>
@@ -33,15 +30,12 @@
     <string name="email_address">البريد الإلكتروني</string>
     <string name="add">إضافة</string>
     <string name="cancel">إلغاء</string>
-    <string name="admin_added_success">تمت إضافة المسؤول بنجاح</string>
-    <string name="admin_removed_success">تم حذف المسؤول بنجاح</string>
     <string name="super_admin_restricted_msg">هذه المنطقة مخصصة للمشرفين العامين فقط. إذا كنت بحاجة إلى وصول، يرجى التواصل مع المطور الأساسي.</string>
 
     <!-- Auth & Access Denied -->
     <string name="logout">تسجيل الخروج</string>
     <string name="not_allowed_msg">ليس لديك صلاحيات إدارية للوصول إلى هذه اللوحة. إذا كنت تعتقد أن هذا خطأ، يرجى الاتصال بمسؤول النظام.</string>
     <string name="forgot_password">نسيت كلمة المرور؟</string>
-    <string name="password_reset_sent">تم إرسال بريد إعادة تعيين كلمة المرور. يرجى مراجعة صندوق الوارد الخاص بك.</string>
     <string name="email_verification_msg">تم إرسال بريد التحقق. يرجى تفعيل حسابك من البريد الإلكتروني.</string>
     <string name="email_not_verified">يرجى التحقق من بريدك الإلكتروني قبل تسجيل الدخول.</string>
 
@@ -55,7 +49,6 @@
     <string name="save">حفظ</string>
     <string name="delete">حذف</string>
     <string name="error_loading">فشل في تحميل البيانات</string>
-    <string name="success_save">تم الحفظ بنجاح</string>
 
     <!-- Auth Labels -->
     <string name="enter_email">أدخل البريد الإلكتروني</string>

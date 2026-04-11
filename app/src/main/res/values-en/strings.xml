@@ -2,7 +2,6 @@
     <string name="app_name">الشيخ د. حسن الهواري</string>
     <string name="login">Login</string>
     <string name="enter_email">E-mail</string>
-    <string name="name">Name</string>
     <string name="articles">Articles</string>
     <string name="read_more">Read more…</string>
     <string name="enter_password">Password</string>
@@ -11,27 +10,17 @@
     <string name="register_question">don\'t have an account?</string>
     <string name="register_using">Register using Google</string>
     <string name="login_using">Login using Google</string>
-    <string name="facebook_app_id" translatable="false">1962082974176203</string>
-    <string name="favorite_articles">Favorite Articles</string>
-    <string name="favorite_lectures">Favorite Lectures</string>
-    <string name="questions">Questions</string>
     <string name="study_zone">Study Zone</string>
     <string name="videos">Videos</string>
-    <string name="lectures">Lectures</string>
-    <string name="summary">Summary</string>
-    <string name="main_screen">Main screen</string>
-    <string name="favorites">Favorites</string>
     <string name="profile">Profile</string>
     <string name="enter_name">Name</string>
     <string name="home">Home</string>
     <string name="search_hint">Search</string>
     <string name="loading">Loading…</string>
     <string name="error_msg">Error occurred</string>
-    <string name="navigate_back">Navigate back</string>
     <string name="latest_articles">Latest Articles</string>
     <string name="latest_audios">Latest Audios</string>
     <string name="audio_detail_description_title">Audio With Title</string>
-    <string name="wisdom_of_the_day">Quote of the Day</string>
     <string name="no_audios_available">No Available Audios</string>
     <string name="fasalo">Khotab Al Jumah</string>
     <string name="war">War</string>
@@ -39,9 +28,7 @@
     <string name="audios">Audios</string>
     <string name="lessons">Lessons</string>
     <string name="images">Images</string>
-    <string name="shaikh_hassan_cv">About</string>
     <string name="search_illustration_description">Search to find any content you love</string>
-    <string name="study_zone_description">Enter you data to join to the study zone</string>
 
     <string name="q_a_title">Fasalo</string>
     <string name="q_a_description">Fasalo is the unified platform for all fatawa questions. You can press the button below to open Fasalo in Telegram and send your question.</string>

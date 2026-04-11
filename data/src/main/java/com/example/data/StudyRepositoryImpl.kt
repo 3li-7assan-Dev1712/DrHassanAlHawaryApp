@@ -321,6 +321,10 @@ class StudyRepositoryImpl @Inject constructor(
         return studentFirestoreSource.getLatestQuiz()?.toDomain()
     }
 
+    override suspend fun uploadQuiz(quiz: Quiz): Result<Unit> {
+        return studentFirestoreSource.uploadQuiz(quiz.toDto())
+    }
+
     override suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit> {
         return try {
             studentFirestoreSource.submitLeaderboardEntry(entry.toDto())

@@ -5,7 +5,6 @@
     <string name="overview">نبذة</string>
     <string name="app_description">تطبيق تعليمي يساعدك على متابعة المحتوى بشكل منظم وبواجهة عربية جميلة.</string>
     <string name="back">رجوع</string>
-    <string name="app_info_icon">معلومات التطبيق</string>
     <string name="rate_app">تقييم التطبيق</string>
     <string name="your_opinion_matters">رأيك يهمنا</string>
     <string name="rate_us_description">تقييمك يساعدنا على تحسين التطبيق والوصول لمستخدمين أكثر.</string>
@@ -18,15 +17,6 @@
     <string name="rating_illustration">صورة تقييم التطبيق</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title_1">Start your journey</string>
-    <string name="onboarding_description_1">Learn with a dedicated app containing study materials: videos, audios, images, and PDFs.</string>
-    <string name="onboarding_title_2">Read PDFs instantly</string>
-    <string name="onboarding_description_2">View PDFs directly inside each lesson screen—no switching apps.</string>
-    <string name="onboarding_title_3">Offline studying</string>
-    <string name="onboarding_description_3">Download lessons once. Listen to audio and open PDFs completely offline.</string>
-    <string name="onboarding_skip">Skip</string>
-    <string name="onboarding_next">Next</string>
-    <string name="onboarding_get_started">Get started</string>
     <string name="share_app">مشاركة التطبيق مع الإخــوة</string>
 
     <!-- Guest Content -->
@@ -51,35 +41,18 @@
 
     <!-- Study -->
     <string name="leaderboard_title">قائمة المتصدرين</string>
-    <string name="final_quiz_available">اختبار نهائي متاح!</string>
-    <string name="weekly_quiz_available">اختبار أسبوعي جديد متاح!</string>
-    <string name="pass_this_quiz">اجتز هذا الاختبار لتنتقل للمرحلة التالية.</string>
-    <string name="click_to_start_quiz">اضغط هنا للبدء في حل الاختبار.</string>
     <string name="institute_student">من طلاب المعهد</string>
     <string name="not_institute_student">ليس من طلاب المعهد</string>
-    <string name="your_grade">درجتك</string>
-    <string name="in_rank">في الترتيب</string>
     <string name="rank_1">الأول</string>
     <string name="rank_2">الثاني</string>
     <string name="rank_3">الثالث</string>
     <string name="rank_other">المركز %1$d</string>
 
     <!-- Article -->
-    <string name="published_since">نُشر %1$s</string>
-    <string name="just_now">الآن</string>
-    <string name="since_minutes">منذ %1$d دقائق</string>
-    <string name="since_hours">منذ %1$d ساعات</string>
-    <string name="since_days">منذ %1$d أيام</string>
-    <string name="since_2_days">منذ يومين</string>
-    <string name="since_week">منذ أسبوع</string>
-    <string name="since_2_weeks">منذ أسبوعين</string>
-    <string name="since_month">منذ شهر</string>
-    <string name="read_more">اقرأ المزيد</string>
 
     <string name="app_name">الشيــخ د. حســن الهــواري</string>
     <string name="login">تسجيل الدخول</string>
     <string name="enter_email">الإيميل</string>
-    <string name="name">الإســـم</string>
     <string name="articles">المـــقالات</string>
     <string name="enter_password">كلمـــة المــرور</string>
     <string name="register">إنشـــاء حســـاب</string>
@@ -87,42 +60,17 @@
     <string name="register_question">ليس لديـــك حســـاب</string>
     <string name="register_using">تسجيـــل الدخول عن طريـــق قوقـــل</string>
     <string name="login_using">تسجيــــل الدخول عن طريـــق</string>
-    <string name="facebook_app_id" translatable="false">1962082974176203</string>
-    <string name="favorite_articles">المقالات المفضلــة</string>
-    <string name="favorite_lectures">المحاضـــرات المفضلـــة</string>
-    <string name="questions">الإسئلــــة</string>
     <string name="videos">الفيديوهــــات</string>
     <string name="audios">الصـــوتيات</string>
-    <string name="lectures">المحاضــــرات</string>
-    <string name="summary">ملخــــصات</string>
-    <string name="main_screen">الشاشـــة الرئيــــسة</string>
-    <string name="favorites">المفضــــلات</string>
     <string name="enter_name">الإســم</string>
     <string name="profile">الملـــف الشخصـــي</string>
-    <string name="home">الرئيسية</string>
-    <string name="search_hint">بحـــث…</string>
     <string name="loading">يتم التحميل…</string>
-    <string name="navigate_back">الرجوع للخلف</string>
-    <string name="no_audios_available">لا تــوجــــد صــــوتــيات متاحــــة الآن</string>
-    <string name="audio_detail_description_title">مقــــطع بعنــــوان</string>
     <string name="study">الدراسة</string>
     <string name="competition">قائمة التميز</string>
-    <string name="error_msg">لم يتم العثور على نتائج</string>
-    <string name="about_dr_hassan">عن الشيــخ</string>
 
 
-    <string name="study_zone">المعهـــد</string>
-    <string name="latest_articles">أحدث المــــقالات</string>
-    <string name="latest_audios">أحدث الصــــوتيات</string>
     <string name="images">التصاميم</string>
-    <string name="wisdom_of_the_day">رسالــــة اليـــــوم</string>
-    <string name="fasalo">خــطب الجـــمعة</string>
-    <string name="war">نـــوازل الحـــرب</string>
-    <string name="most_important">أهـــم المســـائل</string>
     <string name="lessons">الــمـحـــتويات</string>
-    <string name="levels">المراحـــل</string>
-    <string name="study_zone_description">اكتب بياناتك للدخول إلى دروس المعهد</string>
-    <string name="search_illustration_description">اكتب كلمة للعثور على الدرس أو الخطبة</string>
     <string name="at_least_6_digits">على الأقل 6 أحرف</string>
     <string name="containt_number">"يحتوي على رقم "</string>
     <string name="containt_capital_leter">يحتوي على حرف كبير</string>
@@ -134,7 +82,6 @@
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
     <string name="welcome_to_app">مرحباً بك في تطبيق</string>
-    <string name="feature_coming_soon">هذه الميزة ستكون متاحة قريباً</string>
 
 
 </resources>

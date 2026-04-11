@@ -4,9 +4,6 @@
 
     <!-- Navigation & Titles -->
     <string name="admin_control_panel">Admin Control Panel</string>
-    <string name="upload_article">Upload Article</string>
-    <string name="upload_audio">Upload Audio</string>
-    <string name="upload_video">Upload Video</string>
     <string name="upload_images">Upload Images</string>
     <string name="profile">Profile</string>
     <string name="login">Login</string>
@@ -33,15 +30,12 @@
     <string name="email_address">Email Address</string>
     <string name="add">Add</string>
     <string name="cancel">Cancel</string>
-    <string name="admin_added_success">Admin added successfully</string>
-    <string name="admin_removed_success">Admin removed successfully</string>
     <string name="super_admin_restricted_msg">This area is only accessible to super administrators. If you need access, please contact the main developer.</string>
 
     <!-- Auth & Access Denied -->
     <string name="logout">Logout</string>
     <string name="not_allowed_msg">You do not have administrative privileges to access this panel. If you believe this is a mistake, please contact the system administrator.</string>
     <string name="forgot_password">Forgot Password?</string>
-    <string name="password_reset_sent">Password reset email sent. Please check your inbox.</string>
     <string name="email_verification_msg">Verification email sent. Please activate your account from your email.</string>
     <string name="email_not_verified">Please verify your email before logging in.</string>
 
@@ -55,7 +49,6 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="error_loading">Error loading data</string>
-    <string name="success_save">Successfully saved</string>
 
     <!-- Auth Labels -->
     <string name="enter_email">Enter email</string>
