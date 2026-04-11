@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.feature.audio.domain.model.Audio
+import com.example.domain.module.Audio
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -45,12 +45,12 @@ fun AudioListItem(
     modifier: Modifier = Modifier
 ) {
     val isPlaying = audio.isPlaying
-    
+
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (isPlaying) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) 
-            else 
+            containerColor = if (isPlaying)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            else
                 MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp),
@@ -60,11 +60,11 @@ fun AudioListItem(
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isPlaying) 4.dp else 1.dp
         ),
-        border = if (isPlaying) 
+        border = if (isPlaying)
             androidx.compose.foundation.BorderStroke(
-                1.dp, 
+                1.dp,
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-            ) 
+            )
         else null
     ) {
         Row(
@@ -112,7 +112,7 @@ fun AudioListItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
-                
+
                 Text(
                     text = audio.title,
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -124,7 +124,7 @@ fun AudioListItem(
                     overflow = Ellipsis,
                     maxLines = 2
                 )
-                
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 4.dp)
@@ -134,7 +134,7 @@ fun AudioListItem(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    
+
                     if (audio.isDownloaded) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -146,7 +146,7 @@ fun AudioListItem(
                     }
                 }
             }
-            
+
             if (isPlaying) {
                 Text(
                     text = "جاري التشغيل",
@@ -165,7 +165,10 @@ fun AudioListItem(
 @Composable
 fun AudioListItemPreview() {
     MaterialTheme {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             AudioListItem(
                 audio = Audio(
                     id = "1",

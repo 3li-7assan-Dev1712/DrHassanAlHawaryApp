@@ -43,16 +43,16 @@ class AudioRemoteMediator @Inject constructor(
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    val lastLocalItem = audioDao.getLastAudio()
+                    val lastLocalItem = state.lastItemOrNull()
+
+                    if (lastLocalItem == null) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
 
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        if (lastLocalItem == null) {
-                            return MediatorResult.Success(endOfPaginationReached = true)
-                        } else {
-                            return MediatorResult.Success(endOfPaginationReached = false)
-                        }
+                        return MediatorResult.Success(endOfPaginationReached = false)
                     }
-                    lastLocalItem?.publishDate
+                    lastLocalItem.publishDate
                 }
             }
 

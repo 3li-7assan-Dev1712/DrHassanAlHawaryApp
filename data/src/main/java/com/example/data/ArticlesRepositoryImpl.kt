@@ -125,4 +125,34 @@ class ArticlesRepositoryImpl
                 }
             }
     }
+
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getPaginatedArticles(query: String, limit: Int): Flow<PagingData<Article>> {
+
+        return Pager(
+            config = PagingConfig(
+                // Set a page size. This is passed to your RemoteMediator's 'state'.
+                pageSize = limit,
+                enablePlaceholders = false
+            ),
+            remoteMediator = ArticleRemoteMediator(
+                appDatabase = appDatabase,
+                firebaseArticlesSource = firebaseArticlesSource
+                // when add search, I will pass the query here
+            ),
+            // The PagingSourceFactory ALWAYS points to the local database (Room).
+            // The RemoteMediator will fill this database for the PagingSource to read.
+            pagingSourceFactory = {
+                articleDao.getArticlesPagingSource(query)
+            }
+        ).flow.map { pagingData ->
+            // The data from the PagingSource is ArticleEntity, so we map it to the domain model
+            pagingData.map { articleEntity ->
+                articleEntity.toDomainModel()
+            }
+        }
+
+    }
+
+
 }

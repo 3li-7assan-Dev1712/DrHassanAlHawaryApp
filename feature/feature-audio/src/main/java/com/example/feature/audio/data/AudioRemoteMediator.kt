@@ -39,15 +39,14 @@ class AudioRemoteMediator @Inject constructor(
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
                     val lastLocalItem = state.lastItemOrNull()
-                    
-                    if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        if (lastLocalItem == null) {
-                            return MediatorResult.Success(endOfPaginationReached = true)
-                        } else {
-                            return MediatorResult.Success(endOfPaginationReached = false)
-                        }
+                    if (lastLocalItem == null) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
                     }
-                    lastLocalItem?.publishDate
+
+                    if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
+                        return MediatorResult.Success(endOfPaginationReached = false)
+                    }
+                    lastLocalItem.publishDate
                 }
             }
 
@@ -73,7 +72,8 @@ class AudioRemoteMediator @Inject constructor(
 
                     if (activeItems.isNotEmpty()) {
                         val serverAudioIds = activeItems.map { it.id }
-                        val localAudiosMap = audioDao.getAudiosByIds(serverAudioIds).associateBy { it.id }
+                        val localAudiosMap =
+                            audioDao.getAudiosByIds(serverAudioIds).associateBy { it.id }
 
                         val mergedEntities = activeItems.map { dto ->
                             val localAudio = localAudiosMap[dto.id]

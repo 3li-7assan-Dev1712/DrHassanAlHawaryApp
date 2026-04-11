@@ -1,8 +1,15 @@
 package com.example.data
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
+import com.example.data.mappers.toDomain
 import com.example.data.mappers.toDomainModel
 import com.example.data.mappers.toEntity
+import com.example.data.util.AudioRemoteMediator
 import com.example.data_firebase.AudioFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
@@ -20,7 +27,8 @@ class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
-    private val fileDownloader: FileDownloader
+    private val fileDownloader: FileDownloader,
+    private val audioRemoteMediator: AudioRemoteMediator
 ) : AudiosRepository {
 
 
@@ -42,7 +50,13 @@ class AudiosRepositoryImpl
     override suspend fun getAudiosFromDb(): Flow<List<Audio>> {
 
         return audioDao.getAudiosFlow().map { entities ->
-            entities.map { it.toDomainModel() }
+            entities.map {
+                it.toDomain(
+                    isFavorite = it.isFavorite,
+                    isDownloaded = it.isDownloaded,
+                    lastPlayedTimestamp = it.lastPlayedTimestamp
+                )
+            }
         }
     }
 
@@ -68,7 +82,14 @@ class AudiosRepositoryImpl
         durationInMillis: Long,
         type: String?
     ): Flow<UploadResult> {
-        return audioFirestoreSource.updateAudio(id, title, newUriString, existingUrl, durationInMillis, type)
+        return audioFirestoreSource.updateAudio(
+            id,
+            title,
+            newUriString,
+            existingUrl,
+            durationInMillis,
+            type
+        )
     }
 
     override suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit> {
@@ -102,6 +123,39 @@ class AudiosRepositoryImpl
     }
 
     override fun getAudioByUrl(url: String): Flow<Audio?> {
-        return audioDao.getAudioByUrl(url).map { it?.toDomainModel() }
+        return audioDao.getAudioByUrl(url).map {
+            it?.toDomain(
+                isFavorite = it.isFavorite,
+                isDownloaded = it.isDownloaded,
+                lastPlayedTimestamp = it.lastPlayedTimestamp
+            )
+        }
     }
+
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getPaginatedAudio(query: String): Flow<PagingData<Audio>> {
+        return Pager(
+            config = PagingConfig(
+                // Set a page size. This is passed to your RemoteMediator's 'state'.
+                pageSize = 10,
+                enablePlaceholders = false
+            ),
+            remoteMediator = audioRemoteMediator,
+            // The PagingSourceFactory ALWAYS points to the local database (Room).
+            // The RemoteMediator will fill this database for the PagingSource to read.
+            pagingSourceFactory = {
+                audioDao.getAudiosPagingSource(query)
+            }
+        ).flow.map { pagingData ->
+            // The data from the PagingSource is ArticleEntity, so we map it to the domain model
+            pagingData.map { audioEntity ->
+                audioEntity.toDomain(
+                    isFavorite = audioEntity.isFavorite,
+                    isDownloaded = audioEntity.isDownloaded,
+                )
+            }
+        }
+    }
+
+
 }

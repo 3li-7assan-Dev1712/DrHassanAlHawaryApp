@@ -3,7 +3,7 @@ package com.example.feature.image.presentation.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data_local.model.ImageGroupWithImages
+import com.example.domain.module.ImageGroupWithImages
 import com.example.feature.image.domain.use_case.GetGroupImagesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted

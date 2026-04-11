@@ -43,7 +43,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
-import com.example.feature.audio.domain.model.Audio
+import com.example.domain.module.Audio
 import com.example.feature.audio.presentation.components.AudioListItem
 
 
@@ -103,7 +103,7 @@ fun AudioListComposable(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
@@ -210,7 +210,12 @@ fun AudioListComposable(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7, name = "قائمة الصوتيات")
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    device = Devices.PIXEL_7,
+    name = "قائمة الصوتيات"
+)
 @Composable
 fun AudioListScreenPreview() {
     HassanAlHawaryTheme {

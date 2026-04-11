@@ -47,15 +47,14 @@ class ImageGroupRemoteMediator @Inject constructor(
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
                     val lastItem = state.lastItemOrNull()
+                    if (lastItem == null) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
 
                     if (networkRepositoryUseCase().first() == NetworkStatus.Unavailable) {
-                        if (lastItem == null) {
-                            return MediatorResult.Success(endOfPaginationReached = true)
-                        } else {
-                            return MediatorResult.Success(endOfPaginationReached = false)
-                        }
+                        return MediatorResult.Success(endOfPaginationReached = false)
                     }
-                    lastItem?.publishDate
+                    lastItem.publishDate
                 }
             }
 

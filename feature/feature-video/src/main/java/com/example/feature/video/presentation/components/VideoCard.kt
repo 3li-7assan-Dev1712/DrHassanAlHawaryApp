@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.components.shimmer
-import com.example.feature.video.domain.model.Video
+import com.example.domain.module.Video
 import java.util.Date
 
 
@@ -107,7 +107,7 @@ fun VideoCard(
                         )
                     }
                 }
-                
+
                 // Type Badge (if available)
                 if (video.type.isNotBlank()) {
                     Surface(

@@ -73,27 +73,19 @@ class ImageGroupRemoteMediator @Inject constructor(
                     // --- Start of Refactored APPEND Block ---
                     val lastItem = state.lastItemOrNull()
 
+                    if (lastItem == null) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
+                    }
 
                     // Step 1: Handle the OFFLINE case first and exit.
                     if (networkRepositoryUseCase().first() == NetworkStatus.Unavailable) {
-                        val lastItem = state.lastItemOrNull()
-                        // If offline, pagination ends only if the local PagingSource (Room) is also empty.
-                        if (lastItem == null) {
-                            Log.d(TAG, "Offline and local data is fully loaded.")
-                            return MediatorResult.Success(endOfPaginationReached = true)
-                        } else {
-                            Log.d(TAG, "Offline, allowing local paging to continue.")
-                            return MediatorResult.Success(endOfPaginationReached = false)
-                        }
+                        return MediatorResult.Success(endOfPaginationReached = false)
                     }
 
                     // Step 2: If we reach here, we are ONLINE. Get the key for the next network page.
                     Log.d(TAG, "Online, determining next key for network fetch.")
                     val lastRemoteKey = imageGroupRemoteKeysDao.getLastRemoteKey()
 
-                    // If the last key is null or its nextKey is null, it might be because the cache is stale.
-                    // This is NOT a reason to stop. It just means the next fetch should start from the last known item.
-                    // We return the nextKey, which might be null, but the fetch logic will handle it.
                     if (lastRemoteKey?.nextKey == null) {
                         Log.d(
                             TAG,
@@ -101,8 +93,7 @@ class ImageGroupRemoteMediator @Inject constructor(
                         )
                     }
 
-                    // Return the key for the next page. If the key is null, the server will return the next page after the last known item.
-                    lastItem?.publishDate
+                    lastItem.publishDate
                 }
             }
 

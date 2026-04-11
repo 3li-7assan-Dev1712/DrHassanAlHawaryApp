@@ -47,7 +47,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
-import com.example.feature.video.domain.model.Video
+import com.example.domain.module.Video
 import com.example.feature.video.presentation.components.VideoCard
 
 
@@ -78,19 +78,19 @@ fun VideosScreenContent(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
                         text = stringResource(id = R.string.videos),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
                         )
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
@@ -190,7 +190,12 @@ fun VideosScreenContent(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, device = Devices.PIXEL_7, name = "قائمة الفيديوهات")
+@Preview(
+    showBackground = true,
+    showSystemUi = true,
+    device = Devices.PIXEL_7,
+    name = "قائمة الفيديوهات"
+)
 @Composable
 fun VideosScreenPreview() {
     HassanAlHawaryTheme {

@@ -5,7 +5,6 @@ import java.util.Date
 data class Audio(
 
 
-
     // for server
     val id: String,
     val categoryId: String = "",
@@ -23,6 +22,6 @@ data class Audio(
     // for ui state play/pause
     val isPlaying: Boolean = false,
 
-    val localFilePath: String?,
+    val localFilePath: String? = null
 
-    )
+)

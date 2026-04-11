@@ -40,14 +40,14 @@ class VideoRemoteMediator @Inject constructor(
                 LoadType.APPEND -> {
                     val lastLocalItem = videoDao.getLastVideo()
 
-                    if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
-                        if (lastLocalItem == null) {
-                            return MediatorResult.Success(endOfPaginationReached = true)
-                        } else {
-                            return MediatorResult.Success(endOfPaginationReached = false)
-                        }
+                    if (lastLocalItem == null) {
+                        return MediatorResult.Success(endOfPaginationReached = true)
                     }
-                    lastLocalItem?.publishDate
+
+                    if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
+                        return MediatorResult.Success(endOfPaginationReached = false)
+                    }
+                    lastLocalItem.publishDate
                 }
             }
 

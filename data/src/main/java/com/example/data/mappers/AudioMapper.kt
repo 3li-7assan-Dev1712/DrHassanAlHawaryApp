@@ -6,23 +6,27 @@ import com.example.domain.module.Audio
 import java.util.Date
 
 
-/**
- * Convert AudioEntity to Audio domain model
- */
-fun AudioEntity.toDomainModel(): Audio =
-    Audio(
-        id = this.id,
-        title = this.title,
-        audioUrl = this.audioUrl,
-        durationInMillis = this.durationInMillis,
-        publishDate = Date(this.publishDate),
-        isFavorite = this.isFavorite,
-        isPlaying = false,
-        isDownloaded = this.isDownloaded,
-        localFilePath = this.localFilePath,
-        lastPlayedTimestamp = this.lastPlayedTimestamp,
-        type = this.type,
-    )
+fun AudioEntity.toDomain(
+    isFavorite: Boolean = this.isFavorite,
+    isDownloaded: Boolean = this.isDownloaded,
+    lastPlayedTimestamp: Long? = this.lastPlayedTimestamp,
+    localFilePath: String? = this.localFilePath,
+): Audio = Audio(
+    id = this.id,
+    title = this.title,
+    audioUrl = this.audioUrl,
+    durationInMillis = this.durationInMillis,
+    publishDate = Date(this.publishDate),
+    isFavorite = isFavorite,
+    isDownloaded = isDownloaded,
+    lastPlayedTimestamp = lastPlayedTimestamp,
+    localFilePath = localFilePath,
+    isPlaying = false,
+    type = this.type,
+)
+
+
+
 
 /**
  * Convert Audio domain to model AudioEntity

@@ -16,7 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.feature.image.domain.model.ImageGroup
+import com.example.domain.module.ImageGroup
 
 
 @Composable

@@ -2,6 +2,7 @@ package com.example.data_local.model
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import com.example.domain.module.ImageGroupWithImages
 
 /*
 this is a pojo class (plain old java object)
@@ -16,4 +17,11 @@ data class ImageGroupWithImages(
         entityColumn = "group_id" // From ImageEntity
     )
     val images: List<ImageEntity>
-)
+) {
+    fun toDomainModel(): ImageGroupWithImages {
+        return ImageGroupWithImages(
+            group = group.toDomainModel(),
+            images = images.map { it.toDomainModel() }
+        )
+    }
+}

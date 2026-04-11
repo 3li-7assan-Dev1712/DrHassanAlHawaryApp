@@ -1,8 +1,10 @@
 package com.example.feature.audio.presentation.list
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
-import com.example.feature.audio.domain.model.Audio
+import androidx.paging.cachedIn
+import com.example.domain.module.Audio
 import com.example.feature.audio.domain.use_case.GetPaginatedAudioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,7 +32,7 @@ class AudioListViewModel @Inject constructor(
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val audios: Flow<PagingData<Audio>> = getPaginatedAudioUseCase("")
+    val audios: Flow<PagingData<Audio>> = getPaginatedAudioUseCase("").cachedIn(viewModelScope)
 
 
 }
