@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.example.hassanalhawary.R
-import com.example.core.ui.R as CoreUiR
 
 @Composable
 fun QAScreen(
@@ -54,7 +53,7 @@ fun QAScreen(
         
         // Large Logo Image at the top
         Image(
-            painter = painterResource(id = CoreUiR.drawable.fasalo_logo),
+            painter = painterResource(id = com.example.feature.home.R.drawable.fasalo_logo),
             contentDescription = stringResource(id = R.string.q_a_title),
             modifier = Modifier
                 .size(200.dp)

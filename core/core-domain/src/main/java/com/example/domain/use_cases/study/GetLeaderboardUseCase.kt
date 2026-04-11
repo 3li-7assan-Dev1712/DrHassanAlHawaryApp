@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetLeaderboardUseCase @Inject constructor(
     private val repository: StudyRepository
 ) {
-    operator fun invoke(): Flow<List<LeaderBoard>> {
-        return repository.getLeaderboard()
+    operator fun invoke(quizId: String): Flow<List<LeaderBoard>> {
+        return repository.getLeaderboard(quizId)
     }
 }

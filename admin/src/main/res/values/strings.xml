@@ -160,4 +160,28 @@
     <string name="group_title_label">عنوان المجموعة</string>
     <string name="select_images_button">اختر صور (تم اختيار %1$d)</string>
     <string name="upload_to_firebase">رفع إلى Firebase</string>
+
+    <!-- Quiz Management & Controls -->
+    <string name="manage_quizzes">إدارة الاختبارات</string>
+    <string name="manage_quizzes_title">إدارة جميع الاختبارات</string>
+    <string name="quiz_type">النوع: %1$s</string>
+    <string name="active_status">حالة التنشيط</string>
+    <string name="target_batches">الدفعة / القنوات المستهدفة</string>
+    <string name="quiz_controls">تحكم الاختبار</string>
+    <string name="is_active">نشط</string>
+    <string name="questions_count">الأسئلة (%1$d)</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="back">رجوع</string>
+    <string name="start_date_label">تاريخ البدء</string>
+    <string name="end_date_label">تاريخ الانتهاء</string>
+    <string name="select_date">اختر التاريخ</string>
+    <string name="not_set">غير محدد</string>
+
+    <!-- Batches -->
+    <string name="batch_1">الدفعة الأولى</string>
+    <string name="batch_2">الدفعة الثانية</string>
+    <string name="batch_3">الدفعة الثالثة</string>
+    <string name="batch_4">الدفعة الرابعة</string>
+    <string name="batch_5">الدفعة الخامسة</string>
+    <string name="batch_other">الدفعة %1$d</string>
 </resources>

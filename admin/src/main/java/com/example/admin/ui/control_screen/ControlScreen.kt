@@ -53,6 +53,7 @@ fun ControlScreen(
         ControlItem(R.string.videos, Icons.Default.VideoFile, "videos_upload"),
         ControlItem(R.string.images, Icons.Default.Image, "images_upload"),
         ControlItem(R.string.profile, Icons.Default.Person, "profile_screen"),
+        ControlItem(R.string.manage_quizzes, Icons.Default.Security, "manage_quizzes"),
         ControlItem(R.string.super_admin, Icons.Default.Security, "super_admin_panel", isSuperAdminOnly = true)
     )
 

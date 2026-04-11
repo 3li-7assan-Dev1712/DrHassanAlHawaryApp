@@ -6,6 +6,7 @@ import com.example.data_firebase.model.LeaderboardDto
 import com.example.data_firebase.model.LessonDto
 import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
+import com.example.data_firebase.model.QuestionDto
 import com.example.data_firebase.model.QuizDto
 import com.example.data_firebase.model.StudentDto
 import com.example.domain.use_cases.audios.UploadResult
@@ -494,50 +495,137 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    suspend fun getLatestQuiz(): QuizDto? {
+    suspend fun getLatestQuiz(batchId: String): QuizDto? {
         return try {
-            val snapshot = firestore.collection("weekly_quiz")
+            val snapshot = firestore.collection("quizzes")
+                .whereArrayContains("batchIds", batchId)
+                .whereEqualTo("isActive", true)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(1)
+                .limit(5)
                 .get()
                 .await()
-            snapshot.documents.firstOrNull()?.toObject<QuizDto>()
+            val now = Timestamp.now()
+
+            val visibleQuiz = snapshot.documents
+                .mapNotNull { it.toObject(QuizDto::class.java) }
+                .firstOrNull { quiz ->
+                    (quiz.startAt == null || quiz.startAt <= now) &&
+                            (quiz.endAt == null || quiz.endAt >= now)
+                }
+
+            visibleQuiz
+
         } catch (e: Exception) {
+            Log.d(TAG, "getLatestQuiz: ${e.message}")
             null
+        }
+    }
+
+    suspend fun getQuizWithQuestions(batchId: String): Pair<QuizDto, List<QuestionDto>>? {
+        val quiz = getLatestQuiz(batchId) ?: return null
+        val questions = getQuizQuestions(quiz.id)
+
+        return quiz to questions
+    }
+    
+    suspend fun getQuizQuestions(quizId: String): List<QuestionDto> {
+        return try {
+            val snapshot = firestore
+                .collection("quizzes")
+                .document(quizId)
+                .collection("questions")
+                .orderBy("order")
+                .get()
+                .await()
+
+            snapshot.toObjects(QuestionDto::class.java)
+
+        } catch (e: Exception) {
+            Log.d(TAG, "getQuizQuestions: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun getAllQuizzes(): List<QuizDto> {
+        return try {
+            val snapshot = firestore.collection("quizzes")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .await()
+            
+            snapshot.documents.mapNotNull { it.toObject(QuizDto::class.java)?.copy(id = it.id) }
+        } catch (e: Exception) {
+            Log.e(TAG, "getAllQuizzes failed", e)
+            emptyList()
         }
     }
 
     suspend fun uploadQuiz(quizDto: QuizDto): Result<Unit> {
         return try {
-            val contentMap = hashMapOf(
-                "title" to quizDto.title,
-                "type" to quizDto.type.name,
-                "targetLevelId" to quizDto.targetLevelId,
-                "batchIds" to quizDto.batchIds,
-                "questions" to quizDto.questions.map { q ->
-                    hashMapOf(
-                        "id" to q.id,
-                        "text" to q.text,
-                        "type" to q.type.name,
-                        "options" to q.options,
-                        "correctAnswerIndex" to q.correctAnswerIndex,
-                        "correctBooleanAnswer" to q.correctBooleanAnswer
-                    )
+            val questionsData = quizDto.questions.map { q ->
+                val map = hashMapOf<String, Any?>(
+                    "text" to q.text,
+                    "options" to q.options
+                )
+                if (q.correctAnswerIndex != null) {
+                    map["correctIndex"] = q.correctAnswerIndex
                 }
-            )
+                if (q.correctBooleanAnswer != null) {
+                    map["correctBooleanAnswer"] = q.correctBooleanAnswer
+                }
+                map
+            }
 
             val payload = hashMapOf(
-                "quizData" to contentMap
+                "title" to quizDto.title,
+                "type" to quizDto.type.name,
+                "batchIds" to quizDto.batchIds,
+                "targetLevelId" to quizDto.targetLevelId,
+                "questions" to questionsData
             )
 
-            functions
+            val result = functions
                 .getHttpsCallable("uploadQuiz")
+                .call(payload)
+                .await()
+
+            val response = result.data as? Map<*, *>
+            val quizId = response?.get("quizId") as? String
+
+            // If visibility settings differ from defaults (isActive: true, no dates), update them
+            if (quizId != null && (!quizDto.isActive || quizDto.startAt != null || quizDto.endAt != null)) {
+                updateQuizControls(
+                    quizId = quizId,
+                    isActive = quizDto.isActive,
+                    startAt = quizDto.startAt?.toDate()?.time,
+                    endAt = quizDto.endAt?.toDate()?.time
+                )
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "uploadQuiz failed", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateQuizControls(quizId: String, isActive: Boolean, startAt: Long?, endAt: Long?): Result<Unit> {
+        return try {
+            val payload = hashMapOf(
+                "quizId" to quizId,
+                "isActive" to isActive,
+                "startAt" to startAt,
+                "endAt" to endAt
+            )
+            
+            functions
+                .getHttpsCallable("updateQuizVisibility")
                 .call(payload)
                 .await()
 
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "uploadQuiz failed", e)
+            Log.e(TAG, "updateQuizVisibility failed", e)
             Result.failure(e)
         }
     }
@@ -559,37 +647,55 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    fun getLeaderboardFlow(): Flow<List<LeaderboardDto>> = callbackFlow {
+    fun getLeaderboardFlow(quizId: String): Flow<List<LeaderboardDto>> = callbackFlow {
+        if (quizId.isBlank()) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
         try {
 
-            val listener = firestore.collection("leaderboard")
+            val listener = firestore
+                .collection("leaderboards")
+                .document(quizId)
+                .collection("entries")
                 .orderBy("score", Query.Direction.DESCENDING)
-                .orderBy("answerTimestamp", Query.Direction.ASCENDING)
+                .orderBy("submittedAt", Query.Direction.ASCENDING)
                 .limit(20)
                 .addSnapshotListener { snapshot, error ->
+
                     if (error != null) {
                         close(error)
                         return@addSnapshotListener
                     }
+
                     if (snapshot != null) {
                         trySend(snapshot.toObjects(LeaderboardDto::class.java))
                     }
                 }
+
             awaitClose { listener.remove() }
+
         } catch (e: Exception) {
             Log.d(TAG, "getLeaderboardFlow: ${e.message}")
+
             close(e)
         }
     }
 
-    suspend fun submitQuizAndPromote(answers: List<Any>): String {
-        val data = hashMapOf("answers" to answers)
-        val result = functions.getHttpsCallable("submitWeeklyQuizAndPromote").call(data).await()
-        val response = result.data as Map<*, *>
-        if (response["success"] != true || response["passed"] != true) {
-            throw Exception("Quiz not passed")
+    suspend fun submitQuizAndPromote(quizId: String, answers: List<Any>): Map<String, Any?> {
+        val data = hashMapOf(
+            "quizId" to quizId,
+            "answers" to answers
+        )
+        val result = functions.getHttpsCallable("submitQuizV2").call(data).await()
+        val response = result.data as Map<String, Any?>
+        
+        if (response["success"] != true) {
+            throw Exception("Submission failed: ${response["message"] ?: "Unknown error"}")
         }
-        return response["newLevelId"] as String
+        
+        return response
     }
 
     suspend fun getAdmins(): Result<List<Map<String, Any>>> {

@@ -13,5 +13,8 @@ data class Quiz(
     val createdAt: Date? = null,
     val type: QuizType = QuizType.WEEKLY,
     val targetLevelId: String? = null, // The level this exam unlocks if passed
-    val batchIds: List<String> = emptyList()
+    val batchIds: List<String> = emptyList(),
+    val isActive: Boolean = true,
+    val startAt: Date? = null,
+    val endAt: Date? = null,
 )

@@ -46,6 +46,7 @@ import com.example.admin.ui.add_edit_lesson.AddEditLessonScreen
 import com.example.admin.ui.add_edit_playlist.AddEditPlaylistScreen
 import com.example.admin.ui.connect_telegram.ConnectTelegramScreen
 import com.example.admin.ui.control_screen.ControlScreen
+import com.example.admin.ui.control_screen.ManageQuizzesScreen
 import com.example.admin.ui.institute_main.InstituteMainScreen
 import com.example.admin.ui.lessons.LessonsScreen
 import com.example.admin.ui.playlist.PlaylistScreen
@@ -123,6 +124,7 @@ class MainActivity : ComponentActivity() {
                     currentRoute == "images_list" -> stringResource(R.string.images)
                     currentRoute == "images_upload" -> stringResource(R.string.upload_images)
                     currentRoute == "not_allowed" -> stringResource(R.string.access_denied)
+                    currentRoute == "manage_quizzes" -> stringResource(R.string.manage_quizzes)
                     currentRoute == "super_admin_panel" -> stringResource(R.string.super_admin_panel)
                     currentRoute == "telegram_login" || currentRoute?.startsWith("telegram_login") == true -> stringResource(R.string.institute_management)
                     currentRoute == "upload_quiz" -> stringResource(R.string.upload_quiz)
@@ -327,6 +329,12 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("images_upload") {
                             UploadImagesScreen()
+                        }
+
+                        composable("manage_quizzes") {
+                            ManageQuizzesScreen(
+                                onNavigateBack = { navController.popBackStack() }
+                            )
                         }
 
                         composable(

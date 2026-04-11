@@ -16,6 +16,7 @@ import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.domain.module.Quiz
+import com.example.domain.module.QuizSubmissionResult
 import com.example.domain.module.Student
 import com.example.domain.module.UserData
 import com.example.domain.repository.StudyRepository
@@ -317,12 +318,28 @@ class StudyRepositoryImpl @Inject constructor(
         return lesson?.toDomain()
     }
 
-    override suspend fun getLatestQuiz(): Quiz? {
-        return studentFirestoreSource.getLatestQuiz()?.toDomain()
+    override suspend fun getLatestQuiz(batchId: String): Quiz? {
+        return studentFirestoreSource.getLatestQuiz(batchId)?.toDomain()
+    }
+
+    override suspend fun getQuizWithQuestions(batchId: String): Quiz? {
+        val pair = studentFirestoreSource.getQuizWithQuestions(batchId) ?: return null
+        val quizDto = pair.first
+        val questionsDto = pair.second
+        
+        return quizDto.copy(questions = questionsDto).toDomain()
     }
 
     override suspend fun uploadQuiz(quiz: Quiz): Result<Unit> {
         return studentFirestoreSource.uploadQuiz(quiz.toDto())
+    }
+    
+    override suspend fun getAllQuizzes(): List<Quiz> {
+        return studentFirestoreSource.getAllQuizzes().map { it.toDomain() }
+    }
+    
+    override suspend fun updateQuizControls(quizId: String, isActive: Boolean, startAt: Long?, endAt: Long?): Result<Unit> {
+        return studentFirestoreSource.updateQuizControls(quizId, isActive, startAt, endAt)
     }
 
     override suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit> {
@@ -334,29 +351,37 @@ class StudyRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getLeaderboard(): Flow<List<LeaderBoard>> {
-        return studentFirestoreSource.getLeaderboardFlow().map { list ->
+    override fun getLeaderboard(quizId: String): Flow<List<LeaderBoard>> {
+        return studentFirestoreSource.getLeaderboardFlow(quizId).map { list ->
             list.map { it.toDomain() }
         }
     }
 
-    override suspend fun submitQuizAndPromote(answers: List<Any>): Result<Unit> {
+    override suspend fun submitQuizAndPromote(quizId: String, answers: List<Any>): Result<QuizSubmissionResult> {
         return try {
             // 1. Call cloud function
-            val newLevelId = studentFirestoreSource.submitQuizAndPromote(answers)
+            val response = studentFirestoreSource.submitQuizAndPromote(quizId, answers)
+            
+            val submissionResult = QuizSubmissionResult(
+                score = (response["score"] as? Number)?.toInt() ?: 0,
+                total = (response["total"] as? Number)?.toInt() ?: 0,
+                passed = response["passed"] as? Boolean ?: false,
+                newLevelId = response["newLevelId"] as? String
+            )
 
-            // 2. Get current student from Room
-            val currentStudent = studentDao.getCurrentStudentData().first()
-
-            if (currentStudent != null) {
-                // 3. Update Room (LOCAL STATE ✅)
-                val updatedStudent = currentStudent.copy(
-                    currentLevelId = newLevelId
-                )
-                studentDao.storeStudent(updatedStudent)
+            // 2. If promoted, update local state
+            val newLevelId = submissionResult.newLevelId
+            if (submissionResult.passed && newLevelId != null) {
+                val currentStudent = studentDao.getCurrentStudentData().first()
+                if (currentStudent != null) {
+                    val updatedStudent = currentStudent.copy(
+                        currentLevelId = newLevelId
+                    )
+                    studentDao.storeStudent(updatedStudent)
+                }
             }
 
-            Result.success(Unit)
+            Result.success(submissionResult)
         } catch (e: Exception) {
             Log.e(TAG, "submitQuizAndPromote failed", e)
             Result.failure(e)

@@ -5,6 +5,7 @@ import com.example.domain.module.Lesson
 import com.example.domain.module.Level
 import com.example.domain.module.Playlist
 import com.example.domain.module.Quiz
+import com.example.domain.module.QuizSubmissionResult
 import com.example.domain.module.Student
 import com.example.domain.module.UserData
 import com.example.domain.use_cases.audios.UploadResult
@@ -82,11 +83,14 @@ interface StudyRepository {
 
     // Quiz and Leaderboard
     suspend fun uploadQuiz(quiz: Quiz): Result<Unit>
-    suspend fun getLatestQuiz(): Quiz?
+    suspend fun getLatestQuiz(batchId: String): Quiz?
+    suspend fun getQuizWithQuestions(batchId: String): Quiz?
+    suspend fun getAllQuizzes(): List<Quiz>
+    suspend fun updateQuizControls(quizId: String, isActive: Boolean, startAt: Long?, endAt: Long?): Result<Unit>
     suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>
-    fun getLeaderboard(): Flow<List<LeaderBoard>>
+    fun getLeaderboard(quizId: String): Flow<List<LeaderBoard>>
 
-    suspend fun  submitQuizAndPromote(answers: List<Any>): Result<Unit>
+    suspend fun submitQuizAndPromote(quizId: String, answers: List<Any>): Result<QuizSubmissionResult>
 
 
     suspend fun getAdmins(): Result<List<Map<String, Any>>>

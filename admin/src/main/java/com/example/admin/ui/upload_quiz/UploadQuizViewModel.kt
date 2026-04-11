@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 
@@ -23,7 +24,10 @@ data class UploadQuizUiState(
     val quizType: QuizType = QuizType.WEEKLY,
     val targetLevelId: String? = null,
     val availableChannels: List<Channel> = emptyList(),
-    val selectedChannelIds: Set<String> = emptySet(),
+    val selectedBatchNames: Set<String> = emptySet(),
+    val isActive: Boolean = true,
+    val startAt: Long? = null,
+    val endAt: Long? = null,
     val isUploading: Boolean = false,
     val uploadSuccess: Boolean = false,
     val error: String? = null
@@ -50,14 +54,14 @@ class UploadQuizViewModel @Inject constructor(
         }
     }
 
-    fun toggleChannelSelection(channelId: String) {
+    fun toggleBatchSelection(batchName: String) {
         _uiState.update { state ->
-            val newSelection = if (state.selectedChannelIds.contains(channelId)) {
-                state.selectedChannelIds - channelId
+            val newSelection = if (state.selectedBatchNames.contains(batchName)) {
+                state.selectedBatchNames - batchName
             } else {
-                state.selectedChannelIds + channelId
+                state.selectedBatchNames + batchName
             }
-            state.copy(selectedChannelIds = newSelection)
+            state.copy(selectedBatchNames = newSelection)
         }
     }
 
@@ -131,6 +135,18 @@ class UploadQuizViewModel @Inject constructor(
         }
     }
 
+    fun onIsActiveChange(isActive: Boolean) {
+        _uiState.update { it.copy(isActive = isActive) }
+    }
+
+    fun onStartAtChange(startAt: Long?) {
+        _uiState.update { it.copy(startAt = startAt) }
+    }
+
+    fun onEndAtChange(endAt: Long?) {
+        _uiState.update { it.copy(endAt = endAt) }
+    }
+
     fun uploadQuiz() {
         val state = _uiState.value
         if (state.title.isBlank() || state.questions.isEmpty()) {
@@ -143,7 +159,7 @@ class UploadQuizViewModel @Inject constructor(
             return
         }
 
-        if (state.selectedChannelIds.isEmpty()) {
+        if (state.selectedBatchNames.isEmpty()) {
             _uiState.update { it.copy(error = "Please select at least one channel.") }
             return
         }
@@ -157,7 +173,10 @@ class UploadQuizViewModel @Inject constructor(
                 questions = state.questions,
                 type = state.quizType,
                 targetLevelId = state.targetLevelId,
-                batchIds = state.selectedChannelIds.toList()
+                batchIds = state.selectedBatchNames.toList(),
+                isActive = state.isActive,
+                startAt = state.startAt?.let { Date(it) },
+                endAt = state.endAt?.let { Date(it) }
             )
             
             val result = uploadQuizUseCase(quiz)

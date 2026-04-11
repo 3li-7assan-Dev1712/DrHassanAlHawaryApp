@@ -12,11 +12,17 @@ import com.example.study.domain.use_case.SyncLevelsUseCase
 import com.example.study.domain.use_case.SyncPlaylistsUseCase
 import com.example.study.presentation.model.DashboardUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -98,7 +104,11 @@ class DashboardViewModel @Inject constructor(
 
     private suspend fun fetchLatestQuiz() {
         try {
-            val quiz = getLatestQuizUseCase()
+
+            val studentData = getStudentDataUseCase()
+
+            val quiz = getLatestQuizUseCase(studentData.first()?.batch ?: "")
+            Log.d(TAG, "fetchLatestQuiz: $quiz ${studentData.first()?.batch}")
             if (quiz != null) {
                 _uiState.update {
                     it.copy(
@@ -114,39 +124,45 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeLeaderboard() {
         viewModelScope.launch {
-            _uiState.update { it.copy(loadingTopStudents = true) }
+            // Wait for the latest quiz ID to be fetched before observing the leaderboard
+            uiState.map { it.latestQuizId }
+                .filter { !it.isNullOrBlank() }
+                .distinctUntilChanged()
+                .flatMapLatest { quizId ->
+                    _uiState.update { it.copy(loadingTopStudents = true) }
+                    
+                    combine(
+                        getLeaderboardUseCase(quizId!!),
+                        getStudentDataUseCase()
+                    ) { leaderboard, student ->
+                        val userEntry = if (student != null) {
+                            leaderboard.find { it.telegramId == student.telegramId }
+                        } else null
 
-            // Combine both flows to always have the latest user score when either the leaderboard 
-            // or the student profile changes.
-            combine(
-                getLeaderboardUseCase(),
-                getStudentDataUseCase()
-            ) { leaderboard, student ->
-                val userEntry = if (student != null) {
-                    leaderboard.find { it.telegramId == student.telegramId }
-                } else null
-
-                Pair(leaderboard, userEntry?.score)
-            }.catch { e ->
-                Log.e(TAG, "Leaderboard observation error", e)
-                _uiState.update {
-                    it.copy(
-                        loadingTopStudents = false,
-                        topStudentsErrorMessage = e.message
-                    )
+                        Pair(leaderboard, userEntry?.score)
+                    }
                 }
-            }.collectLatest { (leaderboard, score) ->
-                _uiState.update {
-                    it.copy(
-                        topStudents = leaderboard,
-                        loadingTopStudents = false,
-                        userQuizScore = score
-                    )
+                .catch { e ->
+                    Log.e(TAG, "Leaderboard observation error", e)
+                    _uiState.update {
+                        it.copy(
+                            loadingTopStudents = false,
+                            topStudentsErrorMessage = e.message
+                        )
+                    }
                 }
-                fetchLatestQuiz()
-            }
+                .collectLatest { (leaderboard, score) ->
+                    _uiState.update {
+                        it.copy(
+                            topStudents = leaderboard,
+                            loadingTopStudents = false,
+                            userQuizScore = score
+                        )
+                    }
+                }
         }
     }
 

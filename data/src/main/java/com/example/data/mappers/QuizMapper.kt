@@ -15,7 +15,10 @@ fun QuizDto.toDomain(): Quiz {
         createdAt = createdAt,
         type = type,
         targetLevelId = targetLevelId,
-        batchIds = batchIds
+        batchIds = batchIds,
+        isActive = isActive,
+        startAt = startAt?.toDate(),
+        endAt = endAt?.toDate()
     )
 }
 
@@ -27,7 +30,10 @@ fun Quiz.toDto(): QuizDto {
         createdAt = createdAt,
         type = type,
         targetLevelId = targetLevelId,
-        batchIds = batchIds
+        batchIds = batchIds,
+        isActive = isActive,
+        startAt = startAt?.let { com.google.firebase.Timestamp(it) },
+        endAt = endAt?.let { com.google.firebase.Timestamp(it) }
     )
 }
 

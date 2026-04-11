@@ -38,7 +38,7 @@ class NotificationService : FirebaseMessagingService() {
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        val large = BitmapFactory.decodeResource(resources, com.example.core.ui.R.drawable.logo)
+        val large = BitmapFactory.decodeResource(resources, com.example.core.ui.R.drawable.dr_hassan_image)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

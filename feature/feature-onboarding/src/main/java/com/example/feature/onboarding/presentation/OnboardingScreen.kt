@@ -51,6 +51,11 @@ fun OnboardingScreen(
     val pages = remember {
         listOf(
             OnboardingPage(
+                illustrationRes = R.drawable.student_icon,
+                titleRes = R.string.study,
+                descriptionRes = R.string.study
+            )
+            /*OnboardingPage(
                 illustrationRes = R.drawable.journey_illu,
                 titleRes = R.string.onboarding_title_1,
                 descriptionRes = R.string.onboarding_description_1
@@ -64,7 +69,7 @@ fun OnboardingScreen(
                 illustrationRes = R.drawable.network_error,
                 titleRes = R.string.onboarding_title_3,
                 descriptionRes = R.string.onboarding_description_3
-            )
+            )*/
         )
     }
 

@@ -76,5 +76,27 @@
     <string name="password_reset_email_sent">"تم أرسال بريد إلكتروني لإعادة ضبط كلمة المرور الخاصة بكم "</string>
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
+    <string name="search_hint">بحث</string>
+    <string name="error_msg">No results found</string>
+
+    <!-- Article Item Relative Time -->
+    <string name="published_since">Published %1$s ago</string>
+    <string name="read_more">Read more</string>
+    <string name="just_now">Just now</string>
+    <string name="since_minutes">%1$d minutes ago</string>
+    <string name="since_hours">%1$d hours ago</string>
+    <string name="since_2_days">2 days ago</string>
+    <string name="since_days">%1$d days ago</string>
+    <string name="since_week">1 week ago</string>
+    <string name="since_2_weeks">2 weeks ago</string>
+    <string name="since_month">1 month ago</string>
+    <string name="audio_detail_description_title">وصف المقطع الصوتي</string>
+    <string name="feature_coming_soon">"تتاح هذه الميزة قريبا ان شاء الله "</string>
+    <string name="about_dr_hassan">عن الشيخ</string>
+    <string name="no_audios_available">لا توجد صوتيات متاحة الآن</string>
+    <string name="search_illustration_description">ابحث عن كل المحتويات المسموعة والمرئية والمكتوبة بضغطة زر واحدة فقط</string>
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_get_started">"لنبدأ "</string>
 
 </resources>
