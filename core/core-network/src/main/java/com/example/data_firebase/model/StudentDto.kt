@@ -2,7 +2,7 @@ package com.example.data_firebase.model
 
 
 data class StudentDto(
-    val id: Long = 0,
+    val telegramId: Long = 0, // named id in the server
     val uid: String = "",
     val firstName: String = "",
     val lastName: String = "",

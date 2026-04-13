@@ -119,7 +119,7 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun storeStudent(studentDto: StudentDto) {
         try {
-            studentsCollection.document(studentDto.id.toString()).set(studentDto).await()
+            studentsCollection.document(studentDto.telegramId.toString()).set(studentDto).await()
         } catch (e: Exception) {
             Log.e(TAG, "Error storing student data in Firestore", e)
             throw e
@@ -151,7 +151,7 @@ class StudentFirestoreSource @Inject constructor(
                 null
             } else {
                 StudentDto(
-                    id = document.getLong("id") ?: 0,
+                    telegramId = document.getLong("id") ?: 0,
                     firstName = document.getString("firstName") ?: "",
                     lastName = document.getString("lastName") ?: "",
                     username = document.getString("username") ?: "",
@@ -173,7 +173,7 @@ class StudentFirestoreSource @Inject constructor(
         return try {
             val document = adminCollection.document(telegramId.toString()).get().await()
             val dto = StudentDto(
-                id = document.getLong("id") ?: 0,
+                telegramId = document.getLong("id") ?: 0,
                 firstName = document.getString("firstName") ?: "",
                 lastName = document.getString("lastName") ?: "",
                 username = document.getString("username") ?: "",

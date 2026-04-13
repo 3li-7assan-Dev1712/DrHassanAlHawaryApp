@@ -14,6 +14,7 @@ import com.example.study.presentation.model.StudyScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -44,6 +45,10 @@ class StudyViewModel @Inject constructor(
                 }
             } else StudyScreenUiState.Guest
         }
+        .catch { e ->
+            Log.e(TAG, "Firestore Permission Error in uiState", e)
+            emit(StudyScreenUiState.Guest)
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -60,20 +65,26 @@ class StudyViewModel @Inject constructor(
                 .collect { encodedData ->
                     Log.d(TAG, "deep link data received: $encodedData")
 
-                    val json = Uri.decode(encodedData)
-                    val user = JSONObject(json)
-                    val telegramId = user.getLong("id")
-                    Log.d(TAG, "telegramId: $telegramId")
+                    try {
+                        val json = Uri.decode(encodedData)
+                        val user = JSONObject(json)
+                        val telegramId = user.getLong("telegramId")
+                        Log.d(TAG, "telegramId: $telegramId")
 
-                    val uid = getStudentAuthDataUseCase()?.userId
-                    if (uid != null) {
-                        storeStudentDataUseCase(uid)
-                        Log.d(TAG, "uid: $uid")
-
-                    } else {
-                        Log.d(TAG, "uid is null: ")
+                        val uid = getStudentAuthDataUseCase()?.userId
+                        if (uid != null) {
+                            Log.d(TAG, "Checking membership and storing data for uid: $uid")
+                            checkStudentMembership(uid, telegramId)
+                            storeStudentDataUseCase(uid)
+                        } else {
+                            Log.d(TAG, "uid is null: ")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing deep link data", e)
                     }
+
                 }
+
         }
     }
 
@@ -85,11 +96,6 @@ class StudyViewModel @Inject constructor(
             try {
                 val uid = getStudentAuthDataUseCase()?.userId
                 if (uid != null && telegramId != null) {
-                    val data = hashMapOf(
-                        "uid" to uid,
-                        "telegramId" to telegramId
-                    )
-                    
                     checkStudentMembership(uid, telegramId)
                     storeStudentDataUseCase(uid)
                 }

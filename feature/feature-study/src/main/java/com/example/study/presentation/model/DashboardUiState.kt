@@ -19,5 +19,6 @@ data class DashboardUiState (
     val latestQuizTotalQuestions: Int = 0,
     val hasNewQuiz: Boolean = false,
     val userQuizScore: Int? = null,
-    val hasJourneyAnimationPlayed: Boolean = false
+    val hasJourneyAnimationPlayed: Boolean = false,
+    val batch: String? = null
 )

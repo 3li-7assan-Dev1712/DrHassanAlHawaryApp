@@ -10,4 +10,12 @@
     <string name="submit_answers" translatable="false">تسليم الإجابات</string>
     <string name="true_text" translatable="false">صح</string>
     <string name="false_text" translatable="false">خطأ</string>
+
+    <string name="batch_1">الدفعة الأولى</string>
+    <string name="batch_2">الدفعة الثانية</string>
+    <string name="batch_3">الدفعة الثالثة</string>
+    <string name="batch_4">الدفعة الرابعة</string>
+    <string name="batch_5">الدفعة الخامسة</string>
+    <string name="batch_other">الدفعة %1$d</string>
+    <string name="batch_label">الدفعة: %1$s</string>
 </resources>

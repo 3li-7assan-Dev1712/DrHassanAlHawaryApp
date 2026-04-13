@@ -17,7 +17,7 @@ fun StudentEntity.toDomain(): Student = Student(
 )
 
 fun StudentDto.toEntity(): StudentEntity = StudentEntity(
-    telegramId = id,
+    telegramId = telegramId,
     name = "$firstName $lastName",
     username = username,
     photoUrl = photoUrl,

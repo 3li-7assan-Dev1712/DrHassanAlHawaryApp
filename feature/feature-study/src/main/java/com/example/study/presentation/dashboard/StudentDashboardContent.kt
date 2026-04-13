@@ -80,6 +80,7 @@ import com.example.domain.module.Level
 import com.example.domain.module.QuizType
 import com.example.domain.module.Student
 import com.example.study.presentation.model.DashboardSection
+import com.example.study.presentation.utils.formatBatchName
 import kotlinx.coroutines.delay
 
 @Composable
@@ -112,7 +113,8 @@ fun StudentDashboardContent(
                 isMember = studentData.isCourseMember,
                 userScore = uiState.userQuizScore,
                 totalQuestions = uiState.latestQuizTotalQuestions,
-                userRank = userRank
+                userRank = userRank,
+                batch = studentData.batch
             )
         }
 
@@ -370,7 +372,8 @@ fun StudentHeader(
     isMember: Boolean,
     userScore: Int? = null,
     totalQuestions: Int? = null,
-    userRank: Int? = null
+    userRank: Int? = null,
+    batch: String? = null
 ) {
     Log.d("StudentDashboardContent", "StudentHeader: userScore = $userScore total Questions = $totalQuestions")
     val shape = RoundedCornerShape(28.dp)
@@ -455,37 +458,64 @@ fun StudentHeader(
 
                     Spacer(Modifier.height(10.dp))
 
-                    // Membership chip
-                    val statusText =
-                        if (isMember) stringResource(R.string.institute_student) else stringResource(
-                            R.string.not_institute_student
-                        )
-                    val chipBg =
-                        if (isMember) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f)
-
                     Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(chipBg)
-                            .padding(horizontal = 12.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    if (isMember) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        // Membership chip
+                        val statusText =
+                            if (isMember) stringResource(com.example.core.ui.R.string.institute_student) else stringResource(
+                                com.example.core.ui.R.string.not_institute_student
+                            )
+                        val chipBg =
+                            if (isMember) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f)
+
+                        Surface(
+                            shape = RoundedCornerShape(999.dp),
+                            color = chipBg
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isMember) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                        )
                                 )
-                        )
-                        Text(
-                            text = statusText,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                                Text(
+                                    text = statusText,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+
+                        // Batch chip
+                        if (batch != null) {
+                            val formattedBatch = formatBatchName(batch)
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                            ) {
+                                Text(
+                                    text = formattedBatch,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -509,10 +539,10 @@ fun StudentHeader(
                                 fontSize = 24.sp
                             )
                             val rankText = when (userRank) {
-                                1 -> stringResource(R.string.rank_1)
-                                2 -> stringResource(R.string.rank_2)
-                                3 -> stringResource(R.string.rank_3)
-                                else -> stringResource(R.string.rank_other, userRank)
+                                1 -> stringResource(com.example.core.ui.R.string.rank_1)
+                                2 -> stringResource(com.example.core.ui.R.string.rank_2)
+                                3 -> stringResource(com.example.core.ui.R.string.rank_3)
+                                else -> stringResource(com.example.core.ui.R.string.rank_other, userRank)
                             }
                             Text(
                                 text = rankText,
@@ -554,6 +584,7 @@ fun StudentHeader(
         }
     }
 }
+
 
 @Composable
 fun DashboardChips(

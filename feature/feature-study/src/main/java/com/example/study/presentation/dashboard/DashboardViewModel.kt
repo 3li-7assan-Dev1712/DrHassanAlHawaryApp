@@ -57,7 +57,7 @@ class DashboardViewModel @Inject constructor(
                     if (levels.isNullOrEmpty()) {
                         _uiState.update {
                             it.copy(
-                                levelsErrorMessage = "No levels found",
+                                levelsErrorMessage = "لم يتم العثور على بيانات المراحل الدراسية",
                                 loadingLevels = false
                             )
                         }
@@ -104,11 +104,13 @@ class DashboardViewModel @Inject constructor(
 
     private suspend fun fetchLatestQuiz() {
         try {
+            val studentData = getStudentDataUseCase().first()
+            val batch = studentData?.batch
+            
+            _uiState.update { it.copy(batch = batch) }
 
-            val studentData = getStudentDataUseCase()
-
-            val quiz = getLatestQuizUseCase(studentData.first()?.batch ?: "")
-            Log.d(TAG, "fetchLatestQuiz: $quiz ${studentData.first()?.batch}")
+            val quiz = getLatestQuizUseCase(batch ?: "")
+            Log.d(TAG, "fetchLatestQuiz: $quiz $batch")
             if (quiz != null) {
                 _uiState.update {
                     it.copy(
