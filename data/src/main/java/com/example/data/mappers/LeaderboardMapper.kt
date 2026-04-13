@@ -10,7 +10,7 @@ fun LeaderboardDto.toDomain(): LeaderBoard {
         studentName = studentName,
         telegramPhotoUrl = telegramPhotoUrl,
         score = score,
-        answerTimestamp = answerTimestamp ?: Date()
+        answerTimestamp = submittedAt ?: Date()
     )
 }
 
@@ -20,6 +20,6 @@ fun LeaderBoard.toDto(): LeaderboardDto {
         studentName = studentName,
         telegramPhotoUrl = telegramPhotoUrl,
         score = score,
-        answerTimestamp = answerTimestamp
+        submittedAt = answerTimestamp
     )
 }

@@ -7,5 +7,5 @@ data class LeaderboardDto(
     val studentName: String = "",
     val telegramPhotoUrl: String = "",
     val score: Int = 0,
-    val answerTimestamp: Date? = null
+    val submittedAt: Date? = null
 )
