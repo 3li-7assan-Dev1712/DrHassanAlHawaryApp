@@ -11,6 +11,7 @@ import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.FirebaseFunctions
@@ -277,7 +278,11 @@ class ImageFirestoreSource @Inject constructor(
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e(TAG, "Listen failed: ${error.message}", error)
-                        trySend(emptyList())
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                        } else {
+                            trySend(emptyList())
+                        }
                         return@addSnapshotListener
                     }
 

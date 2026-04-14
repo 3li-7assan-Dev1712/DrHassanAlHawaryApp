@@ -14,6 +14,7 @@ import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import com.google.firebase.functions.FirebaseFunctions
@@ -691,7 +692,11 @@ class StudentFirestoreSource @Inject constructor(
                 .addSnapshotListener { snapshot, error ->
 
                     if (error != null) {
-                        close(error)
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                        } else {
+                            close(error)
+                        }
                         return@addSnapshotListener
                     }
 

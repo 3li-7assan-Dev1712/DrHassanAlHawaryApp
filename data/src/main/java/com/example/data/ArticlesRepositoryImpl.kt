@@ -16,18 +16,25 @@ import com.example.data_local.ArticleDao
 import com.example.data_local.model.ArticleEntity
 import com.example.domain.module.Article
 import com.example.domain.repository.ArticlesRepository
+import com.example.domain.repository.AuthRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalPagingApi::class)
 class ArticlesRepositoryImpl
 @Inject constructor(
     private val firebaseArticlesSource: FirebaseArticlesSource,
     private val appDatabase: AppDatabase,
+    private val authRepository: AuthRepository,
+    private val articleRemoteMediator: ArticleRemoteMediator,
     @ApplicationScope private val externalScope: CoroutineScope
 ) : ArticlesRepository {
 
@@ -35,7 +42,11 @@ class ArticlesRepositoryImpl
 
     init {
         externalScope.launch {
-            syncArticlesDbWithServer()
+            authRepository.observeAuthState().collectLatest { isLoggedIn ->
+                if (isLoggedIn) {
+                    syncArticlesDbWithServer()
+                }
+            }
         }
     }
 
@@ -82,10 +93,7 @@ class ArticlesRepositoryImpl
                 prefetchDistance = 5,
                 enablePlaceholders = false
             ),
-            remoteMediator = ArticleRemoteMediator(
-                appDatabase = appDatabase,
-                firebaseArticlesSource = firebaseArticlesSource
-            ),
+            remoteMediator = articleRemoteMediator,
             pagingSourceFactory = {
                 articleDao.getArticlesPagingSource(query)
             }
@@ -98,6 +106,7 @@ class ArticlesRepositoryImpl
 
     override suspend fun syncArticlesDbWithServer() {
         firebaseArticlesSource.syncArticlesDbWithServer()
+            .catch { e -> Log.e("ArtRepoImpl", "syncArticlesDbWithServer error: ${e.message}") }
             .collect { articles ->
                 Log.d("ArtRepoImpl", "syncArticlesDbWithServer: received ${articles.size} articles")
                 
@@ -135,11 +144,7 @@ class ArticlesRepositoryImpl
                 pageSize = limit,
                 enablePlaceholders = false
             ),
-            remoteMediator = ArticleRemoteMediator(
-                appDatabase = appDatabase,
-                firebaseArticlesSource = firebaseArticlesSource
-                // when add search, I will pass the query here
-            ),
+            remoteMediator = articleRemoteMediator,
             // The PagingSourceFactory ALWAYS points to the local database (Room).
             // The RemoteMediator will fill this database for the PagingSource to read.
             pagingSourceFactory = {

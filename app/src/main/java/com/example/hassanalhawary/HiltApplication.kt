@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.data.di.ApplicationScope
 import com.example.domain.use_cases.IsUserLoggedInUseCase
+import com.example.domain.use_cases.ObserveAuthStateUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.hassanalhawary.core.util.LocaleForce
 import com.example.study.domain.use_case.GetLevelsUseCase
@@ -40,6 +41,9 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     @Inject
     lateinit var isUserLoggedInUseCase: IsUserLoggedInUseCase
 
+    @Inject
+    lateinit var observeAuthStateUseCase: ObserveAuthStateUseCase
+
 
     @Inject
     lateinit var getStudentDataUseCase: GetStudentDataUseCase
@@ -66,29 +70,31 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     override fun onStart(owner: LifecycleOwner) {
         Log.d(TAG, "onStart: start app")
         appScope.launch {
-            if (isUserLoggedInUseCase()) {
-                getLevelsUseCase().collectLatest {
-                    Log.d(TAG, "onStart: $it")
-                    if (!it.isNullOrEmpty()) {
-                        syncPlaylistsUseCase()
-                        syncLessons()
+            observeAuthStateUseCase().collectLatest { isLoggedIn ->
+                if (isLoggedIn) {
+                    launch {
+                        getLevelsUseCase().collectLatest {
+                            Log.d(TAG, "onStart: $it")
+                            if (!it.isNullOrEmpty()) {
+                                syncPlaylistsUseCase()
+                                syncLessons()
+                            }
+                        }
                     }
-                }
-            }
-        }
 
-        appScope.launch {
-            if (isUserLoggedInUseCase()) {
-                getStudentDataUseCase().collectLatest {
-                    FirebaseMessaging.getInstance()
-                        .subscribeToTopic("all_users")
-                    if (it != null) {
-                        if (it.isCourseMember) {
+                    launch {
+                        getStudentDataUseCase().collectLatest {
                             FirebaseMessaging.getInstance()
-                                .subscribeToTopic("student_broadcasts")
-                            FirebaseMessaging.getInstance()
-                                .subscribeToTopic("${it.batch}")
+                                .subscribeToTopic("all_users")
+                            if (it != null) {
+                                if (it.isCourseMember) {
+                                    FirebaseMessaging.getInstance()
+                                        .subscribeToTopic("student_broadcasts")
+                                    FirebaseMessaging.getInstance()
+                                        .subscribeToTopic("${it.batch}")
 
+                                }
+                            }
                         }
                     }
                 }

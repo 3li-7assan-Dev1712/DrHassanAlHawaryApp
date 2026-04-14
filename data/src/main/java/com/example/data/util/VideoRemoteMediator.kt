@@ -12,6 +12,7 @@ import com.example.data_local.AppDatabase
 import com.example.data_local.model.VideoEntity
 import com.example.domain.module.NetworkStatus
 import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
+import com.example.domain.use_cases.IsUserLoggedInUseCase
 import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
@@ -21,6 +22,7 @@ class VideoRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
     private val videoFirestoreSource: VideoFirestoreSource,
     private val networkStatusUseCase: GetCurrentNetworkStatusUseCase,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ) : RemoteMediator<Int, VideoEntity>() {
 
     private val videoDao = appDatabase.videoDao()
@@ -39,6 +41,9 @@ class VideoRemoteMediator @Inject constructor(
         loadType: LoadType,
         state: PagingState<Int, VideoEntity>
     ): MediatorResult {
+        if (!isUserLoggedInUseCase()) {
+            return MediatorResult.Success(endOfPaginationReached = true)
+        }
         return try {
             val initialPublishDate = when (loadType) {
                 LoadType.REFRESH -> null

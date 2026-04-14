@@ -7,6 +7,7 @@ import com.example.domain.module.AppConfig
 import com.example.domain.use_cases.GetAppConfigUseCase
 import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
+import com.example.domain.use_cases.ObserveAuthStateUseCase
 import com.example.domain.use_cases.datastore.ObserveDarkThemePreference
 import com.example.domain.use_cases.datastore.ObserveOnboardingCompletedUseCase
 import com.example.domain.use_cases.datastore.UpdateDarkThemePreference
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -46,6 +48,7 @@ class MainActivityViewModel @Inject constructor(
     private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
     private val getAppConfigUseCase: GetAppConfigUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
+    private val observeAuthStateUseCase: ObserveAuthStateUseCase,
 ) : ViewModel() {
 
     private val TAG = "MainActivityViewModel"
@@ -84,15 +87,39 @@ class MainActivityViewModel @Inject constructor(
 
     init {
         checkUserAuthState()
-
+        observeAuthAndSync()
     }
 
-    private fun observeAppConfig() {
+    private fun observeAuthAndSync() {
         viewModelScope.launch {
-            getAppConfigUseCase().collect { config ->
-                _appConfig.value = config
+            observeAuthStateUseCase().collectLatest { isLoggedIn ->
+                if (isLoggedIn) {
+                    launch { observeAppConfig() }
+                    launch { storeUserDataSuspend() }
+                } else {
+                    _appConfig.value = null
+                }
             }
         }
+    }
+
+    private suspend fun observeAppConfig() {
+        getAppConfigUseCase()
+            .catch { e -> Log.e(TAG, "observeAppConfig error: ${e.message}") }
+            .collect { config ->
+                _appConfig.value = config
+            }
+    }
+
+    private suspend fun storeUserDataSuspend() {
+        // if no data in the room db (user may close the app before deep link happen so we fill the database again if deeplink fail)
+        val studentData = getStudentDataUseCase().first()
+        if (studentData == null) {
+            val uid = getCurrentUserDataUseCase()?.userId
+            Log.d(TAG, "uid : $uid")
+            storeStudentDataUseCase(uid ?: "")
+        } else
+            Log.d(TAG, "data is not null: ${studentData.name}")
     }
 
     fun updateOnboardingCompleted() {
@@ -101,14 +128,7 @@ class MainActivityViewModel @Inject constructor(
 
     private fun storeUserData() {
         viewModelScope.launch {
-            // if no data in the room db (user may close the app before deep link happen so we fill the database again if deeplink fail)
-            val studentData = getStudentDataUseCase().first()
-            if (studentData == null) {
-                val uid = getCurrentUserDataUseCase()?.userId
-                Log.d(TAG, "uid : $uid")
-                storeStudentDataUseCase(uid ?: "")
-            } else
-                Log.d(TAG, "data is not null: ${studentData.name}")
+            storeUserDataSuspend()
         }
     }
     fun updateDarkThemePreference(isDarkTheme: Boolean) {
@@ -132,10 +152,6 @@ class MainActivityViewModel @Inject constructor(
                         idToken = idToken
                     )
                 }
-                // auth first to be able to read from db
-                observeAppConfig()
-                storeUserData()
-
             }
         }
     }

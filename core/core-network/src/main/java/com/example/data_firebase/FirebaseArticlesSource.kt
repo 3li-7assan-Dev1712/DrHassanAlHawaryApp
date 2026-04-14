@@ -6,6 +6,7 @@ import com.example.domain.module.Article
 import com.example.domain.module.toIsoString
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.toObject
@@ -162,7 +163,11 @@ class FirebaseArticlesSource @Inject constructor(
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e("FirebaseArticlesSource", "Listen failed: ${error.message}", error)
-                        trySend(emptyList())
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                        } else {
+                            trySend(emptyList())
+                        }
                         return@addSnapshotListener
                     }
 

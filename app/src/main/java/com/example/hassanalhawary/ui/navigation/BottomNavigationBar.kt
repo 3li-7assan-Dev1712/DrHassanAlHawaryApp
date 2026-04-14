@@ -39,9 +39,12 @@ fun BottomNavigationBar(
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     ) {
         items.forEach { screen ->
-            val isSelected =
-                currentRoute == screen.route || if (screen.route == "telegram_login") currentRoute == "telegram_login?data={data}&t={t}" else false
-            Log.d(
+
+            val isSelected = when (screen.route) {
+                "telegram_login" -> currentRoute?.startsWith("telegram_login") == true
+                else -> currentRoute == screen.route
+            }
+             Log.d(
                 "BottomNavigationBar",
                 "BottomNavigationBar: isSelected = $isSelected && route = ${screen.route} current = $currentRoute"
             )
@@ -63,7 +66,9 @@ fun BottomNavigationBar(
                 selected = isSelected,
                 onClick = {
                     navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }

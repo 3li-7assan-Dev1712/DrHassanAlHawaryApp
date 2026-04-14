@@ -2,6 +2,7 @@ package com.example.data_firebase
 
 import com.example.domain.module.Channel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
@@ -21,7 +22,11 @@ class ChannelFirestoreSource @Inject constructor(
             .orderBy("order", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                    } else {
+                        close(error)
+                    }
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {

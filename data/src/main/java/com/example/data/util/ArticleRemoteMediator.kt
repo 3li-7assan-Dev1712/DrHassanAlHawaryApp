@@ -9,6 +9,7 @@ import com.example.data.mappers.toEntity
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_local.AppDatabase
 import com.example.data_local.model.ArticleEntity
+import com.example.domain.use_cases.IsUserLoggedInUseCase
 
 import java.io.IOException
 import javax.inject.Inject
@@ -16,13 +17,17 @@ import javax.inject.Inject
 @OptIn(ExperimentalPagingApi::class)
 class ArticleRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
-    private val firebaseArticlesSource: FirebaseArticlesSource
+    private val firebaseArticlesSource: FirebaseArticlesSource,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ): RemoteMediator<Int, ArticleEntity>() {
 
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, ArticleEntity>
     ): MediatorResult {
+        if (!isUserLoggedInUseCase()) {
+            return MediatorResult.Success(endOfPaginationReached = true)
+        }
         return try {
 
             val lastPublishDate = when (loadType) {

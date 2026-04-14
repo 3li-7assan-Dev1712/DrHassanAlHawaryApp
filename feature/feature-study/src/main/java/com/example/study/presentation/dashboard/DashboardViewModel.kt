@@ -53,7 +53,9 @@ class DashboardViewModel @Inject constructor(
             try {
                 syncLevelsUseCase()
                 syncPlaylistsUseCase()
-                getLevelsUseCase().collect { levels ->
+                getLevelsUseCase()
+                    .catch { e -> Log.e(TAG, "getLevels error: ${e.message}") }
+                    .collect { levels ->
                     if (levels.isNullOrEmpty()) {
                         _uiState.update {
                             it.copy(

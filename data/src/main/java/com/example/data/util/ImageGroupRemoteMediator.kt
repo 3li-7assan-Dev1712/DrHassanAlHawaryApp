@@ -14,6 +14,7 @@ import com.example.data_local.model.ImageGroupEntity
 import com.example.data_local.model.ImageGroupRemoteKeysEntity
 import com.example.domain.module.NetworkStatus
 import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
+import com.example.domain.use_cases.IsUserLoggedInUseCase
 import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
@@ -31,7 +32,8 @@ import javax.inject.Inject
 class ImageGroupRemoteMediator @Inject constructor(
     private val imageFirestoreSource: ImageFirestoreSource,
     private val appDatabase: AppDatabase,
-    private val networkRepositoryUseCase: GetCurrentNetworkStatusUseCase
+    private val networkRepositoryUseCase: GetCurrentNetworkStatusUseCase,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ) : RemoteMediator<Int, ImageGroupEntity>() {
 
     // Get both DAOs from the database instance
@@ -59,6 +61,9 @@ class ImageGroupRemoteMediator @Inject constructor(
         loadType: LoadType,
         state: PagingState<Int, ImageGroupEntity>
     ): MediatorResult {
+        if (!isUserLoggedInUseCase()) {
+            return MediatorResult.Success(endOfPaginationReached = true)
+        }
         return try {
             // 1. Determine the key for the page to load (the 'loadKey')
             val loadKey = when (loadType) {

@@ -3,6 +3,7 @@ package com.example.data_firebase
 import com.example.domain.module.AppConfig
 import com.example.domain.repository.ConfigRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -18,7 +19,13 @@ class ConfigRepositoryImpl @Inject constructor(
                 .document("app_config")
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
-                        close(error)
+                        // On logout, we might get a permission denied error.
+                        // We close the flow gracefully in that case.
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
+                        } else {
+                            close(error)
+                        }
                         return@addSnapshotListener
                     }
                     if (snapshot != null && snapshot.exists()) {

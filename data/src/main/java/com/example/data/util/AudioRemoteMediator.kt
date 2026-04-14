@@ -11,6 +11,7 @@ import com.example.data_local.AppDatabase
 import com.example.data_local.model.AudioEntity
 import com.example.domain.module.NetworkStatus
 import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
+import com.example.domain.use_cases.IsUserLoggedInUseCase
 import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class AudioRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
-    private val networkStatusUseCase: GetCurrentNetworkStatusUseCase
+    private val networkStatusUseCase: GetCurrentNetworkStatusUseCase,
+    private val isUserLoggedInUseCase: IsUserLoggedInUseCase
 ) : RemoteMediator<Int, AudioEntity>() {
 
     private val audioDao = appDatabase.audioDao()
@@ -38,6 +40,9 @@ class AudioRemoteMediator @Inject constructor(
         loadType: LoadType,
         state: PagingState<Int, AudioEntity>
     ): MediatorResult {
+        if (!isUserLoggedInUseCase()) {
+            return MediatorResult.Success(endOfPaginationReached = true)
+        }
         return try {
             val initialPublishDate = when (loadType) {
                 LoadType.REFRESH -> null
