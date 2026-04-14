@@ -441,13 +441,56 @@ fun QuestionItem(
                 ) {
                     Text(stringResource(R.string.correct_answer_label), fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.weight(1f))
-                    Text(stringResource(R.string.false_text))
-                    Switch(
-                        checked = question.correctBooleanAnswer ?: true,
-                        onCheckedChange = onCorrectTfChange,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-                    Text(stringResource(R.string.true_text))
+                    
+                    val isTrue = question.correctBooleanAnswer ?: true
+                    
+                    androidx.compose.material3.Surface(
+                        onClick = { onCorrectTfChange(true) },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isTrue) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent,
+                        border = if (isTrue) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            RadioButton(
+                                selected = isTrue,
+                                onClick = { onCorrectTfChange(true) }
+                            )
+                            Text(
+                                text = stringResource(R.string.true_text),
+                                modifier = Modifier.padding(start = 4.dp),
+                                color = if (isTrue) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                    
+                    androidx.compose.material3.Surface(
+                        onClick = { onCorrectTfChange(false) },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (!isTrue) MaterialTheme.colorScheme.errorContainer else androidx.compose.ui.graphics.Color.Transparent,
+                        border = if (!isTrue) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            RadioButton(
+                                selected = !isTrue,
+                                onClick = { onCorrectTfChange(false) },
+                                colors = androidx.compose.material3.RadioButtonDefaults.colors(
+                                    selectedColor = MaterialTheme.colorScheme.error
+                                )
+                            )
+                            Text(
+                                text = stringResource(R.string.false_text),
+                                modifier = Modifier.padding(start = 4.dp),
+                                color = if (!isTrue) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
                 }
             }
         }

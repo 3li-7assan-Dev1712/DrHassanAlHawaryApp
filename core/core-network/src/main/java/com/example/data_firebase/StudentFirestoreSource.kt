@@ -7,6 +7,7 @@ import com.example.data_firebase.model.LessonDto
 import com.example.data_firebase.model.LevelDto
 import com.example.data_firebase.model.PlaylistDto
 import com.example.data_firebase.model.QuestionDto
+import com.example.data_firebase.model.QuestionTypeDto
 import com.example.data_firebase.model.QuizDto
 import com.example.data_firebase.model.StudentDto
 import com.example.domain.use_cases.audios.UploadResult
@@ -538,7 +539,14 @@ class StudentFirestoreSource @Inject constructor(
                 .get()
                 .await()
 
-            snapshot.toObjects(QuestionDto::class.java)
+            snapshot.documents.mapNotNull { doc ->
+                val q = doc.toObject(QuestionDto::class.java)
+                q?.copy(
+                    id = doc.id,
+                    correctAnswerIndex = doc.getLong("correctAnswerIndex")?.toInt(),
+                    correctBooleanAnswer = doc.getBoolean("correctBooleanAnswer")
+                )
+            }
 
         } catch (e: Exception) {
             Log.d(TAG, "getQuizQuestions: ${e.message}")
@@ -562,10 +570,28 @@ class StudentFirestoreSource @Inject constructor(
 
     suspend fun uploadQuiz(quizDto: QuizDto): Result<Unit> {
         return try {
+            quizDto.questions.forEachIndexed { index, q ->
+                when (q.type) {
+                    QuestionTypeDto.MCQ -> {
+                        require(q.options.isNotEmpty()) {
+                            "MCQ at $index must have options"
+                        }
+                        require(q.correctAnswerIndex != null) {
+                            "MCQ at $index must have correctAnswerIndex"
+                        }
+                    }
+                    QuestionTypeDto.TF -> {
+                        require(q.correctBooleanAnswer != null) {
+                            "TF at $index must have correctBooleanAnswer"
+                        }
+                    }
+                }
+            }
             val questionsData = quizDto.questions.map { q ->
                 val map = hashMapOf<String, Any?>(
                     "text" to q.text,
-                    "options" to q.options
+                    "options" to q.options,
+                    "type" to q.type.name
                 )
                 if (q.correctAnswerIndex != null) {
                     map["correctIndex"] = q.correctAnswerIndex

@@ -3,9 +3,9 @@ package com.example.study.presentation.dashboard
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.use_cases.study.GetLatestQuizUseCase
 import com.example.domain.use_cases.study.GetLeaderboardUseCase
 import com.example.domain.use_cases.study.GetMotivationalMessagesUseCase
+import com.example.domain.use_cases.study.GetQuizWithQuestionsUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.SyncLevelsUseCase
@@ -33,7 +33,7 @@ class DashboardViewModel @Inject constructor(
     private val syncLevelsUseCase: SyncLevelsUseCase,
     private val syncPlaylistsUseCase: SyncPlaylistsUseCase,
     private val getMotivationalMessagesUseCase: GetMotivationalMessagesUseCase,
-    private val getLatestQuizUseCase: GetLatestQuizUseCase,
+    private val getQuizWithQuestionsUseCase: GetQuizWithQuestionsUseCase,
     private val getLeaderboardUseCase: GetLeaderboardUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase
 ) : ViewModel() {
@@ -109,7 +109,7 @@ class DashboardViewModel @Inject constructor(
             
             _uiState.update { it.copy(batch = batch) }
 
-            val quiz = getLatestQuizUseCase(batch ?: "")
+            val quiz = getQuizWithQuestionsUseCase(batch ?: "")
             Log.d(TAG, "fetchLatestQuiz: $quiz $batch")
             if (quiz != null) {
                 _uiState.update {
@@ -157,6 +157,7 @@ class DashboardViewModel @Inject constructor(
                     }
                 }
                 .collectLatest { (leaderboard, score) ->
+                    Log.d(TAG, "observeLeaderboard: $leaderboard $score")
                     _uiState.update {
                         it.copy(
                             topStudents = leaderboard,
