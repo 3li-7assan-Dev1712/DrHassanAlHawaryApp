@@ -51,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,7 @@ import com.example.domain.module.Question
 import com.example.domain.module.QuestionType
 import com.example.domain.module.QuizType
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -81,7 +83,12 @@ fun UploadQuizScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.create_quiz), fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.create_quiz),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -139,7 +146,13 @@ fun UploadQuizScreen(
                         FilterChip(
                             selected = uiState.quizType == type,
                             onClick = { viewModel.onTypeChange(type) },
-                            label = { Text(type.name) }
+                            label = {
+                                Text(
+                                    if (type == QuizType.WEEKLY) stringResource(R.string.weekly) else stringResource(
+                                        R.string.final_exam
+                                    )
+                                )
+                            }
                         )
                     }
                 }
@@ -156,7 +169,7 @@ fun UploadQuizScreen(
                     )
                 }
             }
-            
+
             item {
                 Text(
                     stringResource(R.string.target_batches),
@@ -171,7 +184,7 @@ fun UploadQuizScreen(
                 ) {
                     uiState.availableChannels.forEach { channel ->
                         val isSelected = uiState.selectedBatchNames.contains(channel.batch)
-                        val batchName = when(channel.order) {
+                        val batchName = when (channel.order) {
                             1 -> stringResource(R.string.batch_1)
                             2 -> stringResource(R.string.batch_2)
                             3 -> stringResource(R.string.batch_3)
@@ -179,7 +192,7 @@ fun UploadQuizScreen(
                             5 -> stringResource(R.string.batch_5)
                             else -> stringResource(R.string.batch_other, channel.order)
                         }
-                        
+
                         FilterChip(
                             selected = isSelected,
                             onClick = { viewModel.toggleBatchSelection(channel.batch) },
@@ -197,7 +210,9 @@ fun UploadQuizScreen(
                     fontWeight = FontWeight.SemiBold
                 )
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
@@ -219,18 +234,16 @@ fun UploadQuizScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        DateSelectionRow(
+                        DateTimeSelectionRow(
                             label = stringResource(R.string.start_date_label),
                             timestamp = uiState.startAt,
-                            onDateSelected = viewModel::onStartAtChange
+                            onDateTimeSelected = viewModel::onStartAtChange
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        DateSelectionRow(
+                        DateTimeSelectionRow(
                             label = stringResource(R.string.end_date_label),
                             timestamp = uiState.endAt,
-                            onDateSelected = viewModel::onEndAtChange
+                            onDateTimeSelected = viewModel::onEndAtChange
                         )
                     }
                 }
@@ -280,7 +293,10 @@ fun UploadQuizScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text(stringResource(R.string.upload_quiz), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(R.string.upload_quiz),
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
                 }
 
@@ -291,7 +307,7 @@ fun UploadQuizScreen(
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(64.dp)) // padding for FAB
             }
         }
@@ -300,12 +316,18 @@ fun UploadQuizScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateSelectionRow(
+fun DateTimeSelectionRow(
     label: String,
     timestamp: Long?,
-    onDateSelected: (Long?) -> Unit
+    onDateTimeSelected: (Long?) -> Unit
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    var tempDate by remember { mutableStateOf<Long?>(timestamp) }
+    var tempHour by remember { mutableStateOf(0) }
+    var tempMinute by remember { mutableStateOf(0) }
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = timestamp ?: System.currentTimeMillis()
     )
@@ -315,57 +337,66 @@ fun DateSelectionRow(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    onDateSelected(datePickerState.selectedDateMillis)
+                    tempDate = datePickerState.selectedDateMillis
                     showDatePicker = false
-                }) {
-                    Text(stringResource(R.string.ok))
-                }
+                    showTimePicker = true
+                }) { Text("OK") }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
+                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
             }
         ) {
             DatePicker(state = datePickerState)
         }
     }
 
+    if (showTimePicker) {
+        android.app.TimePickerDialog(
+            LocalContext.current,
+            { _, hour: Int, minute: Int ->
+                tempHour = hour
+                tempMinute = minute
+
+                val calendar = Calendar.getInstance().apply {
+                    timeInMillis = tempDate ?: System.currentTimeMillis()
+                    set(Calendar.HOUR_OF_DAY, tempHour)
+                    set(Calendar.MINUTE, tempMinute)
+                    set(Calendar.SECOND, 0)
+                }
+
+                onDateTimeSelected(calendar.timeInMillis)
+                showTimePicker = false
+            },
+            tempHour,
+            tempMinute,
+            true
+        ).show()
+    }
+
+    val formatted = timestamp?.let {
+        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(it))
+    } ?: stringResource(R.string.not_set)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.weight(1f)) {
+            Text(label)
             Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = if (timestamp != null) {
-                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(timestamp))
-                } else {
-                    stringResource(R.string.not_set)
-                },
-                style = MaterialTheme.typography.bodySmall,
+                text = formatted,
                 color = MaterialTheme.colorScheme.primary
             )
         }
-        Button(
-            onClick = { showDatePicker = true },
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
-        ) {
-            Text(stringResource(R.string.select_date), style = MaterialTheme.typography.labelMedium)
+
+        Button(onClick = { showDatePicker = true }) {
+            Text(stringResource(R.string.select_date))
         }
+
         if (timestamp != null) {
             Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = { onDateSelected(null) }) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Clear",
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(20.dp)
-                )
+            IconButton(onClick = { onDateTimeSelected(null) }) {
+                Icon(Icons.Default.Delete, contentDescription = "Clear")
             }
         }
     }
@@ -439,16 +470,22 @@ fun QuestionItem(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 8.dp)
                 ) {
-                    Text(stringResource(R.string.correct_answer_label), fontWeight = FontWeight.Medium)
+                    Text(
+                        stringResource(R.string.correct_answer_label),
+                        fontWeight = FontWeight.Medium
+                    )
                     Spacer(modifier = Modifier.weight(1f))
-                    
+
                     val isTrue = question.correctBooleanAnswer ?: true
-                    
+
                     androidx.compose.material3.Surface(
                         onClick = { onCorrectTfChange(true) },
                         shape = RoundedCornerShape(12.dp),
                         color = if (isTrue) MaterialTheme.colorScheme.primaryContainer else androidx.compose.ui.graphics.Color.Transparent,
-                        border = if (isTrue) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        border = if (isTrue) null else androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant
+                        ),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Row(
@@ -466,12 +503,15 @@ fun QuestionItem(
                             )
                         }
                     }
-                    
+
                     androidx.compose.material3.Surface(
                         onClick = { onCorrectTfChange(false) },
                         shape = RoundedCornerShape(12.dp),
                         color = if (!isTrue) MaterialTheme.colorScheme.errorContainer else androidx.compose.ui.graphics.Color.Transparent,
-                        border = if (!isTrue) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        border = if (!isTrue) null else androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant
+                        )
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

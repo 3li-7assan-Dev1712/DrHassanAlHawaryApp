@@ -106,7 +106,7 @@ class DashboardViewModel @Inject constructor(
         try {
             val studentData = getStudentDataUseCase().first()
             val batch = studentData?.batch
-            
+
             _uiState.update { it.copy(batch = batch) }
 
             val quiz = getQuizWithQuestionsUseCase(batch ?: "")

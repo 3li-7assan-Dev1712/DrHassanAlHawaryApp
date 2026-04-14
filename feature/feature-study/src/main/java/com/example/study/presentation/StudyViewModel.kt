@@ -12,12 +12,13 @@ import com.example.domain.use_cases.study.StoreStudentDataUseCase
 import com.example.study.domain.use_case.GetStudentAuthDataUseCase
 import com.example.study.presentation.model.StudyScreenUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -35,8 +36,15 @@ class StudyViewModel @Inject constructor(
 
     private val TAG = "StudyViewModel"
 
-    val uiState: StateFlow<StudyScreenUiState> = getStudentDataUseCase()
-        .map { studentData ->
+    private val _isLoading = MutableStateFlow(false)
+
+    val uiState: StateFlow<StudyScreenUiState> = combine(
+        getStudentDataUseCase(),
+        _isLoading
+    ) { studentData, isLoading ->
+        if (isLoading) {
+            StudyScreenUiState.Loading
+        } else {
             if (studentData != null) {
                 if (studentData.membershipState == "none") {
                     StudyScreenUiState.NotChannelMember(studentData)
@@ -45,6 +53,7 @@ class StudyViewModel @Inject constructor(
                 }
             } else StudyScreenUiState.Guest
         }
+    }
         .catch { e ->
             Log.e(TAG, "Firestore Permission Error in uiState", e)
             emit(StudyScreenUiState.Guest)
@@ -64,7 +73,7 @@ class StudyViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { encodedData ->
                     Log.d(TAG, "deep link data received: $encodedData")
-
+                    _isLoading.value = true
                     try {
                         val json = Uri.decode(encodedData)
                         val user = JSONObject(json)
@@ -81,8 +90,9 @@ class StudyViewModel @Inject constructor(
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing deep link data", e)
+                    } finally {
+                        _isLoading.value = false
                     }
-
                 }
 
         }
@@ -93,6 +103,7 @@ class StudyViewModel @Inject constructor(
         val telegramId = studentData?.telegramId
         
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val uid = getStudentAuthDataUseCase()?.userId
                 if (uid != null && telegramId != null) {
@@ -101,6 +112,8 @@ class StudyViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error refreshing student data", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }

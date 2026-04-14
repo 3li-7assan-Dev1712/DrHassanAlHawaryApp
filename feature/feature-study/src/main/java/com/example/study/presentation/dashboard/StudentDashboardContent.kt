@@ -463,11 +463,19 @@ fun StudentHeader(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Membership chip
-                        val statusText =
-                            if (isMember) stringResource(com.example.core.ui.R.string.institute_student) else stringResource(
-                                com.example.core.ui.R.string.not_institute_student
-                            )
+                        // Combined Membership & Batch chip
+                        val baseStatusText = if (isMember) {
+                            stringResource(com.example.core.ui.R.string.institute_student)
+                        } else {
+                            stringResource(com.example.core.ui.R.string.not_institute_student)
+                        }
+
+                        val statusText = if (isMember && batch != null) {
+                            "$baseStatusText - ${formatBatchName(batch)}"
+                        } else {
+                            baseStatusText
+                        }
+
                         val chipBg =
                             if (isMember) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
                             else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f)
@@ -493,26 +501,9 @@ fun StudentHeader(
                                 Text(
                                     text = statusText,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-
-                        // Batch chip
-                        if (batch != null) {
-                            val formattedBatch = formatBatchName(batch)
-                            Surface(
-                                shape = RoundedCornerShape(999.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                            ) {
-                                Text(
-                                    text = formattedBatch,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    color = if (isMember) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                     fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
                         }

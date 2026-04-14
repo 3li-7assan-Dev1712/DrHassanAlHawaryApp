@@ -326,7 +326,7 @@ class StudyRepositoryImpl @Inject constructor(
         val pair = studentFirestoreSource.getQuizWithQuestions(batchId) ?: return null
         val quizDto = pair.first
         val questionsDto = pair.second
-        
+
         return quizDto.copy(questions = questionsDto).toDomain()
     }
 

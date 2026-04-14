@@ -5,6 +5,7 @@ import com.example.data_firebase.GoogleAuthUiClient
 import com.example.domain.module.LoginResult
 import com.example.domain.module.UserData
 import com.example.domain.repository.AuthRepository
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
@@ -31,6 +32,16 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val authResult = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val firebaseUser = authResult.user
+            val methods = firebaseAuth.fetchSignInMethodsForEmail(email).await()
+
+            val providers = methods.signInMethods ?: emptyList()
+
+            if (providers.contains("google.com") && !providers.contains("password")) {
+                return LoginResult(
+                    data = null,
+                    errorMessage = "هذا الحساب مربوط بحسابك قوقل الرجاء الدخول عن طريق قوقل وليس الايميل"
+                )
+            }
             if (firebaseUser != null) {
                 // Successfully logged in
                 LoginResult(
@@ -153,8 +164,18 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
         return try {
+            val methods = firebaseAuth.fetchSignInMethodsForEmail(email).await()
+            val providers = methods.signInMethods ?: emptyList()
+
+            if (providers.contains("google.com") && !providers.contains("password")) {
+                return Result.failure(
+                    Exception("This account uses Google login. Password reset is not available.")
+                )
+            }
+
             firebaseAuth.sendPasswordResetEmail(email).await()
             Result.success(Unit)
+
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -182,4 +203,19 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+
+    // helper functions
+    suspend fun linkEmailPassword(email: String, password: String): Result<Unit> {
+        return try {
+            val credential = EmailAuthProvider.getCredential(email, password)
+
+            firebaseAuth.currentUser
+                ?.linkWithCredential(credential)
+                ?.await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

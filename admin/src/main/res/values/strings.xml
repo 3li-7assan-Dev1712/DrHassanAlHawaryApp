@@ -184,4 +184,6 @@
     <string name="batch_4">الدفعة الرابعة</string>
     <string name="batch_5">الدفعة الخامسة</string>
     <string name="batch_other">الدفعة %1$d</string>
+    <string name="weekly">اسبوعي</string>
+    <string name="final_exam">نهائي</string>
 </resources>

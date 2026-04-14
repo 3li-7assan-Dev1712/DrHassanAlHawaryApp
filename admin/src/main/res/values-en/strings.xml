@@ -85,12 +85,8 @@
     <string name="file_name_not_available">اسم الملف غير متوفر</string>
     <string name="clear_selection">مسح الاختيار</string>
     <string name="save_lesson">حفظ الدرس</string>
-
-
-
-
-
-
+    <string name="weekly">اسبوعي</string>
+    <string name="final_exam">نهائي</string>
 
 
 </resources>

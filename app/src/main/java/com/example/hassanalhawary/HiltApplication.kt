@@ -83,9 +83,13 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
                     FirebaseMessaging.getInstance()
                         .subscribeToTopic("all_users")
                     if (it != null) {
-                        if (it.isCourseMember)
+                        if (it.isCourseMember) {
                             FirebaseMessaging.getInstance()
                                 .subscribeToTopic("student_broadcasts")
+                            FirebaseMessaging.getInstance()
+                                .subscribeToTopic("${it.batch}")
+
+                        }
                     }
                 }
             }
