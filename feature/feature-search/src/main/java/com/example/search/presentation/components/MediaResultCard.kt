@@ -57,6 +57,7 @@ fun MediaResultCard(hit: SearchHit, modifier: Modifier = Modifier, onItemClick: 
                 "https://img.youtube.com/vi/${hit.youtubeVideoId}/hqdefault.jpg"
             else hit.previewImageUrl
 
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -64,41 +65,44 @@ fun MediaResultCard(hit: SearchHit, modifier: Modifier = Modifier, onItemClick: 
                     .clip(CardDefaults.shape)
             ) {
                 // Background Image (Blurred and Cropped)
-                SubcomposeAsyncImage(
-                    model = imageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(24.dp),
-                    loading = {
-                        Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
-                    },
-                    error = {
-                        Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
-                    }
-                )
-                
-                // A semi-transparent overlay to make the foreground pop
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f))
-                )
-                
-                // Foreground Image (Fit, without clipping)
+                if (hit.type == "image_group") {
+
+                    SubcomposeAsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(24.dp),
+                        loading = {
+                            Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
+                        },
+                        error = {
+                            Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
+                        }
+                    )
+                    // A semi-transparent overlay to make the foreground pop
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    )
+                }
+
                 SubcomposeAsyncImage(
                     model = imageUrl,
                     contentDescription = hit.title,
-                    contentScale = ContentScale.Fit,
+                    contentScale = if (hit.type == "image_group") ContentScale.Fit else ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
                     loading = {
-                        // Handled by the background
+                        if (hit.type == "video")
+                            Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
                     },
                     error = {
                         // Handled by the background
                     }
                 )
+
             }
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(

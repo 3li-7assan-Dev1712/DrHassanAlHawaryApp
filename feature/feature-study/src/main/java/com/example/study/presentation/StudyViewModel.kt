@@ -92,6 +92,8 @@ class StudyViewModel @Inject constructor(
                         Log.e(TAG, "Error parsing deep link data", e)
                     } finally {
                         _isLoading.value = false
+
+                        // here when user navigate to home screen
                     }
                 }
 

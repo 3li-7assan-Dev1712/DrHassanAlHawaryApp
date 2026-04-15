@@ -52,11 +52,12 @@ fun StudyScreen(
 
             if (uiState is StudyScreenUiState.StudentDashboard) {
                 StudyTopAppBar()
-//                CustomTopAppBar()
             } else
-                CenterAlignedTopAppBar(title = { Text(
-                    text = stringResource(R.string.dr_hassan_institute)
-                ) })
+                CenterAlignedTopAppBar(title = {
+                    Text(
+                        text = stringResource(R.string.dr_hassan_institute)
+                    )
+                })
         }
 
     ) { paddingValues ->

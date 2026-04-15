@@ -35,7 +35,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
 import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
@@ -148,11 +147,13 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 mainActivityState.isUserLoggedIn -> {
+                                    val deepLinkUri = intent?.data
                                     MainAppContent(
                                         onLogout = { mainActivityViewModel.logoutSuccess() },
                                         isDarkThemeEnabled = themeState.isDarkTheme,
                                         userEmail = mainActivityState.currentUserDate?.email ?: "",
-                                        idToken = mainActivityState.idToken ?: ""
+                                        idToken = mainActivityState.idToken ?: "",
+                                        deepLinkUri = deepLinkUri
 
                                     )
                                 }
@@ -191,7 +192,8 @@ class MainActivity : ComponentActivity() {
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,
         userEmail: String,
-        idToken: String
+        idToken: String,
+        deepLinkUri: Uri?
     ) {
         val navController = rememberNavController()
 
@@ -204,8 +206,26 @@ class MainActivity : ComponentActivity() {
                 Routes.HOME_SCREEN,
                 Routes.SEARCH_SCREEN,
                 Routes.PROFILE_SCREEN,
-                "telegram_login?data={data}"
+                "${Routes.STUDY_SCREEN}?data={data}",
             )
+        }
+
+        var handled by remember { mutableStateOf(false) }
+
+        LaunchedEffect(deepLinkUri) {
+            if (!handled && deepLinkUri != null) {
+                handled = true
+
+                val data = deepLinkUri.getQueryParameter("data")
+                if (data != null) {
+                    val encodedData = Uri.encode(data)
+
+                    navController.navigate("${Routes.STUDY_SCREEN}?data=$encodedData") {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
         }
 
         val shouldShowBottomNav = remember(currentRoute) {
@@ -303,7 +323,8 @@ class MainActivity : ComponentActivity() {
                     arguments = listOf(
                         navArgument("articleId") { type = NavType.StringType },
                     )
-                ) { backStackEntry ->
+                ) {
+
                     ArticleDetailScreen(
                         onNavigateBack = { navController.popBackStack() }
                     )
@@ -332,7 +353,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 composable(
-                    route = "telegram_login?data={data}&t={t}",
+                    route = "${Routes.STUDY_SCREEN}?data={data}",
                     arguments = listOf(
                         navArgument("data") {
                             type = NavType.StringType
@@ -343,13 +364,8 @@ class MainActivity : ComponentActivity() {
                             defaultValue = -1L
                         }
                     ),
-                    deepLinks = listOf(
-                        navDeepLink {
-                            uriPattern =
-                                "com.example.hassanalhawary://telegram-login?data={data}&t={t}"
-                        }
-                    )
                 ) {
+
                     StudyScreen(
                         userEmail = userEmail,
                         idToken = idToken,
@@ -424,18 +440,7 @@ class MainActivity : ComponentActivity() {
                     LessonDetailScreen(
                         onNavigateBack = {
                             navController.popBackStack()
-                        },
-                        /*onPlayAudioClick = {
-
-                        }, onOpenPdfClick = {
-
-                        }, lesson = Lesson(
-                            id = "1",
-                            title = "Introduction to Islamic Beliefs",
-                            audioUrl = "",
-                            pdfUrl = "",
-                            duration = "1.32"
-                        )*/
+                        }
                     )
 
                 }

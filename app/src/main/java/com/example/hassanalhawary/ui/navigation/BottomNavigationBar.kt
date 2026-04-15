@@ -41,14 +41,13 @@ fun BottomNavigationBar(
         items.forEach { screen ->
 
             val isSelected = when (screen.route) {
-                "telegram_login" -> currentRoute?.startsWith("telegram_login") == true
+                Routes.STUDY_SCREEN -> currentRoute?.startsWith(Routes.STUDY_SCREEN) == true
                 else -> currentRoute == screen.route
             }
-             Log.d(
+            Log.d(
                 "BottomNavigationBar",
                 "BottomNavigationBar: isSelected = $isSelected && route = ${screen.route} current = $currentRoute"
             )
-            "telegram_login"
             NavigationBarItem(
                 icon = {
                     Icon(
