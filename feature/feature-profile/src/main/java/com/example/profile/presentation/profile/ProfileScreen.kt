@@ -358,8 +358,8 @@ fun ThemeSwitcher(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
             )
         },
         trailingContent = {
-            Switch(checked = isDarkTheme, onCheckedChange = { checked ->
-//                onThemeChange(checked)
+            Switch(checked = isDarkTheme, onCheckedChange = {
+                onThemeChange(!isDarkTheme)
             })
         },
         modifier = Modifier.clickable { onThemeChange(!isDarkTheme) }

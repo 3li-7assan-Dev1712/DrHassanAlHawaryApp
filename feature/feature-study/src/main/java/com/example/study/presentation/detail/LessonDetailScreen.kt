@@ -43,7 +43,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -80,6 +79,7 @@ import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Lesson
+import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -92,15 +92,21 @@ fun LessonDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    DisposableEffect(Unit) {
-        val sessionToken =
-            SessionToken(context, ComponentName(context, PlaybackService::class.java))
-        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        viewModel.mediaControllerFuture = controllerFuture
+    val sessionToken = remember {
+        SessionToken(context, ComponentName(context,  PlaybackService::class.java))
+    }
 
-        onDispose {
-            MediaController.releaseFuture(controllerFuture)
-        }
+    val controllerFuture: ListenableFuture<MediaController> = remember {
+        MediaController.Builder(context, sessionToken).buildAsync()
+    }
+
+    LaunchedEffect(controllerFuture) {
+        viewModel.mediaControllerFuture = controllerFuture
+    }
+
+    LaunchedEffect(Unit) {
+        val serviceIntent = Intent(context, PlaybackService::class.java)
+        context.startService(serviceIntent)
     }
 
     fun openPdf(url: String) {

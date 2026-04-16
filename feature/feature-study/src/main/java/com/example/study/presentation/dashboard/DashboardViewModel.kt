@@ -95,13 +95,13 @@ class DashboardViewModel @Inject constructor(
             }
         }
 
+        // Leaderboard and User Score (Real-time)
+        observeLeaderboard()
         // Latest Quiz
         viewModelScope.launch {
             fetchLatestQuiz()
         }
 
-        // Leaderboard and User Score (Real-time)
-        observeLeaderboard()
     }
 
     private suspend fun fetchLatestQuiz() {

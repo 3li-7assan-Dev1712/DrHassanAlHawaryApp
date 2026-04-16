@@ -86,7 +86,20 @@ class LessonDetailViewModel @Inject constructor(
             _uiState.value.lesson?.let { lesson ->
                 if (controller.currentMediaItem?.mediaId != lesson.id) {
                     setupPlayerWithLesson(controller, lesson)
+                } else {
+                    if (controller.playbackState == Player.STATE_ENDED || controller.playbackState == Player.STATE_IDLE) {
+                        controller.prepare()
+                    }
                 }
+            }
+
+            _uiState.update {
+                it.copy(
+                    isPlaying = controller.isPlaying,
+                    currentPosition = controller.currentPosition,
+                    totalDuration = if (controller.duration > 0) controller.duration else it.totalDuration,
+                    isBuffering = controller.playbackState == Player.STATE_BUFFERING
+                )
             }
 
             controller.addListener(object : Player.Listener {
@@ -96,7 +109,7 @@ class LessonDetailViewModel @Inject constructor(
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     _uiState.update {
-                        it.copy(isBuffering = false)
+                        it.copy(isBuffering = playbackState == Player.STATE_BUFFERING)
                     }
                     if (playbackState == Player.STATE_READY) {
                         _uiState.update { it.copy(totalDuration = controller.duration) }
@@ -106,8 +119,9 @@ class LessonDetailViewModel @Inject constructor(
 
             // Progress tracking
             while (isActive) {
-                if (controller.isPlaying) {
-                    _uiState.update { it.copy(currentPosition = controller.currentPosition) }
+                val pos = controller.currentPosition
+                if (_uiState.value.currentPosition != pos) {
+                    _uiState.update { it.copy(currentPosition = pos) }
                 }
                 delay(300)
             }
