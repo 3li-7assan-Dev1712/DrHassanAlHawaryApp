@@ -153,7 +153,7 @@ class StudentFirestoreSource @Inject constructor(
                 null
             } else {
                 StudentDto(
-                    telegramId = document.getLong("id") ?: 0,
+                    telegramId = document.getLong("telegramId") ?: 0,
                     firstName = document.getString("firstName") ?: "",
                     lastName = document.getString("lastName") ?: "",
                     username = document.getString("username") ?: "",
