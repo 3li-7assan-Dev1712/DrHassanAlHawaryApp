@@ -33,7 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.core.ui.R
+import com.example.feature.onboarding.R
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
@@ -51,25 +51,25 @@ fun OnboardingScreen(
     val pages = remember {
         listOf(
             OnboardingPage(
-                illustrationRes = R.drawable.student_icon,
+                illustrationRes = R.drawable.study_boy,
                 titleRes = R.string.study,
-                descriptionRes = R.string.study
-            )
-            /*OnboardingPage(
-                illustrationRes = R.drawable.journey_illu,
-                titleRes = R.string.onboarding_title_1,
-                descriptionRes = R.string.onboarding_description_1
+                descriptionRes = R.string.study_institure_des
             ),
             OnboardingPage(
-                illustrationRes = R.drawable.summary_illu,
-                titleRes = R.string.onboarding_title_2,
-                descriptionRes = R.string.onboarding_description_2
+                illustrationRes = R.drawable.journey_illu,
+                titleRes = R.string.journey_title,
+                descriptionRes = R.string.journey_description
             ),
             OnboardingPage(
                 illustrationRes = R.drawable.network_error,
-                titleRes = R.string.onboarding_title_3,
-                descriptionRes = R.string.onboarding_description_3
-            )*/
+                titleRes = R.string.network_error_title,
+                descriptionRes = R.string.network_error_description
+            ),
+            OnboardingPage(
+                illustrationRes = R.drawable.summary_illu,
+                titleRes = R.string.pdf_illu_title,
+                descriptionRes = R.string.pdf_illu_descritption
+            )
         )
     }
 

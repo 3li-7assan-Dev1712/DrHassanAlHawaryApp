@@ -6,7 +6,7 @@
     <style name="Theme.HassanAlHawary.Splash" parent="Theme.SplashScreen">
 
 
-        <item name="windowSplashScreenAnimatedIcon">@drawable/logo_admin_app</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/admin_logo_app</item>
 
 
         <item name="postSplashScreenTheme">@style/Theme.HassanAlHawary</item>

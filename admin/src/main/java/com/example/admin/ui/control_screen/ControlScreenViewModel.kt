@@ -46,8 +46,8 @@ class ControlScreenViewModel @Inject constructor(
     fun toggleQuizActiveStatus(quizId: String, newStatus: Boolean, startAt: Long?, endAt: Long?) {
         // Optimistic UI update
         _uiState.update { state ->
-            val updatedQuizzes = state.quizzes.map { 
-                if (it.id == quizId) it.copy(isActive = newStatus) else it 
+            val updatedQuizzes = state.quizzes.map {
+                if (it.id == quizId) it.copy(isActive = newStatus) else it
             }
             state.copy(quizzes = updatedQuizzes)
         }

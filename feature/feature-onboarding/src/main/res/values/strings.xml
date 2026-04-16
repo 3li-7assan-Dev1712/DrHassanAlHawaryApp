@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <!-- Onboarding -->
+    <string name="share_app">مشاركة التطبيق مع الإخــوة</string>
+
+
+
+
+
+    <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
+    <string name="downloading_msg">جاري التحميل</string>
+    <string name="welcome_to_app">مرحباً بك في تطبيق</string>
+    <string name="search_hint">بحث</string>
+
+
+    <string name="audio_detail_description_title">وصف المقطع الصوتي</string>
+    <string name="search_illustration_description">ابحث عن كل المحتويات المسموعة والمرئية والمكتوبة بضغطة زر واحدة فقط</string>
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_get_started">"لنبدأ "</string>
+    <string name="study_institure_des">اطلب العلم واحصل على كل دروس الشيخ د. حسن الهواري مجموعة ومرتبة في مكان واحد\nوكذلك منطقة دراسة مخصصة داخل التطبيق للمعهد الفقهي</string>
+    <string name="journey_title">ابدأ رحلتك التعليمية واحفظ تقدمك</string>
+    <string name="journey_description">ابدا التدرج الصحيح في دراسة الفقه دراسة تأصيلية واحفظ تقدمك في مختلف الأجهزة عن طريق تسجيل حساب على التطبيق</string>
+    <string name="network_error_title">إنقطع إتصالك بالإنترنت؟</string>
+    <string name="network_error_description">أحصل على الدروس والمقاطع الصوتية من دون إنترنت وذلك بعد تحميلها داخل التطبيق</string>
+    <string name="pdf_illu_title">أحصل على ملفات ال pdf وتصفحها بشكل مرتب</string>
+    <string name="pdf_illu_descritption">يمكنك الحصول على ملفات ومرفقات الدروس بشكل سهل وسريع وذلك بالدخول على الدرس لتجد كل ملحقات الدرس الخاصة به في مكان واحد</string>
+
+
+</resources>
