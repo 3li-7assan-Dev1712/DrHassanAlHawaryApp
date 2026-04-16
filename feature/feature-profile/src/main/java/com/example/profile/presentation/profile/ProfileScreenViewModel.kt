@@ -2,6 +2,8 @@ package com.example.profile.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.use_cases.DeleteAccountUseCase
+import com.example.domain.use_cases.study.DeleteStudentDataUseCase
 import com.example.profile.domain.use_case.GetUserDataUseCase
 import com.example.profile.domain.use_case.SignOutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +16,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileScreenViewModel @Inject constructor(
     getUserDataUseCase: GetUserDataUseCase,
-    val singOutUseCase: SignOutUseCase
+    private val singOutUseCase: SignOutUseCase,
+    private val deleteAccountUseCase: DeleteAccountUseCase,
+    private val deleteStudentDataUseCase: DeleteStudentDataUseCase
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<ProfileUiState> = MutableStateFlow(
@@ -47,6 +51,32 @@ class ProfileScreenViewModel @Inject constructor(
         }
 
 
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _state.update { it.copy(isDeleting = true) }
+            val result = deleteAccountUseCase()
+            if (result.isSuccess) {
+                deleteStudentDataUseCase() // clear local db
+                _state.update {
+                    it.copy(
+                        isDeleting = false,
+                        signOutResult = com.example.domain.module.SignOutResult(success = true)
+                    )
+                }
+            } else {
+                _state.update {
+                    it.copy(
+                        isDeleting = false,
+                        signOutResult = com.example.domain.module.SignOutResult(
+                            success = false,
+                            error = result.exceptionOrNull()?.message ?: "فشل حذف الحساب"
+                        )
+                    )
+                }
+            }
+        }
     }
 
     fun onSignOutResultConsumed() {

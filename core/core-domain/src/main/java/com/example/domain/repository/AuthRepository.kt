@@ -32,5 +32,7 @@ interface AuthRepository {
 
     suspend fun signOut()
 
+    suspend fun deleteAccount(): Result<Unit>
+
     fun observeAuthState(): kotlinx.coroutines.flow.Flow<Boolean>
 }

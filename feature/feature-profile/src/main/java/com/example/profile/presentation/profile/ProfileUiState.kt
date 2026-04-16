@@ -6,5 +6,6 @@ import com.example.domain.module.UserData
 data class ProfileUiState(
     val userData: UserData?,
     val signOutResult: SignOutResult? = null,
+    val isDeleting: Boolean = false,
     val currentAppVersion: String = "1.0.0"
 )

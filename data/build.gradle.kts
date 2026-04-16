@@ -50,6 +50,7 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.functions)
 
     // for room ktx
     implementation(libs.room.ktx)

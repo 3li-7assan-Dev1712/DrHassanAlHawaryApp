@@ -10,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -19,6 +20,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     private val googleAuthUiClient: GoogleAuthUiClient,
     private val firebaseAuth: FirebaseAuth,
+    private val firebaseFunctions: FirebaseFunctions
 )
 
     : AuthRepository {
@@ -204,12 +206,30 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun observeAuthState(): kotlinx.coroutines.flow.Flow<Boolean> = kotlinx.coroutines.flow.callbackFlow {
-        val listener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(auth.currentUser != null)
+    override fun observeAuthState(): kotlinx.coroutines.flow.Flow<Boolean> =
+        kotlinx.coroutines.flow.callbackFlow {
+            val listener = FirebaseAuth.AuthStateListener { auth ->
+                trySend(auth.currentUser != null)
+            }
+            firebaseAuth.addAuthStateListener(listener)
+            awaitClose { firebaseAuth.removeAuthStateListener(listener) }
         }
-        firebaseAuth.addAuthStateListener(listener)
-        awaitClose { firebaseAuth.removeAuthStateListener(listener) }
+
+
+    override suspend fun deleteAccount(): Result<Unit> {
+        return try {
+            firebaseFunctions
+                .getHttpsCallable("deleteMyAccount")
+                .call()
+                .await()
+
+            signOut()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteAccount error: ${e.message}")
+            Result.failure(e)
+        }
     }
 
 
