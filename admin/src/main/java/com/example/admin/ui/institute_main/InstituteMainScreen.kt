@@ -59,7 +59,7 @@ import com.example.domain.module.Student
 @Composable
 fun InstituteMainScreen(
     viewModel: InstituteViewModel = hiltViewModel(),
-    onUploadQuiz: () -> Unit,
+    onManageQuizzes: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onUploadMotivationalMessages: () -> Unit,
     onLevelClick: (String) -> Unit,
@@ -77,7 +77,7 @@ fun InstituteMainScreen(
             AdminDashboard(
                 student = state.studentData,
                 isRefreshing = state.isRefreshing,
-                onUploadQuiz = onUploadQuiz,
+                onManageQuizzes = onManageQuizzes,
                 onUploadAnnouncement = onUploadAnnouncement,
                 onUploadMotivationalMessages = onUploadMotivationalMessages,
                 onLevelClick = onLevelClick,
@@ -103,7 +103,7 @@ fun InstituteMainScreen(
 fun AdminDashboard(
     student: Student,
     isRefreshing: Boolean,
-    onUploadQuiz: () -> Unit,
+    onManageQuizzes: () -> Unit,
     onUploadAnnouncement: () -> Unit,
     onUploadMotivationalMessages: () -> Unit,
     onLevelClick: (String) -> Unit,
@@ -137,9 +137,9 @@ fun AdminDashboard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     UploadActionCard(
-                        titleRes = R.string.upload_quiz,
+                        titleRes = R.string.manage_quizzes,
                         icon = Icons.Default.Quiz,
-                        onClick = onUploadQuiz,
+                        onClick = onManageQuizzes,
                         modifier = Modifier.weight(1f),
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer

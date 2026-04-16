@@ -330,6 +330,15 @@ class StudyRepositoryImpl @Inject constructor(
         return quizDto.copy(questions = questionsDto).toDomain()
     }
 
+    override fun observeQuizWithQuestions(batchId: String): Flow<Quiz?> {
+        return studentFirestoreSource.getLatestQuizWithQuestionsFlow(batchId).map { pair ->
+            if (pair == null) return@map null
+            val quizDto = pair.first
+            val questionsDto = pair.second
+            quizDto.copy(questions = questionsDto).toDomain()
+        }
+    }
+
     override suspend fun uploadQuiz(quiz: Quiz): Result<Unit> {
         return studentFirestoreSource.uploadQuiz(quiz.toDto())
     }

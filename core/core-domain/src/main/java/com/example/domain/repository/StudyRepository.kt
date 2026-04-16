@@ -85,6 +85,7 @@ interface StudyRepository {
     suspend fun uploadQuiz(quiz: Quiz): Result<Unit>
     suspend fun getLatestQuiz(batchId: String): Quiz?
     suspend fun getQuizWithQuestions(batchId: String): Quiz?
+    fun observeQuizWithQuestions(batchId: String): Flow<Quiz?>
     suspend fun getAllQuizzes(): List<Quiz>
     suspend fun updateQuizControls(quizId: String, isActive: Boolean, startAt: Long?, endAt: Long?): Result<Unit>
     suspend fun submitLeaderboardEntry(entry: LeaderBoard): Result<Unit>

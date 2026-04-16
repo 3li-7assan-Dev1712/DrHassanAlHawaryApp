@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.use_cases.study.GetLeaderboardUseCase
 import com.example.domain.use_cases.study.GetMotivationalMessagesUseCase
-import com.example.domain.use_cases.study.GetQuizWithQuestionsUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
+import com.example.domain.use_cases.study.ObserveQuizWithQuestionsUseCase
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.SyncLevelsUseCase
 import com.example.study.domain.use_case.SyncPlaylistsUseCase
@@ -19,9 +19,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,7 +32,7 @@ class DashboardViewModel @Inject constructor(
     private val syncLevelsUseCase: SyncLevelsUseCase,
     private val syncPlaylistsUseCase: SyncPlaylistsUseCase,
     private val getMotivationalMessagesUseCase: GetMotivationalMessagesUseCase,
-    private val getQuizWithQuestionsUseCase: GetQuizWithQuestionsUseCase,
+    private val observeQuizWithQuestionsUseCase: ObserveQuizWithQuestionsUseCase,
     private val getLeaderboardUseCase: GetLeaderboardUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase
 ) : ViewModel() {
@@ -56,18 +55,18 @@ class DashboardViewModel @Inject constructor(
                 getLevelsUseCase()
                     .catch { e -> Log.e(TAG, "getLevels error: ${e.message}") }
                     .collect { levels ->
-                    if (levels.isNullOrEmpty()) {
-                        _uiState.update {
-                            it.copy(
-                                levelsErrorMessage = "لم يتم العثور على بيانات المراحل الدراسية",
-                                loadingLevels = false
-                            )
-                        }
-                    } else {
-                        _uiState.update { it.copy(levels = levels, loadingLevels = false) }
+                        if (levels.isNullOrEmpty()) {
+                            _uiState.update {
+                                it.copy(
+                                    levelsErrorMessage = "لم يتم العثور على بيانات المراحل الدراسية",
+                                    loadingLevels = false
+                                )
+                            }
+                        } else {
+                            _uiState.update { it.copy(levels = levels, loadingLevels = false) }
 
+                        }
                     }
-                }
             } catch (e: Exception) {
                 Log.e(TAG, "Levels error", e)
                 _uiState.update { it.copy(levelsErrorMessage = e.message, loadingLevels = false) }
@@ -95,62 +94,62 @@ class DashboardViewModel @Inject constructor(
             }
         }
 
-        // Leaderboard and User Score (Real-time)
-        observeLeaderboard()
-        // Latest Quiz
-        viewModelScope.launch {
-            fetchLatestQuiz()
-        }
 
-    }
-
-    private suspend fun fetchLatestQuiz() {
-        try {
-            val studentData = getStudentDataUseCase().first()
-            val batch = studentData?.batch
-
-            _uiState.update { it.copy(batch = batch) }
-
-            val quiz = getQuizWithQuestionsUseCase(batch ?: "")
-            Log.d(TAG, "fetchLatestQuiz: $quiz $batch")
-            if (quiz != null) {
-                _uiState.update {
-                    it.copy(
-                        latestQuizId = quiz.id,
-                        latestQuizType = quiz.type,
-                        latestQuizTotalQuestions = quiz.questions.size,
-                        hasNewQuiz = true
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Quiz error", e)
-        }
+        // Leaderboard, User Score and Latest Quiz (Reactive pipeline)
+        observeQuizAndLeaderboard()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeLeaderboard() {
+    private fun observeQuizAndLeaderboard() {
         viewModelScope.launch {
-            // Wait for the latest quiz ID to be fetched before observing the leaderboard
-            uiState.map { it.latestQuizId }
-                .filter { !it.isNullOrBlank() }
+            getStudentDataUseCase()
+                .map { it?.batch }
                 .distinctUntilChanged()
-                .flatMapLatest { quizId ->
-                    _uiState.update { it.copy(loadingTopStudents = true) }
-                    
-                    combine(
-                        getLeaderboardUseCase(quizId!!),
-                        getStudentDataUseCase()
-                    ) { leaderboard, student ->
-                        val userEntry = if (student != null) {
-                            leaderboard.find { it.telegramId == student.telegramId }
-                        } else null
+                .flatMapLatest { batch ->
+                    _uiState.update { it.copy(batch = batch) }
 
-                        Pair(leaderboard, userEntry?.score)
-                    }
+                    // Now observe the quiz reactive flow instead of a one-time fetch
+                    observeQuizWithQuestionsUseCase(batch ?: "")
+                        .flatMapLatest { quiz ->
+                            if (quiz != null) {
+                                _uiState.update {
+                                    it.copy(
+                                        latestQuizId = quiz.id,
+                                        latestQuizType = quiz.type,
+                                        latestQuizTotalQuestions = quiz.questions.size,
+                                        hasNewQuiz = true,
+                                        loadingTopStudents = true
+                                    )
+                                }
+
+                                combine(
+                                    getLeaderboardUseCase(quiz.id),
+                                    getStudentDataUseCase()
+                                ) { leaderboard, student ->
+                                    val userEntry = if (student != null) {
+                                        leaderboard.find { entry -> entry.telegramId == student.telegramId }
+                                    } else null
+
+                                    Pair(leaderboard, userEntry?.score)
+                                }
+                            } else {
+                                _uiState.update {
+                                    it.copy(
+                                        hasNewQuiz = false,
+                                        loadingTopStudents = false
+                                    )
+                                }
+                                flowOf(
+                                    Pair(
+                                        emptyList<com.example.domain.module.LeaderBoard>(),
+                                        null as Int?
+                                    )
+                                )
+                            }
+                        }
                 }
                 .catch { e ->
-                    Log.e(TAG, "Leaderboard observation error", e)
+                    Log.e(TAG, "Quiz/Leaderboard observation error", e)
                     _uiState.update {
                         it.copy(
                             loadingTopStudents = false,
@@ -159,7 +158,7 @@ class DashboardViewModel @Inject constructor(
                     }
                 }
                 .collectLatest { (leaderboard, score) ->
-                    Log.d(TAG, "observeLeaderboard: $leaderboard $score")
+                    Log.d(TAG, "observeQuizAndLeaderboard: $leaderboard $score")
                     _uiState.update {
                         it.copy(
                             topStudents = leaderboard,

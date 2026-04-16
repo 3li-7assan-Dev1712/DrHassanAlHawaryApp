@@ -333,7 +333,8 @@ class MainActivity : ComponentActivity() {
 
                         composable("manage_quizzes") {
                             ManageQuizzesScreen(
-                                onNavigateBack = { navController.popBackStack() }
+                                onNavigateBack = { navController.popBackStack() },
+                                onAddQuiz = { navController.navigate("upload_quiz") }
                             )
                         }
 
@@ -354,7 +355,7 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             InstituteMainScreen(
-                                onUploadQuiz = { navController.navigate("upload_quiz") },
+                                onManageQuizzes = { navController.navigate("manage_quizzes") },
                                 onUploadAnnouncement = { navController.navigate("upload_announcement") },
                                 onUploadMotivationalMessages = { navController.navigate("upload_motivational_messages") },
                                 onLevelClick = { levelName ->

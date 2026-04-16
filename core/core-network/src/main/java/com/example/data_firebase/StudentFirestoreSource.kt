@@ -523,6 +523,49 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
+    fun getLatestQuizWithQuestionsFlow(batchId: String): Flow<Pair<QuizDto, List<QuestionDto>>?> = callbackFlow {
+        if (batchId.isBlank()) {
+            trySend(null)
+            close()
+            return@callbackFlow
+        }
+        val listener = firestore.collection("quizzes")
+            .whereArrayContains("batchIds", batchId)
+            .whereEqualTo("isActive", true)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(5)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        close()
+                    } else {
+                        trySend(null)
+                    }
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    launch {
+                        val now = Timestamp.now()
+                        val visibleQuiz = snapshot.documents
+                            .mapNotNull { it.toObject(QuizDto::class.java)?.copy(id = it.id) }
+                            .firstOrNull { quiz ->
+                                (quiz.startAt == null || quiz.startAt <= now) &&
+                                        (quiz.endAt == null || quiz.endAt >= now)
+                            }
+
+                        if (visibleQuiz != null) {
+                            val questions = getQuizQuestions(visibleQuiz.id)
+                            trySend(visibleQuiz to questions)
+                        } else {
+                            trySend(null)
+                        }
+                    }
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
     suspend fun getQuizWithQuestions(batchId: String): Pair<QuizDto, List<QuestionDto>>? {
         val quiz = getLatestQuiz(batchId) ?: return null
         val questions = getQuizQuestions(quiz.id)

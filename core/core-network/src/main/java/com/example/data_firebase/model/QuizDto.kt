@@ -2,6 +2,7 @@ package com.example.data_firebase.model
 
 import com.example.domain.module.QuizType
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.PropertyName
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
@@ -26,7 +27,7 @@ data class QuizDto(
     val questions: List<QuestionDto> = emptyList(),
     val batchIds: List<String> = emptyList(),
     @ServerTimestamp val createdAt: Date? = null,
-    val isActive: Boolean = true,
+    @get:PropertyName("isActive") @set:PropertyName("isActive") var isActive: Boolean = true,
     val startAt: Timestamp? = null,
     val endAt: Timestamp? = null
 )

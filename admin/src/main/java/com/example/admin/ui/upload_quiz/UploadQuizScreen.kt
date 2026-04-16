@@ -228,7 +228,7 @@ fun UploadQuizScreen(
                             )
                             Switch(
                                 checked = uiState.isActive,
-                                onCheckedChange = viewModel::onIsActiveChange
+                                onCheckedChange = { isActive -> viewModel.onIsActiveChange(isActive) }
                             )
                         }
 
