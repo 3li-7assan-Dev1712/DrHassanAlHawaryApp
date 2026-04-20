@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.core.util
+package app.netlify.devalihassan.core.util
 
 
 import android.app.NotificationChannel
@@ -53,7 +53,7 @@ class NotificationService : FirebaseMessagingService() {
         }
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(com.example.hassanalhawary.R.drawable.audios_icon)
+            .setSmallIcon(app.netlify.devalihassan.R.drawable.audios_icon)
             .setLargeIcon(large)
             .setContentTitle(title)
             .setContentText(body)

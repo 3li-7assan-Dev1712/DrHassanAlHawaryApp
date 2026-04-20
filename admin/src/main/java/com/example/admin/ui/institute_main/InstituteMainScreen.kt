@@ -1,4 +1,4 @@
-package com.example.admin.ui.institute_main
+package app.netlify.devalihassan.ui.institute_main
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,9 +51,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import app.netlify.devalihassan.R
+import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
 import coil.compose.AsyncImage
-import com.example.admin.R
-import com.example.admin.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Student
 
 @Composable

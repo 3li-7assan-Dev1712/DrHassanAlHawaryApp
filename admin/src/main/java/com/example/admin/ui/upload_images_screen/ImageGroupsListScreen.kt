@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_images_screen
+package app.netlify.devalihassan.ui.upload_images_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,9 +48,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import com.example.admin.R
+import app.netlify.devalihassan.R
+import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.animation.LoadingScreen
+import com.example.core.ui.components.shimmer
 import com.example.domain.module.ImageGroup
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -110,7 +111,7 @@ fun ImageGroupsListScreen(
                             )
                             Spacer(Modifier.height(16.dp))
                             Text(
-                                text = stringResource(R.string.no_articles_found),
+                                text = stringResource(R.string.no_images_found),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -181,13 +182,20 @@ fun ImageGroupAdminItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
+            SubcomposeAsyncImage(
                 model = group.previewImageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                loading = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .shimmer(cornerRadius = 12.dp)
+                    )
+                }
             )
             
             Column(

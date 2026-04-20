@@ -1,4 +1,4 @@
-package com.example.admin.ui.add_edit_playlist
+package app.netlify.devalihassan.ui.add_edit_playlist
 
 import android.net.Uri
 

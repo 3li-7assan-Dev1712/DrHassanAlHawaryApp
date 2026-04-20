@@ -1,11 +1,11 @@
 package com.example.search.di
 
 
+import app.netlify.devalihassan.feature.search.BuildConfig
 import com.algolia.instantsearch.searcher.hits.HitsSearcher
 import com.algolia.search.model.APIKey
 import com.algolia.search.model.ApplicationID
 import com.algolia.search.model.IndexName
-import com.example.hassanalhawary.feature.search.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

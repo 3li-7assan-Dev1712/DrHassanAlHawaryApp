@@ -1,9 +1,9 @@
-package com.example.hassanalhawary.ui.theme
+package app.netlify.devalihassan.ui.theme
 
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import com.example.hassanalhawary.R
+import app.netlify.devalihassan.R
 
 val Cairo = FontFamily(
 

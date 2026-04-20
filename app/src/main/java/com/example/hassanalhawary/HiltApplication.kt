@@ -1,4 +1,4 @@
-package com.example.hassanalhawary
+package app.netlify.devalihassan
 
 import android.app.Application
 import android.content.Context
@@ -6,11 +6,11 @@ import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import app.netlify.devalihassan.core.util.LocaleForce
 import com.example.data.di.ApplicationScope
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
-import com.example.hassanalhawary.core.util.LocaleForce
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.GetPlaylistsForLevelUseCase
 import com.example.study.domain.use_case.SyncLessonsUseCase

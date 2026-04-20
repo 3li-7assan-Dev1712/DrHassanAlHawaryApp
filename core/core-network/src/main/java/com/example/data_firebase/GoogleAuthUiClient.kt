@@ -36,8 +36,6 @@ class GoogleAuthUiClient
 
     suspend fun login(): LoginResult {
 
-        //  513198743571-31uj7npmq7m5ammn6bdeoiirglgc996c.apps.googleusercontent.com admin
-        //
         Log.d("CLIENT_ID_CHECK", BuildConfig.GOOGLE_WEB_CLIENT)
         val result = credentialManager.getCredential(context, request)
 
@@ -60,6 +58,7 @@ class GoogleAuthUiClient
             )
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.d("GoogleAuthClient", "login: ${e.message}")
             if (e is CancellationException) throw e
             LoginResult(
                 data = null, errorMessage = e.message

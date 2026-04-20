@@ -1,4 +1,4 @@
-package com.example.admin.ui.super_admin
+package app.netlify.devalihassan.ui.super_admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

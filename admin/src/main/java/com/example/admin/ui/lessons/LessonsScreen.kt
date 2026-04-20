@@ -1,4 +1,4 @@
-package com.example.admin.ui.lessons
+package app.netlify.devalihassan.ui.lessons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,8 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.R
-import com.example.admin.ui.theme.HassanAlHawaryTheme
+import app.netlify.devalihassan.R
+import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Lesson
 

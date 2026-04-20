@@ -1,4 +1,4 @@
-package com.example.admin.ui
+package app.netlify.devalihassan.ui
 
 import com.example.domain.module.UserData
 

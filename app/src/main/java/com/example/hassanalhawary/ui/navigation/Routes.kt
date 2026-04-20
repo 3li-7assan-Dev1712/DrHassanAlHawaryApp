@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.navigation
+package app.netlify.devalihassan.ui.navigation
 
 /**
  * A centralized object to hold all navigation route constants for the app.

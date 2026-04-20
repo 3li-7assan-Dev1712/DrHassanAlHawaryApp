@@ -1,4 +1,4 @@
-package com.example.admin.ui.control_screen
+package app.netlify.devalihassan.ui.control_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

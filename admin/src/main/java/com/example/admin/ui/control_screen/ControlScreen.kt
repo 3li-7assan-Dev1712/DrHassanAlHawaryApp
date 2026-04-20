@@ -1,4 +1,4 @@
-package com.example.admin.ui.control_screen
+package app.netlify.devalihassan.ui.control_screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.admin.R
+import app.netlify.devalihassan.R
 
 data class ControlItem(
     val titleRes: Int,

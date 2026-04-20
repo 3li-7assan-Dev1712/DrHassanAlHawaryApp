@@ -1,4 +1,4 @@
-package com.example.admin
+package app.netlify.devalihassan
 
 import android.content.Context
 import android.os.Bundle
@@ -40,30 +40,30 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.example.admin.ui.MainActivityState
-import com.example.admin.ui.MainActivityViewModel
-import com.example.admin.ui.add_edit_lesson.AddEditLessonScreen
-import com.example.admin.ui.add_edit_playlist.AddEditPlaylistScreen
-import com.example.admin.ui.connect_telegram.ConnectTelegramScreen
-import com.example.admin.ui.control_screen.ControlScreen
-import com.example.admin.ui.control_screen.ManageQuizzesScreen
-import com.example.admin.ui.institute_main.InstituteMainScreen
-import com.example.admin.ui.lessons.LessonsScreen
-import com.example.admin.ui.playlist.PlaylistScreen
-import com.example.admin.ui.super_admin.SuperAdminScreen
-import com.example.admin.ui.theme.HassanAlHawaryTheme
-import com.example.admin.ui.upload_announcement.UploadAnnouncementScreen
-import com.example.admin.ui.upload_article_screen.ArticleUploadScreen
-import com.example.admin.ui.upload_article_screen.ArticlesListScreen
-import com.example.admin.ui.upload_audio_screen.AudioUploadScreen
-import com.example.admin.ui.upload_audio_screen.AudiosListScreen
-import com.example.admin.ui.upload_images_screen.ImageGroupsListScreen
-import com.example.admin.ui.upload_images_screen.UploadImagesScreen
-import com.example.admin.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
-import com.example.admin.ui.upload_quiz.UploadQuizScreen
-import com.example.admin.ui.upload_video_screen.UploadVideoScreen
-import com.example.admin.ui.upload_video_screen.VideosListScreen
-import com.example.admin.util.LocaleForce
+import app.netlify.devalihassan.ui.MainActivityState
+import app.netlify.devalihassan.ui.MainActivityViewModel
+import app.netlify.devalihassan.ui.add_edit_lesson.AddEditLessonScreen
+import app.netlify.devalihassan.ui.add_edit_playlist.AddEditPlaylistScreen
+import app.netlify.devalihassan.ui.connect_telegram.ConnectTelegramScreen
+import app.netlify.devalihassan.ui.control_screen.ControlScreen
+import app.netlify.devalihassan.ui.control_screen.ManageQuizzesScreen
+import app.netlify.devalihassan.ui.institute_main.InstituteMainScreen
+import app.netlify.devalihassan.ui.lessons.LessonsScreen
+import app.netlify.devalihassan.ui.playlist.PlaylistScreen
+import app.netlify.devalihassan.ui.super_admin.SuperAdminScreen
+import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
+import app.netlify.devalihassan.ui.upload_announcement.UploadAnnouncementScreen
+import app.netlify.devalihassan.ui.upload_article_screen.ArticleUploadScreen
+import app.netlify.devalihassan.ui.upload_article_screen.ArticlesListScreen
+import app.netlify.devalihassan.ui.upload_audio_screen.AudioUploadScreen
+import app.netlify.devalihassan.ui.upload_audio_screen.AudiosListScreen
+import app.netlify.devalihassan.ui.upload_images_screen.ImageGroupsListScreen
+import app.netlify.devalihassan.ui.upload_images_screen.UploadImagesScreen
+import app.netlify.devalihassan.ui.upload_motivational_messages.UploadMotivationalMessagesScreen
+import app.netlify.devalihassan.ui.upload_quiz.UploadQuizScreen
+import app.netlify.devalihassan.ui.upload_video_screen.UploadVideoScreen
+import app.netlify.devalihassan.ui.upload_video_screen.VideosListScreen
+import app.netlify.devalihassan.util.LocaleForce
 import com.example.core.ui.animation.LoadingScreen
 import com.example.feature.auth.presentation.login.LoginScreen
 import com.example.feature.auth.presentation.register.RegisterScreen
@@ -349,7 +349,7 @@ class MainActivity : ComponentActivity() {
                             deepLinks = listOf(
                                 navDeepLink {
                                     uriPattern =
-                                        "com.example.hassanalhawary://telegram-login?data={data}"
+                                        "app.netlify.devalihassan://telegram-login?data={data}"
                                 }
                             )
                         ) {

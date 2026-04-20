@@ -1,4 +1,4 @@
-package com.example.admin.ui.institute_main
+package app.netlify.devalihassan.ui.institute_main
 
 import com.example.domain.module.Student
 

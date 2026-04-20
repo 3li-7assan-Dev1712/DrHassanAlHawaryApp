@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.core.util
+package app.netlify.devalihassan.core.util
 
 sealed class LoginRegisterProviderElement {
     object GoogleElement: LoginRegisterProviderElement()

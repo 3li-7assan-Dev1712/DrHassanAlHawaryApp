@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,11 +34,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
 import com.example.core.ui.components.shimmer
 import com.example.feature.home.domain.model.ImageFeed
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -48,21 +48,22 @@ fun ImageCarousel(
 ) {
     val TAG = "ImageCarousel"
 
-    val pagerState = rememberPagerState(pageCount = { imageList.size })
+    val pagerState = rememberPagerState(
+        pageCount = { imageList.size }
+    )
 
     Log.d(TAG, "ImageCarousel: count: ${imageList.size}")
-    
-    // Auto-scroll effect
-    LaunchedEffect(pagerState.pageCount) {
-        if (pagerState.pageCount > 0) {
-            launch {
-                while (true) {
-                    delay(4000)
-                    if (pagerState.pageCount > 0) {
-                        val nextPage = (pagerState.currentPage + 1) % pagerState.pageCount
-                        pagerState.animateScrollToPage(nextPage)
-                    }
-                }
+
+    // Auto-scroll
+    LaunchedEffect(imageList.size) {
+        if (imageList.isNotEmpty()) {
+            while (true) {
+                delay(4000)
+
+                val nextPage =
+                    (pagerState.currentPage + 1) % pagerState.pageCount
+
+                pagerState.animateScrollToPage(nextPage)
             }
         }
     }
@@ -72,37 +73,52 @@ fun ImageCarousel(
             .fillMaxWidth()
             .height(240.dp)
             .padding(vertical = 8.dp)
-            .shimmer(cornerRadius = 16.dp, isLoadingImages),
+            .shimmer(
+                cornerRadius = 16.dp,
+                isLoading = isLoadingImages
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
         if (imageList.isNotEmpty() && !isLoadingImages) {
+
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) { page ->
-                CarouselItem(imageUrl = imageList[page].imageUrl)
+
+                CarouselItem(
+                    imageUrl = imageList[page].imageUrl
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Animated dot indicators
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                repeat(pagerState.pageCount) { iteration ->
-                    val isSelected = pagerState.currentPage == iteration
-                    val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    
+
+                repeat(pagerState.pageCount) { index ->
+
+                    val selected =
+                        pagerState.currentPage == index
+
+                    val color =
+                        if (selected)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+
                     val width by animateDpAsState(
-                        targetValue = if (isSelected) 24.dp else 8.dp,
+                        targetValue = if (selected) 24.dp else 8.dp,
                         animationSpec = tween(300),
-                        label = "indicator_width"
+                        label = "indicator"
                     )
 
                     Box(
@@ -119,60 +135,62 @@ fun ImageCarousel(
     }
 }
 
-@Preview
 @Composable
-private fun ImageCaruelPrev() {
-    ImageCarousel(isLoadingImages = false)
-}
+fun CarouselItem(
+    imageUrl: String
+) {
+    val painter = rememberAsyncImagePainter(
+        model = imageUrl
+    )
 
-@Composable
-fun CarouselItem(imageUrl: String) {
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp), // Space between pages and edges
+            .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 8.dp
+        )
     ) {
+
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Background Image (Blurred and Cropped)
-            SubcomposeAsyncImage(
-                model = imageUrl,
+
+            // Blurred background using same image
+            Image(
+                painter = painter,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .blur(24.dp),
-                loading = {
-                    Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
-                },
-                error = {
-                    Box(modifier = Modifier.fillMaxSize().shimmer(16.dp))
-                }
+                    .matchParentSize()
+                    .blur(10.dp)
             )
-            
-            // A semi-transparent overlay to make the foreground pop
+
+            // Dark overlay
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .matchParentSize()
+                    .background(
+                        Color.Black.copy(alpha = 0.35f)
+                    )
             )
-            
-            // Foreground Image (Fit, without clipping)
-            SubcomposeAsyncImage(
-                model = imageUrl,
+
+            // Main image (Fit)
+            Image(
+                painter = painter,
                 contentDescription = "Carousel Image",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-                loading = {
-                    // Handled by the background
-                },
-                error = {
-                    // Handled by the background
-                }
+                modifier = Modifier.matchParentSize()
             )
         }
     }
+}
+
+@Preview
+@Composable
+private fun ImageCarouselPreview() {
+    ImageCarousel(
+        isLoadingImages = false
+    )
 }

@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.core.util
+package app.netlify.devalihassan.core.util
 
 // Sealed class for specific network messages (one-time events)
 sealed class NetworkMessageEvent {

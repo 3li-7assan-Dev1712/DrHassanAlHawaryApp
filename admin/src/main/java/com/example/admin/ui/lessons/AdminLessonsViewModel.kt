@@ -1,4 +1,4 @@
-package com.example.admin.ui.lessons
+package app.netlify.devalihassan.ui.lessons
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

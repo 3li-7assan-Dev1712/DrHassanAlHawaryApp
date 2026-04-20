@@ -1,4 +1,4 @@
-package com.example.hassanalhawary
+package app.netlify.devalihassan
 
 import com.example.domain.module.UserData
 

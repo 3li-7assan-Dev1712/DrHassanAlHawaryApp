@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_video_screen
+package app.netlify.devalihassan.ui.upload_video_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.R
+import app.netlify.devalihassan.R
 import com.example.domain.use_cases.audios.UploadResult
 
 @OptIn(ExperimentalMaterial3Api::class)

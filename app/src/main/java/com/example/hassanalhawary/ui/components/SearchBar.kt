@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.components
+package app.netlify.devalihassan.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.hassanalhawary.ui.theme.CairoTypography
+import app.netlify.devalihassan.ui.theme.CairoTypography
 
 @Composable
 fun SearchBar(

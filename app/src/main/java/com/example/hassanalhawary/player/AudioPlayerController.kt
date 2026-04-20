@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.player
+package app.netlify.devalihassan.player
 
 import android.content.Context
 import androidx.media3.common.MediaItem

@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.theme
+package app.netlify.devalihassan.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme

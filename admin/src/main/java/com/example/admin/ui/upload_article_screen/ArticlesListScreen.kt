@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_article_screen
+package app.netlify.devalihassan.ui.upload_article_screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.R
+import app.netlify.devalihassan.R
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Article
 import java.text.SimpleDateFormat

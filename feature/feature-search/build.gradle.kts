@@ -16,7 +16,7 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.hassanalhawary.feature.search"
+    namespace = "app.netlify.devalihassan.feature.search"
     compileSdk = 36
 
     buildFeatures {

@@ -1,4 +1,4 @@
-package com.example.admin.ui.theme
+package app.netlify.devalihassan.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

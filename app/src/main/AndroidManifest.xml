@@ -57,7 +57,7 @@
 
                 <data
                     android:host="telegram-login"
-                    android:scheme="com.example.hassanalhawary" />
+                    android:scheme="app.netlify.devalihassan" />
             </intent-filter>
 
             <!--      <intent-filter android:autoVerify="true">

@@ -1,4 +1,4 @@
-package com.example.admin.ui.level_detail
+package app.netlify.devalihassan.ui.level_detail
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.player
+package app.netlify.devalihassan.player
 
 // Data class to represent the player's state
 data class PlayerState(

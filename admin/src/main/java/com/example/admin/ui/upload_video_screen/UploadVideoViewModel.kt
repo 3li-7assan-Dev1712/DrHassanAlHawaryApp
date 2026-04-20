@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_video_screen
+package app.netlify.devalihassan.ui.upload_video_screen
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

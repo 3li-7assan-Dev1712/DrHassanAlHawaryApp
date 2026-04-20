@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.components
+package app.netlify.devalihassan.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.hassanalhawary.ui.theme.CairoTypography
+import app.netlify.devalihassan.ui.theme.CairoTypography
 
 @Composable
 fun TopAppBar(

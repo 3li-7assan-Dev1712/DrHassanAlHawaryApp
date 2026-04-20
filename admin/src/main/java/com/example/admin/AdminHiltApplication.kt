@@ -1,4 +1,4 @@
-package com.example.admin
+package app.netlify.devalihassan
 
 import android.app.Application
 import com.google.firebase.FirebaseApp

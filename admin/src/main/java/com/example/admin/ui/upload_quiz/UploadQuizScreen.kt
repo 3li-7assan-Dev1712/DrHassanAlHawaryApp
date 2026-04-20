@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_quiz
+package app.netlify.devalihassan.ui.upload_quiz
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.R
+import app.netlify.devalihassan.R
 import com.example.domain.module.Question
 import com.example.domain.module.QuestionType
 import com.example.domain.module.QuizType

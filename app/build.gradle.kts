@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,11 +8,14 @@ plugins {
 }
 
 android {
-    namespace = "com.example.hassanalhawary"
+
+    namespace = "app.netlify.devalihassan"
+//    namespace = "app.netlify.devalihassan"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.hassanalhawary"
+//        applicationId = "app.netlify.devalihassan"
+        applicationId = "app.netlify.devalihassan"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -109,7 +111,6 @@ dependencies {
 
     // guava
     implementation(libs.kotlinx.coroutines.guava)
-
 
 
     // splash screen

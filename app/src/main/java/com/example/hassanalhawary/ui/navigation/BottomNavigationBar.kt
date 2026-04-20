@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.navigation
+package app.netlify.devalihassan.ui.navigation
 
 import android.util.Log
 import androidx.compose.material3.Icon
@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.hassanalhawary.ui.theme.CairoTypography
+import app.netlify.devalihassan.ui.theme.CairoTypography
 
 @Composable
 fun BottomNavigationBar(

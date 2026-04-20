@@ -186,4 +186,5 @@
     <string name="batch_other">الدفعة %1$d</string>
     <string name="weekly">اسبوعي</string>
     <string name="final_exam">نهائي</string>
+    <string name="no_images_found">لا توجد تصاميم متاحة الآن</string>
 </resources>

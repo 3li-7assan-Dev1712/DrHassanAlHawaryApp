@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_motivational_messages
+package app.netlify.devalihassan.ui.upload_motivational_messages
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,8 +25,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.R
-import com.example.admin.ui.theme.HassanAlHawaryTheme
+import app.netlify.devalihassan.R
+import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
 
 @Composable
 fun UploadMotivationalMessagesScreen(

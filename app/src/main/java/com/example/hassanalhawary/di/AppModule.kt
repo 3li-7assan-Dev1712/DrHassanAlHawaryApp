@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.di
+package app.netlify.devalihassan.di
 
 
 import android.app.Application

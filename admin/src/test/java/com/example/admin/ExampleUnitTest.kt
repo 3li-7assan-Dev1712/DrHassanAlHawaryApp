@@ -1,4 +1,4 @@
-package com.example.admin
+package app.netlify.devalihassan
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

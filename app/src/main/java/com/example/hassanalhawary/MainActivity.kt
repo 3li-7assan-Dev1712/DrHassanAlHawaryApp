@@ -1,4 +1,4 @@
-package com.example.hassanalhawary
+package app.netlify.devalihassan
 
 import android.content.Context
 import android.net.Uri
@@ -35,6 +35,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import app.netlify.devalihassan.core.util.LocaleForce
+import app.netlify.devalihassan.ui.navigation.BottomNavigationBar
+import app.netlify.devalihassan.ui.navigation.Routes
+import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
@@ -50,10 +54,6 @@ import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
-import com.example.hassanalhawary.core.util.LocaleForce
-import com.example.hassanalhawary.ui.navigation.BottomNavigationBar
-import com.example.hassanalhawary.ui.navigation.Routes
-import com.example.hassanalhawary.ui.theme.HassanAlHawaryTheme
 import com.example.profile.presentation.about_app.AboutAppScreen
 import com.example.profile.presentation.components.LegalTextScreen
 import com.example.profile.presentation.components.ProfileRoute
@@ -513,7 +513,7 @@ class MainActivity : ComponentActivity() {
 
                 }
                 composable(Routes.Q_A_SCREEN) {
-                    com.example.hassanalhawary.ui.q_a.QAScreen()
+                    app.netlify.devalihassan.ui.q_a.QAScreen()
                 }
 
                 // profile screens
@@ -547,7 +547,7 @@ class MainActivity : ComponentActivity() {
 
                 composable(ProfileDestinations.SHARE) {
                     ShareAppScreen(
-                        "com.example.hassanalhawary",
+                        "app.netlify.devalihassan",
                         onBack = { navController.popBackStack() },
 
                         )
@@ -555,7 +555,7 @@ class MainActivity : ComponentActivity() {
 
                 composable(ProfileDestinations.RATE) {
                     RateAppScreen(
-                        packageName = "com.example.hassanalhawary",
+                        packageName = "app.netlify.devalihassan",
                         onBack = { navController.popBackStack() },
 
                         )

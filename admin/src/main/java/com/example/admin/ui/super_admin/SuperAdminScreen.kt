@@ -1,4 +1,4 @@
-package com.example.admin.ui.super_admin
+package app.netlify.devalihassan.ui.super_admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,7 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.admin.R
+import app.netlify.devalihassan.R
 import com.example.domain.module.Channel
 
 fun formatBatchNameForChannel(batchId: String?): String {

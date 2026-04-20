@@ -1,4 +1,4 @@
-package com.example.admin.ui.theme
+package app.netlify.devalihassan.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

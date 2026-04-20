@@ -1,4 +1,4 @@
-package com.example.admin.di
+package app.netlify.devalihassan.di
 
 import dagger.Module
 import dagger.hilt.InstallIn

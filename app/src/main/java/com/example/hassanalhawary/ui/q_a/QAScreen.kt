@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.q_a
+package app.netlify.devalihassan.ui.q_a
 
 import android.content.Intent
 import androidx.compose.foundation.Image
@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.example.hassanalhawary.R
+import app.netlify.devalihassan.R
 
 @Composable
 fun QAScreen(

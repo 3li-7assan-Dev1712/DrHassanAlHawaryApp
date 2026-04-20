@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_images_screen
+package app.netlify.devalihassan.ui.upload_images_screen
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,8 +39,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import app.netlify.devalihassan.R
 import coil.compose.AsyncImage
-import com.example.admin.R
 import kotlinx.coroutines.launch
 
 

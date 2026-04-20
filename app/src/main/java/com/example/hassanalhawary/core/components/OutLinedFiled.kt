@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.core.components
+package app.netlify.devalihassan.core.components
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -14,8 +14,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.hassanalhawary.R
-import com.example.hassanalhawary.ui.theme.CairoTypography
+import app.netlify.devalihassan.R
+import app.netlify.devalihassan.ui.theme.CairoTypography
 
 @Composable
 fun OutlinedField(

@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.player
+package app.netlify.devalihassan.player
 
 import android.app.PendingIntent
 import android.content.Intent
@@ -11,8 +11,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import com.example.hassanalhawary.MainActivity
-import com.example.hassanalhawary.R
+import app.netlify.devalihassan.MainActivity
+import app.netlify.devalihassan.R
 
 /**
  * This service will handle the running the audio file for

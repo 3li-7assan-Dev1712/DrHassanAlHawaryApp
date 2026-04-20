@@ -1,9 +1,9 @@
-package com.example.hassanalhawary.ui.navigation
+package app.netlify.devalihassan.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import com.example.hassanalhawary.R
+import app.netlify.devalihassan.R
 
 sealed class BottomNavItem(
     val route: String,

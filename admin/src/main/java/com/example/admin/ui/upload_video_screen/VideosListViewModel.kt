@@ -1,4 +1,4 @@
-package com.example.admin.ui.upload_video_screen
+package app.netlify.devalihassan.ui.upload_video_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

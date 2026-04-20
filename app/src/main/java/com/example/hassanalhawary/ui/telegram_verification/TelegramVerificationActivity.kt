@@ -1,4 +1,4 @@
-package com.example.hassanalhawary.ui.telegram_verification
+package app.netlify.devalihassan.ui.telegram_verification
 
 import android.net.Uri
 import android.os.Bundle
