@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_images_screen
+package app.netlify.devalihassan.admin.ui.upload_images_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import app.netlify.devalihassan.R
+import app.netlify.devalihassan.admin.R
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.components.shimmer

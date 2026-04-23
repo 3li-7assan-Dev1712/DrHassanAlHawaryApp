@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.connect_telegram
+package app.netlify.devalihassan.admin.ui.connect_telegram
 
 
 import androidx.browser.customtabs.CustomTabsIntent

@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.theme
+package app.netlify.devalihassan.admin.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

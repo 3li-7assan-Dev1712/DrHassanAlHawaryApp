@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.util
+package app.netlify.devalihassan.admin.util
 
 import android.content.Context
 import android.content.res.Configuration

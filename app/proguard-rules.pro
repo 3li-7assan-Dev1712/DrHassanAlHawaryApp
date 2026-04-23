@@ -19,3 +19,52 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Suppress SLF4J missing classes warning
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# Keep Firestore Models and Domain Models
+-keep class com.example.domain.module.** { *; }
+-keep class com.example.data_firebase.model.** { *; }
+-keep class com.example.feature.home.domain.model.** { *; }
+-keep class com.example.feature.article.domain.model.** { *; }
+-keep class com.example.feature.study.domain.model.** { *; }
+-keep class com.example.data_local.model.** { *; }
+
+-keepclassmembers class com.example.domain.module.** {
+    public <init>();
+    *;
+}
+
+-keepclassmembers class com.example.data_firebase.model.** {
+    public <init>();
+    *;
+}
+
+-keepclassmembers class com.example.feature.home.domain.model.** {
+    public <init>();
+    *;
+}
+
+-keepclassmembers class com.example.feature.article.domain.model.** {
+    public <init>();
+    *;
+}
+
+-keepclassmembers class com.example.data_local.model.** {
+    public <init>();
+    *;
+}
+
+# Keep Room DAOs and implementation
+-keep interface com.example.data_local.** { *; }
+-keep class com.example.data_local.**_Impl { *; }
+
+# Keep annotations and signatures
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes EnclosingMethod
+
+-keep class kotlin.Metadata { *; }
+
+

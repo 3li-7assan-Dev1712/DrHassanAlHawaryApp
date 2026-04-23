@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_audio_screen
+package app.netlify.devalihassan.admin.ui.upload_audio_screen
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -45,7 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import app.netlify.devalihassan.R
+import app.netlify.devalihassan.admin.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)

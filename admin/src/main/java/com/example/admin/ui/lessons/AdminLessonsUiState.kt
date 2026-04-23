@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.lessons
+package app.netlify.devalihassan.admin.ui.lessons
 
 import com.example.domain.module.Lesson
 

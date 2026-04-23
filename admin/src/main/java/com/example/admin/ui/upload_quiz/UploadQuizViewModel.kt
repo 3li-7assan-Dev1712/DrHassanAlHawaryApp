@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_quiz
+package app.netlify.devalihassan.admin.ui.upload_quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

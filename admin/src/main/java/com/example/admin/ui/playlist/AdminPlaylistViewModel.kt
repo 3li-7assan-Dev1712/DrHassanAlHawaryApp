@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.playlist
+package app.netlify.devalihassan.admin.ui.playlist
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

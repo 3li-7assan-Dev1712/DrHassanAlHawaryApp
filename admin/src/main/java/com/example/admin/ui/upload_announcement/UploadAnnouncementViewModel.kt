@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_announcement
+package app.netlify.devalihassan.admin.ui.upload_announcement
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

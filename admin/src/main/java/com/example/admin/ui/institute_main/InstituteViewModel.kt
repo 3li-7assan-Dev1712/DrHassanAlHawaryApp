@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.institute_main
+package app.netlify.devalihassan.admin.ui.institute_main
 
 import android.net.Uri
 import android.util.Log

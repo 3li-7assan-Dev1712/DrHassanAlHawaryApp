@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_images_screen
+package app.netlify.devalihassan.admin.ui.upload_images_screen
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel

@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.control_screen
+package app.netlify.devalihassan.admin.ui.control_screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,7 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import app.netlify.devalihassan.R
+import app.netlify.devalihassan.admin.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

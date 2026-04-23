@@ -9,13 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "app.netlify.devalihassan"
-//    namespace = "app.netlify.devalihassan"
+    namespace = "app.netlify.devalihassan.admin"
     compileSdk = 36
 
     defaultConfig {
-//        applicationId = "app.netlify.devalihassan"
-        applicationId = "app.netlify.devalihassan"
+        applicationId = "app.netlify.devalihassan.admin"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

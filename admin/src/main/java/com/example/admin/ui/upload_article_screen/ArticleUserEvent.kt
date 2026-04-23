@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_article_screen
+package app.netlify.devalihassan.admin.ui.upload_article_screen
 
 
 sealed interface ArticleUserEvent {

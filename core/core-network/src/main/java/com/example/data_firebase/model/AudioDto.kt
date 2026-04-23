@@ -2,15 +2,15 @@ package com.example.data_firebase.model
 
 import androidx.annotation.Keep
 import com.google.firebase.Timestamp
-import com.google.firebase.database.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
 
+
+//    @get:JvmName("isDeleted")
+
 @Keep 
-@IgnoreExtraProperties
 data class AudioDto(
     @get:PropertyName("isDeleted")
     @set:PropertyName("isDeleted")
-    @get:JvmName("isDeleted")
     var isDeleted: Boolean = false,
 
     val id: String = "",

@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.add_edit_playlist
+package app.netlify.devalihassan.admin.ui.add_edit_playlist
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,8 +43,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import app.netlify.devalihassan.R
-import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
+import app.netlify.devalihassan.admin.R
+import app.netlify.devalihassan.admin.ui.theme.HassanAlHawaryTheme
 import coil.compose.AsyncImage
 
 @Composable

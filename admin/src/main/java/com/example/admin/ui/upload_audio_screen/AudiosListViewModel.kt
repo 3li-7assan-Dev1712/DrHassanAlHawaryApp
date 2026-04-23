@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_audio_screen
+package app.netlify.devalihassan.admin.ui.upload_audio_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

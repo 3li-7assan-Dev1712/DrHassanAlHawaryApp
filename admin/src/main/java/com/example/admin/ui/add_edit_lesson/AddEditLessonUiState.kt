@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.add_edit_lesson
+package app.netlify.devalihassan.admin.ui.add_edit_lesson
 
 import android.net.Uri
 

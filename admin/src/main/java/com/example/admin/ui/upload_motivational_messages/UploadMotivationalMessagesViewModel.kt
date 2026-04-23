@@ -1,4 +1,4 @@
-package app.netlify.devalihassan.ui.upload_motivational_messages
+package app.netlify.devalihassan.admin.ui.upload_motivational_messages
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
