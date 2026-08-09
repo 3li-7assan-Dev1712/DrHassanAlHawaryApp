@@ -1,5 +1,6 @@
 package com.example.feature.audio.presentation.list
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -19,20 +20,21 @@ import javax.inject.Inject
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class AudioListViewModel @Inject constructor(
-
-
+    savedStateHandle: SavedStateHandle,
     getPaginatedAudioUseCase: GetPaginatedAudioUseCase
-
-
 ) : ViewModel() {
 
 
+    private val categoryId: String? = savedStateHandle["categoryId"]
+    val categoryTitle: String? = savedStateHandle["categoryTitle"]
+
     private val _uiState = MutableStateFlow<AudioListUiState>(AudioListUiState.Loading())
+
     val uiState: StateFlow<AudioListUiState> = _uiState.asStateFlow()
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val audios: Flow<PagingData<Audio>> = getPaginatedAudioUseCase("").cachedIn(viewModelScope)
+    val audios: Flow<PagingData<Audio>> = getPaginatedAudioUseCase("", categoryId).cachedIn(viewModelScope)
 
 
 }

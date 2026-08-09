@@ -44,6 +44,7 @@ import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
+import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.auth.presentation.login.LoginScreen
@@ -280,7 +281,11 @@ class MainActivity : ComponentActivity() {
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     }, onCategoryClick = { route ->
-                        navController.navigate(route)
+                        if (route == Routes.AUDIO_LIST_SCREEN) {
+                            navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
+                        } else {
+                            navController.navigate(route)
+                        }
                     }
 
 
@@ -329,7 +334,27 @@ class MainActivity : ComponentActivity() {
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }
-                composable("audio_list_screen") {
+                composable(Routes.AUDIO_CATEGORY_SCREEN) {
+                    AudioCategoryScreen(
+                        onCategoryClick = { categoryId, categoryTitle ->
+                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=$categoryTitle")
+                        },
+                        onNavigateUp = { navController.popBackStack() }
+                    )
+                }
+                composable(
+                    route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                    arguments = listOf(
+                        navArgument("categoryId") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("categoryTitle") {
+                            type = NavType.StringType
+                            nullable = true
+                        }
+                    )
+                ) {
                     AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")

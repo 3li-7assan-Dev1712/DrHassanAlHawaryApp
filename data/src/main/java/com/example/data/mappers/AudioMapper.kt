@@ -23,6 +23,7 @@ fun AudioEntity.toDomain(
     localFilePath = localFilePath,
     isPlaying = false,
     type = this.type,
+    categoryId = this.categoryId
 )
 
 
@@ -44,6 +45,7 @@ fun Audio.toEntity(updatedAt: Long = System.currentTimeMillis()): AudioEntity =
         updatedAt = updatedAt,
         isDownloaded = isDownloaded,
         type = this.type,
+        categoryId = this.categoryId
     )
 
 fun AudioDto.toEntity(): AudioEntity =
@@ -54,7 +56,8 @@ fun AudioDto.toEntity(): AudioEntity =
         durationInMillis = durationInMillis,
         publishDate = publishDate?.toDate()?.time ?: 0L,
         updatedAt = updatedAt?.toDate()?.time ?: 0L,
-        type = type
+        type = type,
+        categoryId = categoryId
     )
 
 fun AudioDto.toDomainModel(): Audio =
@@ -69,5 +72,6 @@ fun AudioDto.toDomainModel(): Audio =
         isDownloaded = false,
         localFilePath = null,
         lastPlayedTimestamp = null,
-        type = type
+        type = type,
+        categoryId = categoryId
     )

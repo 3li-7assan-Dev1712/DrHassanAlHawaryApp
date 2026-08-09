@@ -3,12 +3,16 @@ package com.example.domain.repository
 import androidx.paging.PagingData
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
+import com.example.domain.module.ContentCategory
+import com.example.domain.module.ContentType
 import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
 
 interface AudiosRepository {
 
+
+    fun getCategories(type: ContentType): Flow<List<ContentCategory>>
 
     fun filterAudios(audios: List<Audio>, query: String): List<Audio>
 
@@ -43,5 +47,5 @@ interface AudiosRepository {
     fun getAudioByUrl(url: String): Flow<Audio?>
 
 
-    fun getPaginatedAudio(query: String): Flow<PagingData<Audio>>
+    fun getPaginatedAudio(query: String, categoryId: String? = null): Flow<PagingData<Audio>>
 }

@@ -11,8 +11,8 @@ class GetPaginatedAudioUseCase @Inject constructor(
     private val audioRepository: AudiosRepository
 ) {
 
-    operator fun invoke(query: String): Flow<PagingData<Audio>> {
-        return audioRepository.getPaginatedAudio(query)
+    operator fun invoke(query: String, categoryId: String? = null): Flow<PagingData<Audio>> {
+        return audioRepository.getPaginatedAudio(query, categoryId)
 
     }
 

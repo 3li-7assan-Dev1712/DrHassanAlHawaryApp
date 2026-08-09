@@ -62,14 +62,12 @@ fun AudioListScreen(
     AudioListComposable(
         modifier = modifier,
         audios = audios,
+        categoryTitle = audiosViewModel.categoryTitle,
         onNavigateToAudioDetail = { title, audioUrl ->
-
             onNavigateToAudioDetail(title, audioUrl)
         },
         onNavigateBack = onNavigateBack
     )
-
-
 }
 
 
@@ -78,6 +76,7 @@ fun AudioListScreen(
 fun AudioListComposable(
     modifier: Modifier = Modifier,
     audios: LazyPagingItems<Audio>,
+    categoryTitle: String? = null,
     onNavigateToAudioDetail: (title: String, audioId: String) -> Unit = { _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
@@ -91,7 +90,7 @@ fun AudioListComposable(
                 ),
                 title = {
                     Text(
-                        text = stringResource(R.string.audios),
+                        text = categoryTitle ?: stringResource(R.string.audios),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp

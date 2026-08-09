@@ -78,4 +78,7 @@ dependencies {
     // Firebase (Required for Timestamp)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore.ktx)
+
+    // Coil
+    implementation(libs.coil.compose)
 }

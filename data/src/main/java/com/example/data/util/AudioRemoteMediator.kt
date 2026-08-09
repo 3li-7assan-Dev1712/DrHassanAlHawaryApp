@@ -27,12 +27,10 @@ class AudioRemoteMediator @Inject constructor(
     private val audioDao = appDatabase.audioDao()
     private val TAG = "AudioRemoteMediator"
 
+    var categoryId: String? = null
+
     override suspend fun initialize(): InitializeAction {
-        return if (audioDao.count() > 0) {
-            InitializeAction.SKIP_INITIAL_REFRESH
-        } else {
-            InitializeAction.LAUNCH_INITIAL_REFRESH
-        }
+        return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
 
@@ -48,10 +46,10 @@ class AudioRemoteMediator @Inject constructor(
                 LoadType.REFRESH -> null
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
-                    val lastLocalItem = state.lastItemOrNull()
+                    val lastLocalItem = state.pages.lastOrNull { it.data.isNotEmpty() }?.data?.lastOrNull()
 
                     if (lastLocalItem == null) {
-                        return MediatorResult.Success(endOfPaginationReached = true)
+                        return MediatorResult.Success(endOfPaginationReached = false)
                     }
 
                     if (networkStatusUseCase().first() == NetworkStatus.Unavailable) {
@@ -67,7 +65,8 @@ class AudioRemoteMediator @Inject constructor(
             while (true) {
                 val audiosFromServer = audioFirestoreSource.fetchAudioPage(
                     startAfterPublishDate = currentLastPublishDate,
-                    limit = state.config.pageSize
+                    limit = state.config.pageSize,
+                    categoryId = categoryId
                 )
 
                 lastResultEndOfPaginationReached = audiosFromServer.size < state.config.pageSize

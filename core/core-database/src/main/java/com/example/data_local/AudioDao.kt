@@ -13,10 +13,12 @@ interface AudioDao {
 
     @Query("""
         SELECT * FROM audios
-        WHERE isDeleted = 0 AND (:query = '' OR title LIKE '%' || :query || '%')
+        WHERE isDeleted = 0 
+        AND (:query = '' OR title LIKE '%' || :query || '%')
+        AND (:categoryId IS NULL OR categoryId = :categoryId)
         ORDER BY publishDate DESC
     """)
-    fun getAudiosPagingSource(query: String): PagingSource<Int, AudioEntity>
+    fun getAudiosPagingSource(query: String, categoryId: String?): PagingSource<Int, AudioEntity>
 
     @Query("SELECT * FROM audios WHERE isDeleted = 0 ORDER BY title ASC")
     fun getAudiosFlow(): Flow<List<AudioEntity>>

@@ -60,7 +60,8 @@ class AudioFirestoreSource @Inject constructor(
                     durationInMillis = this.getLong("durationInMillis") ?: 0L,
                     publishDate = publishDate,
                     updatedAt = updatedAt,
-                    type = this.getString("type") ?: ""
+                    type = this.getString("type") ?: "",
+                    categoryId = this.getString("categoryId")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -72,10 +73,18 @@ class AudioFirestoreSource @Inject constructor(
     /**
      * Fetches a paginated list of audios from Firestore.
      */
-    suspend fun fetchAudioPage(startAfterPublishDate: Long?, limit: Int): List<AudioDto> {
+    suspend fun fetchAudioPage(
+        startAfterPublishDate: Long?,
+        limit: Int,
+        categoryId: String? = null
+    ): List<AudioDto> {
         try {
-            var query = audiosCollection
+            var query: Query = audiosCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
+
+            if (categoryId != null) {
+                query = query.whereEqualTo("categoryId", categoryId)
+            }
 
             if (startAfterPublishDate != null) {
                 query = query.startAfter(Timestamp(Date(startAfterPublishDate)))

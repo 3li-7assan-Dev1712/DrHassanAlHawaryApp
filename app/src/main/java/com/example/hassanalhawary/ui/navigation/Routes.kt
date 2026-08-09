@@ -31,6 +31,7 @@ object Routes {
     const val VIDEOS_SCREEN = "videos_screen"
     const val KHOTAB_SCREEN = "khotab_screen"
     const val IMAGES_SCREEN = "images_screen"
+    const val AUDIO_CATEGORY_SCREEN = "audio_category_screen"
 
     const val Q_A_SCREEN = "q_a_screen"
 

@@ -19,5 +19,6 @@ data class AudioDto(
     val durationInMillis: Long = 0L,
     val publishDate: Timestamp? = null,
     val updatedAt: Timestamp? = null,
-    val type: String = ""
+    val type: String = "",
+    val categoryId: String? = null
 )

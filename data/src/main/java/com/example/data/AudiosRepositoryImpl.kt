@@ -11,9 +11,12 @@ import com.example.data.mappers.toDomainModel
 import com.example.data.mappers.toEntity
 import com.example.data.util.AudioRemoteMediator
 import com.example.data_firebase.AudioFirestoreSource
+import com.example.data_firebase.CategoryFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
+import com.example.domain.module.ContentCategory
+import com.example.domain.module.ContentType
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.UploadResult
@@ -27,6 +30,7 @@ class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
+    private val categoryFirestoreSource: CategoryFirestoreSource,
     private val fileDownloader: FileDownloader,
     private val audioRemoteMediator: AudioRemoteMediator
 ) : AudiosRepository {
@@ -34,6 +38,10 @@ class AudiosRepositoryImpl
 
     private val audioDao = appDatabase.audioDao()
 
+
+    override fun getCategories(type: ContentType): Flow<List<ContentCategory>> {
+        return categoryFirestoreSource.getCategories(type)
+    }
 
     override fun filterAudios(audios: List<Audio>, query: String): List<Audio> {
 
@@ -133,7 +141,8 @@ class AudiosRepositoryImpl
     }
 
     @OptIn(ExperimentalPagingApi::class)
-    override fun getPaginatedAudio(query: String): Flow<PagingData<Audio>> {
+    override fun getPaginatedAudio(query: String, categoryId: String?): Flow<PagingData<Audio>> {
+        audioRemoteMediator.categoryId = categoryId
         return Pager(
             config = PagingConfig(
                 // Set a page size. This is passed to your RemoteMediator's 'state'.
@@ -144,7 +153,7 @@ class AudiosRepositoryImpl
             // The PagingSourceFactory ALWAYS points to the local database (Room).
             // The RemoteMediator will fill this database for the PagingSource to read.
             pagingSourceFactory = {
-                audioDao.getAudiosPagingSource(query)
+                audioDao.getAudiosPagingSource(query, categoryId)
             }
         ).flow.map { pagingData ->
             // The data from the PagingSource is ArticleEntity, so we map it to the domain model
