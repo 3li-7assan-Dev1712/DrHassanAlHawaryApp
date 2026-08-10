@@ -80,9 +80,11 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun syncPlaylists() {
         try {
-            val lastPlaylistSync = versionStore.getLastPlaylistSync()
+            val isDbEmpty = playlistDao.lastUpdatedAt() == null
+            val lastPlaylistSync = if (isDbEmpty) 0L else versionStore.getLastPlaylistSync()
             val playlists = studentFirestoreSource.getUpdatedPlaylists(lastPlaylistSync)
 
+            Log.d(TAG, "syncPlaylists: last sync time: $lastPlaylistSync")
             Log.d(TAG, "syncPlaylists: ${playlists.size}")
             if (playlists.isNotEmpty()) {
                 val existingLevelIds = levelsDao.getAllIds().toSet()
@@ -153,7 +155,8 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun syncLessons() {
         try {
-            val lastLessonSync = versionStore.getLastLessonSync()
+            val isDbEmpty = lessonDao.lastUpdatedAt() == null
+            val lastLessonSync = if (isDbEmpty) 0L else versionStore.getLastLessonSync()
             val lessons = studentFirestoreSource.getUpdatedLessons(lastLessonSync)
             Log.d(TAG, "syncLessons: lessons: ${lessons.size}")
             if (lessons.isNotEmpty()) {

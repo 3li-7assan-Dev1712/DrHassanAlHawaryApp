@@ -224,7 +224,11 @@ class StudentFirestoreSource @Inject constructor(
                 .get()
 
                 .await()
-            snapshot.mapNotNull { it.toPlaylistDtoSafe() }
+            snapshot.mapNotNull {
+                Log.d(TAG, "getRemotePlaylistForLevel: ${it.data.size}")
+
+                it.toPlaylistDtoSafe()
+            }
         } catch (e: Exception) {
             Log.d(TAG, "getRemotePlaylistForLevel: ${e.message}")
             emptyList()
@@ -251,6 +255,7 @@ class StudentFirestoreSource @Inject constructor(
             val doc = playlistsCollection.document(playlistId).get().await()
             doc.toPlaylistDtoSafe()
         } catch (e: Exception) {
+            Log.d(TAG, "getRemotePlaylistById: ${e.message}")
             null
         }
     }
@@ -523,48 +528,49 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    fun getLatestQuizWithQuestionsFlow(batchId: String): Flow<Pair<QuizDto, List<QuestionDto>>?> = callbackFlow {
-        if (batchId.isBlank()) {
-            trySend(null)
-            close()
-            return@callbackFlow
-        }
-        val listener = firestore.collection("quizzes")
-            .whereArrayContains("batchIds", batchId)
-            .whereEqualTo("isActive", true)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .limit(5)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
-                        close()
-                    } else {
-                        trySend(null)
-                    }
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null) {
-                    launch {
-                        val now = Timestamp.now()
-                        val visibleQuiz = snapshot.documents
-                            .mapNotNull { it.toObject(QuizDto::class.java)?.copy(id = it.id) }
-                            .firstOrNull { quiz ->
-                                (quiz.startAt == null || quiz.startAt <= now) &&
-                                        (quiz.endAt == null || quiz.endAt >= now)
-                            }
-
-                        if (visibleQuiz != null) {
-                            val questions = getQuizQuestions(visibleQuiz.id)
-                            trySend(visibleQuiz to questions)
+    fun getLatestQuizWithQuestionsFlow(batchId: String): Flow<Pair<QuizDto, List<QuestionDto>>?> =
+        callbackFlow {
+            if (batchId.isBlank()) {
+                trySend(null)
+                close()
+                return@callbackFlow
+            }
+            val listener = firestore.collection("quizzes")
+                .whereArrayContains("batchIds", batchId)
+                .whereEqualTo("isActive", true)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(5)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                            close()
                         } else {
                             trySend(null)
                         }
+                        return@addSnapshotListener
+                    }
+
+                    if (snapshot != null) {
+                        launch {
+                            val now = Timestamp.now()
+                            val visibleQuiz = snapshot.documents
+                                .mapNotNull { it.toObject(QuizDto::class.java)?.copy(id = it.id) }
+                                .firstOrNull { quiz ->
+                                    (quiz.startAt == null || quiz.startAt <= now) &&
+                                            (quiz.endAt == null || quiz.endAt >= now)
+                                }
+
+                            if (visibleQuiz != null) {
+                                val questions = getQuizQuestions(visibleQuiz.id)
+                                trySend(visibleQuiz to questions)
+                            } else {
+                                trySend(null)
+                            }
+                        }
                     }
                 }
-            }
-        awaitClose { listener.remove() }
-    }
+            awaitClose { listener.remove() }
+        }
 
     suspend fun getQuizWithQuestions(batchId: String): Pair<QuizDto, List<QuestionDto>>? {
         val quiz = getLatestQuiz(batchId) ?: return null
@@ -572,7 +578,7 @@ class StudentFirestoreSource @Inject constructor(
 
         return quiz to questions
     }
-    
+
     suspend fun getQuizQuestions(quizId: String): List<QuestionDto> {
         return try {
             val snapshot = firestore
@@ -604,7 +610,7 @@ class StudentFirestoreSource @Inject constructor(
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
-            
+
             snapshot.documents.mapNotNull { it.toObject(QuizDto::class.java)?.copy(id = it.id) }
         } catch (e: Exception) {
             Log.e(TAG, "getAllQuizzes failed", e)
@@ -624,6 +630,7 @@ class StudentFirestoreSource @Inject constructor(
                             "MCQ at $index must have correctAnswerIndex"
                         }
                     }
+
                     QuestionTypeDto.TF -> {
                         require(q.correctBooleanAnswer != null) {
                             "TF at $index must have correctBooleanAnswer"
@@ -679,7 +686,12 @@ class StudentFirestoreSource @Inject constructor(
         }
     }
 
-    suspend fun updateQuizControls(quizId: String, isActive: Boolean, startAt: Long?, endAt: Long?): Result<Unit> {
+    suspend fun updateQuizControls(
+        quizId: String,
+        isActive: Boolean,
+        startAt: Long?,
+        endAt: Long?
+    ): Result<Unit> {
         return try {
             val payload = hashMapOf(
                 "quizId" to quizId,
@@ -687,7 +699,7 @@ class StudentFirestoreSource @Inject constructor(
                 "startAt" to startAt,
                 "endAt" to endAt
             )
-            
+
             functions
                 .getHttpsCallable("updateQuizVisibility")
                 .call(payload)
@@ -764,11 +776,11 @@ class StudentFirestoreSource @Inject constructor(
         )
         val result = functions.getHttpsCallable("submitQuizV2").call(data).await()
         val response = result.data as Map<String, Any?>
-        
+
         if (response["success"] != true) {
             throw Exception("Submission failed: ${response["message"] ?: "Unknown error"}")
         }
-        
+
         return response
     }
 

@@ -15,7 +15,7 @@ object FixedCategories {
             id = "fatawah",
             title = "فتاوى",
             type = ContentType.AUDIO,
-            description = "إجابات الشيخ على أسئلة المستفتين في شتى مجالات الشريعة"
+            description = "إجابات الشيخ عن أسئلة المستفتين في شتى مجالات الشريعة"
         ),
         ContentCategory(
             id = "scientific_lessons",
