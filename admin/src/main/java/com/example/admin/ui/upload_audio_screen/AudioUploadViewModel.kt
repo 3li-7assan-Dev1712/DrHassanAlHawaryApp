@@ -21,6 +21,7 @@ import javax.inject.Inject
 data class AudioUploadUiState(
     val audioId: String? = null,
     val title: String = "",
+    val categoryId: String = "",
     val selectedUri: Uri? = null,
     val existingUrl: String? = null,
     val isUploading: Boolean = false,
@@ -58,6 +59,7 @@ class AudioUploadViewModel @Inject constructor(
                     it.copy(
                         audioId = audio.id,
                         title = audio.title,
+                        categoryId = audio.categoryId ?: "",
                         existingUrl = audio.audioUrl,
                         isUploading = false
                     )
@@ -70,6 +72,10 @@ class AudioUploadViewModel @Inject constructor(
 
     fun onTitleChange(newTitle: String) {
         _uiState.update { it.copy(title = newTitle) }
+    }
+
+    fun onCategoryChange(newCategoryId: String) {
+        _uiState.update { it.copy(categoryId = newCategoryId) }
     }
 
     fun onAudioSelected(uri: Uri) {
@@ -88,6 +94,11 @@ class AudioUploadViewModel @Inject constructor(
             return
         }
 
+        if (currentState.categoryId.isBlank()) {
+            _uiState.update { it.copy(error = "Please select a category") }
+            return
+        }
+
         viewModelScope.launch {
             val duration = currentState.selectedUri?.let { getAudioDuration(it) } ?: 0L
             
@@ -95,7 +106,8 @@ class AudioUploadViewModel @Inject constructor(
                 uploadAudioUseCase(
                     title = currentState.title,
                     uriString = currentState.selectedUri.toString(),
-                    durationInMillis = duration
+                    durationInMillis = duration,
+                    type = currentState.categoryId
                 )
             } else {
                 updateAudioUseCase(
@@ -103,7 +115,8 @@ class AudioUploadViewModel @Inject constructor(
                     title = currentState.title,
                     newUriString = currentState.selectedUri?.toString(),
                     existingUrl = currentState.existingUrl ?: "",
-                    durationInMillis = duration
+                    durationInMillis = duration,
+                    type = currentState.categoryId
                 )
             }
 

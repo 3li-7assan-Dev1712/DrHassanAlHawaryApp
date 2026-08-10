@@ -92,6 +92,8 @@ class AudioFirestoreSource @Inject constructor(
 
             val snapshot = query.limit(limit.toLong()).get().await()
 
+            Log.d(TAG, "fetchAudioPage: category id: $categoryId")
+            Log.d(TAG, "Fetched ${snapshot.size()} audios from Firestore")
             return snapshot.documents.mapNotNull { it.toAudioDtoSafe() }
         } catch (e: Exception) {
             Log.e(TAG, "fetchAudioPage failed: ${e.message}")
@@ -168,6 +170,7 @@ class AudioFirestoreSource @Inject constructor(
                         "audioUrl" to downloadUri.toString(),
                         "durationInMillis" to durationInMillis,
                         "publishDate" to publishDateIso,
+                        "categoryId" to type
                     )
 
                     val payload = hashMapOf(
@@ -212,7 +215,7 @@ class AudioFirestoreSource @Inject constructor(
                         "title" to title,
                         "durationInMillis" to durationInMillis
                     )
-                    type?.let { updates["type"] = it }
+                    type?.let { updates["categoryId"] = it }
 
                     val payload = hashMapOf(
                         "collectionName" to "audios",
@@ -252,7 +255,7 @@ class AudioFirestoreSource @Inject constructor(
                             "audioUrl" to downloadUri.toString(),
                             "durationInMillis" to durationInMillis
                         )
-                        type?.let { updates["type"] = it }
+                        type?.let { updates["categoryId"] = it }
 
                         val payload = hashMapOf(
                             "collectionName" to "audios",
