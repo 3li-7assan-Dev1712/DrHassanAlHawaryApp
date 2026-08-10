@@ -151,8 +151,15 @@ private fun CategoryItem(
                 color = MaterialTheme.colorScheme.surface
             ) {
 
+                val imageRes = when (category.id) {
+                    "fatawah" -> R.drawable.bulb_image
+                    "scientific_lessons" -> R.drawable.student_icon
+                    "khotab" -> R.drawable.jummah_icon
+                    "lectures" -> R.drawable.audios_icon
+                    else -> R.drawable.dr_hassan_image
+                }
                 Image(
-                    painter = painterResource(id = R.drawable.dr_hassan_image),
+                    painter = painterResource(id = imageRes),
                     contentDescription = category.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -174,7 +181,7 @@ private fun CategoryItem(
             )
 
             Text(
-                text = "description",
+                text = category.description ?: "",
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontSize = 11.sp,
                     lineHeight = 16.sp

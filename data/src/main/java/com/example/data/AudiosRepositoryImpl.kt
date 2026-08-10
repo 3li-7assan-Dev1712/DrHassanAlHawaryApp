@@ -11,16 +11,17 @@ import com.example.data.mappers.toDomainModel
 import com.example.data.mappers.toEntity
 import com.example.data.util.AudioRemoteMediator
 import com.example.data_firebase.AudioFirestoreSource
-import com.example.data_firebase.CategoryFirestoreSource
 import com.example.data_local.AppDatabase
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
 import com.example.domain.module.ContentCategory
 import com.example.domain.module.ContentType
+import com.example.domain.module.FixedCategories
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
@@ -30,7 +31,6 @@ class AudiosRepositoryImpl
 @Inject constructor(
     private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
-    private val categoryFirestoreSource: CategoryFirestoreSource,
     private val fileDownloader: FileDownloader,
     private val audioRemoteMediator: AudioRemoteMediator
 ) : AudiosRepository {
@@ -40,7 +40,7 @@ class AudiosRepositoryImpl
 
 
     override fun getCategories(type: ContentType): Flow<List<ContentCategory>> {
-        return categoryFirestoreSource.getCategories(type)
+        return flowOf(FixedCategories.getCategories(type))
     }
 
     override fun filterAudios(audios: List<Audio>, query: String): List<Audio> {
@@ -165,6 +165,5 @@ class AudiosRepositoryImpl
             }
         }
     }
-
 
 }
