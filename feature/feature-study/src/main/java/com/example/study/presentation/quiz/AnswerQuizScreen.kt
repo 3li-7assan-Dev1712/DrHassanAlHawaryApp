@@ -192,7 +192,6 @@ fun AnswerQuizScreen(
                                 if (uiState.isSubmitting) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.onPrimary,
                                         strokeWidth = 2.dp
                                     )
                                 } else {

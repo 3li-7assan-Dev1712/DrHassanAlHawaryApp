@@ -38,7 +38,7 @@ class PlaylistViewModel @Inject constructor(
                             _uiState.value =
                                 PlaylistUiState.Success(playlists)
                             syncLessonsUseCase()
-                        } else _uiState.value = PlaylistUiState.Error("No playlists found")
+                        } else _uiState.value = PlaylistUiState.Error("لا توجد متون لعرضها")
                     }
                 } else {
                     throw NullPointerException("levelId is null")

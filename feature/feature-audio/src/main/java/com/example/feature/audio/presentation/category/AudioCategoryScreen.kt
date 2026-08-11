@@ -1,16 +1,17 @@
 package com.example.feature.audio.presentation.category
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -32,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -69,6 +69,7 @@ private fun AudioCategoryContent(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0, 0, 0, 0),
                 title = {
                     Text(
                         "تصنيفات الصوتيات",
@@ -152,18 +153,29 @@ private fun CategoryItem(
             ) {
 
                 val imageRes = when (category.id) {
-                    "fatawah" -> R.drawable.bulb_image
-                    "scientific_lessons" -> R.drawable.student_icon
-                    "khotab" -> R.drawable.jummah_icon
-                    "lectures" -> R.drawable.audios_icon
+                    "fatawah" -> R.drawable.fatawah_icon
+                    "scientific_lessons" -> R.drawable.scientific_lessons_icon
+                    "khotab" -> R.drawable.khotab_jumah_icon
+                    "lectures" -> R.drawable.lectures_icon
                     else -> R.drawable.dr_hassan_image
                 }
-                Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = category.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(80.dp),
+                        painter = painterResource(id = imageRes),
+                        contentDescription = category.title,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+
+                }
+                /* Image(
+                     painter = painterResource(id = imageRes),
+                     contentDescription = category.title,
+                     contentScale = ContentScale.F,
+                     modifier = Modifier.fillMaxSize()
+                 )*/
 
             }
 

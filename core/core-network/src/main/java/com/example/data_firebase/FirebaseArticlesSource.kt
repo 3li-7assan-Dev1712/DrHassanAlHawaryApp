@@ -33,7 +33,8 @@ class FirebaseArticlesSource @Inject constructor(
             val contentMap = hashMapOf(
                 "title" to article.title,
                 "content" to article.content,
-                "publishDate" to publishDateIso
+                "publishDate" to publishDateIso,
+                "type" to article.type
             )
 
             val payload = hashMapOf(
@@ -64,7 +65,8 @@ class FirebaseArticlesSource @Inject constructor(
         try {
             val updates = hashMapOf<String, Any>(
                 "title" to article.title,
-                "content" to article.content
+                "content" to article.content,
+                "type" to article.type
             )
 
             val payload = hashMapOf(
@@ -180,6 +182,7 @@ class FirebaseArticlesSource @Inject constructor(
                                     title = it.title,
                                     content = it.content,
                                     publishDate = it.publishDate?.toDate() ?: Date(),
+                                    type = it.type,
                                     updatedAt = it.updatedAt?.toDate()?.time ?: 0L,
                                     isDeleted = it.isDeleted
                                 )
