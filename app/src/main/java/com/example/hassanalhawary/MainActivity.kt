@@ -47,8 +47,7 @@ import com.example.feature.article.presentation.list.ArticleListScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
-import com.example.feature.auth.presentation.login.LoginScreen
-import com.example.feature.auth.presentation.register.RegisterScreen
+import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
@@ -160,9 +159,8 @@ class MainActivity : ComponentActivity() {
                                 }
 
                                 else -> {
-                                    AuthNavHost(onLoginSuccess = {
+                                    AuthScreen(onSuccessfulAuth = {
                                         mainActivityViewModel.loginSuccess()
-
                                     })
                                 }
                             }
@@ -620,44 +618,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    @Composable
-    fun AuthNavHost(
-        onLoginSuccess: () -> Unit
-    ) {
-
-        val navController = rememberNavController()
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-
-            ) { innerPadding ->
-            NavHost(
-                modifier = Modifier.padding(innerPadding),
-                navController = navController, startDestination = "login_screen"
-            ) {
-
-
-                composable(route = "login_screen") {
-                    LoginScreen(
-
-                        onRegisterClick = {
-                            navController.navigate("register_screen")
-                            navController.clearBackStack("login_screen")
-                        }, onSuccessfulLogin = {
-                            onLoginSuccess()
-                        })
-                }
-                composable("register_screen") {
-                    RegisterScreen(modifier = Modifier.fillMaxSize(), onLoginClick = {
-                        navController.popBackStack()
-                    }, onSuccessfulRegister = {
-                        onLoginSuccess()
-                    })
-                }
-            }
-        }
-    }
-
 
 }

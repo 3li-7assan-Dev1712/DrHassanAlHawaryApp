@@ -1,20 +1,8 @@
 <resources>
     <string name="app_name">تطبيق المشرف د. حسن الهواري</string>
-    <string name="login">Login</string>
-    <string name="enter_email">E-mail</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="admin_badge">Administration</string>
     <string name="articles">Articles</string>
-    <string name="enter_password">Password</string>
-    <string name="register">Register</string>
-    <string name="login_question">already have an account?</string>
-    <string name="register_question">don\'t have an account?</string>
-    <string name="register_using">Register using Google</string>
-    <string name="login_using">Login using Google</string><![CDATA[
-
-
-
-
-    ">
-    ]]>
     <string name="videos">Videos</string>
     <string name="profile">Profile</string>
     <string name="enter_name">Name</string>
@@ -66,14 +54,6 @@
     <string name="benefit_fast_login">تسجيل دخول سريع (بدون كلمات مرور)</string>
     <string name="button_connect_telegram">الاتصال بتيليجرام</string>
     <string name="telegram_privacy_footnote">نحن نستخدم تيليجرام فقط للتحقق من عضويتك وإرسال إشعارات الدورة.</string>
-    <string name="at_least_6_digits">على الأقل 6 أحرف</string>
-    <string name="containt_number">"يحتوي على رقم "</string>
-    <string name="containt_capital_leter">يحتوي على حرف كبير</string>
-    <string name="email_not_verified">الرجاء تأكيد البريد الإلكتروني الخاص بك قبل تسجيل الدخول</string>
-    <string name="email_verification_msg">تم إرسال رابط تأكيد على الإيميل الخاص بكم الرجاء استعماله لتأكيد الحساب</string>
-    <string name="forgot_password">نسيت كلمة المرور؟</string>
-    <string name="enter_valid_email">الرجاء ادخال بريد الكتروني صالح لإعادة ضبط كلمة المرور</string>
-    <string name="password_reset_email_sent">"تم أرسال بريد إلكتروني لإعادة ضبط كلمة المرور الخاصة بكم "</string>
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
     <string name="search_hint">بحث</string>

@@ -50,17 +50,6 @@ dependencies {
     implementation(project(":core:core-network"))
     implementation(project(":core:core-ui"))
 
-
-    // firebase auth
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
-    implementation(libs.firebase.firestore.ktx)
-
-
-
     // ViewModel
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.viewmodel)
@@ -69,15 +58,8 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-
-    // navigation
-    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.hilt.navigation.compose)
 
     // coil
     implementation(libs.coil.compose)
-
-
-
-
 }

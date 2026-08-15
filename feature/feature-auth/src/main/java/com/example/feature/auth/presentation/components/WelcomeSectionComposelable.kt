@@ -1,6 +1,5 @@
 package com.example.feature.auth.presentation.components
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,7 +34,7 @@ import com.example.core.ui.R
 @Composable
 fun WelcomeScreen(
     modifier: Modifier = Modifier,
-    @StringRes loginRegister: Int
+    isAdmin: Boolean = false
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -83,9 +83,9 @@ fun WelcomeScreen(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        
+
         Spacer(Modifier.height(4.dp))
-        
+
         Text(
             text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineSmall.copy(
@@ -96,18 +96,32 @@ fun WelcomeScreen(
             textAlign = TextAlign.Center
         )
 
-        Spacer(Modifier.height(16.dp))
+        if (isAdmin) {
+            Spacer(Modifier.height(12.dp))
 
-        Text(
-            text = stringResource(loginRegister),
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.tertiaryContainer
+            ) {
+                Text(
+                    text = stringResource(R.string.admin_badge),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
     }
 }
 
 @Preview(name = "Welcome Screen", widthDp = 320, heightDp = 400, showBackground = true)
 @Composable
 private fun WelcomeScreenPrv() {
-    WelcomeScreen(modifier = Modifier, loginRegister = R.string.login)
+    WelcomeScreen(modifier = Modifier)
+}
+
+@Preview(name = "Welcome Screen - Admin", widthDp = 320, heightDp = 420, showBackground = true)
+@Composable
+private fun WelcomeScreenAdminPrv() {
+    WelcomeScreen(modifier = Modifier, isAdmin = true)
 }
