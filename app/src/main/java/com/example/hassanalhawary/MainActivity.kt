@@ -52,6 +52,8 @@ import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
+import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
+import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
 import com.example.profile.presentation.about_app.AboutAppScreen
@@ -279,10 +281,10 @@ class MainActivity : ComponentActivity() {
                         val encodedUrl = Uri.encode(audioUrl)
                         navController.navigate("audio_detail_screen/$title/$encodedUrl")
                     }, onCategoryClick = { route ->
-                        if (route == Routes.AUDIO_LIST_SCREEN) {
-                            navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
-                        } else {
-                            navController.navigate(route)
+                        when (route) {
+                            Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
+                            Routes.VIDEOS_SCREEN -> navController.navigate(Routes.VIDEO_CATEGORY_SCREEN)
+                            else -> navController.navigate(route)
                         }
                     }
 
@@ -499,7 +501,28 @@ class MainActivity : ComponentActivity() {
                         navController.popBackStack()
                     }
                 }
-                composable(Routes.VIDEOS_SCREEN) {
+                composable(Routes.VIDEO_CATEGORY_SCREEN) {
+                    VideoCategoryScreen(
+                        onCategoryClick = { categoryId, categoryTitle ->
+                            val actualId = if (categoryId == ALL_VIDEO_CATEGORIES_ID) null else categoryId
+                            navController.navigate("${Routes.VIDEOS_SCREEN}?categoryId=$actualId&categoryTitle=${Uri.encode(categoryTitle)}")
+                        },
+                        onNavigateUp = { navController.popBackStack() }
+                    )
+                }
+                composable(
+                    route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                    arguments = listOf(
+                        navArgument("categoryId") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                        navArgument("categoryTitle") {
+                            type = NavType.StringType
+                            nullable = true
+                        }
+                    )
+                ) {
 
                     VideosScreen(
                         onNavigateBack = {

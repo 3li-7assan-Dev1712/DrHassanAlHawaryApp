@@ -28,6 +28,7 @@ class VideoRemoteMediator @Inject constructor(
     private val videoDao = appDatabase.videoDao()
     private val TAG = "VideoRemoteMediator"
 
+    var categoryId: String? = null
 
     override suspend fun initialize(): InitializeAction {
         return if (videoDao.count() > 0) {
@@ -68,7 +69,8 @@ class VideoRemoteMediator @Inject constructor(
             while (true) {
                 val videosFromServer = videoFirestoreSource.fetchVideoPage(
                     startAfterPublishDate = currentLastPublishDate,
-                    limit = state.config.pageSize
+                    limit = state.config.pageSize,
+                    categoryId = categoryId
                 )
 
                 lastResultEndOfPaginationReached = videosFromServer.size < state.config.pageSize

@@ -62,6 +62,7 @@ fun VideosScreen(
 
     VideosScreenContent(
         videos = videos,
+        categoryTitle = viewModel.categoryTitle,
         onNavigateBack = onNavigateBack,
         onNavigateToVideo = onNavigateToVideo
     )
@@ -71,6 +72,7 @@ fun VideosScreen(
 @Composable
 fun VideosScreenContent(
     videos: LazyPagingItems<Video>,
+    categoryTitle: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToVideo: (String, String) -> Unit
 ) {
@@ -80,7 +82,7 @@ fun VideosScreenContent(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(id = R.string.videos),
+                        text = categoryTitle ?: stringResource(id = R.string.videos),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -142,7 +144,7 @@ fun VideosScreenContent(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "لا توجد فيديوهات متاحة حالياً",
+                        text = stringResource(R.string.no_videos_available),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

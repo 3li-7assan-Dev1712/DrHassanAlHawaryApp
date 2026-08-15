@@ -12,8 +12,15 @@ interface VideoDao {
     @Query("SELECT * FROM videos WHERE isDeleted = 0 ORDER BY publishDate DESC LIMIT 1")
     suspend fun getLastVideo(): VideoEntity?
 
-    @Query("SELECT * FROM videos WHERE isDeleted = 0 ORDER BY publishDate DESC")
-    fun pagingSource(): PagingSource<Int, VideoEntity>
+    @Query(
+        """
+        SELECT * FROM videos
+        WHERE isDeleted = 0
+        AND (:categoryId IS NULL OR categoryId = :categoryId)
+        ORDER BY publishDate DESC
+    """
+    )
+    fun pagingSource(categoryId: String?): PagingSource<Int, VideoEntity>
 
     @Query("SELECT COUNT(*) FROM videos WHERE isDeleted = 0")
     suspend fun count(): Int

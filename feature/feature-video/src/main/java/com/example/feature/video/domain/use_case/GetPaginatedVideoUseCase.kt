@@ -9,7 +9,7 @@ import javax.inject.Inject
 class GetPaginatedVideoUseCase @Inject constructor(
     private val videoRepository: VideosRepository
 ) {
-    operator fun invoke(): Flow<PagingData<Video>> {
-        return videoRepository.getPaginatedVideo()
+    operator fun invoke(categoryId: String? = null): Flow<PagingData<Video>> {
+        return videoRepository.getPaginatedVideo(categoryId)
     }
 }

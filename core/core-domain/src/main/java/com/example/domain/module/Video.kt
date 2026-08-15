@@ -8,5 +8,6 @@ data class Video(
     val videoUrl: String,
     val publishDate: Date,
     val youtubeVideoId: String?,
-    val type: String = ""
+    val type: String = "",
+    val categoryId: String? = null
 )

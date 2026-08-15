@@ -56,7 +56,8 @@ class VideoFirestoreSource @Inject constructor(
                     videoYoutubeId = this.getString("videoYoutubeId") ?: "",
                     publishDate = publishDate,
                     updatedAt = updatedAt,
-                    type = this.getString("type") ?: ""
+                    type = this.getString("type") ?: "",
+                    categoryId = this.getString("categoryId")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -65,10 +66,18 @@ class VideoFirestoreSource @Inject constructor(
         }
     }
 
-    suspend fun fetchVideoPage(startAfterPublishDate: Long?, limit: Int): List<VideoDto> {
+    suspend fun fetchVideoPage(
+        startAfterPublishDate: Long?,
+        limit: Int,
+        categoryId: String? = null
+    ): List<VideoDto> {
         try {
-            var query = videosCollection
+            var query: Query = videosCollection
                 .orderBy("publishDate", Query.Direction.DESCENDING)
+
+            if (categoryId != null) {
+                query = query.whereEqualTo("categoryId", categoryId)
+            }
 
             if (startAfterPublishDate != null) {
                 query = query.startAfter(Timestamp(Date(startAfterPublishDate)))
@@ -107,7 +116,8 @@ class VideoFirestoreSource @Inject constructor(
                     videoUrl = it.videoUrl,
                     publishDate = it.publishDate?.toDate() ?: Date(),
                     youtubeVideoId = it.videoYoutubeId,
-                    type = it.type
+                    type = it.type,
+                    categoryId = it.categoryId
                 )
             }
         } catch (e: Exception) {
@@ -119,6 +129,7 @@ class VideoFirestoreSource @Inject constructor(
     fun uploadVideo(
         title: String,
         videoUrl: String,
+        categoryId: String,
         publishDate: Long = System.currentTimeMillis(),
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
@@ -137,6 +148,7 @@ class VideoFirestoreSource @Inject constructor(
                     "videoUrl" to videoUrl,
                     "videoYoutubeId" to youtubeId,
                     "publishDate" to publishDateIso,
+                    "categoryId" to categoryId,
                 )
 
                 val payload = hashMapOf(
@@ -164,6 +176,7 @@ class VideoFirestoreSource @Inject constructor(
         id: String,
         title: String,
         videoUrl: String,
+        categoryId: String,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -178,7 +191,8 @@ class VideoFirestoreSource @Inject constructor(
                 val updates = mutableMapOf<String, Any>(
                     "title" to title,
                     "videoUrl" to videoUrl,
-                    "videoYoutubeId" to youtubeId
+                    "videoYoutubeId" to youtubeId,
+                    "categoryId" to categoryId
                 )
 
                 val payload = hashMapOf(

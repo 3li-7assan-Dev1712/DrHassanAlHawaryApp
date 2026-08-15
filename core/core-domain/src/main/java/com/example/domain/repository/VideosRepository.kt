@@ -1,6 +1,8 @@
 package com.example.domain.repository
 
 import androidx.paging.PagingData
+import com.example.domain.module.ContentCategory
+import com.example.domain.module.ContentType
 import com.example.domain.module.Video
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
@@ -10,12 +12,14 @@ interface VideosRepository {
     fun uploadVideo(
         title: String,
         youtubeUrl: String,
+        categoryId: String,
     ): Flow<UploadResult>
 
     fun updateVideo(
         id: String,
         title: String,
         youtubeUrl: String,
+        categoryId: String,
     ): Flow<UploadResult>
 
     suspend fun deleteVideo(videoId: String): Result<Unit>
@@ -24,6 +28,8 @@ interface VideosRepository {
 
     suspend fun getAllRemoteVideos(): List<Video>
 
-    fun getPaginatedVideo(): Flow<PagingData<Video>>
+    fun getPaginatedVideo(categoryId: String? = null): Flow<PagingData<Video>>
+
+    fun getCategories(type: ContentType): Flow<List<ContentCategory>>
 
 }

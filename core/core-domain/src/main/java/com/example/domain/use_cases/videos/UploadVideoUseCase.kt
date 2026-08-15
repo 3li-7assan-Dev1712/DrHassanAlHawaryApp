@@ -9,7 +9,7 @@ import javax.inject.Inject
 class UploadVideoUseCase @Inject constructor(
     private val repository: VideosRepository
 ) {
-    operator fun invoke(title: String, videoUrl: String): Flow<UploadResult> {
-        return repository.uploadVideo(title, videoUrl)
+    operator fun invoke(title: String, videoUrl: String, categoryId: String): Flow<UploadResult> {
+        return repository.uploadVideo(title, videoUrl, categoryId)
     }
 }

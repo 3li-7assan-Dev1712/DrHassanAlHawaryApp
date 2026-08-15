@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.netlify.devalihassan.admin.R
+import app.netlify.devalihassan.admin.ui.components.CategoryDropdownField
+import com.example.domain.module.ContentType
 import com.example.domain.use_cases.audios.UploadResult
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +83,13 @@ fun UploadVideoScreen(
                 onValueChange = { viewModel.videoUrl = it },
                 label = { Text(stringResource(R.string.youtube_url_label)) },
                 placeholder = { Text("https://www.youtube.com/watch?v=...") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            CategoryDropdownField(
+                contentType = ContentType.VIDEO,
+                selectedCategoryId = viewModel.categoryId,
+                onCategorySelected = viewModel::onCategoryChange,
                 modifier = Modifier.fillMaxWidth()
             )
 

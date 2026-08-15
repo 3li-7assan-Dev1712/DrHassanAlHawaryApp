@@ -15,5 +15,6 @@ data class VideoDto(
     val videoYoutubeId: String = "",
     val publishDate: Timestamp? = null,
     val updatedAt: Timestamp? = null,
-    val type: String = ""
+    val type: String = "",
+    val categoryId: String? = null
 )

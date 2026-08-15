@@ -1,5 +1,6 @@
 package com.example.feature.video.presentation.list
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -12,11 +13,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class VideosViewModel @Inject constructor(
-    getPaginatedVideoUseCase: GetPaginatedVideoUseCase
+    getPaginatedVideoUseCase: GetPaginatedVideoUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val categoryId: String? = savedStateHandle["categoryId"]
+    val categoryTitle: String? = savedStateHandle["categoryTitle"]
 
-    val videos: Flow<PagingData<Video>> = getPaginatedVideoUseCase().cachedIn(viewModelScope)
-
+    val videos: Flow<PagingData<Video>> = getPaginatedVideoUseCase(categoryId).cachedIn(viewModelScope)
 
 }

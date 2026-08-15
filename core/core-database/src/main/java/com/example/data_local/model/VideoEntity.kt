@@ -15,5 +15,6 @@ data class VideoEntity(
     val youtubeVideoId: String?, // Extracted ID for showing thumbnails (e.g., "ogfYd705cRs")
     val updatedAt: Long,
     val isDeleted: Boolean = false,
-    val type: String = ""
+    val type: String = "",
+    val categoryId: String? = null
 )

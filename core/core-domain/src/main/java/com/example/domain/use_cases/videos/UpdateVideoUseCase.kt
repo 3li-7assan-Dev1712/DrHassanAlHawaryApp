@@ -8,7 +8,7 @@ import javax.inject.Inject
 class UpdateVideoUseCase @Inject constructor(
     private val repository: VideosRepository
 ) {
-    operator fun invoke(id: String, title: String, youtubeUrl: String): Flow<UploadResult> {
-        return repository.updateVideo(id, title, youtubeUrl)
+    operator fun invoke(id: String, title: String, youtubeUrl: String, categoryId: String): Flow<UploadResult> {
+        return repository.updateVideo(id, title, youtubeUrl, categoryId)
     }
 }

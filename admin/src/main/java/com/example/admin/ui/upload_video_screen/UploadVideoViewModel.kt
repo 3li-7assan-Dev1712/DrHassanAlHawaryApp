@@ -27,7 +27,7 @@ class UploadVideoViewModel @Inject constructor(
 
     var title by mutableStateOf("")
     var videoUrl by mutableStateOf("")
-    var type by mutableStateOf("")
+    var categoryId by mutableStateOf("")
     var videoId: String? by mutableStateOf(savedStateHandle["videoId"])
 
     private val _uploadState = MutableStateFlow<UploadResult?>(null)
@@ -46,7 +46,7 @@ class UploadVideoViewModel @Inject constructor(
             if (video != null) {
                 title = video.title
                 videoUrl = video.videoUrl
-                type = video.type
+                categoryId = video.categoryId ?: ""
                 _uploadState.value = null
             } else {
                 _uploadState.value = UploadResult.Error("Failed to load video data")
@@ -54,17 +54,25 @@ class UploadVideoViewModel @Inject constructor(
         }
     }
 
+    fun onCategoryChange(newCategoryId: String) {
+        categoryId = newCategoryId
+    }
+
     fun uploadVideo() {
         if (title.isBlank() || videoUrl.isBlank()) {
             _uploadState.value = UploadResult.Error("Please fill all fields")
             return
         }
+        if (categoryId.isBlank()) {
+            _uploadState.value = UploadResult.Error("Please select a category")
+            return
+        }
 
         viewModelScope.launch {
             val flow = if (videoId == null) {
-                uploadVideoUseCase(title, videoUrl)
+                uploadVideoUseCase(title, videoUrl, categoryId)
             } else {
-                updateVideoUseCase(videoId!!, title, videoUrl)
+                updateVideoUseCase(videoId!!, title, videoUrl, categoryId)
             }
 
             flow.collect { result ->
@@ -72,7 +80,7 @@ class UploadVideoViewModel @Inject constructor(
                 if (result is UploadResult.Success && videoId == null) {
                     title = ""
                     videoUrl = ""
-                    type = ""
+                    categoryId = ""
                 }
             }
         }
