@@ -31,11 +31,7 @@ class VideoRemoteMediator @Inject constructor(
     var categoryId: String? = null
 
     override suspend fun initialize(): InitializeAction {
-        return if (videoDao.count() > 0) {
-            InitializeAction.SKIP_INITIAL_REFRESH
-        } else {
-            InitializeAction.LAUNCH_INITIAL_REFRESH
-        }
+        return InitializeAction.LAUNCH_INITIAL_REFRESH
     }
 
     override suspend fun load(

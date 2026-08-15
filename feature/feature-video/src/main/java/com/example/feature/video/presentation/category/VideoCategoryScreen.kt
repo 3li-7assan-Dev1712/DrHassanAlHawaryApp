@@ -1,24 +1,15 @@
 package com.example.feature.video.presentation.category
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -30,26 +21,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.R
+import com.example.core.ui.components.CategoryGridTile
 import com.example.domain.module.ContentCategory
 
 @Composable
@@ -118,12 +106,14 @@ private fun VideoCategoryContent(
                     textAlign = TextAlign.Center
                 )
             } else {
-                LazyColumn(
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.categories) { category ->
-                        VideoCategoryBanner(
+                        VideoCategoryItem(
                             category = category,
                             onClick = { onCategoryClick(category.id, category.title) }
                         )
@@ -150,89 +140,28 @@ private fun resolveCategoryIcon(categoryId: String): CategoryIcon = when (catego
 }
 
 @Composable
-private fun VideoCategoryBanner(
+private fun VideoCategoryItem(
     category: ContentCategory,
     onClick: () -> Unit
 ) {
-    val gradient = Brush.horizontalGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f)
-        )
-    )
-
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(96.dp)
+    CategoryGridTile(
+        title = category.title,
+        onClick = onClick
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(gradient)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape),
-                    color = Color.White.copy(alpha = 0.18f)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        when (val icon = resolveCategoryIcon(category.id)) {
-                            is CategoryIcon.Drawable -> Icon(
-                                painter = painterResource(id = icon.resId),
-                                contentDescription = category.title,
-                                tint = Color.White,
-                                modifier = Modifier.size(30.dp)
-                            )
+        when (val icon = resolveCategoryIcon(category.id)) {
+            is CategoryIcon.Drawable -> Icon(
+                painter = painterResource(id = icon.resId),
+                contentDescription = category.title,
+                tint = Color.White,
+                modifier = Modifier.size(48.dp)
+            )
 
-                            is CategoryIcon.Vector -> Icon(
-                                imageVector = icon.imageVector,
-                                contentDescription = category.title,
-                                tint = Color.White,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = category.title,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    val description = category.description
-                    if (!description.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.85f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
+            is CategoryIcon.Vector -> Icon(
+                imageVector = icon.imageVector,
+                contentDescription = category.title,
+                tint = Color.White,
+                modifier = Modifier.size(48.dp)
+            )
         }
     }
 }
-
