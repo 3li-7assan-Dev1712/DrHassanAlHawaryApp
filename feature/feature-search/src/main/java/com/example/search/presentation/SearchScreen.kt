@@ -56,14 +56,19 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onNavigateToDetail: (SearchResultMetaData) -> Unit
 ) {
-    var query by remember { mutableStateOf("") }
+    var query by remember { mutableStateOf(viewModel.currentQuery) }
     val state by viewModel.uiState.collectAsState()
     val selectedFilter by viewModel.selectedFilter.collectAsState()
 
     SearchScreenContent(
         modifier = modifier,
         searchQuery = query,
-        onQueryChanged = { query = it },
+        onQueryChanged = { newQuery ->
+            query = newQuery
+            if (newQuery.isBlank()) {
+                viewModel.search(newQuery)
+            }
+        },
         onSearchClicked = { viewModel.search(query) },
         selectedFilter = selectedFilter,
         onFilterSelected = { viewModel.onFilterSelected(it) },

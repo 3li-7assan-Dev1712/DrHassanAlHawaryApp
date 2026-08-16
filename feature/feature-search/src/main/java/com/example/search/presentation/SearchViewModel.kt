@@ -32,7 +32,8 @@ class SearchViewModel @Inject constructor(
     private val _selectedFilter = MutableStateFlow(SearchFilter.ALL)
     val selectedFilter = _selectedFilter.asStateFlow()
 
-    private var currentQuery: String = ""
+    var currentQuery: String = ""
+        private set
 
     init {
         // Set default filter to not show deleted items
@@ -53,6 +54,11 @@ class SearchViewModel @Inject constructor(
             if (filter == SearchFilter.ALL) listOf(listOf("isDeleted:false"))
             else listOf(listOf("type:${filter.type}"), listOf("isDeleted:false"))
 
+        if (currentQuery.isBlank()) {
+            _uiState.value = SearchUiState.Idle
+            return
+        }
+
         _uiState.value = SearchUiState.Loading
         searcher.searchAsync()
 
@@ -61,6 +67,7 @@ class SearchViewModel @Inject constructor(
 
     fun search(query: String) {
         currentQuery = query
+        searcher.query.query = query
 
         if (query.isBlank()) {
             _uiState.value = SearchUiState.Idle
@@ -69,7 +76,6 @@ class SearchViewModel @Inject constructor(
 
         _uiState.value = SearchUiState.Loading
 
-        searcher.query.query = query
         searcher.searchAsync()
 
         Log.d("SearchVM", "Query: ${searcher.query.query}")
