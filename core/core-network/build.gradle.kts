@@ -24,8 +24,8 @@ android {
     defaultConfig {
         minSdk = 24
 
-        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT")
-        buildConfigField("String", "GOOGLE_WEB_CLIENT", googleWebClient)
+        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT") ?: ""
+        buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

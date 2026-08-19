@@ -28,9 +28,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT")
-        val appId = localProperties.getProperty("ALGOLIA_APP_ID")
-        val apiKey = localProperties.getProperty("ALGOLIA_API_KEY")
+        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT") ?: ""
+        buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
+        val appId = localProperties.getProperty("ALGOLIA_APP_ID") ?: ""
+        val apiKey = localProperties.getProperty("ALGOLIA_API_KEY") ?: ""
 
 
         //  clients
