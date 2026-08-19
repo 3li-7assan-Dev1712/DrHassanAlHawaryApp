@@ -3,6 +3,7 @@ package com.example.feature.audio.presentation.detail
 import android.content.ComponentName
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -88,6 +89,7 @@ fun AudioDetailScreen(
 
 
     val context = LocalContext.current
+    val comingSoonMsg = stringResource(id = R.string.feature_coming_soon)
     val sessionToken = remember {
         SessionToken(context, ComponentName(context,  PlaybackService::class.java))
     }
@@ -116,7 +118,7 @@ fun AudioDetailScreen(
         onForward = { viewModel.onForward(10) },
         onDownload = viewModel::onDownloadClicked,
         onShare = {
-            // share the audio functionality will be added later
+            Toast.makeText(context, comingSoonMsg, Toast.LENGTH_SHORT).show()
         }
     )
 }

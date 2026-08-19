@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,11 +29,11 @@ fun <T> LatestArticleAudioLazyRow(
     modifier: Modifier = Modifier,
     itemSpacing: Dp = 12.dp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-    itemKey: ((item: T) -> Any)? = null
+    itemKey: ((item: T) -> Any)? = null,
+    emptyMessage: String? = null
 ) {
 
-
-    if (items.isNotEmpty()) {
+    if (items.isNotEmpty() || showLoading) {
 
         Column(modifier = modifier.fillMaxWidth()) {
             Text(
@@ -55,6 +56,25 @@ fun <T> LatestArticleAudioLazyRow(
                     itemContent(item)
                 }
             }
+        }
+    } else if (emptyMessage != null) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Text(
+                text = title,
+                style = CairoTypography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp, bottom = 8.dp)
+            )
+            Text(
+                text = emptyMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
         }
     }
 }

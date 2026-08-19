@@ -18,6 +18,11 @@
     <string name="lessons">Lessons</string>
     <string name="images">Images</string>
     <string name="about_dr_hassan">About</string>
-
+    <string name="no_articles_available">No Available Articles</string>
+    <string name="home_offline_message">You are now offline</string>
+    <string name="home_back_online_message">Back online!</string>
+    <string name="carousel_image_description">Image</string>
+    <string name="audio_icon_description">Audio icon</string>
+    <string name="no_images_available">No Available Images</string>
 
 </resources>

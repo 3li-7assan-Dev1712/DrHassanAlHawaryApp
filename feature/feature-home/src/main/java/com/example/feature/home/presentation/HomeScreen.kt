@@ -4,8 +4,10 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.navigation.Routes
+import com.example.core.ui.theme.CairoTypography
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.NetworkMessageEvent
 import com.example.feature.home.R
@@ -42,6 +45,7 @@ import com.example.feature.home.presentation.components.Category
 import com.example.feature.home.presentation.components.ImageCarousel
 import com.example.feature.home.presentation.components.LatestArticleAudioLazyRow
 import com.example.feature.home.presentation.components.LessonsByCategory
+import com.example.core.ui.R as CoreR
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,15 +59,17 @@ fun HomeScreen(
 ) {
     val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val offlineMsg = stringResource(R.string.home_offline_message)
+    val backOnlineMsg = stringResource(R.string.home_back_online_message)
 
     LaunchedEffect(key1 = Unit) {
         homeScreenViewModel.networkMessageEventFlow.collect { event ->
             when (event) {
                 is NetworkMessageEvent.WentOffline -> {
-                    Toast.makeText(context, "You are now offline", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, offlineMsg, Toast.LENGTH_SHORT).show()
                 }
                 is NetworkMessageEvent.BackOnline -> {
-                    Toast.makeText(context, "Back online!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, backOnlineMsg, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -89,7 +95,19 @@ fun HomeScreenContent(
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {}
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = stringResource(CoreR.string.app_name),
+                    style = CairoTypography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
     ) { contentPadding ->
 
         Box(
@@ -129,6 +147,7 @@ fun HomeScreenContent(
                         title = stringResource(R.string.latest_articles),
                         showLoading = uiState.loadingLatestArticles,
                         items = uiState.latestArticles,
+                        emptyMessage = stringResource(R.string.no_articles_available),
                         itemKey = { article -> article.id },
                         itemContent = { article ->
                             ArticleCard(
@@ -156,6 +175,7 @@ fun HomeScreenContent(
                             title = stringResource(R.string.latest_audios),
                             showLoading = uiState.loadingLatestAudios,
                             items = uiState.latestAudios,
+                            emptyMessage = stringResource(R.string.no_audios_available),
                             itemKey = { audio -> audio.audioUrl },
                             itemContent = { audio ->
                                 AudioCard(

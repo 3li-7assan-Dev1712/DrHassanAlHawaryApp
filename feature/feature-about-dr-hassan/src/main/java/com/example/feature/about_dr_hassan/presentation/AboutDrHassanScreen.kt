@@ -89,9 +89,9 @@ fun AboutDrHassanScreen(
                 )
             }
 
-            item {
+           /* item {
                 SocialRow()
-            }
+            }*/
 
             item {
                 InfoCard(

@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,10 +33,12 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.core.ui.components.shimmer
+import com.example.feature.home.R
 import com.example.feature.home.domain.model.ImageFeed
 import kotlinx.coroutines.delay
 
@@ -54,16 +57,18 @@ fun ImageCarousel(
 
     Log.d(TAG, "ImageCarousel: count: ${imageList.size}")
 
-    // Auto-scroll
+    // Auto-scroll (paused while the user is actively dragging the pager)
     LaunchedEffect(imageList.size) {
         if (imageList.isNotEmpty()) {
             while (true) {
                 delay(4000)
 
-                val nextPage =
-                    (pagerState.currentPage + 1) % pagerState.pageCount
+                if (!pagerState.isScrollInProgress) {
+                    val nextPage =
+                        (pagerState.currentPage + 1) % pagerState.pageCount
 
-                pagerState.animateScrollToPage(nextPage)
+                    pagerState.animateScrollToPage(nextPage)
+                }
             }
         }
     }
@@ -131,6 +136,22 @@ fun ImageCarousel(
                     )
                 }
             }
+        } else if (!isLoadingImages) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.no_images_available),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -179,7 +200,7 @@ fun CarouselItem(
             // Main image (Fit)
             Image(
                 painter = painter,
-                contentDescription = "Carousel Image",
+                contentDescription = stringResource(R.string.carousel_image_description),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.matchParentSize()
             )

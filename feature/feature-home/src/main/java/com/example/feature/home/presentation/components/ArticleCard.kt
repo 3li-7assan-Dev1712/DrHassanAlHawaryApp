@@ -1,5 +1,6 @@
 package com.example.feature.home.presentation.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -26,11 +28,18 @@ fun ArticleCard(
     onClick: (articleId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val shape = RoundedCornerShape(20.dp)
     Card(
         onClick = { onClick(article.id) },
         modifier = modifier
             .width(280.dp)
-            .height(200.dp),
+            .height(200.dp)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
+                shape = shape
+            ),
+        shape = shape,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
         ),

@@ -18,4 +18,10 @@
     <string name="war">نـــوازل الحـــرب</string>
     <string name="most_important">أهـــم المســـائل</string>
     <string name="lessons">الــمـحـــتويات</string>
+    <string name="no_articles_available">لا تــوجــــد مقـــالات متاحــــة الآن</string>
+    <string name="home_offline_message">أنت الآن غير متصل بالإنترنت</string>
+    <string name="home_back_online_message">تم الاتصال بالإنترنت مجدداً</string>
+    <string name="carousel_image_description">صورة</string>
+    <string name="audio_icon_description">أيقونة صوت</string>
+    <string name="no_images_available">لا تــوجــــد صور متاحــــة الآن</string>
 </resources>
