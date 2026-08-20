@@ -26,7 +26,7 @@ jobs:
       - name: Create google-services.json
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > admin/google-services.json
+          echo "${{ secrets.ADMIN_GOOGLE_SERVICES_JSON }}" | base64 --decode > admin/google-services.json
 
       - name: Build with Gradle
         env:
