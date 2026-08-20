@@ -28,17 +28,34 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT") ?: ""
+
+        // Try local.properties first, then environment variables
+        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT")
+            ?: System.getenv("GOOGLE_WEB_CLIENT")
+            ?: ""
+        val appId = localProperties.getProperty("ALGOLIA_APP_ID")
+            ?: System.getenv("ALGOLIA_APP_ID")
+            ?: ""
+        val apiKey = localProperties.getProperty("ALGOLIA_API_KEY")
+            ?: System.getenv("ALGOLIA_API_KEY")
+            ?: ""
+
         buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
-        val appId = localProperties.getProperty("ALGOLIA_APP_ID") ?: ""
-        val apiKey = localProperties.getProperty("ALGOLIA_API_KEY") ?: ""
+        buildConfigField("String", "ALGOLIA_APP_ID", "\"$appId\"")
+        buildConfigField("String", "ALGOLIA_API_KEY", "\"$apiKey\"")
+
+
+        /*  val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT") ?: ""
+          buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
+          val appId = localProperties.getProperty("ALGOLIA_APP_ID") ?: ""
+          val apiKey = localProperties.getProperty("ALGOLIA_API_KEY") ?: ""
 
 
         //  clients
         buildConfigField("String", "GOOGLE_WEB_CLIENT", googleWebClient)
         buildConfigField("String", "ALGOLIA_APP_ID", appId)
         buildConfigField("String", "ALGOLIA_API_KEY", apiKey)
-
+        */
     }
 
     buildTypes {
