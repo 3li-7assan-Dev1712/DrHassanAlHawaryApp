@@ -15,6 +15,21 @@ if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
 
+/**
+ * Reads a secret from local.properties first, then from the environment (used by CI).
+ *
+ * Values in local.properties are usually written with quotes ( KEY="value" ) while CI
+ * environment variables are not. Both are normalised here, so the generated BuildConfig
+ * field is always a valid Java string literal. Without this, a quoted local.properties
+ * value produces  public static final String KEY = ""value"";  which does not compile.
+ */
+fun secret(name: String): String =
+    (localProperties.getProperty(name) ?: System.getenv(name) ?: "")
+        .trim()
+        .removeSurrounding("\"")
+        .removeSurrounding("'")
+        .trim()
+
 android {
     namespace = "app.netlify.devalihassan.feature.search"
     compileSdk = 36
@@ -29,33 +44,10 @@ android {
         consumerProguardFiles("consumer-rules.pro")
 
 
-        // Try local.properties first, then environment variables
-        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT")
-            ?: System.getenv("GOOGLE_WEB_CLIENT")
-            ?: ""
-        val appId = localProperties.getProperty("ALGOLIA_APP_ID")
-            ?: System.getenv("ALGOLIA_APP_ID")
-            ?: ""
-        val apiKey = localProperties.getProperty("ALGOLIA_API_KEY")
-            ?: System.getenv("ALGOLIA_API_KEY")
-            ?: ""
-
-        buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
-        buildConfigField("String", "ALGOLIA_APP_ID", "\"$appId\"")
-        buildConfigField("String", "ALGOLIA_API_KEY", "\"$apiKey\"")
-
-
-        /*  val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT") ?: ""
-          buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
-          val appId = localProperties.getProperty("ALGOLIA_APP_ID") ?: ""
-          val apiKey = localProperties.getProperty("ALGOLIA_API_KEY") ?: ""
-
-
-        //  clients
-        buildConfigField("String", "GOOGLE_WEB_CLIENT", googleWebClient)
-        buildConfigField("String", "ALGOLIA_APP_ID", appId)
-        buildConfigField("String", "ALGOLIA_API_KEY", apiKey)
-        */
+        // local.properties on a dev machine, environment variables on CI
+        buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"${secret("GOOGLE_WEB_CLIENT")}\"")
+        buildConfigField("String", "ALGOLIA_APP_ID", "\"${secret("ALGOLIA_APP_ID")}\"")
+        buildConfigField("String", "ALGOLIA_API_KEY", "\"${secret("ALGOLIA_API_KEY")}\"")
     }
 
     buildTypes {
@@ -110,11 +102,11 @@ dependencies {
 
     // Algolia for Search Functionality
     implementation(libs.algolia.search)
-//    implementation(libs.ktor.okhttp)
-//    implementation(libs.ktor.core)
-//    implementation("io.ktor:ktor-client-content-negotiation:3.3.3")
+    // Ktor only needs ONE HTTP engine on the classpath. Three engines means three copies of
+    // every META-INF service/licence file for the APK packager to reconcile. okhttp is the
+    // right engine on Android; drop the other two once you have confirmed search still works.
     implementation("io.ktor:ktor-client-okhttp:2.0.1")
     implementation("io.ktor:ktor-client-android:2.0.1")
     implementation("io.ktor:ktor-client-cio:2.0.1")
 
-}
+}

@@ -279,7 +279,8 @@ class MainActivity : ComponentActivity() {
 
                     }, onNavigateToDetailAudio = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                        val encodedTitle = Uri.encode(title)
+                        navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
                     }, onCategoryClick = { route ->
                         when (route) {
                             Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
@@ -295,6 +296,7 @@ class MainActivity : ComponentActivity() {
 
                     SearchScreen { searchResultMetaData ->
                         val encodedUrl = Uri.encode(searchResultMetaData.url)
+                        val encodedTitle = Uri.encode(searchResultMetaData.title)
                         when (searchResultMetaData.type) {
                             "article" -> {
 
@@ -305,9 +307,9 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(route)
                             }
 
-                            "audio" -> navController.navigate("audio_detail_screen/${searchResultMetaData.title}/${encodedUrl}")
+                            "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
                             "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
-                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${searchResultMetaData.title}")
+                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
                             else -> {
 
                             }
@@ -337,7 +339,7 @@ class MainActivity : ComponentActivity() {
                 composable(Routes.AUDIO_CATEGORY_SCREEN) {
                     AudioCategoryScreen(
                         onCategoryClick = { categoryId, categoryTitle ->
-                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=$categoryTitle")
+                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
                         },
                         onNavigateUp = { navController.popBackStack() }
                     )
@@ -357,7 +359,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                        val encodedTitle = Uri.encode(title)
+                        navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
                     }, onNavigateBack = {
                         navController.popBackStack()
                     })
@@ -529,7 +532,8 @@ class MainActivity : ComponentActivity() {
                             navController.popBackStack()
                         }, onNavigateToVideo = { videoUrl, videoTitle ->
                             val encodedUrl = Uri.encode(videoUrl)
-                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$videoTitle")
+                            val encodedTitle = Uri.encode(videoTitle)
+                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
                         }
                     )
                 }

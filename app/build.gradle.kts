@@ -47,6 +47,35 @@ android {
         compose = true
         buildConfig = true
     }
+
+    // Firebase, Ktor (three engines) and the media3 stack each ship their own copies of these
+    // metadata files. Without this block the packaging task aborts with
+    // "N files found with path 'META-INF/...'", which is what fails :app:packageDebug.
+    packaging {
+        resources {
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/NOTICE.md",
+                "META-INF/ASL2.0",
+                "META-INF/INDEX.LIST",
+                "META-INF/DEPENDENCIES.txt",
+                "META-INF/io.netty.versions.properties",
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            )
+            // Keep one copy rather than failing when duplicates are unavoidable.
+            // (META-INF/services/** is merged by AGP already — do not override that.)
+            pickFirsts += setOf(
+                "META-INF/*.kotlin_module"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -163,4 +192,4 @@ configurations.all {
             }
         }
     }
-}
+}

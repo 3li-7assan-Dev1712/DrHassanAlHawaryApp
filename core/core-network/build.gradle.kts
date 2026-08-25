@@ -14,6 +14,18 @@ if (localPropertiesFile.exists()) {
     localProperties.load(FileInputStream(localPropertiesFile))
 }
 
+/**
+ * Reads a secret from local.properties first, then from the environment (used by CI).
+ * Surrounding quotes coming from local.properties are stripped so the generated
+ * BuildConfig field is always a valid Java string literal.
+ */
+fun secret(name: String): String =
+    (localProperties.getProperty(name) ?: System.getenv(name) ?: "")
+        .trim()
+        .removeSurrounding("\"")
+        .removeSurrounding("'")
+        .trim()
+
 android {
     namespace = "com.example.data_firebase"
     compileSdk = 36
@@ -24,8 +36,7 @@ android {
     defaultConfig {
         minSdk = 24
 
-        val googleWebClient = localProperties.getProperty("GOOGLE_WEB_CLIENT") ?: ""
-        buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"$googleWebClient\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT", "\"${secret("GOOGLE_WEB_CLIENT")}\"")
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -77,4 +88,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-}
+}
