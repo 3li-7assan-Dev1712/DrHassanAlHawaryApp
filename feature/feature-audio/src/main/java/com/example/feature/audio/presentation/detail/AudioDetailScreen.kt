@@ -3,7 +3,6 @@ package com.example.feature.audio.presentation.detail
 import android.content.ComponentName
 import android.content.Intent
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -83,13 +82,13 @@ import com.google.common.util.concurrent.ListenableFuture
 @Composable
 fun AudioDetailScreen(
     onNavigateUp: () -> Unit,
+    onNavigateToShare: (audioUrl: String, title: String, category: String?, localFilePath: String?, startMs: Long, totalDurationMs: Long) -> Unit = { _, _, _, _, _, _ -> },
     viewModel: AudioDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 
     val context = LocalContext.current
-    val comingSoonMsg = stringResource(id = R.string.feature_coming_soon)
     val sessionToken = remember {
         SessionToken(context, ComponentName(context,  PlaybackService::class.java))
     }
@@ -118,7 +117,17 @@ fun AudioDetailScreen(
         onForward = { viewModel.onForward(10) },
         onDownload = viewModel::onDownloadClicked,
         onShare = {
-            Toast.makeText(context, comingSoonMsg, Toast.LENGTH_SHORT).show()
+            val audioUrl = uiState.audioUrl
+            if (audioUrl != null) {
+                onNavigateToShare(
+                    audioUrl,
+                    uiState.title,
+                    uiState.category,
+                    uiState.localFilePath,
+                    uiState.currentPositionMillis,
+                    uiState.totalDurationMillis
+                )
+            }
         }
     )
 }

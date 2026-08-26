@@ -43,6 +43,7 @@ object Routes {
     const val VIDEO_PLAYER_SCREEN = "video_player_screen"
     const val KHOTAB_DETAIL_SCREEN = "khotab_detail_screen"
     const val IMAGE_DETAIL_SCREEN = "image_detail_screen"
+    const val SHARE_PREVIEW_SCREEN = "share_preview_screen"
 
 
 }

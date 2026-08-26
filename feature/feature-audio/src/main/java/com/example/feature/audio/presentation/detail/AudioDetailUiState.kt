@@ -3,6 +3,8 @@ package com.example.feature.audio.presentation.detail
 data class AudioDetailUiState(
     val audioUrl: String? = null,
     val title: String = "Loading...",
+    val category: String? = null,
+    val localFilePath: String? = null,
     val description: String? = null,
 
     val isPlaying: Boolean = false,

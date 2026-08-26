@@ -52,6 +52,7 @@ import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
+import com.example.feature.share.presentation.SharePreviewScreen
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
@@ -377,7 +378,35 @@ class MainActivity : ComponentActivity() {
                     AudioDetailScreen(
                         onNavigateUp = {
                             navController.popBackStack()
-                        })
+                        },
+                        onNavigateToShare = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
+                            val encodedUrl = Uri.encode(audioUrl)
+                            val encodedTitle = Uri.encode(title)
+                            val encodedCategory = Uri.encode(category ?: "")
+                            val encodedLocalFilePath = Uri.encode(localFilePath ?: "")
+                            navController.navigate(
+                                "${Routes.SHARE_PREVIEW_SCREEN}/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
+                            )
+                        }
+                    )
+                }
+
+                composable(
+                    route = "${Routes.SHARE_PREVIEW_SCREEN}/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
+                    arguments = listOf(
+                        navArgument("audioUrl") { type = NavType.StringType },
+                        navArgument("title") { type = NavType.StringType; nullable = true },
+                        navArgument("category") { type = NavType.StringType; nullable = true },
+                        navArgument("localFilePath") { type = NavType.StringType; nullable = true },
+                        navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
+                        navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
+                    )
+                ) {
+                    SharePreviewScreen(
+                        onNavigateUp = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
 
                 composable(

@@ -11,6 +11,7 @@ import com.example.data.di.ApplicationScope
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
+import com.example.feature.share.engine.ShareFileStore
 import com.example.study.domain.use_case.GetLevelsUseCase
 import com.example.study.domain.use_case.GetPlaylistsForLevelUseCase
 import com.example.study.domain.use_case.SyncLessonsUseCase
@@ -18,6 +19,7 @@ import com.example.study.domain.use_case.SyncPlaylistsUseCase
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -55,6 +57,9 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     @Inject
     lateinit var syncLessonsUseCase: SyncLessonsUseCase
 
+    @Inject
+    lateinit var shareFileStore: ShareFileStore
+
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleForce.wrap(newBase))
@@ -64,7 +69,10 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
         super<Application>.onCreate()
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
-
+        // §7: any share-preview handoff from a previous session is long finished by now.
+        appScope.launch(Dispatchers.IO) {
+            shareFileStore.sweepAll()
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {

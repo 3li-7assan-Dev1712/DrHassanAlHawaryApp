@@ -91,4 +91,21 @@
     <string name="onboarding_next">التالي</string>
     <string name="onboarding_get_started">"لنبدأ "</string>
 
+    <!-- Share Audio as Video -->
+    <string name="share_preview_title">معاينة المشاركة</string>
+    <string name="share_preview_close">إغلاق</string>
+    <!-- Burned into the exported video's pixels - always Arabic. Deliberately
+         has no values-en override so an English locale still falls back to this. -->
+    <string name="share_brand_line">تم الإنشاء بواسطة تطبيق الشيخ د. حسن الهواري</string>
+    <string name="share_generating_video">جاري إنشاء الفيديو</string>
+    <string name="share_button_label">مشاركة</string>
+    <string name="share_trim_range">من %1$s إلى %2$s</string>
+    <string name="share_video_chooser">مشاركة الفيديو</string>
+    <string name="share_error_generic">تعذّر تجهيز الفيديو، حاول مرة أخرى</string>
+    <string name="share_error_low_space">لا توجد مساحة تخزين كافية على الجهاز</string>
+    <string name="share_retry">إعادة المحاولة</string>
+    <string name="share_link_instead">شارك الرابط بدلاً من ذلك</string>
+    <string name="share_play">تشغيل</string>
+    <string name="share_pause">إيقاف مؤقت</string>
+
 </resources>

@@ -80,4 +80,18 @@
     <string name="onboarding_next">التالي</string>
     <string name="onboarding_get_started">"لنبدأ "</string>
 
+    <!-- Share Audio as Video -->
+    <string name="share_preview_title">Share Preview</string>
+    <string name="share_preview_close">Close</string>
+    <string name="share_generating_video">Generating video…</string>
+    <string name="share_button_label">Share</string>
+    <string name="share_trim_range">From %1$s to %2$s</string>
+    <string name="share_video_chooser">Share video</string>
+    <string name="share_error_generic">Couldn\'t prepare the video, please try again</string>
+    <string name="share_error_low_space">Not enough storage space on this device</string>
+    <string name="share_retry">Retry</string>
+    <string name="share_link_instead">Share the link instead</string>
+    <string name="share_play">Play</string>
+    <string name="share_pause">Pause</string>
+
 </resources>

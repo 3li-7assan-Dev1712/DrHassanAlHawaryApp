@@ -77,6 +77,8 @@ class AudioDetailViewModel @Inject constructor(
                         it.copy(
                             isDownloaded = audio.isDownloaded,
                             isFavorite = audio.isFavorite,
+                            category = audio.type.takeIf { type -> type.isNotBlank() },
+                            localFilePath = audio.localFilePath.takeIf { audio.isDownloaded },
                             isLoadingDetails = false
                         )
                     }

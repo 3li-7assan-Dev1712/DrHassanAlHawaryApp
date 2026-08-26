@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.feature.audio"
+    namespace = "com.example.feature.share"
     compileSdk = 36
 
     defaultConfig {
@@ -44,20 +44,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation(project(":core:core-domain"))
-    implementation(project(":core:core-database"))
-    implementation(project(":core:core-network"))
     implementation(project(":core:core-ui"))
-    implementation(project(":core:core-player"))
-    implementation(project(":feature:feature-share"))
-
-    // exo player and media session && ui
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.ui)
-    implementation(libs.media3.session)
-
-    // guava
-    implementation(libs.kotlinx.coroutines.guava)
 
     // ViewModel
     implementation(libs.lifecycle.viewmodel.compose)
@@ -68,18 +55,25 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    // navigation
-    implementation(libs.androidx.navigation.compose)
+    // hiltViewModel() in Compose
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Paging 3
-    implementation(libs.androidx.paging.runtime)
-    implementation(libs.androidx.paging.compose)
+    // guava (ImmutableList for the overlay API, arrives with media3-common too)
+    implementation(libs.kotlinx.coroutines.guava)
 
-    // Firebase (Required for Timestamp)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.firestore.ktx)
+    // remote-clip fallback download (already a project dependency elsewhere, not a new addition)
+    implementation(libs.squareup.okhttp3)
 
-    // Coil
+    // Coil for ShareBackgroundSource.FromImageUri (feature-video / feature-image reuse later);
+    // audio content always uses FromDrawableRes today.
     implementation(libs.coil.compose)
+
+    // Private preview player for the clip - not the app's shared PlaybackService/MediaSession.
+    implementation(libs.media3.exoplayer)
+
+    // On-device video export (Phase 4) - no FFmpeg.
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
+    implementation(libs.media3.common)
+    implementation(libs.media3.muxer)
 }
