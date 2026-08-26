@@ -52,7 +52,9 @@ import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
+import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.share.presentation.SharePreviewScreen
+import com.example.feature.share.presentation.TextCardPreviewScreen
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
@@ -334,7 +336,38 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     ArticleDetailScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToShareSelection = { articleId ->
+                            navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
+                        }
+                    )
+                }
+
+                composable(
+                    route = "${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/{articleId}",
+                    arguments = listOf(navArgument("articleId") { type = NavType.StringType })
+                ) {
+                    ArticleShareSelectionScreen(
+                        onNavigateUp = { navController.popBackStack() },
+                        onContinueToPreview = { articleTitle, excerpt ->
+                            val encodedExcerpt = Uri.encode(excerpt)
+                            val encodedTitle = Uri.encode(articleTitle)
+                            navController.navigate(
+                                "${Routes.TEXT_CARD_PREVIEW_SCREEN}/$encodedExcerpt?articleTitle=$encodedTitle"
+                            )
+                        }
+                    )
+                }
+
+                composable(
+                    route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{quoteText}?articleTitle={articleTitle}",
+                    arguments = listOf(
+                        navArgument("quoteText") { type = NavType.StringType },
+                        navArgument("articleTitle") { type = NavType.StringType; nullable = true },
+                    )
+                ) {
+                    TextCardPreviewScreen(
+                        onNavigateUp = { navController.popBackStack() }
                     )
                 }
                 composable(Routes.AUDIO_CATEGORY_SCREEN) {

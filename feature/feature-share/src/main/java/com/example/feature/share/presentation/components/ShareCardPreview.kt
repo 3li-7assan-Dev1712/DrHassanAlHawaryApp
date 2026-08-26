@@ -92,7 +92,7 @@ fun ShareCardPreview(
 }
 
 @Composable
-private fun Background(source: ShareBackgroundSource, modifier: Modifier = Modifier) {
+internal fun Background(source: ShareBackgroundSource, modifier: Modifier = Modifier) {
     when (source) {
         is ShareBackgroundSource.FromDrawableRes -> Image(
             painter = painterResource(id = source.resId),
@@ -121,7 +121,7 @@ private fun Background(source: ShareBackgroundSource, modifier: Modifier = Modif
 }
 
 @Composable
-private fun BoxWithConstraintsScope.CircleLogo(logoResId: Int, rect: Rect01, scale: Float, density: Density) {
+internal fun BoxWithConstraintsScope.CircleLogo(logoResId: Int, rect: Rect01, scale: Float, density: Density) {
     val sizeDp = with(density) { (rect.width * scale * 1080f).toDp() }
     Image(
         painter = painterResource(id = logoResId),
@@ -138,7 +138,7 @@ private fun BoxWithConstraintsScope.CircleLogo(logoResId: Int, rect: Rect01, sca
 }
 
 @Composable
-private fun BoxWithConstraintsScope.ShareText(
+internal fun BoxWithConstraintsScope.ShareText(
     text: String,
     block: TextBlock01,
     scale: Float,
@@ -212,7 +212,7 @@ private fun downsample(envelope: FloatArray, barCount: Int): FloatArray {
     }
 }
 
-private fun BoxWithConstraintsScope.rectModifier(rect: Rect01, scale: Float, density: Density): Modifier {
+internal fun BoxWithConstraintsScope.rectModifier(rect: Rect01, scale: Float, density: Density): Modifier {
     val widthPx = rect.width * scale * 1080f
     val heightPx = rect.height * scale * 1920f
     return Modifier
@@ -226,7 +226,7 @@ private fun BoxWithConstraintsScope.rectModifier(rect: Rect01, scale: Float, den
         )
 }
 
-private fun ShareFontWeight.toComposeWeight(): FontWeight = when (this) {
+internal fun ShareFontWeight.toComposeWeight(): FontWeight = when (this) {
     ShareFontWeight.REGULAR -> FontWeight.Normal
     ShareFontWeight.MEDIUM -> FontWeight.Medium
     ShareFontWeight.SEMI_BOLD -> FontWeight.SemiBold

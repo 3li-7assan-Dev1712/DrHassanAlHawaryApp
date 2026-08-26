@@ -30,6 +30,10 @@ class ShareFileStore @Inject constructor(
     fun exportFile(id: String): File = File(rootDir(), "share_$id.mp4")
     fun downloadTempFile(id: String): File = File(rootDir(), "download_$id.tmp")
 
+    /** The quote-card flow's output - unlike the video flow, this PNG has no
+     * separate intermediates: it's rendered once and IS the shareable asset. */
+    fun textCardFile(id: String): File = File(rootDir(), "textcard_$id.png")
+
     fun uriForFile(file: File): Uri =
         FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
 
@@ -43,6 +47,11 @@ class ShareFileStore @Inject constructor(
     /** Called when leaving the preview and the export was never shared. */
     fun deleteExport(id: String) {
         exportFile(id).delete()
+    }
+
+    /** Called when leaving the quote-card preview and the image was never shared. */
+    fun deleteTextCard(id: String) {
+        textCardFile(id).delete()
     }
 
     /** Called every time the preview screen opens. */

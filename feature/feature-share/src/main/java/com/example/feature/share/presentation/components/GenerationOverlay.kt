@@ -19,25 +19,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.core.ui.R
 import kotlin.math.roundToInt
 
 /**
  * Full-screen, semi-transparent progress overlay shown the instant Share is
  * tapped - the trim/preview screen stays visible behind it. [progress] is
  * expected to update synchronously with the tap so there's no visible gap
- * before this appears.
+ * before this appears. Generic across every share flow (video export, quote
+ * image render, ...) - the caller supplies [titleText] rather than this
+ * component hardcoding wording for one specific flow.
  *
- * [indeterminate] covers the pre-encode phase (clip extraction + waveform
- * analysis), which has no meaningful percentage of its own - showing a frozen
- * "0%" there reads as hung, so a spinner runs instead until real encode
- * progress starts arriving.
+ * [indeterminate] covers a flow's pre-result phase (clip extraction + waveform
+ * analysis for video, or the near-instant bitmap render for a quote image),
+ * which has no meaningful percentage of its own - showing a frozen "0%" there
+ * reads as hung, so a spinner runs instead until real progress starts arriving.
  */
 @Composable
 fun GenerationOverlay(
     progress: Float,
+    titleText: String,
     indeterminate: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
@@ -55,7 +56,7 @@ fun GenerationOverlay(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(R.string.share_generating_video),
+            text = titleText,
             style = MaterialTheme.typography.titleMedium,
             color = Color.White,
         )

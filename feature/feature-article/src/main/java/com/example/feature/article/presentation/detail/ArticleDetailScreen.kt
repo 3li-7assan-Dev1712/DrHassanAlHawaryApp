@@ -1,7 +1,5 @@
 package com.example.feature.article.presentation.detail
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,11 +30,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentDataType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -50,7 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Article
-import kotlinx.coroutines.launch
 import java.util.Date
 
 
@@ -58,14 +53,12 @@ import java.util.Date
 @Composable
 fun ArticleDetailScreen(
     viewModel: DetailArticleViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToShareSelection: (articleId: String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-    val comingSoonMsg = stringResource(id = R.string.feature_coming_soon)
 
 
     Scaffold(
@@ -96,13 +89,10 @@ fun ArticleDetailScreen(
 
         },
         floatingActionButton = {
-            if (uiState is DetailArticleUiState.Success) {
+            val state = uiState
+            if (state is DetailArticleUiState.Success) {
                 FloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(comingSoonMsg)
-                        }
-                    },
+                    onClick = { onNavigateToShareSelection(state.article.id) },
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                 ) {
@@ -180,18 +170,6 @@ fun ArticleContent(
         }
     }
 }
-
-private fun shareArticle(context: Context, subject: String, text: String) {
-    val sendIntent: Intent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_SUBJECT, subject)
-        putExtra(Intent.EXTRA_TEXT, text)
-        type = "text/plain"
-    }
-    val shareIntent = Intent.createChooser(sendIntent, null)
-    context.startActivity(shareIntent)
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)

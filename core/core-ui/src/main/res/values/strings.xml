@@ -108,4 +108,16 @@
     <string name="share_play">تشغيل</string>
     <string name="share_pause">إيقاف مؤقت</string>
 
+    <!-- Share Article Excerpt as Image -->
+    <string name="share_generating_image">جاري إنشاء الصورة</string>
+    <string name="share_image_chooser">مشاركة الصورة</string>
+    <string name="share_text_attribution">من مقال: %1$s</string>
+    <string name="share_text_selection_title">اختيار جزء للمشاركة</string>
+    <string name="share_text_selection_hint">اضغط مطولاً على النص ثم اسحب لتحديد الجزء الذي تريد مشاركته</string>
+    <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
+    <string name="share_text_char_count">%1$d / %2$d حرف</string>
+    <string name="share_text_too_long">الجزء المحدد طويل جدًا، اختر جزءًا أقصر</string>
+    <string name="share_text_clear_selection">مسح التحديد</string>
+    <string name="share_text_continue">متابعة</string>
+
 </resources>

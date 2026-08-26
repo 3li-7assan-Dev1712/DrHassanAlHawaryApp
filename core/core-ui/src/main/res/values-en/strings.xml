@@ -94,4 +94,16 @@
     <string name="share_play">Play</string>
     <string name="share_pause">Pause</string>
 
+    <!-- Share Article Excerpt as Image -->
+    <string name="share_generating_image">Generating image…</string>
+    <string name="share_image_chooser">Share image</string>
+    <string name="share_text_attribution">From the article: %1$s</string>
+    <string name="share_text_selection_title">Select part to share</string>
+    <string name="share_text_selection_hint">Long-press the text, then drag to select the part you want to share</string>
+    <string name="share_text_no_selection">No text selected yet</string>
+    <string name="share_text_char_count">%1$d / %2$d characters</string>
+    <string name="share_text_too_long">Selected part is too long, choose a shorter one</string>
+    <string name="share_text_clear_selection">Clear selection</string>
+    <string name="share_text_continue">Continue</string>
+
 </resources>

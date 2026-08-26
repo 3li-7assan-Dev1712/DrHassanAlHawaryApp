@@ -233,6 +233,7 @@ private fun SharePreviewScreen(
         if (isGenerating) {
             GenerationOverlay(
                 progress = uiState.exportState.toProgressFraction() ?: 0f,
+                titleText = stringResource(R.string.share_generating_video),
                 indeterminate = uiState.exportState is ShareExportState.Preparing,
             )
         }
