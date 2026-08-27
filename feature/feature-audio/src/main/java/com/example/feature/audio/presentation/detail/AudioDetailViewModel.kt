@@ -85,9 +85,9 @@ class AudioDetailViewModel @Inject constructor(
         viewModelScope.launch {
             getAudioByUrlUseCase(audioUrl).collect { audio ->
                 Log.d(TAG, "loadAudioDetails: $audio")
+                currentAudio = audio
                 if (audio != null) {
                     Log.d(TAG, "loadAudioDetails: local file path ${audio.localFilePath}")
-                    currentAudio = audio
                     _uiState.update {
                         it.copy(
                             isDownloaded = audio.isDownloaded,
@@ -97,6 +97,12 @@ class AudioDetailViewModel @Inject constructor(
                             isLoadingDetails = false
                         )
                     }
+                } else {
+                    // Not (yet) cached locally - e.g. opened straight from search results
+                    // without ever browsing the audio list, so Room has no matching row.
+                    // Streaming still works off audioUrl/title from nav args, so stop
+                    // blocking the UI behind the loading spinner.
+                    _uiState.update { it.copy(isLoadingDetails = false) }
                 }
             }
         }
