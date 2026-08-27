@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -85,6 +86,7 @@ class MainActivity : ComponentActivity() {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModels()
     val TAG = "MainActivity"
+    @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
@@ -191,7 +193,7 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-
+    @UnstableApi
     fun MainAppContent(
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,

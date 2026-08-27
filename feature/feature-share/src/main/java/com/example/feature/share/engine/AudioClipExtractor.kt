@@ -146,7 +146,17 @@ class AudioClipExtractor @Inject constructor(
                 if (sampleSize < 0) break
 
                 val relativeTimeUs = sampleTimeUs - baseTimeUs
-                bufferInfo.set(0, sampleSize, relativeTimeUs, extractor.sampleFlags)
+                // extractor.sampleFlags is in MediaExtractor.SAMPLE_FLAG_* space (SYNC=1,
+                // ENCRYPTED=2, PARTIAL_FRAME=4), not MediaCodec.BUFFER_FLAG_* space
+                // (KEY_FRAME=1, CODEC_CONFIG=2, END_OF_STREAM=4, ...) - passing it straight
+                // through mismapped PARTIAL_FRAME samples onto BUFFER_FLAG_END_OF_STREAM,
+                // which could make the muxer treat a mid-stream sample as the end of the track.
+                val muxerFlags = if (extractor.sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
+                    MediaCodec.BUFFER_FLAG_KEY_FRAME
+                } else {
+                    0
+                }
+                bufferInfo.set(0, sampleSize, relativeTimeUs, muxerFlags)
                 muxer.writeSampleData(muxerTrackIndex, buffer, bufferInfo)
                 lastRelativeTimeUs = relativeTimeUs
                 extractor.advance()

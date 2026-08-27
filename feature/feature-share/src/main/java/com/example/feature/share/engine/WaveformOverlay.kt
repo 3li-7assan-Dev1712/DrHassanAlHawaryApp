@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.RectF
 import androidx.media3.common.OverlaySettings
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.StaticOverlaySettings
 
@@ -22,6 +23,7 @@ import androidx.media3.effect.StaticOverlaySettings
  * spec's §4.6 "Buffer gotcha" - if the exported waveform ever looks frozen,
  * this is the first place to check).
  */
+@UnstableApi
 class WaveformOverlay(
     private val envelope: FloatArray,
     private val spec: ShareCardSpec,
