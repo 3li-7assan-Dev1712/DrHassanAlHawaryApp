@@ -143,7 +143,11 @@ class ShareVideoExporter @Inject constructor() {
     companion object {
         private const val OUTPUT_WIDTH = 1080
         private const val OUTPUT_HEIGHT = 1920
-        private const val VIDEO_FRAME_RATE = 30
+        // 20, not 30: a pulsing waveform bar animation reads just as smooth at 20fps,
+        // and dropping frame rate cuts the frame count that must be GPU-composited
+        // and H.264-encoded by a third - the main generation-time cost for this
+        // mostly-static (bitmap + overlay) content, without touching resolution/bitrate.
+        private const val VIDEO_FRAME_RATE = 20
         // 1080x1920 mostly-static content compresses well, so this buys visibly
         // sharper output (less banding in the gradient/scrim) for negligible extra
         // encode time - bitrate mainly costs output size, not GPU composite time.

@@ -118,7 +118,10 @@ fun AudioDetailScreen(
         onDownload = viewModel::onDownloadClicked,
         onShare = {
             val audioUrl = uiState.audioUrl
-            if (audioUrl != null) {
+            // §1: audio metadata/duration may still be loading right after the screen
+            // opens - sharing before totalDurationMillis is known breaks the share
+            // screen's trim-window math (it'd receive a 0ms track duration).
+            if (audioUrl != null && !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L) {
                 onNavigateToShare(
                     audioUrl,
                     uiState.title,
@@ -172,11 +175,12 @@ fun AudioDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = onShare) {
+                        val canShare = !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L
+                        IconButton(onClick = onShare, enabled = canShare) {
                             Icon(
                                 Icons.Filled.Share,
                                 contentDescription = "Share",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = if (canShare) 1f else 0.38f)
                             )
                         }
                     },

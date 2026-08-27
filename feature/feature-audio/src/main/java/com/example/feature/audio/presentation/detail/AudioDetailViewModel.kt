@@ -14,6 +14,7 @@ import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.GetAudioByUrlUseCase
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +41,20 @@ class AudioDetailViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private var currentAudio: Audio? = null
+
+    /**
+     * The "restart from the beginning" behavior below is only meant for a fresh visit to
+     * this screen, not every controller reconnect. [mediaControllerFuture] gets reassigned
+     * (and [listenToController] re-runs) on every config change too, because the Composable's
+     * `remember { MediaController.Builder(...).buildAsync() }` doesn't survive Activity
+     * recreation - only the ViewModel does. Gating on this flag stops rotation from
+     * resetting in-progress playback to 0.
+     */
+    private var isFirstControllerConnection = true
+
+    /** Cancelled and replaced on every reconnect, so a rotation doesn't leave the
+     * previous connection's progress-polling loop running alongside the new one. */
+    private var controllerJob: Job? = null
 
     var mediaControllerFuture: ListenableFuture<MediaController>? = null
         set(value) {
@@ -191,7 +206,8 @@ class AudioDetailViewModel @Inject constructor(
 
 
     private fun listenToController(controllerFuture: ListenableFuture<MediaController>) {
-        viewModelScope.launch {
+        controllerJob?.cancel()
+        controllerJob = viewModelScope.launch {
             val controller = controllerFuture.await()
 
             val uriToPlay =
@@ -212,16 +228,21 @@ class AudioDetailViewModel @Inject constructor(
                     .build()
                 controller.setMediaItem(mediaItem)
                 controller.prepare()
-            } else {
-                Log.d("AudioVM", "Same audio. Restarting from the beginning.")
-                // Reset to the beginning as requested
+            } else if (isFirstControllerConnection) {
+                Log.d("AudioVM", "Same audio, fresh screen visit. Restarting from the beginning.")
+                // Reset to the beginning as requested - but only for a genuinely fresh
+                // visit to this screen, not a reconnect from a rotation (see
+                // isFirstControllerConnection's doc).
                 controller.seekTo(0L)
 
                 // If the audio had previously finished, it needs to be prepared again
                 if (controller.playbackState == Player.STATE_ENDED || controller.playbackState == Player.STATE_IDLE) {
                     controller.prepare()
                 }
+            } else {
+                Log.d("AudioVM", "Same audio, reconnecting (e.g. rotation). Keeping playback position.")
             }
+            isFirstControllerConnection = false
 
 
             _uiState.update {
