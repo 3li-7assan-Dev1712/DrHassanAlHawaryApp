@@ -1,6 +1,7 @@
 package com.example.feature.article.presentation.share.components
 
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -19,7 +20,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -59,8 +62,26 @@ fun SelectableQuoteText(
     val onSelectionChangedState = rememberUpdatedState(onSelectionChanged)
     var dragMode by remember { mutableStateOf(DragMode.NONE) }
     var anchor by remember { mutableStateOf(0) }
+    val hapticState = rememberUpdatedState(LocalHapticFeedback.current)
 
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier
+            .pointerInput(Unit) {
+                // A plain tap (no preceding long-press, so it doesn't fight the drag
+                // detector above) outside the current selection clears it - mirrors
+                // the "clear selection" bottom-bar button for a tap-away gesture.
+                detectTapGestures(
+                    onTap = { offset ->
+                        val lr = layoutResult ?: return@detectTapGestures
+                        if (selectionEndState.value <= selectionStartState.value) return@detectTapGestures
+                        val charIndex = lr.getOffsetForPosition(offset).coerceIn(0, textState.value.length)
+                        if (charIndex < selectionStartState.value || charIndex > selectionEndState.value) {
+                            onSelectionChangedState.value(0, 0)
+                        }
+                    },
+                )
+            },
+    ) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -94,6 +115,7 @@ fun SelectableQuoteText(
                                     DragMode.NEW
                                 }
                             }
+                            hapticState.value.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         },
                         onDragEnd = { dragMode = DragMode.NONE },
                         onDragCancel = { dragMode = DragMode.NONE },
