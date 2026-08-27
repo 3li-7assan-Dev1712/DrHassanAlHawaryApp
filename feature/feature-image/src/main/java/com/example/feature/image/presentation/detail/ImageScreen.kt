@@ -47,8 +47,13 @@ fun ImageScreen(
     val images = uiState.imageGroup?.images ?: emptyList()
     val error = uiState.error
 
-    // 3. Initialize the pager state, now aware of the number of pages from the data
-    val pagerState = rememberPagerState(pageCount = { images.size })
+    // 3. Initialize the pager state, now aware of the number of pages from the data.
+    // initialPage is set once, ahead of images finishing loading if need be - Pager
+    // coerces it against the real page count once that's known.
+    val pagerState = rememberPagerState(
+        initialPage = uiState.startIndex.coerceAtLeast(0),
+        pageCount = { images.size },
+    )
 
     Scaffold(
         topBar = {

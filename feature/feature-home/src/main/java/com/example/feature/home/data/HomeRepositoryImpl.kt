@@ -147,27 +147,50 @@ class HomeRepositoryImpl @Inject constructor(
 
     override suspend fun syncLatestImageGroup() {
         try {
-            val group = imageFirestoreSource.fetchLatestImageGroup() ?: return
-            val groupId = group.id
-
-            // saving group
-            val imageGroupEntity = ImageGroupEntity(
-                id = groupId,
-                title = group.title,
-                publishDate = group.publishDate.time,
-                previewImageUrl = group.previewImageUrl,
-                updatedAt = System.currentTimeMillis(),
-                isDeleted = false
+            // Unlike syncLatestArticles/syncLatestAudios, this used to only ever fetch
+            // fetchLatestImageGroup() - a server-side query already filtered to
+            // isDeleted == false - and upsert whatever it returned. That never told the
+            // local db about a group that WAS the cached latest but got deleted since:
+            // the filtered query just silently stops returning it, nothing here ever
+            // pruned the stale local row, and it kept winning getLastImageGroup()'s
+            // "most recent isDeleted=0 row" query forever. Fetching a small unfiltered
+            // batch and reconciling deletions - same pattern the article/audio syncs
+            // already use - fixes that.
+            val (recentGroups, _) = imageFirestoreSource.fetchImageGroupsPage(
+                startAfterPublishDate = null,
+                limit = RECENT_GROUPS_SYNC_LIMIT,
             )
-            imageDao.upsertImageGroups(listOf(imageGroupEntity))
+            val (deletedGroups, activeGroups) = recentGroups.partition { it.isDeleted }
 
-            // saving images
-            val remoteImages = imageFirestoreSource.fetchImagesForGroup(groupId)
+            appDatabase.withTransaction {
+                deletedGroups.forEach { imageDao.deleteGroupWithImages(it.id) }
+
+                if (activeGroups.isNotEmpty()) {
+                    val entities = activeGroups.map { group ->
+                        ImageGroupEntity(
+                            id = group.id,
+                            title = group.title,
+                            publishDate = group.publishDate.time,
+                            previewImageUrl = group.previewImageUrl,
+                            updatedAt = System.currentTimeMillis(),
+                            isDeleted = false,
+                            type = group.type,
+                        )
+                    }
+                    imageDao.upsertImageGroups(entities)
+                }
+            }
+
+            // activeGroups is ordered by publishDate DESC (server query order), so the
+            // first entry is the actual latest - only its images are needed here.
+            val latestActiveGroupId = activeGroups.firstOrNull()?.id ?: return
+
+            val remoteImages = imageFirestoreSource.fetchImagesForGroup(latestActiveGroupId)
             if (remoteImages.isNotEmpty()) {
                 val imageEntities = remoteImages.map { img ->
                     ImageEntity(
                         id = img.id.ifBlank { img.imageUrl },
-                        groupId = groupId,
+                        groupId = latestActiveGroupId,
                         orderIndex = img.orderIndex,
                         imageUrl = img.imageUrl
                     )
@@ -177,5 +200,9 @@ class HomeRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e("HomeRepositoryImpl", "syncLatestImageGroup failed", e)
         }
+    }
+
+    companion object {
+        private const val RECENT_GROUPS_SYNC_LIMIT = 5
     }
 }

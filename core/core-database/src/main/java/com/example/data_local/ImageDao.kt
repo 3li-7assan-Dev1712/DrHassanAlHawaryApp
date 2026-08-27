@@ -24,6 +24,15 @@ interface ImageDao {
     @Query("DELETE FROM image_groups WHERE id = :groupId")
     suspend fun deleteById(groupId: String)
 
+    @Query("DELETE FROM images WHERE group_id = :groupId")
+    suspend fun deleteImagesByGroupId(groupId: String)
+
+    @Transaction
+    suspend fun deleteGroupWithImages(groupId: String) {
+        deleteImagesByGroupId(groupId)
+        deleteById(groupId)
+    }
+
     @Upsert
     suspend fun upsertImages(images: List<ImageEntity>)
 

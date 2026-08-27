@@ -18,7 +18,10 @@ import javax.inject.Inject
 data class ImageDetailUiState(
     val isLoading: Boolean = true,
     val imageGroup: ImageGroupWithImages? = null,
-    val error: String? = null
+    val error: String? = null,
+    /** Which image to open the pager on - set when navigating in from a specific
+     * thumbnail (e.g. the images list's per-group strip) rather than the group itself. */
+    val startIndex: Int = 0,
 )
 
 
@@ -29,22 +32,23 @@ class ImageDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val groupId: String = savedStateHandle.get<String>("groupId")!!
+    private val startIndex: Int = savedStateHandle.get<Int>("startIndex") ?: 0
 
     val uiState: StateFlow<ImageDetailUiState> =
         getImageGroupDetailsUseCase(groupId)
             .map { imageGroup ->
                 // When data arrives, update the state to show it
-                ImageDetailUiState(isLoading = false, imageGroup = imageGroup)
+                ImageDetailUiState(isLoading = false, imageGroup = imageGroup, startIndex = startIndex)
             }
             .catch { throwable ->
                 // If an error occurs in the flow, you can represent it
-                emit(ImageDetailUiState(isLoading = false, error = "Failed to load images."))
+                emit(ImageDetailUiState(isLoading = false, error = "Failed to load images.", startIndex = startIndex))
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 // The initial state is explicitly loading
-                initialValue = ImageDetailUiState(isLoading = true)
+                initialValue = ImageDetailUiState(isLoading = true, startIndex = startIndex)
             )
 
    /* val imageGroupDetails: StateFlow<ImageGroupWithImages?> =

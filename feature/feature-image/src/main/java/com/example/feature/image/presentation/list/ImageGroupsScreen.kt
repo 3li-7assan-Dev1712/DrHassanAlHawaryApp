@@ -12,8 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ImageNotSupported
@@ -27,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -36,11 +36,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
-import com.example.feature.image.presentation.components.ImageGroupCard
+import com.example.feature.image.presentation.components.ImageGroupRow
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +49,7 @@ import com.example.feature.image.presentation.components.ImageGroupCard
 fun ImagesGroupsScreen(
     viewModel: ImagesGroupsViewModel = hiltViewModel(),
     onGroupClick: (groupId: String) -> Unit,
+    onImageClick: (groupId: String, index: Int) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val lazyPagingItems = viewModel.imageGroups.collectAsLazyPagingItems()
@@ -136,12 +138,10 @@ fun ImagesGroupsScreen(
                             )
                         }
                     } else {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2), // Fixed columns often look cleaner for image grids
+                        LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            contentPadding = PaddingValues(vertical = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(20.dp),
                         ) {
                             items(
                                 count = lazyPagingItems.itemCount,
@@ -149,9 +149,13 @@ fun ImagesGroupsScreen(
                             ) { index ->
                                 val group = lazyPagingItems[index]
                                 if (group != null) {
-                                    ImageGroupCard(
+                                    val images by viewModel.imagesForGroup(group.id)
+                                        .collectAsStateWithLifecycle()
+                                    ImageGroupRow(
                                         group = group,
-                                        onClick = { onGroupClick(group.id) }
+                                        images = images,
+                                        onTitleClick = { onGroupClick(group.id) },
+                                        onImageClick = { imageIndex -> onImageClick(group.id, imageIndex) },
                                     )
                                 }
                             }

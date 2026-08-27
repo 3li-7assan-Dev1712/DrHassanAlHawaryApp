@@ -543,14 +543,21 @@ class MainActivity : ComponentActivity() {
                         },
                         onGroupClick = { groupId ->
                             navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                        },
+                        onImageClick = { groupId, index ->
+                            navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
                         }
                     )
                 }
                 composable(
-                    route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}",
+                    route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}?startIndex={startIndex}",
                     arguments = listOf(
                         navArgument("groupId") {
                             type = NavType.StringType
+                        },
+                        navArgument("startIndex") {
+                            type = NavType.IntType
+                            defaultValue = 0
                         }
                     )
                 ) {
