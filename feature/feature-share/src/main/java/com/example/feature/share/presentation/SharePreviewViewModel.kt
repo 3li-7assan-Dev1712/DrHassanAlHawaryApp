@@ -3,15 +3,21 @@ package com.example.feature.share.presentation
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.transformer.ExportException
 import com.example.core.ui.R
+import com.example.domain.module.Audio
+import com.example.domain.use_cases.audios.DownloadAudioUseCase
+import com.example.domain.use_cases.audios.DownloadResult
+import com.example.domain.use_cases.audios.GetAudioByUrlUseCase
 import com.example.feature.share.domain.ShareBackgroundSource
 import com.example.feature.share.domain.ShareCardContent
 import com.example.feature.share.domain.ShareClip
@@ -52,6 +58,8 @@ class SharePreviewViewModel @Inject constructor(
     private val waveformAnalyzer: WaveformAnalyzer,
     private val bitmapRenderer: ShareCardBitmapRenderer,
     private val videoExporter: ShareVideoExporter,
+    private val getAudioByUrlUseCase: GetAudioByUrlUseCase,
+    private val downloadAudioUseCase: DownloadAudioUseCase,
 ) : ViewModel() {
 
     /** Identifies this share session's temp files - stable across rotation since the ViewModel survives it. */
@@ -59,7 +67,16 @@ class SharePreviewViewModel @Inject constructor(
     private val spec = ShareCardSpec.default()
 
     private val audioUrl = savedStateHandle.get<String>(ARG_AUDIO_URL).orEmpty()
-    private val localFilePath = savedStateHandle.get<String>(ARG_LOCAL_FILE_PATH)?.takeIf { it.isNotBlank() }
+    private val navArgLocalFilePath = savedStateHandle.get<String>(ARG_LOCAL_FILE_PATH)?.takeIf { it.isNotBlank() }
+
+    /** Starts as whatever the detail screen already knew (often nothing yet); gets
+     * upgraded in place - without the user ever noticing a reload - the moment
+     * [observeLocalAudioFile] sees a locally cached copy appear in Room, whether
+     * that's from this screen's own fallback download or one the detail screen
+     * kicked off silently before the user ever tapped Share. */
+    private var resolvedLocalFilePath: String? = navArgLocalFilePath
+    private var hasStartedFallbackDownload = false
+
     private val rawTitle = savedStateHandle.get<String>(ARG_TITLE).orEmpty()
     private val category = savedStateHandle.get<String>(ARG_CATEGORY)?.takeIf { it.isNotBlank() }
     private val totalTrackDurationMs = (savedStateHandle.get<Long>(ARG_TOTAL_DURATION_MS) ?: 0L).coerceAtLeast(0L)
@@ -93,14 +110,70 @@ class SharePreviewViewModel @Inject constructor(
     /** Set once the user taps Share; the instant the export lands, we fire the intent. */
     private var shareWhenReady = false
 
-    /** §8: rapid double-tap guard, and §7: once true, never delete the export file ourselves. */
+    /** §7: once true, never delete the export file ourselves - the receiving app may
+     * still be reading the content URI asynchronously. This does NOT gate re-sharing:
+     * cancelling the chooser and tapping Share again must reopen it, same as every
+     * other Android share button. */
     private var hasBeenShared = false
+
+    /** §8: rapid-double-tap guard for [fireShareIntent] - short-lived, unlike [hasBeenShared]. */
+    private var lastShareIntentFiredAtMs = 0L
 
     init {
         shareFileStore.sweepStale()
         loadOverviewEnvelope()
         preparePlayer()
         listenToPlayer()
+        observeLocalAudioFile()
+    }
+
+    /** Reactively picks up a local copy of this audio the moment Room has one -
+     * whether it was already downloaded, finished downloading in the background
+     * while the user was still on the detail screen, or has to be started here as
+     * a fallback (e.g. the detail screen's silent prefetch hadn't started yet). */
+    private fun observeLocalAudioFile() {
+        viewModelScope.launch {
+            getAudioByUrlUseCase(audioUrl).collect { audio ->
+                val local = audio?.localFilePath?.takeIf { audio.isDownloaded && File(it).exists() }
+                if (local != null && local != resolvedLocalFilePath) {
+                    resolvedLocalFilePath = local
+                    onLocalFileReady(local)
+                } else if (audio != null && !audio.isDownloaded && !hasStartedFallbackDownload) {
+                    hasStartedFallbackDownload = true
+                    startFallbackDownload(audio)
+                }
+            }
+        }
+    }
+
+    private fun startFallbackDownload(audio: Audio) {
+        viewModelScope.launch {
+            downloadAudioUseCase(audio).collect { result ->
+                if (result is DownloadResult.Progress) {
+                    _uiState.update { it.copy(downloadProgressPercent = result.percentage) }
+                }
+                // Success/Error both surface through the same getAudioByUrlUseCase Room
+                // flow already being collected in observeLocalAudioFile() - no extra
+                // handling needed here beyond clearing the progress affordance.
+                if (result is DownloadResult.Success || result is DownloadResult.Error) {
+                    _uiState.update { it.copy(downloadProgressPercent = null) }
+                }
+            }
+        }
+    }
+
+    /** Upgrades the still-running preview in place - no reload, no flicker: the
+     * waveform sharpens from whatever it was showing (synthetic or remote-decoded)
+     * and playback seamlessly continues from the same position on the local file. */
+    private fun onLocalFileReady(path: String) {
+        loadOverviewEnvelope()
+
+        val wasPlaying = exoPlayer.isPlaying
+        val position = exoPlayer.currentPosition
+        exoPlayer.setMediaItem(MediaItem.fromUri(path))
+        exoPlayer.prepare()
+        exoPlayer.seekTo(position)
+        if (wasPlaying) exoPlayer.play()
     }
 
     private fun buildInitialState(): SharePreviewUiState {
@@ -117,27 +190,35 @@ class SharePreviewViewModel @Inject constructor(
             logoResId = R.drawable.dr_hassan_image,
         )
 
+        // Instant first paint: a natural-looking placeholder waveform rather than an
+        // empty bar or a blocking spinner - sharpens into the real decode moments
+        // later (see loadOverviewEnvelope/onLocalFileReady), almost never noticeable
+        // once the source is already local.
+        val placeholder = waveformAnalyzer.placeholderOverview()
+
         return SharePreviewUiState(
             audioUrl = audioUrl,
-            localFilePath = localFilePath,
+            localFilePath = navArgLocalFilePath,
             totalTrackDurationMs = totalTrackDurationMs,
             startMs = clampedStart,
             clipDurationMs = windowMs,
             content = content,
+            overviewEnvelope = placeholder,
+            clipEnvelope = sliceEnvelope(placeholder, clampedStart, clampedStart + windowMs),
             // §8: track shorter than ~5s -> hide the share action entirely.
             isTooShortToShare = totalTrackDurationMs in 1 until MIN_SHAREABLE_DURATION_MS,
         )
     }
 
     private fun preparePlayer() {
-        val source = localFilePath ?: audioUrl
+        val source = resolvedLocalFilePath ?: audioUrl
         exoPlayer.setMediaItem(MediaItem.fromUri(source))
         exoPlayer.prepare()
     }
 
     private fun loadOverviewEnvelope() {
         viewModelScope.launch {
-            val source = localFilePath ?: audioUrl
+            val source = resolvedLocalFilePath ?: audioUrl
             val overview = waveformAnalyzer.analyzeTrackOverview(source, totalTrackDurationMs)
             _uiState.update { state ->
                 state.copy(
@@ -199,7 +280,7 @@ class SharePreviewViewModel @Inject constructor(
             val clipResult = audioClipExtractor.extractClip(
                 id = shareId,
                 remoteUrl = audioUrl,
-                localFilePath = localFilePath,
+                localFilePath = resolvedLocalFilePath,
                 startMs = startMs,
                 durationMs = clipDurationMs,
             )
@@ -228,7 +309,7 @@ class SharePreviewViewModel @Inject constructor(
         envelope: FloatArray,
         isRetryAtLowerResolution: Boolean,
     ) {
-        val overlay = WaveformOverlay(envelope, spec)
+        val overlay = WaveformOverlay(envelope, spec, frameRate = ShareVideoExporter.VIDEO_FRAME_RATE)
         val outputFile = shareFileStore.exportFile(shareId)
 
         videoExporter.export(
@@ -274,10 +355,14 @@ class SharePreviewViewModel @Inject constructor(
             exoPlayer.pause()
             return
         }
+        _uiState.update { it.copy(playbackErrorMessage = null) }
         val state = _uiState.value
         val relative = exoPlayer.currentPosition - state.startMs
         if (relative < 0L || relative >= state.clipDurationMs) {
             exoPlayer.seekTo(state.startMs)
+        }
+        if (exoPlayer.playbackState == Player.STATE_IDLE) {
+            exoPlayer.prepare()
         }
         exoPlayer.play()
     }
@@ -307,7 +392,6 @@ class SharePreviewViewModel @Inject constructor(
 
     /** Tapping Share is what starts generation - nothing runs eagerly before this. */
     fun onShareClicked() {
-        if (hasBeenShared) return
         when (_uiState.value.exportState) {
             is ShareExportState.Ready -> fireShareIntent(shareFileStore.exportFile(shareId))
             ShareExportState.Preparing, is ShareExportState.Encoding -> Unit // already generating
@@ -324,6 +408,9 @@ class SharePreviewViewModel @Inject constructor(
     }
 
     private fun fireShareIntent(file: File) {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastShareIntentFiredAtMs < SHARE_DEBOUNCE_MS) return
+        lastShareIntentFiredAtMs = now
         hasBeenShared = true
         _shareIntentEvent.tryEmit(shareFileStore.uriForFile(file))
     }
@@ -332,6 +419,18 @@ class SharePreviewViewModel @Inject constructor(
         exoPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 _uiState.update { it.copy(isPlaying = isPlaying) }
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                _uiState.update { it.copy(isBuffering = playbackState == Player.STATE_BUFFERING) }
+            }
+
+            override fun onPlayerError(error: PlaybackException) {
+                // A remote source can fail before the local file swap lands (§1) -
+                // surface it instead of leaving the play button silently dead. Kept
+                // separate from `errorMessage` (export failures) since a preview
+                // playback hiccup shouldn't hide the Share button.
+                _uiState.update { it.copy(isBuffering = false, playbackErrorMessage = context.getString(R.string.share_error_generic)) }
             }
         })
 
@@ -382,5 +481,6 @@ class SharePreviewViewModel @Inject constructor(
         private const val MIN_SHAREABLE_DURATION_MS = 5_000L
         private const val POSITION_POLL_MS = 200L
         private const val MIN_USABLE_SPACE_BYTES = 150L * 1024 * 1024
+        private const val SHARE_DEBOUNCE_MS = 800L
     }
 }

@@ -273,6 +273,12 @@ class WaveformAnalyzer @Inject constructor() {
         }
     }
 
+    /** A deterministic, natural-looking placeholder waveform for an instant first
+     * paint before any real decode has run - the same shape this analyzer falls
+     * back to on a decode failure/timeout, exposed so the UI can seed its initial
+     * state with it instead of an empty/flat bar. */
+    fun placeholderOverview(pointCount: Int = OVERVIEW_POINT_COUNT): FloatArray = syntheticEnvelope(pointCount)
+
     private fun syntheticEnvelope(bucketCount: Int): FloatArray {
         val random = Random(SEED)
         var value = 0.5f

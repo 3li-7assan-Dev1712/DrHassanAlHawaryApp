@@ -186,8 +186,12 @@ class AudioDetailViewModel @Inject constructor(
 
         if (audioToDownload.isDownloaded) return
 
+        startDownload(audioToDownload)
+    }
+
+    private fun startDownload(audio: Audio) {
         viewModelScope.launch {
-            downloadAudioUseCase(audioToDownload).collect { result ->
+            downloadAudioUseCase(audio).collect { result ->
                 when (result) {
                     is DownloadResult.Progress -> {
                         _uiState.update { it.copy(downloadProgress = result.percentage.toFloat()) }
@@ -195,7 +199,8 @@ class AudioDetailViewModel @Inject constructor(
 
                     is DownloadResult.Success -> {
                         _uiState.update { it.copy(isDownloaded = true, downloadProgress = 100f) }
-                        loadAudioDetails()
+                        // Room's getAudioByUrl flow (already collected in loadAudioDetails())
+                        // picks up this upsert on its own - no need to re-subscribe here.
 
                         // Switch the player to the newly downloaded file
                         switchToLocalPlayback(result.localPath)

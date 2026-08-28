@@ -141,16 +141,27 @@ class ShareVideoExporter @Inject constructor() {
     }
 
     companion object {
-        private const val OUTPUT_WIDTH = 1080
-        private const val OUTPUT_HEIGHT = 1920
+        // 720x1280, not 1080x1920: speed over quality - this is the dominant
+        // generation-time cost for this mostly-static (bitmap + waveform-strip
+        // overlay) content, ~2.25x fewer pixels to GPU-composite and H.264-encode
+        // per frame than the card's native 1080x1920 drawing resolution (which
+        // ShareCardBitmapRenderer/WaveformOverlay still draw at - this just
+        // downscales it at encode time). Still sharp enough on a phone screen.
+        private const val OUTPUT_WIDTH = 720
+        private const val OUTPUT_HEIGHT = 1280
         // 20, not 30: a pulsing waveform bar animation reads just as smooth at 20fps,
         // and dropping frame rate cuts the frame count that must be GPU-composited
-        // and H.264-encoded by a third - the main generation-time cost for this
-        // mostly-static (bitmap + overlay) content, without touching resolution/bitrate.
-        private const val VIDEO_FRAME_RATE = 20
-        // 1080x1920 mostly-static content compresses well, so this buys visibly
-        // sharper output (less banding in the gradient/scrim) for negligible extra
-        // encode time - bitrate mainly costs output size, not GPU composite time.
+        // and H.264-encoded by a third - without touching resolution/bitrate. Exposed
+        // (not private) so WaveformOverlay's frame windowing always matches this exactly.
+        // 60fps was considered and rejected: with a fixed target bitrate, file size is
+        // governed by bitrate x duration, not frame count, so 60fps wouldn't meaningfully
+        // grow the output - it would just make generation ~3x slower for no visible gain
+        // on this content.
+        const val VIDEO_FRAME_RATE = 20
+        // Paired back down with the 720p resolution above - a higher bitrate mainly
+        // buys sharper detail at higher resolutions; at 720p this is already plenty
+        // for a mostly-static card, and keeping it here (instead of the 9 Mbps used
+        // at 1080x1920) keeps output size and encode time down too.
         private const val VIDEO_BITRATE_BPS = 4_500_000
         private const val PROGRESS_POLL_MS = 400L
     }

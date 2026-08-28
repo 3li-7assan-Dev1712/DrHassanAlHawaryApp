@@ -28,6 +28,9 @@ class WaveformOverlay(
     private val envelope: FloatArray,
     private val spec: ShareCardSpec,
     accentColorArgb: Int = 0xFF036B5C.toInt(),
+    // Must match the exporter's actual output frame rate (ShareVideoExporter.VIDEO_FRAME_RATE) -
+    // this is what the analyzer's envelope buckets/sec are windowed against per frame.
+    private val frameRate: Int = 30,
 ) : BitmapOverlay() {
 
     private val stripWidthPx = (spec.waveform.width * spec.referenceWidthPx).toInt().coerceAtLeast(1)
@@ -56,7 +59,7 @@ class WaveformOverlay(
         canvas.drawColor(0, PorterDuff.Mode.CLEAR)
 
         if (envelope.isNotEmpty()) {
-            val frame = ((presentationTimeUs * FRAME_RATE) / 1_000_000L).toInt()
+            val frame = ((presentationTimeUs * frameRate) / 1_000_000L).toInt()
             drawBars(canvas, frame)
         }
 
@@ -92,6 +95,5 @@ class WaveformOverlay(
     companion object {
         private const val BAR_COUNT = 48
         private const val MIN_HEIGHT_FRACTION = 6f / 360f
-        private const val FRAME_RATE = 30
     }
 }

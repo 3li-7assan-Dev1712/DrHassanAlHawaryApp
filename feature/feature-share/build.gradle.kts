@@ -45,6 +45,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(project(":core:core-ui"))
+    implementation(project(":core:core-domain"))
 
     // ViewModel
     implementation(libs.lifecycle.viewmodel.compose)

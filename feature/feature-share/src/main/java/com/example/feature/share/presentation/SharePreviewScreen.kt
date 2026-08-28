@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -175,22 +177,29 @@ private fun SharePreviewScreen(
                             playbackFraction = uiState.playbackFraction,
                             modifier = Modifier.fillMaxWidth(),
                         )
-
-                        if (uiState.isExtracting) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                            }
-                        }
                     }
+                }
+
+                // Only ever appears while a background audio download this screen is
+                // actively waiting on is in flight - not for the overview decode, and
+                // never a full-screen block. Rare once the detail screen's silent
+                // prefetch has had a head start.
+                uiState.downloadProgressPercent?.let { percent ->
+                    LinearProgressIndicator(
+                        progress = { percent / 100f },
+                        modifier = Modifier
+                            .fillMaxWidth(0.72f)
+                            .padding(top = 8.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
 
                 PlaybackScrubber(
                     positionMs = uiState.playbackPositionMs,
                     durationMs = uiState.clipDurationMs,
                     isPlaying = uiState.isPlaying,
+                    isBuffering = uiState.isBuffering,
+                    errorMessage = uiState.playbackErrorMessage,
                     onPlayPauseToggle = onPlayPauseToggle,
                     onSeek = onSeekWithinClip,
                 )
@@ -285,6 +294,8 @@ private fun PlaybackScrubber(
     positionMs: Long,
     durationMs: Long,
     isPlaying: Boolean,
+    isBuffering: Boolean,
+    errorMessage: String?,
     onPlayPauseToggle: () -> Unit,
     onSeek: (Long) -> Unit,
 ) {
@@ -302,13 +313,31 @@ private fun PlaybackScrubber(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        IconButton(onClick = onPlayPauseToggle) {
-            Icon(
-                imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                contentDescription = stringResource(
-                    if (isPlaying) R.string.share_pause else R.string.share_play
-                ),
-                tint = MaterialTheme.colorScheme.primary,
+        Box(contentAlignment = Alignment.Center) {
+            IconButton(onClick = onPlayPauseToggle) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = stringResource(
+                        if (isPlaying) R.string.share_pause else R.string.share_play
+                    ),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = if (isBuffering) 0.3f else 1f),
+                )
+            }
+            if (isBuffering) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 4.dp),
             )
         }
 
