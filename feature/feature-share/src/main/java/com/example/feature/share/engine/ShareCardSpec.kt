@@ -85,7 +85,11 @@ data class ShareCardSpec(
                 fontSizePx = 32f,
                 alpha = 0.7f,
             ),
-            waveform = Rect01(0f, 0.698f, 1f, 0.885f),
+            // Half the height of the original edge-to-edge band, re-centred in the
+            // same vertical slot, with side margins matching the brand/institute
+            // lines (0.08-0.92) instead of running full-bleed - reads as a slim
+            // accent strip rather than a dominant block of the card.
+            waveform = Rect01(0.08f, 0.745f, 0.92f, 0.838f),
             accentRule = Rect01(0.08f, 0.891f, 0.92f, 0.8925f),
             brandLine = TextBlock01(
                 rect = Rect01(0.08f, 0.901f, 0.92f, 0.927f),
