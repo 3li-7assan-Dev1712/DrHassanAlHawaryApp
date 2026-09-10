@@ -196,7 +196,7 @@ class MainActivity : ComponentActivity() {
     @UnstableApi
     fun MainAppContent(
         onLogout: () -> Unit,
-        isDarkThemeEnabled: Boolean = false,
+        isDarkThemeEnabled: Boolean = true,
         userEmail: String,
         idToken: String,
         deepLinkUri: Uri?

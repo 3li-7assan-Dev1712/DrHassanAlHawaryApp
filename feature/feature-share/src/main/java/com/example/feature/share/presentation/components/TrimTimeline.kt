@@ -40,7 +40,7 @@ fun TrimTimeline(
     onRangeChanged: (startMs: Long, endMs: Long) -> Unit,
     modifier: Modifier = Modifier,
     minDurationMs: Long = 5_000L,
-    accentColor: Color = Color(0xFF036B5C),
+    accentColor: Color = Color(0xFF342C2B),
 ) {
     val widthPxState = remember { mutableFloatStateOf(0f) }
     val totalDurationState = rememberUpdatedState(totalDurationMs)

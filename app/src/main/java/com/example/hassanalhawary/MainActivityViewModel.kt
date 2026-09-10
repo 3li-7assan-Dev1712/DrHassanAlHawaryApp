@@ -68,15 +68,15 @@ class MainActivityViewModel @Inject constructor(
             ThemeUiState(isReady = true, isDarkTheme = isDark)
         }
         .catch {
-            emit(ThemeUiState(isReady = true, isDarkTheme = false))
+            emit(ThemeUiState(isReady = true, isDarkTheme = true))
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ThemeUiState(isReady = false, isDarkTheme = false)
+            initialValue = ThemeUiState(isReady = false, isDarkTheme = true)
         )
 
-    // ✅ 2) single "app ready" flag for splash
+    //  2) single "app ready" flag for splash
     val appReady = kotlinx.coroutines.flow.combine(
         themeState,
         onboardingCompleted,
@@ -131,6 +131,7 @@ class MainActivityViewModel @Inject constructor(
             storeUserDataSuspend()
         }
     }
+
     fun updateDarkThemePreference(isDarkTheme: Boolean) {
         viewModelScope.launch { updateDarkThemePreferenceUseCase(isDarkTheme) }
     }

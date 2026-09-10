@@ -53,7 +53,7 @@ class NotificationService : FirebaseMessagingService() {
         }
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(app.netlify.devalihassan.R.drawable.audios_icon)
+            .setSmallIcon(com.example.core.ui.R.drawable.audios_icon)
             .setLargeIcon(large)
             .setContentTitle(title)
             .setContentText(body)

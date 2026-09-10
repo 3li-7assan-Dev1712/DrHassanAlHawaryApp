@@ -27,7 +27,7 @@ import androidx.media3.effect.StaticOverlaySettings
 class WaveformOverlay(
     private val envelope: FloatArray,
     private val spec: ShareCardSpec,
-    accentColorArgb: Int = 0xFF036B5C.toInt(),
+    accentColorArgb: Int = 0xFF342C2B.toInt(),
     // Must match the exporter's actual output frame rate (ShareVideoExporter.VIDEO_FRAME_RATE) -
     // this is what the analyzer's envelope buckets/sec are windowed against per frame.
     private val frameRate: Int = 30,

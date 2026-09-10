@@ -124,12 +124,12 @@ fun HomeScreenContent(
                 .padding(contentPadding)
         ) {
             val categories = listOf(
-                Category(Routes.ARTICLES_SCREEN, stringResource(R.string.articles), R.drawable.articles_icon),
-                Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), R.drawable.audios_icon),
-                Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), R.drawable.videos_icon),
+                Category(Routes.ARTICLES_SCREEN, stringResource(R.string.articles), CoreR.drawable.articles_icon),
+                Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), CoreR.drawable.audios_icon),
+                Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), CoreR.drawable.videos_icon),
                 Category(Routes.Q_A_SCREEN, stringResource(R.string.fasalo), R.drawable.fasalo_logo),
-                Category(Routes.IMAGES_SCREEN, stringResource(R.string.images), R.drawable.images_icon),
-                Category(Routes.ABOUT_DR_HASSAN_SCREEN, stringResource(R.string.about_dr_hassan), R.drawable.cv_icon)
+                Category(Routes.IMAGES_SCREEN, stringResource(R.string.images), CoreR.drawable.images_icon),
+                Category(Routes.ABOUT_DR_HASSAN_SCREEN, stringResource(R.string.about_dr_hassan), CoreR.drawable.cv_icon)
             )
 
             LazyColumn {

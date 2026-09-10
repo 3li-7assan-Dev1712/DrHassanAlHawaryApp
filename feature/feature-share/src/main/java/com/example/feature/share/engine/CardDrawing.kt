@@ -19,9 +19,9 @@ import android.text.TextUtils
 import com.example.feature.share.domain.ShareBackgroundSource
 
 /** Shared brand accent - every branded card (video frame, quote image, ...) keys off this one value. */
-const val CARD_ACCENT_COLOR = 0xFF036B5C.toInt()
-private const val GRADIENT_TOP_COLOR = 0xFF036B5C.toInt()
-private const val GRADIENT_BOTTOM_COLOR = 0xFF0E1513.toInt()
+const val CARD_ACCENT_COLOR = 0xFF342C2B.toInt()
+private const val GRADIENT_TOP_COLOR = 0xFF342C2B.toInt()
+private const val GRADIENT_BOTTOM_COLOR = 0xFF1A1514.toInt()
 
 /**
  * Canvas-drawing primitives shared by every branded-card renderer

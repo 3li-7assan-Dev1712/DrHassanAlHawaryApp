@@ -9,6 +9,7 @@
 
     <style name="Theme.HassanAlHawary.Splash" parent="Theme.SplashScreen">
 
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
 
         <item name="windowSplashScreenAnimatedIcon">@drawable/app_logo</item>
 

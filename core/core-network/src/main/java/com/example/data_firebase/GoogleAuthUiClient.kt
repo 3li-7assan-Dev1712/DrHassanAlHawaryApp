@@ -34,10 +34,10 @@ class GoogleAuthUiClient
     val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
 
 
-    suspend fun login(): LoginResult {
+    suspend fun login(activityContext: Context): LoginResult {
 
         Log.d("CLIENT_ID_CHECK", BuildConfig.GOOGLE_WEB_CLIENT)
-        val result = credentialManager.getCredential(context, request)
+        val result = credentialManager.getCredential(activityContext, request)
 
         val credential = result.credential as CustomCredential
         val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)

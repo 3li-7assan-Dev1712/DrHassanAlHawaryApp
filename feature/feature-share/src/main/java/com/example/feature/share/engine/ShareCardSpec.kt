@@ -58,13 +58,13 @@ data class ShareCardSpec(
         fun default(): ShareCardSpec = ShareCardSpec(
             // A soft top scrim gives the logo/institute line a dark backing against
             // whatever is in the photo there; it fades out before the open photo area,
-            // then the bottom stop (core-ui's backgroundDark, 0xFF0E1513, ~85% opaque)
+            // then the bottom stop (core-ui's backgroundDark, 0xFF1A1514, ~85% opaque)
             // takes over so the burned-in card matches the app's own dark theme.
             scrimStops = listOf(
                 0f to 0x99000000,
                 0.24f to 0x00000000,
                 0.35f to 0x00000000,
-                1f to 0xD90E1513,
+                1f to 0xD91A1514,
             ),
             // 150x150px circle at the reference width, centred, clear of safeTop.
             logo = Rect01(0.4306f, 0.09f, 0.5694f, 0.1681f),

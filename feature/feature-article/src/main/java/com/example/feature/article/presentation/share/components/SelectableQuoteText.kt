@@ -52,7 +52,7 @@ fun SelectableQuoteText(
     selectionEnd: Int,
     onSelectionChanged: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
-    accentColor: Color = Color(0xFF036B5C),
+    accentColor: Color = Color(0xFF342C2B),
 ) {
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 

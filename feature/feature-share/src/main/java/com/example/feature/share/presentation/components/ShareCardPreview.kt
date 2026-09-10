@@ -57,7 +57,7 @@ fun ShareCardPreview(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val accentColor = Color(0xFF036B5C) // core-ui Color.kt primaryLight
+    val accentColor = Color(0xFF342C2B) // core-ui Color.kt primaryLight (BrandBrown)
 
     BoxWithConstraints(
         modifier = modifier
@@ -113,7 +113,7 @@ internal fun Background(source: ShareBackgroundSource, modifier: Modifier = Modi
                 Brush.verticalGradient(
                     // core-ui Color.kt: primaryLight -> backgroundDark, the same
                     // dark tone the bottom scrim fades into.
-                    colors = listOf(Color(0xFF036B5C), Color(0xFF0E1513)),
+                    colors = listOf(Color(0xFF342C2B), Color(0xFF1A1514)),
                 )
             )
         )

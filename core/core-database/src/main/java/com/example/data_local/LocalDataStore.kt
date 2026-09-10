@@ -131,7 +131,7 @@ class LocalDataStore @Inject constructor(
     // Theme preferences
     val isDarkTheme: Flow<Boolean> =
         dataStore.data.map { prefs ->
-            prefs[KEY_DARK_THEME] ?: false
+            prefs[KEY_DARK_THEME] ?: true
         }
 
     suspend fun setDarkTheme(enabled: Boolean) {

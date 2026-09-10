@@ -66,7 +66,7 @@ fun AudioCard(
             Surface(
                 modifier = Modifier.size(48.dp),
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(

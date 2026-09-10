@@ -34,6 +34,11 @@ object FixedCategories {
             title = "محاضرات",
             type = ContentType.AUDIO,
             description = "محاضرات عامة ولقاءات إيمانية متنوعة"
+        ), ContentCategory(
+            id = "telawat",
+            title = "تلاوات",
+            type = ContentType.AUDIO,
+            description = "تلاوات الشيخ حسن الهوراي"
         )
     )
 

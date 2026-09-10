@@ -43,7 +43,7 @@ fun TextCardPreview(
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
-    val accentColor = Color(0xFF036B5C) // core-ui Color.kt primaryLight
+    val accentColor = Color(0xFF342C2B) // core-ui Color.kt primaryLight (BrandBrown)
 
     BoxWithConstraints(
         modifier = modifier

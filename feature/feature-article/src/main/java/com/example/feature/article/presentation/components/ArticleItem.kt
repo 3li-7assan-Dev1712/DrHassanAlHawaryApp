@@ -117,8 +117,8 @@ fun ArticleItem(
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        contentColor = MaterialTheme.colorScheme.primary
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 ) {
                     Text(

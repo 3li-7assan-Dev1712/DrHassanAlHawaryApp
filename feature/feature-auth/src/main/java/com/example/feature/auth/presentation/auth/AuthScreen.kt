@@ -61,7 +61,7 @@ fun AuthScreen(
         modifier = modifier,
         state = state,
         isAdmin = isAdmin,
-        onGoogleClick = viewModel::loginWithGoogle
+        onGoogleClick = { viewModel.loginWithGoogle(context) }
     )
 }
 
