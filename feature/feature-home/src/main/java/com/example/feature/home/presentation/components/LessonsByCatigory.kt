@@ -1,6 +1,7 @@
 package com.example.feature.home.presentation.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,17 +45,24 @@ fun CategoryCard(
     modifier: Modifier = Modifier,
     onClick: (String) -> Unit
 ) {
+    val shape = RoundedCornerShape(16.dp)
     Card(
         onClick = { onClick(category.route) },
-        modifier = modifier.aspectRatio(1f),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .aspectRatio(1f)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
+                shape = shape
+            ),
+        shape = shape,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
         ),
         colors = CardDefaults.cardColors(
-            // Fixed (not theme-adaptive) so the two-tone brown/cream icon art always
-            // has guaranteed contrast, instead of washing out against a dark-mode surface.
-            containerColor = Color(0xFFF3E6C9)
+            // Same background as the "latest articles/audios" cards, for one
+            // consistent look across the home screen.
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
@@ -72,7 +79,7 @@ fun CategoryCard(
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF342C2B)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

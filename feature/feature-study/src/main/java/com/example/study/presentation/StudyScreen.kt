@@ -27,7 +27,6 @@ import com.example.core.ui.R
 import com.example.study.presentation.dashboard.GuestContent
 import com.example.study.presentation.dashboard.InstituteComingSoonContent
 import com.example.study.presentation.dashboard.NotChannelMemberContent
-import com.example.study.presentation.dashboard.StudyTopAppBar
 import com.example.study.presentation.model.StudyScreenUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,14 +49,14 @@ fun StudyScreen(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
 
-            if (uiState is StudyScreenUiState.StudentDashboard) {
-                StudyTopAppBar()
-            } else
-                CenterAlignedTopAppBar(title = {
+            CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                title = {
                     Text(
                         text = stringResource(R.string.dr_hassan_institute)
                     )
-                })
+                }
+            )
         }
 
     ) { paddingValues ->

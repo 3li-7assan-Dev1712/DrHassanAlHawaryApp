@@ -33,8 +33,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.navigation.Routes
+import com.example.core.ui.theme.BrandTheme
 import com.example.core.ui.theme.CairoTypography
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.theme.LocalBrandTheme
 import com.example.domain.module.NetworkMessageEvent
 import com.example.feature.home.R
 import com.example.feature.home.domain.model.ArticleFeed
@@ -123,13 +125,38 @@ fun HomeScreenContent(
                 )
                 .padding(contentPadding)
         ) {
+            val isGreen = LocalBrandTheme.current == BrandTheme.GREEN
             val categories = listOf(
-                Category(Routes.ARTICLES_SCREEN, stringResource(R.string.articles), CoreR.drawable.articles_icon),
-                Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), CoreR.drawable.audios_icon),
-                Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), CoreR.drawable.videos_icon),
-                Category(Routes.Q_A_SCREEN, stringResource(R.string.fasalo), R.drawable.fasalo_logo),
-                Category(Routes.IMAGES_SCREEN, stringResource(R.string.images), CoreR.drawable.images_icon),
-                Category(Routes.ABOUT_DR_HASSAN_SCREEN, stringResource(R.string.about_dr_hassan), CoreR.drawable.cv_icon)
+                Category(
+                    Routes.ARTICLES_SCREEN,
+                    stringResource(R.string.articles),
+                    if (isGreen) CoreR.drawable.articles_icon_green else CoreR.drawable.articles_icon
+                ),
+                Category(
+                    Routes.AUDIO_LIST_SCREEN,
+                    stringResource(R.string.audios),
+                    if (isGreen) CoreR.drawable.audios_icon_green else CoreR.drawable.audios_icon
+                ),
+                Category(
+                    Routes.VIDEOS_SCREEN,
+                    stringResource(R.string.videos),
+                    if (isGreen) CoreR.drawable.videos_icon_green else CoreR.drawable.videos_icon
+                ),
+                Category(
+                    Routes.Q_A_SCREEN,
+                    stringResource(R.string.fasalo),
+                    if (isGreen) R.drawable.fasalo_logo_green else R.drawable.fasalo_logo
+                ),
+                Category(
+                    Routes.IMAGES_SCREEN,
+                    stringResource(R.string.images),
+                    if (isGreen) CoreR.drawable.images_icon_green else CoreR.drawable.images_icon
+                ),
+                Category(
+                    Routes.ABOUT_DR_HASSAN_SCREEN,
+                    stringResource(R.string.about_dr_hassan),
+                    if (isGreen) CoreR.drawable.cv_icon_green else CoreR.drawable.cv_icon
+                )
             )
 
             LazyColumn {

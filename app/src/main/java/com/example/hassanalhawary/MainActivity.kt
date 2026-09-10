@@ -45,6 +45,7 @@ import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
+import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
@@ -53,7 +54,6 @@ import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
-import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.share.presentation.SharePreviewScreen
 import com.example.feature.share.presentation.TextCardPreviewScreen
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
@@ -106,7 +106,7 @@ class MainActivity : ComponentActivity() {
 
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
-            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme) {
+            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme, brandTheme = themeState.brandTheme) {
 
                 var flexibleUpdateDismissed by remember { mutableStateOf(false) }
 
@@ -656,6 +656,10 @@ class MainActivity : ComponentActivity() {
                             mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
                         },
                         isDarkTheme = isDarkThemeEnabled,
+                        brandTheme = com.example.core.ui.theme.LocalBrandTheme.current,
+                        onBrandThemeChanged = { brandTheme ->
+                            mainActivityViewModel.updateBrandThemePreference(brandTheme)
+                        },
                         onLogout = {
                             onLogout()
                         }

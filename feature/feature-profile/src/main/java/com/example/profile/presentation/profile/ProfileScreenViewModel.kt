@@ -24,7 +24,7 @@ class ProfileScreenViewModel @Inject constructor(
     private val _state: MutableStateFlow<ProfileUiState> = MutableStateFlow(
         ProfileUiState(
             userData = null,
-            currentAppVersion = "1.0.6",
+            currentAppVersion = "1.0.7",
             )
     )
 

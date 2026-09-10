@@ -25,6 +25,14 @@ class DataStoreRepositoryImpl @Inject constructor(
         localDataStore.setDarkTheme(isDarkTheme)
     }
 
+    override fun brandTheme(): Flow<String> {
+        return localDataStore.brandTheme
+    }
+
+    override suspend fun updateBrandThemePreference(brandTheme: String) {
+        localDataStore.setBrandTheme(brandTheme)
+    }
+
     override fun getLastSyncTime(): Flow<Long> {
         return localDataStore.getLastSyncTime()
     }
