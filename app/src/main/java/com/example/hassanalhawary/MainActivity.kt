@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -44,6 +45,7 @@ import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
+import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
@@ -52,6 +54,8 @@ import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
+import com.example.feature.share.presentation.SharePreviewScreen
+import com.example.feature.share.presentation.TextCardPreviewScreen
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
@@ -82,6 +86,7 @@ class MainActivity : ComponentActivity() {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModels()
     val TAG = "MainActivity"
+    @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 
@@ -101,7 +106,7 @@ class MainActivity : ComponentActivity() {
 
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
-            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme) {
+            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme, brandTheme = themeState.brandTheme) {
 
                 var flexibleUpdateDismissed by remember { mutableStateOf(false) }
 
@@ -188,10 +193,10 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-
+    @UnstableApi
     fun MainAppContent(
         onLogout: () -> Unit,
-        isDarkThemeEnabled: Boolean = false,
+        isDarkThemeEnabled: Boolean = true,
         userEmail: String,
         idToken: String,
         deepLinkUri: Uri?
@@ -279,7 +284,8 @@ class MainActivity : ComponentActivity() {
 
                     }, onNavigateToDetailAudio = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                        val encodedTitle = Uri.encode(title)
+                        navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
                     }, onCategoryClick = { route ->
                         when (route) {
                             Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
@@ -295,6 +301,7 @@ class MainActivity : ComponentActivity() {
 
                     SearchScreen { searchResultMetaData ->
                         val encodedUrl = Uri.encode(searchResultMetaData.url)
+                        val encodedTitle = Uri.encode(searchResultMetaData.title)
                         when (searchResultMetaData.type) {
                             "article" -> {
 
@@ -305,9 +312,9 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(route)
                             }
 
-                            "audio" -> navController.navigate("audio_detail_screen/${searchResultMetaData.title}/${encodedUrl}")
+                            "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
                             "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
-                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${searchResultMetaData.title}")
+                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
                             else -> {
 
                             }
@@ -331,13 +338,44 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     ArticleDetailScreen(
-                        onNavigateBack = { navController.popBackStack() }
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToShareSelection = { articleId ->
+                            navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
+                        }
+                    )
+                }
+
+                composable(
+                    route = "${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/{articleId}",
+                    arguments = listOf(navArgument("articleId") { type = NavType.StringType })
+                ) {
+                    ArticleShareSelectionScreen(
+                        onNavigateUp = { navController.popBackStack() },
+                        onContinueToPreview = { articleTitle, excerpt ->
+                            val encodedExcerpt = Uri.encode(excerpt)
+                            val encodedTitle = Uri.encode(articleTitle)
+                            navController.navigate(
+                                "${Routes.TEXT_CARD_PREVIEW_SCREEN}/$encodedExcerpt?articleTitle=$encodedTitle"
+                            )
+                        }
+                    )
+                }
+
+                composable(
+                    route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{quoteText}?articleTitle={articleTitle}",
+                    arguments = listOf(
+                        navArgument("quoteText") { type = NavType.StringType },
+                        navArgument("articleTitle") { type = NavType.StringType; nullable = true },
+                    )
+                ) {
+                    TextCardPreviewScreen(
+                        onNavigateUp = { navController.popBackStack() }
                     )
                 }
                 composable(Routes.AUDIO_CATEGORY_SCREEN) {
                     AudioCategoryScreen(
                         onCategoryClick = { categoryId, categoryTitle ->
-                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=$categoryTitle")
+                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
                         },
                         onNavigateUp = { navController.popBackStack() }
                     )
@@ -357,7 +395,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
                         val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
+                        val encodedTitle = Uri.encode(title)
+                        navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
                     }, onNavigateBack = {
                         navController.popBackStack()
                     })
@@ -374,7 +413,35 @@ class MainActivity : ComponentActivity() {
                     AudioDetailScreen(
                         onNavigateUp = {
                             navController.popBackStack()
-                        })
+                        },
+                        onNavigateToShare = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
+                            val encodedUrl = Uri.encode(audioUrl)
+                            val encodedTitle = Uri.encode(title)
+                            val encodedCategory = Uri.encode(category ?: "")
+                            val encodedLocalFilePath = Uri.encode(localFilePath ?: "")
+                            navController.navigate(
+                                "${Routes.SHARE_PREVIEW_SCREEN}/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
+                            )
+                        }
+                    )
+                }
+
+                composable(
+                    route = "${Routes.SHARE_PREVIEW_SCREEN}/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
+                    arguments = listOf(
+                        navArgument("audioUrl") { type = NavType.StringType },
+                        navArgument("title") { type = NavType.StringType; nullable = true },
+                        navArgument("category") { type = NavType.StringType; nullable = true },
+                        navArgument("localFilePath") { type = NavType.StringType; nullable = true },
+                        navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
+                        navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
+                    )
+                ) {
+                    SharePreviewScreen(
+                        onNavigateUp = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
 
                 composable(
@@ -478,14 +545,21 @@ class MainActivity : ComponentActivity() {
                         },
                         onGroupClick = { groupId ->
                             navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                        },
+                        onImageClick = { groupId, index ->
+                            navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
                         }
                     )
                 }
                 composable(
-                    route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}",
+                    route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}?startIndex={startIndex}",
                     arguments = listOf(
                         navArgument("groupId") {
                             type = NavType.StringType
+                        },
+                        navArgument("startIndex") {
+                            type = NavType.IntType
+                            defaultValue = 0
                         }
                     )
                 ) {
@@ -529,7 +603,8 @@ class MainActivity : ComponentActivity() {
                             navController.popBackStack()
                         }, onNavigateToVideo = { videoUrl, videoTitle ->
                             val encodedUrl = Uri.encode(videoUrl)
-                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$videoTitle")
+                            val encodedTitle = Uri.encode(videoTitle)
+                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
                         }
                     )
                 }
@@ -581,6 +656,10 @@ class MainActivity : ComponentActivity() {
                             mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
                         },
                         isDarkTheme = isDarkThemeEnabled,
+                        brandTheme = com.example.core.ui.theme.LocalBrandTheme.current,
+                        onBrandThemeChanged = { brandTheme ->
+                            mainActivityViewModel.updateBrandThemePreference(brandTheme)
+                        },
                         onLogout = {
                             onLogout()
                         }

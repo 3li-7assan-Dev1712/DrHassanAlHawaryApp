@@ -44,7 +44,7 @@ fun SplashScreen(
 
     ) {
         Image(
-            painter = painterResource(id = R.drawable.dr_hassan_logo),
+            painter = painterResource(id = R.drawable.dr_hassan_app_logo),
             contentDescription = "image logo",
             modifier = Modifier.scale(scale.value)
         )

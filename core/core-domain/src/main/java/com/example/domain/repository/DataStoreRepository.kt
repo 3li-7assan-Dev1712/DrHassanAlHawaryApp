@@ -15,6 +15,10 @@ interface DataStoreRepository {
 
     suspend fun updateDarkThemePreference(isDarkTheme: Boolean)
 
+    fun brandTheme(): Flow<String>
+
+    suspend fun updateBrandThemePreference(brandTheme: String)
+
     fun getLastSyncTime(): Flow<Long>
 
     suspend fun updateLastSyncTime(time: Long)

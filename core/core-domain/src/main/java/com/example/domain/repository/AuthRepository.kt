@@ -4,7 +4,9 @@ import com.example.domain.module.LoginResult
 
 interface AuthRepository {
 
-    suspend fun loginWithGoogle(): LoginResult
+    // Platform Activity context (CredentialManager requires it to launch its picker UI).
+    // Typed `Any` because this module has no Android SDK dependency; cast to Context in the impl.
+    suspend fun loginWithGoogle(activityContext: Any): LoginResult
 
     suspend fun getLoggedInUser(): LoginResult?
 

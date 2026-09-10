@@ -32,6 +32,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
+import com.example.core.ui.theme.BrandTheme
+import com.example.core.ui.theme.LocalBrandTheme
 import com.example.profile.domain.use_case.ShareAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -90,7 +92,9 @@ fun ShareAppScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.share_app_illu),
+                painter = painterResource(
+                    id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.share_app_illu_green else R.drawable.share_app_illu
+                ),
                 contentDescription = null,
                 modifier = Modifier.height(250.dp)
             )

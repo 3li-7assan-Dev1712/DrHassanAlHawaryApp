@@ -48,7 +48,17 @@ class ImagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteImageGroup(groupId: String): Result<Unit> {
-        return imageFirestoreSource.deleteImageGroup(groupId)
+        // The remote call soft-deletes the Firestore doc, but nothing here was ever
+        // subscribed to a sync stream that would pick that change back up locally
+        // (unlike articles/audio's syncXDbWithServer, this feature's equivalent -
+        // ImageFirestoreSource.syncImageGroupsDbWithServer - is never called). So the
+        // local cache never learned about the delete: it kept showing the group on
+        // the home screen and in the group list until a future full resync happened
+        // to overwrite it. Delete locally too so both screens (which observe Room
+        // Flows/PagingSource) update immediately.
+        return imageFirestoreSource.deleteImageGroup(groupId).onSuccess {
+            appDatabase.imageDao().deleteGroupWithImages(groupId)
+        }
     }
 
 

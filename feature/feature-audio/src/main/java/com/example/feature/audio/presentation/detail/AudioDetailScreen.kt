@@ -3,7 +3,6 @@ package com.example.feature.audio.presentation.detail
 import android.content.ComponentName
 import android.content.Intent
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -75,6 +74,8 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
+import com.example.core.ui.theme.BrandTheme
+import com.example.core.ui.theme.LocalBrandTheme
 import com.example.feature.audio.presentation.components.formatDuration
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -83,13 +84,13 @@ import com.google.common.util.concurrent.ListenableFuture
 @Composable
 fun AudioDetailScreen(
     onNavigateUp: () -> Unit,
+    onNavigateToShare: (audioUrl: String, title: String, category: String?, localFilePath: String?, startMs: Long, totalDurationMs: Long) -> Unit = { _, _, _, _, _, _ -> },
     viewModel: AudioDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 
     val context = LocalContext.current
-    val comingSoonMsg = stringResource(id = R.string.feature_coming_soon)
     val sessionToken = remember {
         SessionToken(context, ComponentName(context,  PlaybackService::class.java))
     }
@@ -118,7 +119,20 @@ fun AudioDetailScreen(
         onForward = { viewModel.onForward(10) },
         onDownload = viewModel::onDownloadClicked,
         onShare = {
-            Toast.makeText(context, comingSoonMsg, Toast.LENGTH_SHORT).show()
+            val audioUrl = uiState.audioUrl
+            // §1: audio metadata/duration may still be loading right after the screen
+            // opens - sharing before totalDurationMillis is known breaks the share
+            // screen's trim-window math (it'd receive a 0ms track duration).
+            if (audioUrl != null && !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L) {
+                onNavigateToShare(
+                    audioUrl,
+                    uiState.title,
+                    uiState.category,
+                    uiState.localFilePath,
+                    uiState.currentPositionMillis,
+                    uiState.totalDurationMillis
+                )
+            }
         }
     )
 }
@@ -163,11 +177,12 @@ fun AudioDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = onShare) {
+                        val canShare = !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L
+                        IconButton(onClick = onShare, enabled = canShare) {
                             Icon(
                                 Icons.Filled.Share,
                                 contentDescription = "Share",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary.copy(alpha = if (canShare) 1f else 0.38f)
                             )
                         }
                     },
@@ -375,7 +390,9 @@ private fun AudioTitleSection(
             ) {
                 Image(
                     modifier = Modifier.fillMaxSize(),
-                    painter = painterResource(id = R.drawable.dr_hassan_image),
+                    painter = painterResource(
+                        id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.dr_hassan_image_green else R.drawable.dr_hassan_image
+                    ),
                     contentDescription = uiState.title,
                     contentScale = ContentScale.Crop,
                 )

@@ -1,5 +1,7 @@
 package com.example.feature.auth.presentation
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.module.LoginResult
@@ -20,15 +22,16 @@ class AuthViewModel
     private val _state = MutableStateFlow(AuthScreenState())
     val state = _state.asStateFlow()
 
-    fun loginWithGoogle() {
+    fun loginWithGoogle(activityContext: Context) {
         if (_state.value.showSignInProgressBar) return
 
         viewModelScope.launch {
             showLoading()
             try {
-                val result = loginWithGoogleUseCase()
+                val result = loginWithGoogleUseCase(activityContext)
                 handleResult(result)
             } catch (e: Exception) {
+                Log.d("AuthViewModel", "loginWithGoogle: ${e.message}")
                 handleError(e.message)
             }
         }

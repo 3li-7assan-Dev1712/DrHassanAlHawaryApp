@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.example.core.ui.R
+import com.example.core.ui.theme.BrandTheme
+import com.example.core.ui.theme.LocalBrandTheme
 import com.example.profile.domain.use_case.RateAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -84,7 +86,9 @@ fun RateAppScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.rate_illu),
+                painter = painterResource(
+                    id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.rate_illu_green else R.drawable.rate_illu
+                ),
                 contentDescription = stringResource(id = R.string.rating_illustration),
                 modifier = Modifier.fillMaxWidth(0.7f)
             )

@@ -89,8 +89,8 @@ fun AudioListItem(
                         } else {
                             Brush.linearGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                                 )
                             )
                         }

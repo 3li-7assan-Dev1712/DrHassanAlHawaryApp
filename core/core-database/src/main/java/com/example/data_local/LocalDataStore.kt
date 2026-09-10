@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,7 @@ private const val LAST_SYNC_TIME = "last_sync_time"
 
 val KEY_COMPLETED = booleanPreferencesKey("onboarding_completed")
 val KEY_DARK_THEME = booleanPreferencesKey("dark_theme_enabled")
+val KEY_BRAND_THEME = stringPreferencesKey("brand_theme")
 
 
 @Singleton
@@ -131,13 +133,25 @@ class LocalDataStore @Inject constructor(
     // Theme preferences
     val isDarkTheme: Flow<Boolean> =
         dataStore.data.map { prefs ->
-            prefs[KEY_DARK_THEME] ?: false
+            prefs[KEY_DARK_THEME] ?: true
         }
 
     suspend fun setDarkTheme(enabled: Boolean) {
         Log.d(TAG, "setDarkTheme: $enabled")
         dataStore.edit { prefs ->
             prefs[KEY_DARK_THEME] = enabled
+        }
+    }
+
+    val brandTheme: Flow<String> =
+        dataStore.data.map { prefs ->
+            prefs[KEY_BRAND_THEME] ?: "BROWN"
+        }
+
+    suspend fun setBrandTheme(theme: String) {
+        Log.d(TAG, "setBrandTheme: $theme")
+        dataStore.edit { prefs ->
+            prefs[KEY_BRAND_THEME] = theme
         }
     }
 

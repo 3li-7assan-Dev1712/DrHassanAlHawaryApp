@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <!-- Warm copper-brown used for the brown theme's home-screen grid icon
+         silhouettes. Replaces near-black BrandBrown (#342C2B) in that spot
+         specifically, since that near-black tone had almost no contrast
+         against the dark-theme grid card background (surfaceVariantDark,
+         #4A3E3B) while still reading fine in light mode. -->
+    <color name="brand_brown_icon">#FFB87333</color>
+</resources>

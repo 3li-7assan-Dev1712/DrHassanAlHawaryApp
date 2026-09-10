@@ -1,11 +1,15 @@
 package com.example.data_firebase.model
 
+import androidx.annotation.Keep
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.PropertyName
 
 /**
  * Data Transfer Object (DTO) for an article stored in Firestore.
  */
+@Keep
+@IgnoreExtraProperties
 data class ArticleDto(
     val id: String = "",
     val title: String = "",

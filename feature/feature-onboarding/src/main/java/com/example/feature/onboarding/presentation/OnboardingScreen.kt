@@ -33,9 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.BrandTheme
+import com.example.core.ui.theme.LocalBrandTheme
 import com.example.feature.onboarding.R
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import com.example.core.ui.R as CoreR
 
 data class OnboardingPage(
     @DrawableRes val illustrationRes: Int,
@@ -48,25 +51,27 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier,
     onFinished: () -> Unit
 ) {
-    val pages = remember {
+    val brandTheme = LocalBrandTheme.current
+    val isGreen = brandTheme == BrandTheme.GREEN
+    val pages = remember(isGreen) {
         listOf(
             OnboardingPage(
-                illustrationRes = R.drawable.study_boy,
+                illustrationRes = if (isGreen) CoreR.drawable.study_boy_green else R.drawable.study_boy,
                 titleRes = R.string.study,
                 descriptionRes = R.string.study_institure_des
             ),
             OnboardingPage(
-                illustrationRes = R.drawable.journey_illu,
+                illustrationRes = if (isGreen) CoreR.drawable.journey_illu_green else R.drawable.journey_illu,
                 titleRes = R.string.journey_title,
                 descriptionRes = R.string.journey_description
             ),
             OnboardingPage(
-                illustrationRes = R.drawable.network_error,
+                illustrationRes = if (isGreen) CoreR.drawable.network_error_green else R.drawable.network_error,
                 titleRes = R.string.network_error_title,
                 descriptionRes = R.string.network_error_description
             ),
             OnboardingPage(
-                illustrationRes = R.drawable.summary_illu,
+                illustrationRes = if (isGreen) CoreR.drawable.summary_illu_green else R.drawable.summary_illu,
                 titleRes = R.string.pdf_illu_title,
                 descriptionRes = R.string.pdf_illu_descritption
             )

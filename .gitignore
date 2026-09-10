@@ -17,3 +17,6 @@ local.properties
 /admin/google-services.json
 # Firebase configuration files
 google-services.json
+.idea/
+.kotlin/
+**/release/

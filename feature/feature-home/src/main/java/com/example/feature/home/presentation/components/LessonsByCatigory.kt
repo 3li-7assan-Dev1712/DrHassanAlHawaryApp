@@ -1,6 +1,7 @@
 package com.example.feature.home.presentation.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.example.core.ui.navigation.Routes
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.feature.home.R
+import com.example.core.ui.R as CoreR
 
 
 data class Category(
@@ -43,14 +45,23 @@ fun CategoryCard(
     modifier: Modifier = Modifier,
     onClick: (String) -> Unit
 ) {
+    val shape = RoundedCornerShape(16.dp)
     Card(
         onClick = { onClick(category.route) },
-        modifier = modifier.aspectRatio(1f),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .aspectRatio(1f)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
+                shape = shape
+            ),
+        shape = shape,
         elevation = CardDefaults.cardElevation(
             defaultElevation = 4.dp
         ),
         colors = CardDefaults.cardColors(
+            // Same background as the "latest articles/audios" cards, for one
+            // consistent look across the home screen.
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
@@ -68,7 +79,7 @@ fun CategoryCard(
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -134,20 +145,20 @@ fun LessonsByCategoryShelfPreview() {
         Category(
             Routes.ARTICLES_SCREEN,
             stringResource(R.string.articles),
-            R.drawable.articles_icon
+            CoreR.drawable.articles_icon
         ),
-        Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), R.drawable.audios_icon),
-        Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), R.drawable.videos_icon),
+        Category(Routes.AUDIO_LIST_SCREEN, stringResource(R.string.audios), CoreR.drawable.audios_icon),
+        Category(Routes.VIDEOS_SCREEN, stringResource(R.string.videos), CoreR.drawable.videos_icon),
         Category(
             Routes.Q_A_SCREEN,
             stringResource(R.string.fasalo),
             R.drawable.jummah_icon
         ),
-        Category(Routes.IMAGES_SCREEN, stringResource(R.string.war), R.drawable.videos_icon),
+        Category(Routes.IMAGES_SCREEN, stringResource(R.string.war), CoreR.drawable.videos_icon),
         Category(
             Routes.IMPORTANT_QUESTIONS_SCREEN,
             stringResource(R.string.most_important),
-            R.drawable.cv_icon
+            CoreR.drawable.cv_icon
         )
     )
 

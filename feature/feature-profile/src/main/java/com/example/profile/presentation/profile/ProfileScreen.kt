@@ -1,11 +1,13 @@
 package com.example.profile.presentation.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
@@ -44,7 +48,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -68,6 +71,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.animation.LoadingScreen
+import com.example.core.ui.theme.BrandTheme
 import com.example.profile.presentation.components.ProfileRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,6 +82,8 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChanged: (Boolean) -> Unit,
+    brandTheme: BrandTheme = BrandTheme.BROWN,
+    onBrandThemeChanged: (BrandTheme) -> Unit = {},
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -201,14 +207,20 @@ fun ProfileScreen(
                     }
                 }
 
-                // --- Settings Section ---
-                item {
-                    ProfileSectionCard(title = "الإعدادات العامة") {
-                        ThemeSwitcher(isDarkTheme = isDarkTheme, onThemeChange = onThemeChanged)
-                    }
-                }
-
                 if (!isAdmin) {
+                    // --- Settings Section ---
+                    item {
+                        ProfileSectionCard(title = "الإعدادات العامة") {
+                            AppearanceSettings(
+                                isDarkTheme = isDarkTheme,
+                                onThemeChange = onThemeChanged,
+                                brandTheme = brandTheme,
+                                onBrandThemeChange = onBrandThemeChanged
+                            )
+                        }
+                    }
+
+
                     // --- App Info Section ---
                     item {
                         ProfileSectionCard(title = "التطبيق") {
@@ -261,20 +273,23 @@ fun ProfileScreen(
 
                 // --- Danger Zone Section ---
                 item {
-                    ProfileSectionCard(title = "منطقة الخطر") {
+                    ProfileSectionCard(title = if (isAdmin) "الحساب" else "منطقة الخطر") {
                         ProfileRow(
                             icon = Icons.AutoMirrored.Default.ExitToApp,
                             title = "تسجيل الخروج",
                             iconColor = MaterialTheme.colorScheme.primary,
+                            isLast = isAdmin,
                             onClick = { viewModel.signOut() }
                         )
-                        ProfileRow(
-                            icon = Icons.Default.DeleteForever,
-                            title = "حذف الحساب نهائياً",
-                            iconColor = MaterialTheme.colorScheme.error,
-                            isLast = true,
-                            onClick = { showDeleteConfirmation = true }
-                        )
+                        if (!isAdmin) {
+                            ProfileRow(
+                                icon = Icons.Default.DeleteForever,
+                                title = "حذف الحساب نهائياً",
+                                iconColor = MaterialTheme.colorScheme.error,
+                                isLast = true,
+                                onClick = { showDeleteConfirmation = true }
+                            )
+                        }
                     }
                 }
                 
@@ -376,31 +391,153 @@ private fun ProfileRow(
     }
 }
 
+/**
+ * Appearance picker: a brand-color swatch row (brown / green) plus a light/dark
+ * segmented control, replacing plain on-off switches with something closer to a
+ * real theme picker.
+ */
 @Composable
-fun ThemeSwitcher(isDarkTheme: Boolean, onThemeChange: (Boolean) -> Unit) {
-    ListItem(
-        modifier = Modifier.clickable { onThemeChange(!isDarkTheme) },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        headlineContent = {
+fun AppearanceSettings(
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit,
+    brandTheme: BrandTheme,
+    onBrandThemeChange: (BrandTheme) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                text = "الوضع الداكن",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                text = "لون العلامة التجارية",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface
             )
-        },
-        leadingContent = {
-            Icon(
-                imageVector = if (isDarkTheme) Icons.Default.DarkMode else Icons.Default.LightMode,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        trailingContent = {
-            Switch(
-                checked = isDarkTheme,
-                onCheckedChange = { onThemeChange(it) }
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                BrandSwatch(
+                    color = Color(0xFF342C2B),
+                    label = "بني",
+                    selected = brandTheme == BrandTheme.BROWN,
+                    onClick = { onBrandThemeChange(BrandTheme.BROWN) }
+                )
+                BrandSwatch(
+                    color = Color(0xFF036B5C),
+                    label = "أخضر",
+                    selected = brandTheme == BrandTheme.GREEN,
+                    onClick = { onBrandThemeChange(BrandTheme.GREEN) }
+                )
+            }
         }
-    )
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                text = "وضع العرض",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(4.dp)
+            ) {
+                DisplayModeSegment(
+                    label = "فاتح",
+                    icon = Icons.Default.LightMode,
+                    selected = !isDarkTheme,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onThemeChange(false) }
+                )
+                DisplayModeSegment(
+                    label = "داكن",
+                    icon = Icons.Default.DarkMode,
+                    selected = isDarkTheme,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onThemeChange(true) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BrandSwatch(
+    color: Color,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(color)
+                .border(
+                    width = if (selected) 3.dp else 0.dp,
+                    color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    shape = CircleShape
+                )
+                .padding(if (selected) 3.dp else 0.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+private fun DisplayModeSegment(
+    label: String,
+    icon: ImageVector,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = contentColor,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
 }
 
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true)

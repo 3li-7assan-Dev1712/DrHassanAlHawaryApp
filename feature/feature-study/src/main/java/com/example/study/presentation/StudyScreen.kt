@@ -25,9 +25,8 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.study.presentation.dashboard.GuestContent
+import com.example.study.presentation.dashboard.InstituteComingSoonContent
 import com.example.study.presentation.dashboard.NotChannelMemberContent
-import com.example.study.presentation.dashboard.StudentDashboardContent
-import com.example.study.presentation.dashboard.StudyTopAppBar
 import com.example.study.presentation.model.StudyScreenUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,14 +49,14 @@ fun StudyScreen(
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         topBar = {
 
-            if (uiState is StudyScreenUiState.StudentDashboard) {
-                StudyTopAppBar()
-            } else
-                CenterAlignedTopAppBar(title = {
+            CenterAlignedTopAppBar(
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
+                title = {
                     Text(
                         text = stringResource(R.string.dr_hassan_institute)
                     )
-                })
+                }
+            )
         }
 
     ) { paddingValues ->
@@ -78,13 +77,9 @@ fun StudyScreen(
                 )
 
                 is StudyScreenUiState.StudentDashboard -> {
-                    // Show the rich dashboard for students
-                    StudentDashboardContent(
-                        studentData = state.studentData,
-                        onDisconnect = { /* viewModel.onDisconnectTelegram() */ },
-                        onLevelClick = onLevelClick,
-                        onQuizClick = onQuizClick
-                    )
+                    // Student interaction is temporarily paused; show a "coming soon"
+                    // placeholder instead of the full dashboard.
+                    InstituteComingSoonContent(studentData = state.studentData)
                 }
 
                 is StudyScreenUiState.Guest -> {
