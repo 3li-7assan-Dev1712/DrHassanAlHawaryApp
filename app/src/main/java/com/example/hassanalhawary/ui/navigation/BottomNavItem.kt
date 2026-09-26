@@ -1,48 +1,41 @@
 package app.netlify.devalihassan.ui.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import app.netlify.devalihassan.R
+import com.example.core.ui.icons.TablerIcons
 
+/** A bottom-nav tab: one Tabler outline icon for both states - selection is shown by colour. */
 sealed class BottomNavItem(
     val route: String,
-    val titleResId:  Int,
-    val selectedIconResId: Int,
-    val unselectedIconResId: Int
+    @StringRes val titleResId: Int,
+    @DrawableRes val iconResId: Int,
 ) {
-    // Helper composable function to get the painter resource
-    @Composable
-    fun selectedIconPainter(): Painter = painterResource(id = selectedIconResId)
-
-    @Composable
-    fun unselectedIconPainter(): Painter = painterResource(id = unselectedIconResId)
-
     object Home : BottomNavItem(
         route = "home_screen",
         titleResId = R.string.home,
-        selectedIconResId = R.drawable.filled_home_icon,
-        unselectedIconResId = R.drawable.home_icon
+        iconResId = TablerIcons.Home,
     )
 
     object Search : BottomNavItem(
         route = "search_screen",
-        titleResId = R.string.search_hint,
-        selectedIconResId = R.drawable.search_icon,
-        unselectedIconResId = R.drawable.search_icon
+        titleResId = R.string.nav_search,
+        iconResId = TablerIcons.Search,
     )
 
     object StudyScreen : BottomNavItem(
         route = Routes.STUDY_SCREEN,
         titleResId = R.string.study_zone,
-        selectedIconResId = R.drawable.study_zone_filled_icon,
-        unselectedIconResId = R.drawable.study_zone_icon
+        iconResId = TablerIcons.School,
     )
 
     object Profile : BottomNavItem(
         route = "profile_screen",
-        titleResId = R.string.profile,
-        selectedIconResId = R.drawable.student_icon,
-        unselectedIconResId = R.drawable.student_icon
+        titleResId = R.string.nav_account,
+        iconResId = TablerIcons.User,
     )
+
+    companion object {
+        val all: List<BottomNavItem> get() = listOf(Home, Search, StudyScreen, Profile)
+    }
 }

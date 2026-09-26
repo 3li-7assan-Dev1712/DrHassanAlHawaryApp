@@ -16,6 +16,9 @@
     <string name="audios">الصوتيات</string>
     <string name="enter_name">الإسم</string>
     <string name="profile">الملف الشخصي</string>
+    <!-- Bottom-nav tab labels ("profile"/"search_hint" stay the screen title / search placeholder). -->
+    <string name="nav_account">حسابي</string>
+    <string name="nav_search">بحث</string>
     <string name="home">الرئيسية</string>
     <string name="search_hint">بحث…</string>
     <string name="loading">يتم التحميل…</string>
