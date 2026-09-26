@@ -65,7 +65,7 @@ object ShareFrameLayout {
     const val TITLE_GAP_AFTER_CHIP = 24f
     /** Where the title starts when the chip is hidden. */
     const val TITLE_TOP_WITHOUT_CHIP = CHIP_TOP + 30f
-    const val TITLE_MAX_SIZE = 62f
+    const val TITLE_MAX_SIZE = 80f
     const val TITLE_MIN_SIZE = 44f
     const val TITLE_MAX_LINES = 2
     const val DATE_GAP_AFTER_TITLE = 8f
@@ -89,7 +89,7 @@ object ShareFrameLayout {
     /** Silence still shows a short bar rather than a dot. */
     const val BAR_MIN_HEIGHT_FRACTION = 0.12f
     const val TIMES_TOP = 1540f
-    const val TIMES_SIZE = 30f
+    const val TIMES_SIZE = 34f
     /** Everything [ShareFramePainter.drawWaveform] may touch - the overlay bitmap covers exactly this. */
     val animatedRegion = RectF(0f, 1350f, WIDTH, 1600f)
 

@@ -155,7 +155,7 @@ private fun buildCardStaticLayout(
     return builder.build()
 }
 
-private fun decodeSampledBitmap(context: Context, resId: Int, targetWidth: Int): Bitmap {
+internal fun decodeSampledBitmap(context: Context, resId: Int, targetWidth: Int): Bitmap {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeResource(context.resources, resId, bounds)
     var sampleSize = 1
@@ -164,7 +164,7 @@ private fun decodeSampledBitmap(context: Context, resId: Int, targetWidth: Int):
     return requireNotNull(BitmapFactory.decodeResource(context.resources, resId, opts))
 }
 
-private fun centerCropSrcRect(bitmapWidth: Int, bitmapHeight: Int, targetAspect: Float): Rect {
+internal fun centerCropSrcRect(bitmapWidth: Int, bitmapHeight: Int, targetAspect: Float): Rect {
     val bitmapAspect = bitmapWidth.toFloat() / bitmapHeight
     return if (bitmapAspect > targetAspect) {
         val cropWidth = (bitmapHeight * targetAspect).toInt()

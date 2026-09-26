@@ -272,7 +272,7 @@ class SharePreviewViewModel @Inject constructor(
             // the bitmap render depends on neither, so there's no reason to make the
             // user sit through both stages back-to-back while stuck at 0%.
             val bitmapJob = async(Dispatchers.Default) {
-                val bitmap = bitmapRenderer.render(context, content, spec)
+                val bitmap = bitmapRenderer.render(context, content)
                 baseBitmapFile.outputStream().use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
                 bitmap.recycle()
             }
