@@ -27,6 +27,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -66,6 +68,8 @@ fun WelcomeScreen(
             fontWeight = FontWeight.SemiBold,
             fontSize = 22.sp,
             textAlign = TextAlign.Center,
+            // TalkBack: the screen's title, reachable with heading navigation.
+            modifier = Modifier.semantics { heading() },
         )
 
         if (isAdmin) {
