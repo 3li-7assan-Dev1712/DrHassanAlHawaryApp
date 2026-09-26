@@ -49,7 +49,7 @@ fun ArticleCard(
             .clip(RoundedCornerShape(12.dp))
             .background(Brand.colors.surface)
             .clickable { onClick(article.id) }
-            .padding(12.dp),
+            .padding(16.dp),
     ) {
         Text(
             text = ArabicNumerals.digits(article.title),
@@ -61,7 +61,7 @@ fun ArticleCard(
             overflow = TextOverflow.Ellipsis,
         )
         if (article.excerpt.isNotBlank()) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = ArabicNumerals.digits(article.excerpt),
                 color = Brand.colors.textSecondary,
@@ -71,7 +71,7 @@ fun ArticleCard(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
             text = meta,
             color = Brand.colors.textMuted,

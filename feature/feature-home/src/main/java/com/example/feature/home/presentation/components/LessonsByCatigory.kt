@@ -81,8 +81,8 @@ fun CategoryTile(
             .clip(shape) // ripple stays inside the tile
             .background(Brand.colors.surface)
             .clickable(role = Role.Button, onClickLabel = category.name, onClick = onClick)
-            .heightIn(min = 48.dp)
-            .padding(horizontal = 4.dp, vertical = 10.dp),
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 4.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // The label below is what TalkBack reads (clickable merges it), so no duplicate description here.
