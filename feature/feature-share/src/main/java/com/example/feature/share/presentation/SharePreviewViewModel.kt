@@ -22,11 +22,13 @@ import com.example.feature.share.domain.ShareBackgroundSource
 import com.example.feature.share.domain.ShareCardContent
 import com.example.feature.share.domain.ShareClip
 import com.example.feature.share.domain.ShareExportState
+import com.example.feature.share.domain.ShareTitleParser
 import com.example.feature.share.engine.AudioClipExtractor
 import com.example.feature.share.engine.ExportProgress
 import com.example.feature.share.engine.ShareCardBitmapRenderer
 import com.example.feature.share.engine.ShareCardSpec
 import com.example.feature.share.engine.ShareFileStore
+import com.example.feature.share.engine.ShareFrameLayout
 import com.example.feature.share.engine.ShareVideoExporter
 import com.example.feature.share.engine.WaveformAnalyzer
 import com.example.feature.share.engine.WaveformOverlay
@@ -78,7 +80,9 @@ class SharePreviewViewModel @Inject constructor(
     private var hasStartedFallbackDownload = false
 
     private val rawTitle = savedStateHandle.get<String>(ARG_TITLE).orEmpty()
-    private val category = savedStateHandle.get<String>(ARG_CATEGORY)?.takeIf { it.isNotBlank() }
+    /** The audio's category id ("khotab", "lectures", ...) - picks the chip label.
+     * Never the audio's `type`, which is just "audio" and used to leak onto the card. */
+    private val categoryId = savedStateHandle.get<String>(ARG_CATEGORY)?.takeIf { it.isNotBlank() }
     private val totalTrackDurationMs = (savedStateHandle.get<Long>(ARG_TOTAL_DURATION_MS) ?: 0L).coerceAtLeast(0L)
     private val requestedStartMs = savedStateHandle.get<Long>(ARG_START_MS) ?: 0L
 
@@ -88,9 +92,12 @@ class SharePreviewViewModel @Inject constructor(
     // institute seal" look.
     private val instituteName = context.getString(R.string.app_name)
 
-    // §8: empty/null title falls back to the category, then to the institute name.
-    private val effectiveTitle = rawTitle.takeIf { it.isNotBlank() }
-        ?: category
+    // The server title is "kind + title + dates" in one string; the card draws each
+    // part separately (see ShareTitleParser). §8: an empty title falls back to the
+    // chip label, then to the app name.
+    private val titleFields = ShareTitleParser.toCardFields(rawTitle, categoryId)
+    private val effectiveTitle = titleFields.title.takeIf { it.isNotBlank() }
+        ?: titleFields.kindLabel
         ?: instituteName
 
     // Plays the ORIGINAL source directly (never the extracted clip) so the user
@@ -184,10 +191,14 @@ class SharePreviewViewModel @Inject constructor(
 
         val content = ShareCardContent(
             title = effectiveTitle,
-            category = category,
+            category = null,
             instituteName = instituteName,
             background = ShareBackgroundSource.Gradient,
             logoResId = R.drawable.admin_logo_app,
+            // Don't repeat the chip when it already became the title.
+            kindLabel = titleFields.kindLabel?.takeIf { it != effectiveTitle },
+            hijriDate = titleFields.hijriDate,
+            gregorianDate = titleFields.gregorianDate,
         )
 
         // Instant first paint: a natural-looking placeholder waveform rather than an
@@ -287,6 +298,9 @@ class SharePreviewViewModel @Inject constructor(
 
             clipResult.onSuccess { clip ->
                 val envelope = waveformAnalyzer.analyze(clip.filePath, clip.durationMs)
+                // The preview adopts the exact envelope being burned in, so from here
+                // on its bars are the video's bars, not the overview approximation.
+                _uiState.update { it.copy(clipEnvelope = envelope) }
                 bitmapJob.await()
                 runExport(
                     baseBitmapFile = baseBitmapFile,
@@ -390,6 +404,18 @@ class SharePreviewViewModel @Inject constructor(
         }
     }
 
+    /** Optional highlighted quote drawn on the frame. Editing it after a video was
+     * generated makes that video stale, so the next Share tap regenerates it. */
+    fun onQuoteChanged(text: String) {
+        val quote = text.take(ShareFrameLayout.QUOTE_MAX_CHARS)
+        _uiState.update { state ->
+            state.copy(
+                content = state.content?.copy(quote = quote),
+                exportState = if (state.exportState is ShareExportState.Ready) ShareExportState.Idle else state.exportState,
+            )
+        }
+    }
+
     /** Tapping Share is what starts generation - nothing runs eagerly before this. */
     fun onShareClicked() {
         when (_uiState.value.exportState) {
@@ -472,6 +498,7 @@ class SharePreviewViewModel @Inject constructor(
     companion object {
         const val ARG_AUDIO_URL = "audioUrl"
         const val ARG_TITLE = "title"
+        /** Nav arg name kept as "category"; it carries the audio's category id. */
         const val ARG_CATEGORY = "category"
         const val ARG_LOCAL_FILE_PATH = "localFilePath"
         const val ARG_START_MS = "startMs"

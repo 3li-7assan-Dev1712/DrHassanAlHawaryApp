@@ -26,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -50,7 +51,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.core.ui.R
 import com.example.feature.share.domain.ShareExportState
-import com.example.feature.share.engine.ShareCardSpec
+import com.example.feature.share.engine.ShareFrameLayout
 import com.example.feature.share.presentation.components.GenerationOverlay
 import com.example.feature.share.presentation.components.ShareActionBar
 import com.example.feature.share.presentation.components.ShareCardPreview
@@ -71,7 +72,7 @@ fun SharePreviewScreen(
     LaunchedEffect(viewModel) {
         viewModel.shareIntentEvent.collect { uri ->
             val title = uiState.content?.title.orEmpty()
-            val appStoreLink = "https://play.google.com/store/apps/details?id=${context.packageName}"
+            val appStoreLink = context.getString(R.string.share_cta_url)
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "video/mp4"
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -99,6 +100,7 @@ fun SharePreviewScreen(
         onPlayPauseToggle = viewModel::onPlayPauseToggle,
         onSeekWithinClip = viewModel::onSeekWithinClip,
         onRangeChanged = viewModel::onRangeChanged,
+        onQuoteChanged = viewModel::onQuoteChanged,
         onShareClick = viewModel::onShareClicked,
         onRetry = viewModel::onRetry,
         onShareLinkInstead = {
@@ -120,6 +122,7 @@ private fun SharePreviewScreen(
     onPlayPauseToggle: () -> Unit,
     onSeekWithinClip: (Long) -> Unit,
     onRangeChanged: (startMs: Long, endMs: Long) -> Unit,
+    onQuoteChanged: (String) -> Unit,
     onShareClick: () -> Unit,
     onRetry: () -> Unit,
     onShareLinkInstead: () -> Unit,
@@ -163,7 +166,6 @@ private fun SharePreviewScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val content = uiState.content
-                val spec = remember { ShareCardSpec.default() }
                 if (content != null) {
                     Box(
                         modifier = Modifier
@@ -172,12 +174,18 @@ private fun SharePreviewScreen(
                     ) {
                         ShareCardPreview(
                             content = content,
-                            spec = spec,
                             envelope = uiState.clipEnvelope,
-                            playbackFraction = uiState.playbackFraction,
+                            playbackPositionMs = uiState.playbackPositionMs,
+                            clipDurationMs = uiState.clipDurationMs,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
+
+                    QuoteField(
+                        quote = content.quote.orEmpty(),
+                        enabled = !isGenerating,
+                        onQuoteChanged = onQuoteChanged,
+                    )
                 }
 
                 // Only ever appears while a background audio download this screen is
@@ -249,6 +257,31 @@ private fun SharePreviewScreen(
             )
         }
     }
+}
+
+@Composable
+private fun QuoteField(
+    quote: String,
+    enabled: Boolean,
+    onQuoteChanged: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = quote,
+        onValueChange = { onQuoteChanged(it.take(ShareFrameLayout.QUOTE_MAX_CHARS)) },
+        enabled = enabled,
+        label = { Text(stringResource(R.string.share_quote_label)) },
+        placeholder = { Text(stringResource(R.string.share_quote_hint)) },
+        supportingText = {
+            Text(
+                text = stringResource(R.string.share_text_char_count, quote.length, ShareFrameLayout.QUOTE_MAX_CHARS),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        maxLines = 3,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp),
+    )
 }
 
 @Composable

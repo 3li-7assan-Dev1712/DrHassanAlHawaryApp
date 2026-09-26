@@ -92,7 +92,9 @@ class AudioDetailViewModel @Inject constructor(
                         it.copy(
                             isDownloaded = audio.isDownloaded,
                             isFavorite = audio.isFavorite,
-                            category = audio.type.takeIf { type -> type.isNotBlank() },
+                            // The share card's chip is keyed off the category id ("khotab", ...); `type` is
+                            // just "audio" for every item and used to leak onto the card as a label.
+                            category = audio.categoryId?.takeIf { id -> id.isNotBlank() },
                             localFilePath = audio.localFilePath.takeIf { audio.isDownloaded },
                             isLoadingDetails = false
                         )
