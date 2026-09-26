@@ -48,6 +48,7 @@ import com.example.feature.auth.R
 import com.example.feature.auth.presentation.AuthUiState
 import com.example.feature.auth.presentation.AuthViewModel
 import com.example.feature.auth.presentation.components.LoginWithGoogleComp
+import com.example.feature.auth.presentation.components.PrivacyPolicyLine
 import com.example.feature.auth.presentation.components.WelcomeScreen
 
 @Composable
@@ -126,7 +127,11 @@ fun AuthScreenContent(
                 onElementClick = onGoogleClick
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(8.dp))
+
+            PrivacyPolicyLine()
+
+            Spacer(Modifier.height(8.dp))
         }
 
         when (state) {

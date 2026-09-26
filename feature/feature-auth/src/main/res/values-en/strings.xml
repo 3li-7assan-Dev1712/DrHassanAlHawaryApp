@@ -11,4 +11,6 @@
     <string name="auth_no_google_account">There’s no Google account on this device</string>
     <string name="auth_add_account">Add account</string>
     <string name="auth_dismiss">Dismiss</string>
+    <string name="auth_privacy_agreement">By continuing you agree to the %1$s</string>
+    <string name="auth_privacy_policy">Privacy Policy</string>
 </resources>

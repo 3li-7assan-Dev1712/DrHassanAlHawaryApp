@@ -62,4 +62,7 @@ dependencies {
 
     // coil
     implementation(libs.coil.compose)
+
+    // Custom Tab for the privacy policy link
+    implementation(libs.androidx.browser)
 }
