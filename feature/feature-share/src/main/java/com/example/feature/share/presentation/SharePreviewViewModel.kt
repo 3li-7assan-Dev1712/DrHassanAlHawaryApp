@@ -187,7 +187,7 @@ class SharePreviewViewModel @Inject constructor(
             category = category,
             instituteName = instituteName,
             background = ShareBackgroundSource.Gradient,
-            logoResId = R.drawable.dr_hassan_image,
+            logoResId = R.drawable.admin_logo_app,
         )
 
         // Instant first paint: a natural-looking placeholder waveform rather than an

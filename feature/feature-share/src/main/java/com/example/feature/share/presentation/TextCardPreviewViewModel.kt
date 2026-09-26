@@ -49,7 +49,7 @@ class TextCardPreviewViewModel @Inject constructor(
         category = articleTitle?.let { context.getString(R.string.share_text_attribution, it) },
         instituteName = instituteName,
         background = ShareBackgroundSource.Gradient,
-        logoResId = R.drawable.dr_hassan_image,
+        logoResId = R.drawable.admin_logo_app,
     )
 
     private val _uiState = MutableStateFlow(TextCardPreviewUiState(content = content))
