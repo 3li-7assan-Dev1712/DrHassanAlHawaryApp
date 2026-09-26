@@ -39,7 +39,7 @@ object ShareTitleParser {
         if (text.isEmpty()) return ParsedShareTitle("", null, null, null, null)
 
         // Digit mapping is char-for-char, so match indices in `western` are valid in `text`.
-        val western = toWesternDigits(text)
+        val western = ArabicNumerals.toWestern(text)
         val hijriMatch = HIJRI_REGEX.find(western)
         val gregorianMatch = GREGORIAN_REGEXES.asSequence().mapNotNull { it.find(western) }
             .firstOrNull { gregorianFrom(it) != null }
@@ -141,17 +141,6 @@ object ShareTitleParser {
         }
     }
 
-    fun toWesternDigits(text: String): String = buildString(text.length) {
-        for (c in text) {
-            append(
-                when (c) {
-                    in '٠'..'٩' -> '0' + (c - '٠')
-                    in '۰'..'۹' -> '0' + (c - '۰')
-                    else -> c
-                }
-            )
-        }
-    }
 
     private fun gregorianFrom(match: MatchResult): GregorianDate? {
         val g = match.groupValues
