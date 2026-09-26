@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,14 +43,24 @@ fun ArticleItem(
     onReadMoreClicked: () -> Unit,
     formatDate: (Date) -> String
 ) {
+    // The screen background is `surface`, so in dark mode a `surface` card blends into it.
+    // Lift the card to a higher tonal container there; light mode keeps the white card + shadow.
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val cardColor = if (isDark) {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
     ElevatedCard(
+        onClick = onReadMoreClicked,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = cardColor
         )
     ) {
         Column(
