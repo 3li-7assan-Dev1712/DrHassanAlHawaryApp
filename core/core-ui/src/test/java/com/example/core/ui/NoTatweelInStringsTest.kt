@@ -9,8 +9,9 @@ import java.io.File
  * (U+0640). Stretched words ("المـــقالات") render unevenly and differently per
  * font; the design uses plain text everywhere.
  *
- * Runs as a plain JVM test from core-ui but scans the whole repository's
- * `src/main/res/values*` string files.
+ * Runs as a plain JVM test from core-ui but scans every XML file in every
+ * `res/values*` folder of the repository - not just ones named strings.xml
+ * (the app module keeps its strings in `string.xml`).
  */
 class NoTatweelInStringsTest {
 
@@ -21,9 +22,9 @@ class NoTatweelInStringsTest {
 
         val stringFiles = root.walkTopDown()
             .onEnter { dir -> dir.name != "build" && dir.name != ".gradle" && !dir.name.startsWith(".") }
-            .filter { it.isFile && it.name == "strings.xml" && it.parentFile.name.startsWith("values") }
+            .filter { it.isFile && it.extension == "xml" && it.parentFile.name.startsWith("values") }
             .toList()
-        assertTrue("found no strings.xml under $root - is the scan path right?", stringFiles.isNotEmpty())
+        assertTrue("found no values XML under $root - is the scan path right?", stringFiles.isNotEmpty())
 
         val offenders = stringFiles.flatMap { file ->
             file.readLines(Charsets.UTF_8).mapIndexedNotNull { i, line ->
