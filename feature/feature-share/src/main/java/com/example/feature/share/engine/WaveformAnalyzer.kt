@@ -44,8 +44,27 @@ class WaveformAnalyzer @Inject constructor() {
         pointCount: Int = OVERVIEW_POINT_COUNT,
     ): FloatArray = withContext(Dispatchers.IO) {
         decodeWithWatchdog(OVERVIEW_TIMEOUT_MS) { extractor ->
-            decodeSparseOverview(extractor, sourcePath, totalDurationMs, pointCount)
+            decodeSparseOverview(extractor, sourcePath, 0L, totalDurationMs, pointCount)
         } ?: syntheticEnvelope(pointCount)
+    }
+
+    /**
+     * The same cheap sparse decode, but across just the selected clip window - for
+     * the live preview's bars before an export exists. Slicing the whole-track
+     * overview can't do this: a 60 s clip of a 40-minute lecture covers ~1 of its
+     * points, which stretched into a meaningless ramp. Returns null on failure so
+     * the caller keeps whatever it was already showing.
+     */
+    suspend fun analyzeWindowPreview(
+        sourcePath: String,
+        startMs: Long,
+        endMs: Long,
+        pointCount: Int = OVERVIEW_POINT_COUNT,
+    ): FloatArray? = withContext(Dispatchers.IO) {
+        if (endMs <= startMs) return@withContext null
+        decodeWithWatchdog(OVERVIEW_TIMEOUT_MS) { extractor ->
+            decodeSparseOverview(extractor, sourcePath, startMs, endMs, pointCount)
+        }
     }
 
     /**
@@ -72,7 +91,8 @@ class WaveformAnalyzer @Inject constructor() {
     private fun decodeSparseOverview(
         extractor: MediaExtractor,
         sourcePath: String,
-        totalDurationMs: Long,
+        fromMs: Long,
+        toMs: Long,
         pointCount: Int,
     ): FloatArray {
         var codec: MediaCodec? = null
@@ -101,10 +121,11 @@ class WaveformAnalyzer @Inject constructor() {
 
             var pcm = PcmFormat.from(format)
             val bufferInfo = MediaCodec.BufferInfo()
-            val totalUs = totalDurationMs * 1_000L
+            val fromUs = fromMs * 1_000L
+            val spanUs = (toMs - fromMs) * 1_000L
 
             for (point in 0 until pointCount) {
-                val seekUs = (point.toDouble() / pointCount * totalUs).toLong()
+                val seekUs = fromUs + (point.toDouble() / pointCount * spanUs).toLong()
                 extractor.seekTo(seekUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
                 codec.flush()
 
@@ -113,7 +134,7 @@ class WaveformAnalyzer @Inject constructor() {
                 var decodedPackets = 0
                 var sawInputEos = false
 
-                while (decodedPackets < PACKETS_PER_POINT) {
+                while (decodedPackets < WARMUP_PACKETS + PACKETS_PER_POINT) {
                     if (!sawInputEos) {
                         val inputIndex = codec.dequeueInputBuffer(TIMEOUT_US)
                         if (inputIndex >= 0) {
@@ -133,7 +154,10 @@ class WaveformAnalyzer @Inject constructor() {
                     if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                         pcm = PcmFormat.from(codec.outputFormat)
                     } else if (outputIndex >= 0) {
-                        if (bufferInfo.size > 0) {
+                        // Skip the first buffers after each seek+flush: decoders (MP3 especially,
+                        // via its bit reservoir) emit near-silence while re-priming, which made
+                        // most sample points read as quiet.
+                        if (bufferInfo.size > 0 && decodedPackets++ >= WARMUP_PACKETS) {
                             val outputBuffer = requireNotNull(codec.getOutputBuffer(outputIndex)).order(ByteOrder.LITTLE_ENDIAN)
                             val n = bufferInfo.size / pcm.bytesPerSample
                             for (j in 0 until n) {
@@ -141,7 +165,6 @@ class WaveformAnalyzer @Inject constructor() {
                                 sumSquares += s * s
                             }
                             sampleCount += n
-                            decodedPackets++
                         }
                         codec.releaseOutputBuffer(outputIndex, false)
                         if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) break
@@ -339,7 +362,8 @@ class WaveformAnalyzer @Inject constructor() {
         private const val SEED = 42L
         private const val TIMEOUT_US = 10_000L
         private const val OVERVIEW_POINT_COUNT = 60
-        private const val PACKETS_PER_POINT = 2
+        private const val WARMUP_PACKETS = 2
+        private const val PACKETS_PER_POINT = 3
         private const val OVERVIEW_TIMEOUT_MS = 10_000L
         private const val ANALYZE_TIMEOUT_MS = 20_000L
     }

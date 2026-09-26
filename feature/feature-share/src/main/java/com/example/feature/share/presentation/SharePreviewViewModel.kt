@@ -110,6 +110,11 @@ class SharePreviewViewModel @Inject constructor(
     val shareIntentEvent = _shareIntentEvent.asSharedFlow()
 
     private var extractionJob: Job? = null
+    private var clipPreviewJob: Job? = null
+
+    /** True once clipEnvelope holds real data for the current window (a window decode
+     * or the export's exact analysis) - the coarse overview slice must not replace it. */
+    private var hasWindowEnvelope = false
     private var positionJob: Job? = null
 
     /** Set once the user taps Share; the instant the export lands, we fire the intent. */
@@ -127,6 +132,7 @@ class SharePreviewViewModel @Inject constructor(
     init {
         shareFileStore.sweepStale()
         loadOverviewEnvelope()
+        loadClipPreviewEnvelope(debounce = false)
         preparePlayer()
         listenToPlayer()
         observeLocalAudioFile()
@@ -172,6 +178,7 @@ class SharePreviewViewModel @Inject constructor(
      * and playback seamlessly continues from the same position on the local file. */
     private fun onLocalFileReady(path: String) {
         loadOverviewEnvelope()
+        loadClipPreviewEnvelope(debounce = false)
 
         val wasPlaying = exoPlayer.isPlaying
         val position = exoPlayer.currentPosition
@@ -232,15 +239,39 @@ class SharePreviewViewModel @Inject constructor(
             _uiState.update { state ->
                 state.copy(
                     overviewEnvelope = overview,
-                    clipEnvelope = sliceEnvelope(overview, state.startMs, state.startMs + state.clipDurationMs),
+                    clipEnvelope = if (hasWindowEnvelope) {
+                        state.clipEnvelope
+                    } else {
+                        sliceEnvelope(overview, state.startMs, state.startMs + state.clipDurationMs)
+                    },
                     isExtracting = false,
                 )
             }
         }
     }
 
-    /** A cheap resample of the whole-track overview for the selected range - used only
-     * for the live preview's waveform strip. The real per-frame envelope burned into the
+    /** Real bars for the live preview before any export: a sparse decode of just the
+     * selected window. Debounced while the trim handles are being dragged. */
+    private fun loadClipPreviewEnvelope(debounce: Boolean) {
+        clipPreviewJob?.cancel()
+        clipPreviewJob = viewModelScope.launch {
+            if (debounce) delay(CLIP_PREVIEW_DEBOUNCE_MS)
+            val startMs = _uiState.value.startMs
+            val endMs = startMs + _uiState.value.clipDurationMs
+            val envelope = waveformAnalyzer.analyzeWindowPreview(resolvedLocalFilePath ?: audioUrl, startMs, endMs)
+                ?: return@launch
+            _uiState.update { state ->
+                // Drop the result if the window moved while decoding.
+                if (state.startMs != startMs || state.startMs + state.clipDurationMs != endMs) return@update state
+                hasWindowEnvelope = true
+                state.copy(clipEnvelope = envelope)
+            }
+        }
+    }
+
+    /** A cheap resample of the whole-track overview for the selected range - only the
+     * instant placeholder for the live preview's waveform strip, until
+     * [loadClipPreviewEnvelope] has decoded the window itself. The real per-frame envelope burned into the
      * exported video is always a fresh, precise [WaveformAnalyzer.analyze] of the actual
      * extracted clip, run only once generation starts (see [extractAndAnalyze]). */
     private fun sliceEnvelope(source: FloatArray, startMs: Long, endMs: Long, outputSize: Int = 60): FloatArray {
@@ -298,6 +329,8 @@ class SharePreviewViewModel @Inject constructor(
                 val envelope = waveformAnalyzer.analyze(clip.filePath, clip.durationMs)
                 // The preview adopts the exact envelope being burned in, so from here
                 // on its bars are the video's bars, not the overview approximation.
+                clipPreviewJob?.cancel()
+                hasWindowEnvelope = true
                 _uiState.update { it.copy(clipEnvelope = envelope) }
                 bitmapJob.await()
                 runExport(
@@ -393,6 +426,7 @@ class SharePreviewViewModel @Inject constructor(
         val clampedStart = newStartMs.coerceIn(0L, totalTrackDurationMs)
         val minEnd = (clampedStart + MIN_SHAREABLE_DURATION_MS).coerceAtMost(totalTrackDurationMs)
         val clampedEnd = newEndMs.coerceIn(minEnd, totalTrackDurationMs)
+        hasWindowEnvelope = false
         _uiState.update { state ->
             state.copy(
                 startMs = clampedStart,
@@ -400,6 +434,7 @@ class SharePreviewViewModel @Inject constructor(
                 clipEnvelope = sliceEnvelope(state.overviewEnvelope, clampedStart, clampedEnd),
             )
         }
+        loadClipPreviewEnvelope(debounce = true)
     }
 
     /** Optional highlighted quote drawn on the frame. Editing it after a video was
@@ -507,5 +542,6 @@ class SharePreviewViewModel @Inject constructor(
         private const val POSITION_POLL_MS = 200L
         private const val MIN_USABLE_SPACE_BYTES = 150L * 1024 * 1024
         private const val SHARE_DEBOUNCE_MS = 800L
+        private const val CLIP_PREVIEW_DEBOUNCE_MS = 400L
     }
 }
