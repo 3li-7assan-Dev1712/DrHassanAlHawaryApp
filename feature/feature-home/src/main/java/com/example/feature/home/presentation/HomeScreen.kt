@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +21,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -33,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.navigation.Routes
-import com.example.core.ui.theme.CairoTypography
+import com.example.core.ui.theme.BrandTokens
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.NetworkMessageEvent
 import com.example.feature.home.R
@@ -41,6 +39,7 @@ import com.example.feature.home.domain.model.ArticleFeed
 import com.example.feature.home.domain.model.AudioFeed
 import com.example.feature.home.presentation.components.ArticleCard
 import com.example.feature.home.presentation.components.AudioCard
+import com.example.feature.home.presentation.components.HomeHeader
 import com.example.feature.home.presentation.components.Category
 import com.example.feature.home.presentation.components.ImageCarousel
 import com.example.feature.home.presentation.components.LatestArticleAudioLazyRow
@@ -93,34 +92,16 @@ fun HomeScreenContent(
     onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit,
     onCategoryClick: (route: String) -> Unit
 ) {
+    // The home screen always uses the dark brand palette (docs/plans/home-redesign.md, Q1).
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Text(
-                    text = stringResource(CoreR.string.app_name),
-                    style = CairoTypography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
+        containerColor = BrandTokens.background,
+        topBar = { HomeHeader() }
     ) { contentPadding ->
 
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
+                .background(BrandTokens.background)
                 .padding(contentPadding)
         ) {
             val categories = listOf(
