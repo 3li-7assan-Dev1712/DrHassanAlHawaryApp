@@ -67,4 +67,10 @@
 
 -keep class kotlin.Metadata { *; }
 
-
+# Credential Manager loads its Play Services provider reflectively; without this R8
+# strips it and Google sign-in fails only in release builds.
+# https://developer.android.com/identity/sign-in/credential-manager#proguard
+-if class androidx.credentials.CredentialManager
+-keep class androidx.credentials.playservices.** {
+  *;
+}
