@@ -1,5 +1,8 @@
 package com.example.feature.home.data
 
+import com.example.domain.text.ShareTitleParser
+import com.example.core.ui.util.HijriCalendar
+import java.util.Date
 import com.example.domain.text.ArticleTextCleaner
 import android.util.Log
 import androidx.room.withTransaction
@@ -56,11 +59,15 @@ class HomeRepositoryImpl @Inject constructor(
     override fun getLatestAudios(): Flow<List<AudioFeed>> {
         return audioDao.getLatestAudios().map { list ->
             list.map { audio ->
+                val fields = ShareTitleParser.toCardFields(audio.title, audio.categoryId)
                 AudioFeed(
                     id = audio.id,
                     title = audio.title,
                     duration = audio.durationInMillis,
-                    audioUrl = audio.audioUrl
+                    audioUrl = audio.audioUrl,
+                    displayTitle = fields.title.ifBlank { DEFAULT_AUDIO_TITLE },
+                    hijriDate = fields.hijriDate
+                        ?: audio.publishDate.takeIf { it > 0L }?.let { HijriCalendar.hijriDate(Date(it)) },
                 )
             }
         }
@@ -213,5 +220,7 @@ class HomeRepositoryImpl @Inject constructor(
 
     companion object {
         private const val RECENT_GROUPS_SYNC_LIMIT = 5
+        /** Shown when an audio title has neither a topic nor a kind. */
+        private const val DEFAULT_AUDIO_TITLE = "محاضرة"
     }
 }

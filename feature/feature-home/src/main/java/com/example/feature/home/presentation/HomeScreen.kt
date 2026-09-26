@@ -35,6 +35,7 @@ import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.BrandTokens
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.NetworkMessageEvent
+import com.example.domain.text.HijriDate
 import com.example.feature.home.R
 import com.example.feature.home.domain.model.ArticleFeed
 import com.example.feature.home.domain.model.AudioFeed
@@ -179,19 +180,15 @@ fun HomeScreenContent(
                         )
                     } else {
                         LatestArticleAudioLazyRow(
-                            itemSpacing = 8.dp,
-                            contentPadding = PaddingValues(vertical = 4.dp, horizontal = 12.dp),
                             title = stringResource(R.string.latest_audios),
+                            onSeeAll = { onCategoryClick(Routes.AUDIO_LIST_SCREEN) },
                             showLoading = uiState.loadingLatestAudios,
                             items = uiState.latestAudios,
                             emptyMessage = stringResource(R.string.no_audios_available),
                             itemKey = { audio -> audio.audioUrl },
                             itemContent = { audio ->
                                 AudioCard(
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .width(180.dp)
-                                        .height(120.dp),
+                                    modifier = Modifier.fillParentMaxWidth(0.75f),
                                     audio = audio,
                                     onClick = {
                                         onNavigateToDetailAudio(audio.title, audio.audioUrl)
@@ -226,8 +223,8 @@ fun HomeScreenPreview() {
         ArticleFeed(id = "2", title = "فضل بر الوالدين", excerpt = "إن بر الوالدين من أعظم القربات إلى الله تعالى وأحبها إليه.", readingMinutes = 3)
     )
     val dummyAudios = listOf(
-        AudioFeed(id = "1", title = "تفسير سورة الفاتحة", audioUrl = "", duration = 300000),
-        AudioFeed(id = "2", title = "شرح متن الآجرومية", audioUrl = "", duration = 600000)
+        AudioFeed(id = "1", title = "خطبة بعنوان: فضل العشر", audioUrl = "", duration = 1_499_000, displayTitle = "فضل العشر، والأضحية", hijriDate = HijriDate(27, "ذو القعدة", 1447)),
+        AudioFeed(id = "2", title = "محاضرة - 6 ربيع الآخر 1448هـ", audioUrl = "", duration = 1_499_000, displayTitle = "محاضرة", hijriDate = HijriDate(6, "ربيع الآخر", 1448))
     )
 
     HassanAlHawaryTheme {
