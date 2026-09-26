@@ -23,12 +23,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.R
-import com.example.core.ui.theme.BrandTheme
-import com.example.core.ui.theme.LocalBrandTheme
 
 @Composable
 fun IdleStateScreen(modifier: Modifier = Modifier) {
-    val isGreen = LocalBrandTheme.current == BrandTheme.GREEN
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -42,12 +39,12 @@ fun IdleStateScreen(modifier: Modifier = Modifier) {
                 .clip(CircleShape)
                 // Fixed (not theme-adaptive) backdrop so the icon art always has
                 // guaranteed contrast, instead of washing out on a dark-mode background.
-                .background(if (isGreen) Color(0xFFA0F2DF) else Color(0xFFF3E6C9)),
+                .background(Color(0xFFF3E6C9)),
             contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(
-                    id = if (isGreen) R.drawable.search_illustration_green else R.drawable.search_illustration
+                    id = R.drawable.search_illustration
                 ),
                 contentDescription = "Search Illustration",
                 modifier = Modifier.size(160.dp)

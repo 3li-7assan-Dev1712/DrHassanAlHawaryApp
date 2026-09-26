@@ -31,8 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
-import com.example.core.ui.theme.BrandTheme
-import com.example.core.ui.theme.LocalBrandTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +66,7 @@ fun AboutAppScreen(
         ) {
             Image(
                 painter = painterResource(
-                    id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.about_app_illu_green else R.drawable.about_app_illu
+                    id = R.drawable.about_app_illu
                 ),
                 contentDescription = null,
                 modifier = Modifier.height(250.dp)

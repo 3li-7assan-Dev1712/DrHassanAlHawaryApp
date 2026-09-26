@@ -74,8 +74,6 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
-import com.example.core.ui.theme.BrandTheme
-import com.example.core.ui.theme.LocalBrandTheme
 import com.example.feature.audio.presentation.components.formatDuration
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -391,7 +389,7 @@ private fun AudioTitleSection(
                 Image(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(
-                        id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.dr_hassan_image_green else R.drawable.dr_hassan_image
+                        id = R.drawable.dr_hassan_image
                     ),
                     contentDescription = uiState.title,
                     contentScale = ContentScale.Crop,

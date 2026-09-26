@@ -48,8 +48,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.example.core.ui.R
-import com.example.core.ui.theme.BrandTheme
-import com.example.core.ui.theme.LocalBrandTheme
 import com.example.profile.domain.use_case.ContactSupportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -121,7 +119,7 @@ fun SupportScreen(
         ) {
             Image(
                 painter = painterResource(
-                    id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.contact_illu_green else R.drawable.contact_illu
+                    id = R.drawable.contact_illu
                 ),
                 contentDescription = null,
                 modifier = Modifier

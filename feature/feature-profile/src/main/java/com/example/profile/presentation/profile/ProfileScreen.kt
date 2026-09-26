@@ -1,7 +1,6 @@
 package com.example.profile.presentation.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DeleteForever
@@ -71,7 +69,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.animation.LoadingScreen
-import com.example.core.ui.theme.BrandTheme
 import com.example.profile.presentation.components.ProfileRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,8 +79,6 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChanged: (Boolean) -> Unit,
-    brandTheme: BrandTheme = BrandTheme.BROWN,
-    onBrandThemeChanged: (BrandTheme) -> Unit = {},
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -213,9 +208,7 @@ fun ProfileScreen(
                         ProfileSectionCard(title = "الإعدادات العامة") {
                             AppearanceSettings(
                                 isDarkTheme = isDarkTheme,
-                                onThemeChange = onThemeChanged,
-                                brandTheme = brandTheme,
-                                onBrandThemeChange = onBrandThemeChanged
+                                onThemeChange = onThemeChanged
                             )
                         }
                     }
@@ -392,16 +385,13 @@ private fun ProfileRow(
 }
 
 /**
- * Appearance picker: a brand-color swatch row (brown / green) plus a light/dark
- * segmented control, replacing plain on-off switches with something closer to a
- * real theme picker.
+ * Appearance picker: a light/dark segmented control, replacing plain on-off
+ * switches with something closer to a real theme picker.
  */
 @Composable
 fun AppearanceSettings(
     isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit,
-    brandTheme: BrandTheme,
-    onBrandThemeChange: (BrandTheme) -> Unit
+    onThemeChange: (Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -409,28 +399,6 @@ fun AppearanceSettings(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = "لون العلامة التجارية",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                BrandSwatch(
-                    color = Color(0xFF342C2B),
-                    label = "بني",
-                    selected = brandTheme == BrandTheme.BROWN,
-                    onClick = { onBrandThemeChange(BrandTheme.BROWN) }
-                )
-                BrandSwatch(
-                    color = Color(0xFF036B5C),
-                    label = "أخضر",
-                    selected = brandTheme == BrandTheme.GREEN,
-                    onClick = { onBrandThemeChange(BrandTheme.GREEN) }
-                )
-            }
-        }
-
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
                 text = "وضع العرض",
@@ -460,49 +428,6 @@ fun AppearanceSettings(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun BrandSwatch(
-    color: Color,
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(color)
-                .border(
-                    width = if (selected) 3.dp else 0.dp,
-                    color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    shape = CircleShape
-                )
-                .padding(if (selected) 3.dp else 0.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (selected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-        )
     }
 }
 

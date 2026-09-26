@@ -30,8 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.R
-import com.example.core.ui.theme.BrandTheme
-import com.example.core.ui.theme.LocalBrandTheme
 
 @Composable
 fun WelcomeScreen(
@@ -72,7 +70,7 @@ fun WelcomeScreen(
                 Image(
                     modifier = Modifier.fillMaxSize(),
                     painter = painterResource(
-                        id = if (LocalBrandTheme.current == BrandTheme.GREEN) R.drawable.dr_hassan_image_green else R.drawable.dr_hassan_image
+                        id = R.drawable.dr_hassan_image
                     ),
                     contentDescription = "Doctor Hassan Logo",
                     contentScale = ContentScale.Crop,

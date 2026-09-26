@@ -658,10 +658,6 @@ class MainActivity : ComponentActivity() {
                             mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
                         },
                         isDarkTheme = isDarkThemeEnabled,
-                        brandTheme = com.example.core.ui.theme.LocalBrandTheme.current,
-                        onBrandThemeChanged = { brandTheme ->
-                            mainActivityViewModel.updateBrandThemePreference(brandTheme)
-                        },
                         onLogout = {
                             onLogout()
                         }
