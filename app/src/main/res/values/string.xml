@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">الشيخ د. حسن الهواري</string>
+    <string name="app_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="login">تسجيل الدخول</string>
     <string name="enter_email">الإيميل</string>
     <string name="articles">المقالات</string>
