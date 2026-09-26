@@ -1,6 +1,6 @@
 package app.netlify.devalihassan
 
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -277,9 +277,9 @@ class MainActivity : ComponentActivity() {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            // This colour fills the status-bar padding above every screen. Home is always
-            // on the dark brand background, so paint that there instead of a lighter strip.
-            containerColor = if (currentRoute == "home_screen") BrandTokens.background else MaterialTheme.colorScheme.surfaceVariant,
+            // This colour fills the status-bar padding above every screen. Home sits on the
+            // brand background (light or dark with the theme), so paint that strip to match.
+            containerColor = if (currentRoute == "home_screen") Brand.colors.background else MaterialTheme.colorScheme.surfaceVariant,
             bottomBar = {
                 if (shouldShowBottomNav) {
                     BottomNavigationBar(

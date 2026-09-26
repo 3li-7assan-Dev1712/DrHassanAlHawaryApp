@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.domain.text.ArabicDates
 import com.example.domain.text.ArabicNumerals
@@ -47,13 +47,13 @@ fun ArticleCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(BrandTokens.surface)
+            .background(Brand.colors.surface)
             .clickable { onClick(article.id) }
             .padding(12.dp),
     ) {
         Text(
             text = ArabicNumerals.digits(article.title),
-            color = BrandTokens.textPrimary,
+            color = Brand.colors.textPrimary,
             fontFamily = Cairo,
             fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
@@ -64,7 +64,7 @@ fun ArticleCard(
             Spacer(Modifier.height(4.dp))
             Text(
                 text = ArabicNumerals.digits(article.excerpt),
-                color = BrandTokens.textSecondary,
+                color = Brand.colors.textSecondary,
                 fontFamily = Cairo,
                 fontSize = 12.sp,
                 maxLines = 2,
@@ -74,7 +74,7 @@ fun ArticleCard(
         Spacer(Modifier.height(6.dp))
         Text(
             text = meta,
-            color = BrandTokens.textMuted,
+            color = Brand.colors.textMuted,
             fontFamily = Cairo,
             fontSize = 11.sp,
             maxLines = 1,
@@ -87,7 +87,7 @@ private val previewNow = 1_790_000_000_000L
 @Preview(name = "Article card - very long title", widthDp = 360)
 @Composable
 private fun ArticleCardLongTitlePreview() {
-    LazyRow(Modifier.background(BrandTokens.background).padding(vertical = 12.dp)) {
+    LazyRow(Modifier.background(Brand.colors.background).padding(vertical = 12.dp)) {
         item {
             ArticleCard(
                 article = ArticleFeed(
@@ -108,7 +108,7 @@ private fun ArticleCardLongTitlePreview() {
 @Preview(name = "Article card - no excerpt", widthDp = 360)
 @Composable
 private fun ArticleCardNoExcerptPreview() {
-    LazyRow(Modifier.background(BrandTokens.background).padding(vertical = 12.dp)) {
+    LazyRow(Modifier.background(Brand.colors.background).padding(vertical = 12.dp)) {
         item {
             ArticleCard(
                 article = ArticleFeed(id = "2", title = "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير", excerpt = "", publishedAt = null, readingMinutes = 1),

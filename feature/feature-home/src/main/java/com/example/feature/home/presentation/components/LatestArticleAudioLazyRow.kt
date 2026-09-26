@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.core.ui.components.shimmer
 import com.example.feature.home.R
@@ -59,7 +59,7 @@ fun <T> LatestArticleAudioLazyRow(
         } else if (emptyMessage != null) {
             Text(
                 text = emptyMessage,
-                color = BrandTokens.textMuted,
+                color = Brand.colors.textMuted,
                 fontFamily = Cairo,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -85,7 +85,7 @@ fun SectionHeader(
     ) {
         Text(
             text = title,
-            color = BrandTokens.textPrimary,
+            color = Brand.colors.textPrimary,
             fontFamily = Cairo,
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp,
@@ -104,7 +104,7 @@ fun SectionHeader(
             ) {
                 Text(
                     text = stringResource(R.string.see_all),
-                    color = BrandTokens.gold,
+                    color = Brand.colors.gold,
                     fontFamily = Cairo,
                     fontSize = 12.sp,
                 )

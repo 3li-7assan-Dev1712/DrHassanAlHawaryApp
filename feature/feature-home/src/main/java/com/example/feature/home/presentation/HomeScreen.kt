@@ -33,7 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.navigation.Routes
 import com.example.core.ui.icons.TablerIcons
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.util.LightSystemBarIcons
 import com.example.domain.module.NetworkMessageEvent
@@ -99,10 +99,11 @@ fun HomeScreenContent(
     onCategoryClick: (route: String) -> Unit,
     onNotificationsClick: () -> Unit = {},
 ) {
-    // The home screen always uses the dark brand palette (docs/plans/home-redesign.md, Q1).
-    LightSystemBarIcons()
+    // Home follows the app's light/dark setting through Brand.colors; on the dark
+    // palette the bars need light icons whatever the phone's own mode is.
+    if (Brand.colors.isDark) LightSystemBarIcons()
     Scaffold(
-        containerColor = BrandTokens.background,
+        containerColor = Brand.colors.background,
         // The host (MainActivity) already pads for the system bars; don't add them twice.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
@@ -116,7 +117,7 @@ fun HomeScreenContent(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(BrandTokens.background)
+                .background(Brand.colors.background)
                 .padding(contentPadding)
         ) {
             val categories = listOf(

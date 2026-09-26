@@ -165,7 +165,10 @@ fun HassanAlHawaryTheme(
 ) {
     val colorScheme = if (darkTheme) brownDarkScheme else brownLightScheme
 
-    CompositionLocalProvider(LocalBrandTheme provides brandTheme) {
+    CompositionLocalProvider(
+        LocalBrandTheme provides brandTheme,
+        LocalBrandPalette provides if (darkTheme) DarkBrandPalette else LightBrandPalette,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = CairoTypography,

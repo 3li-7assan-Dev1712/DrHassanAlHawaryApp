@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.navigation.Routes
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 
 data class Category(
@@ -79,7 +79,7 @@ fun CategoryTile(
     Column(
         modifier = modifier
             .clip(shape) // ripple stays inside the tile
-            .background(BrandTokens.surface)
+            .background(Brand.colors.surface)
             .clickable(role = Role.Button, onClickLabel = category.name, onClick = onClick)
             .heightIn(min = 48.dp)
             .padding(horizontal = 4.dp, vertical = 10.dp),
@@ -89,13 +89,13 @@ fun CategoryTile(
         Icon(
             painter = painterResource(category.iconRes),
             contentDescription = null,
-            tint = BrandTokens.gold,
+            tint = Brand.colors.gold,
             modifier = Modifier.size(24.dp),
         )
         Spacer(Modifier.height(4.dp))
         Text(
             text = category.name,
-            color = BrandTokens.textSecondary,
+            color = Brand.colors.textSecondary,
             fontFamily = Cairo,
             fontSize = 12.sp,
             maxLines = 1,
@@ -109,7 +109,7 @@ private const val COLUMNS = 3
 @Preview(name = "Content grid", widthDp = 360)
 @Composable
 private fun LessonsByCategoryPreview() {
-    Column(Modifier.background(BrandTokens.background).padding(vertical = 12.dp)) {
+    Column(Modifier.background(Brand.colors.background).padding(vertical = 12.dp)) {
         LessonsByCategory(
             categories = listOf(
                 Category(Routes.ARTICLES_SCREEN, "المقالات", TablerIcons.Notebook),

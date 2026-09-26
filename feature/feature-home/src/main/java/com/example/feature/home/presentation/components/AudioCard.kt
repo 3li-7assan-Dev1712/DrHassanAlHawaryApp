@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.icons.TablerIcons
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.HijriDate
@@ -55,7 +55,7 @@ fun AudioCard(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(BrandTokens.surface)
+            .background(Brand.colors.surface)
             .clickable(onClick = onClick)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -64,20 +64,20 @@ fun AudioCard(
         Box(
             modifier = Modifier
                 .size(36.dp)
-                .background(BrandTokens.goldSoft, CircleShape),
+                .background(Brand.colors.goldSoft, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(TablerIcons.PlayerPlay),
                 contentDescription = stringResource(R.string.audio_icon_description),
-                tint = BrandTokens.onGold,
+                tint = Brand.colors.onGold,
                 modifier = Modifier.size(18.dp),
             )
         }
         Column {
             Text(
                 text = ArabicNumerals.digits(audio.displayTitle),
-                color = BrandTokens.textPrimary,
+                color = Brand.colors.textPrimary,
                 fontFamily = Cairo,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
@@ -87,7 +87,7 @@ fun AudioCard(
             Spacer(Modifier.height(2.dp))
             Text(
                 text = meta,
-                color = BrandTokens.textMuted,
+                color = Brand.colors.textMuted,
                 fontFamily = Cairo,
                 fontSize = 11.sp,
                 maxLines = 1,
@@ -99,7 +99,7 @@ fun AudioCard(
 @Preview(name = "Audio card - with topic", widthDp = 360)
 @Composable
 private fun AudioCardPreview() {
-    LazyRow(Modifier.background(BrandTokens.background).padding(12.dp)) {
+    LazyRow(Modifier.background(Brand.colors.background).padding(12.dp)) {
         item {
             AudioCard(
                 audio = AudioFeed(
@@ -120,7 +120,7 @@ private fun AudioCardPreview() {
 @Preview(name = "Audio card - no topic", widthDp = 360)
 @Composable
 private fun AudioCardNoTopicPreview() {
-    LazyRow(Modifier.background(BrandTokens.background).padding(12.dp)) {
+    LazyRow(Modifier.background(Brand.colors.background).padding(12.dp)) {
         item {
             AudioCard(
                 audio = AudioFeed(

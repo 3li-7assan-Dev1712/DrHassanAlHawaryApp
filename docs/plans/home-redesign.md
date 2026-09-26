@@ -86,6 +86,9 @@ topic, and bottom nav × 4 selected states. Release build verified with R8 + shr
    Options: **home always uses the dark palette**, whatever the toggle says (matches the
    design and the share images, but home would be dark while the rest of the app is light);
    or I derive light variants of the tokens for the light theme. Which do you want?
+   *Update (2026-09-26):* changed to follow the toggle. Home and the bottom bar read
+   `Brand.colors` (`LightBrandPalette` / `DarkBrandPalette` in `BrandColors.kt`); sign-in
+   and the share images keep the fixed dark `BrandTokens`.
 2. **Your uncommitted theme work** (green-theme removal in `HomeScreen.kt`, `Color.kt`,
    `Theme.kt`, `MainActivity.kt`, untracked `BrandTheme.kt`) overlaps files this redesign
    rewrites. **Please commit it first** (or tell me to commit it as-is as its own commit),

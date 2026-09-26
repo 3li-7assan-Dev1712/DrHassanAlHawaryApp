@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 
 @Composable
@@ -70,12 +70,12 @@ fun BrandBottomBar(
 ) {
     Column(
         modifier = modifier
-            .background(BrandTokens.background)
+            .background(Brand.colors.background)
             .windowInsetsPadding(WindowInsets.navigationBars),
     ) {
-        HorizontalDivider(thickness = 0.5.dp, color = BrandTokens.divider)
+        HorizontalDivider(thickness = 0.5.dp, color = Brand.colors.divider)
         NavigationBar(
-            containerColor = BrandTokens.background,
+            containerColor = Brand.colors.background,
             tonalElevation = 0.dp,
             // Insets are applied once, on the Column above.
             windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
@@ -102,10 +102,10 @@ fun BrandBottomBar(
                     },
                     alwaysShowLabel = true,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = BrandTokens.goldSoft,
-                        selectedTextColor = BrandTokens.goldSoft,
-                        unselectedIconColor = BrandTokens.textMuted,
-                        unselectedTextColor = BrandTokens.textMuted,
+                        selectedIconColor = Brand.colors.goldSoft,
+                        selectedTextColor = Brand.colors.goldSoft,
+                        unselectedIconColor = Brand.colors.textMuted,
+                        unselectedTextColor = Brand.colors.textMuted,
                         indicatorColor = Color.Transparent,
                     ),
                 )

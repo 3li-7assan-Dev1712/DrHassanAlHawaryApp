@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.R as CoreR
 import com.example.core.ui.icons.TablerIcons
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.core.ui.util.HijriCalendar
 import com.example.feature.home.R
@@ -60,12 +60,12 @@ fun HomeHeader(
             modifier = Modifier
                 .size(44.dp)
                 .clip(CircleShape)
-                .border(1.dp, BrandTokens.goldStroke, CircleShape),
+                .border(1.dp, Brand.colors.goldStroke, CircleShape),
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(CoreR.string.app_name),
-                color = BrandTokens.textPrimary,
+                color = Brand.colors.textPrimary,
                 fontFamily = Cairo,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
@@ -74,7 +74,7 @@ fun HomeHeader(
             )
             Text(
                 text = hijriToday,
-                color = BrandTokens.textSecondary,
+                color = Brand.colors.textSecondary,
                 fontFamily = Cairo,
                 fontSize = 13.sp,
                 maxLines = 1,
@@ -85,7 +85,7 @@ fun HomeHeader(
                 Icon(
                     painter = painterResource(TablerIcons.Bell),
                     contentDescription = stringResource(R.string.notifications),
-                    tint = BrandTokens.textPrimary,
+                    tint = Brand.colors.textPrimary,
                     modifier = Modifier.size(24.dp),
                 )
                 if (hasUnreadNotifications) {
@@ -94,8 +94,8 @@ fun HomeHeader(
                             .align(Alignment.TopEnd)
                             .size(9.dp)
                             .clip(CircleShape)
-                            .background(BrandTokens.gold)
-                            .border(1.5.dp, BrandTokens.background, CircleShape),
+                            .background(Brand.colors.gold)
+                            .border(1.5.dp, Brand.colors.background, CircleShape),
                     )
                 }
             }
