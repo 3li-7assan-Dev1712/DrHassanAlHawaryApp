@@ -2,20 +2,25 @@ package com.example.feature.share.presentation
 
 import android.content.ClipData
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +32,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,10 +43,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.R
 import com.example.feature.share.domain.ShareExportState
-import com.example.feature.share.engine.TextCardSpec
 import com.example.feature.share.presentation.components.GenerationOverlay
+import com.example.feature.share.presentation.components.QuoteCardPreview
 import com.example.feature.share.presentation.components.ShareActionBar
-import com.example.feature.share.presentation.components.TextCardPreview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,11 +58,18 @@ fun TextCardPreviewScreen(
     val chooserTitle = stringResource(R.string.share_image_chooser)
 
     LaunchedEffect(viewModel) {
-        viewModel.shareIntentEvent.collect { uri ->
-            val intent = Intent(Intent.ACTION_SEND).apply {
+        viewModel.shareIntentEvent.collect { uris ->
+            // Page order is preserved end to end: EXTRA_STREAM list order and ClipData
+            // item order both follow the pages, and every image carries "١ / ٣" anyway.
+            val intent = if (uris.size == 1) {
+                Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, uris.first())
+            } else {
+                Intent(Intent.ACTION_SEND_MULTIPLE).putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList<Uri>(uris))
+            }.apply {
                 type = "image/png"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                clipData = ClipData.newUri(context.contentResolver, chooserTitle, uri)
+                clipData = ClipData.newUri(context.contentResolver, chooserTitle, uris.first()).also { clip ->
+                    uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
+                }
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             context.startActivity(Intent.createChooser(intent, chooserTitle))
@@ -116,32 +126,25 @@ private fun TextCardPreviewScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                val spec = remember { TextCardSpec.default() }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.72f)
-                        .clip(RoundedCornerShape(24.dp)),
-                ) {
-                    TextCardPreview(
-                        content = uiState.content,
-                        spec = spec,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                when {
+                    uiState.isLoading -> CircularProgressIndicator(modifier = Modifier.padding(48.dp))
+                    uiState.pages.isNotEmpty() -> PagesPager(uiState)
                 }
 
                 val errorMessage = uiState.errorMessage
-                if (errorMessage != null) {
-                    ErrorCard(message = errorMessage, onRetry = onRetry)
-                } else {
-                    ShareActionBar(
-                        enabled = !isGenerating,
-                        onShareClick = onShareClick,
-                    )
+                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    if (errorMessage != null) {
+                        ErrorCard(message = errorMessage, onRetry = onRetry, canRetry = uiState.pages.isNotEmpty())
+                    } else if (uiState.pages.isNotEmpty()) {
+                        ShareActionBar(
+                            enabled = !isGenerating,
+                            onShareClick = onShareClick,
+                        )
+                    }
                 }
             }
         }
@@ -157,7 +160,43 @@ private fun TextCardPreviewScreen(
 }
 
 @Composable
-private fun ErrorCard(message: String, onRetry: () -> Unit) {
+private fun PagesPager(uiState: TextCardPreviewUiState) {
+    val pages = uiState.pages
+    val pagerState = rememberPagerState { pages.size }
+
+    // Swiping follows the layout direction, so in Arabic page 1 is on the right
+    // and the next page comes in from the left - the same way the text reads.
+    HorizontalPager(
+        state = pagerState,
+        contentPadding = PaddingValues(horizontal = 56.dp),
+        pageSpacing = 16.dp,
+        key = { pages[it].index },
+    ) { index ->
+        QuoteCardPreview(
+            page = pages[index],
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp)),
+        )
+    }
+
+    if (pages.size > 1) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(R.string.share_quote_page_of, pagerState.currentPage + 1, pages.size),
+                style = MaterialTheme.typography.labelLarge,
+            )
+            Text(
+                text = stringResource(R.string.share_quote_multi_hint, pages.size),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorCard(message: String, onRetry: () -> Unit, canRetry: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -169,9 +208,11 @@ private fun ErrorCard(message: String, onRetry: () -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error,
         )
-        Row(modifier = Modifier.padding(top = 12.dp)) {
-            OutlinedButton(onClick = onRetry) {
-                Text(stringResource(R.string.share_retry))
+        if (canRetry) {
+            Row(modifier = Modifier.padding(top = 12.dp)) {
+                OutlinedButton(onClick = onRetry) {
+                    Text(stringResource(R.string.share_retry))
+                }
             }
         }
     }

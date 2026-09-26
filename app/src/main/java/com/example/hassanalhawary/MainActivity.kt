@@ -351,21 +351,23 @@ class MainActivity : ComponentActivity() {
                 ) {
                     ArticleShareSelectionScreen(
                         onNavigateUp = { navController.popBackStack() },
-                        onContinueToPreview = { articleTitle, excerpt ->
-                            val encodedExcerpt = Uri.encode(excerpt)
-                            val encodedTitle = Uri.encode(articleTitle)
+                        onContinueToPreview = { articleId, selectionStart, selectionEnd ->
+                            // Offsets, not the excerpt: any length can be shared, and a whole
+                            // article URL-encoded into the route would not scale.
                             navController.navigate(
-                                "${Routes.TEXT_CARD_PREVIEW_SCREEN}/$encodedExcerpt?articleTitle=$encodedTitle"
+                                "${Routes.TEXT_CARD_PREVIEW_SCREEN}/${Uri.encode(articleId)}" +
+                                    "?selectionStart=$selectionStart&selectionEnd=$selectionEnd"
                             )
                         }
                     )
                 }
 
                 composable(
-                    route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{quoteText}?articleTitle={articleTitle}",
+                    route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{articleId}?selectionStart={selectionStart}&selectionEnd={selectionEnd}",
                     arguments = listOf(
-                        navArgument("quoteText") { type = NavType.StringType },
-                        navArgument("articleTitle") { type = NavType.StringType; nullable = true },
+                        navArgument("articleId") { type = NavType.StringType },
+                        navArgument("selectionStart") { type = NavType.IntType; defaultValue = 0 },
+                        navArgument("selectionEnd") { type = NavType.IntType; defaultValue = 0 },
                     )
                 ) {
                     TextCardPreviewScreen(

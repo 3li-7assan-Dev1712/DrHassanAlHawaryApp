@@ -2,6 +2,7 @@ package com.example.feature.article.presentation.share
 
 data class ArticleShareSelectionUiState(
     val isLoading: Boolean = true,
+    val articleId: String = "",
     val articleTitle: String = "",
     /** The full article body, paragraphs joined for a single continuous [SelectableQuoteText]. */
     val displayText: String = "",
@@ -14,13 +15,8 @@ data class ArticleShareSelectionUiState(
 
     val selectionLength: Int get() = selectedText.length
 
-    val isTooLong: Boolean get() = selectionLength > MAX_EXCERPT_LENGTH
-
     val hasSelection: Boolean get() = selectionLength > 0
 
-    val canContinue: Boolean get() = hasSelection && !isTooLong
-
-    companion object {
-        const val MAX_EXCERPT_LENGTH = 450
-    }
+    /** Any length can be shared: long excerpts become several ordered images. */
+    val canContinue: Boolean get() = hasSelection
 }

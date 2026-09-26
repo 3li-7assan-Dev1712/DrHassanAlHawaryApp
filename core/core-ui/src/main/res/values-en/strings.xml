@@ -107,5 +107,8 @@
     <string name="share_text_too_long">Selected part is too long, choose a shorter one</string>
     <string name="share_text_clear_selection">Clear selection</string>
     <string name="share_text_continue">Continue</string>
+    <string name="share_text_selected_count">%1$d characters</string>
+    <string name="share_quote_page_of">Image %1$d of %2$d</string>
+    <string name="share_quote_multi_hint">%1$d images will be shared in order</string>
 
 </resources>

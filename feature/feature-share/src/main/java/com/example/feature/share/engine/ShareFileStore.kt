@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -30,9 +31,11 @@ class ShareFileStore @Inject constructor(
     fun exportFile(id: String): File = File(rootDir(), "share_$id.mp4")
     fun downloadTempFile(id: String): File = File(rootDir(), "download_$id.tmp")
 
-    /** The quote-card flow's output - unlike the video flow, this PNG has no
-     * separate intermediates: it's rendered once and IS the shareable asset. */
-    fun textCardFile(id: String): File = File(rootDir(), "textcard_$id.png")
+    /** Page [index] (0-based) of the quote-image flow's output. Unlike the video flow
+     * these PNGs have no intermediates: each is rendered once and IS the shareable
+     * asset. Zero-padded so name order is page order in any file listing. */
+    fun textCardFile(id: String, index: Int): File =
+        File(rootDir(), "textcard_${id}_%03d.png".format(Locale.ROOT, index + 1))
 
     fun uriForFile(file: File): Uri =
         FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
@@ -49,9 +52,9 @@ class ShareFileStore @Inject constructor(
         exportFile(id).delete()
     }
 
-    /** Called when leaving the quote-card preview and the image was never shared. */
-    fun deleteTextCard(id: String) {
-        textCardFile(id).delete()
+    /** Called when leaving the quote-image preview and the images were never shared. */
+    fun deleteTextCards(id: String) {
+        rootDir().listFiles { file -> file.name.startsWith("textcard_${id}_") }?.forEach { it.delete() }
     }
 
     /** Called every time the preview screen opens. */

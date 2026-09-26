@@ -94,4 +94,7 @@
     <string name="share_text_too_long">الجزء المحدد طويل جدًا، اختر جزءًا أقصر</string>
     <string name="share_text_clear_selection">مسح التحديد</string>
     <string name="share_text_continue">متابعة</string>
+    <string name="share_text_selected_count">%1$d حرف</string>
+    <string name="share_quote_page_of">صورة %1$d من %2$d</string>
+    <string name="share_quote_multi_hint">ستتم مشاركة %1$d صور بالترتيب</string>
 </resources>

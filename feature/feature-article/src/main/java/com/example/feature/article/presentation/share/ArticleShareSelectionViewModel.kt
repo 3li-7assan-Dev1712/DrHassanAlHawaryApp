@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.feature.article.domain.use_case.GetArticleByIdUseCase
+import com.example.feature.share.domain.ArticleText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,13 +36,16 @@ class ArticleShareSelectionViewModel @Inject constructor(
             try {
                 getArticleByIdUseCase(articleId).collect { article ->
                     if (article != null) {
-                        val displayText = article.content
-                            .split("\n")
-                            .map { it.trim() }
-                            .filter { it.isNotBlank() }
-                            .joinToString("\n\n")
+                        // Shared with the share screen, which rebuilds this exact text to
+                        // resolve the selection offsets passed to it.
+                        val displayText = ArticleText.displayText(article.content)
                         _uiState.update {
-                            it.copy(isLoading = false, articleTitle = article.title, displayText = displayText)
+                            it.copy(
+                                isLoading = false,
+                                articleId = articleId,
+                                articleTitle = article.title,
+                                displayText = displayText,
+                            )
                         }
                     } else {
                         _uiState.update { it.copy(isLoading = false, errorMessage = "Article not found") }

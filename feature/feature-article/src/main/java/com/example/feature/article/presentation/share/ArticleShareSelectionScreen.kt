@@ -40,16 +40,16 @@ import com.example.core.ui.R
 import com.example.feature.article.presentation.share.components.SelectableQuoteText
 
 /**
- * Lets the user drag-select an excerpt of the article body, then hands the
- * excerpt + article title off to feature-share's quote-card preview/share
- * screen (wired by the app module, same pattern as AudioDetailScreen's
- * onNavigateToShare -> SharePreviewScreen).
+ * Lets the user drag-select any amount of the article body, then hands the
+ * article id + selection offsets to feature-share's quote-image screen (wired
+ * by the app module), which cleans the excerpt and splits it into as many
+ * ordered images as it needs.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleShareSelectionScreen(
     onNavigateUp: () -> Unit,
-    onContinueToPreview: (articleTitle: String, excerpt: String) -> Unit,
+    onContinueToPreview: (articleId: String, selectionStart: Int, selectionEnd: Int) -> Unit,
     viewModel: ArticleShareSelectionViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -59,7 +59,7 @@ fun ArticleShareSelectionScreen(
         onNavigateUp = onNavigateUp,
         onSelectionChanged = viewModel::onSelectionChanged,
         onClearSelection = viewModel::onClearSelection,
-        onContinue = { onContinueToPreview(uiState.articleTitle, uiState.selectedText) },
+        onContinue = { onContinueToPreview(uiState.articleId, uiState.selectionStart, uiState.selectionEnd) },
     )
 }
 
@@ -161,21 +161,13 @@ private fun SelectionBottomBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = when {
-                    !uiState.hasSelection -> stringResource(R.string.share_text_no_selection)
-                    uiState.isTooLong -> stringResource(R.string.share_text_too_long)
-                    else -> stringResource(
-                        R.string.share_text_char_count,
-                        uiState.selectionLength,
-                        ArticleShareSelectionUiState.MAX_EXCERPT_LENGTH,
-                    )
+                text = if (uiState.hasSelection) {
+                    stringResource(R.string.share_text_selected_count, uiState.selectionLength)
+                } else {
+                    stringResource(R.string.share_text_no_selection)
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = if (uiState.isTooLong) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (uiState.hasSelection) {
                 TextButton(onClick = onClearSelection) {
