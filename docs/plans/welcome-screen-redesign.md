@@ -1,6 +1,9 @@
 # Welcome / sign-in screen redesign — plan
 
-Status: **awaiting approval**. Nothing below is implemented yet.
+Status: **implemented** (commits `ec0b804`..`fd08fa4` on `android-ci`). Decisions: full name
+"الشيخ د. حسن أحمد الهواري"; official "G" as crops of the kit's dark PNGs; privacy URL is a blank
+`AppLinks.PRIVACY_POLICY_URL` with a TODO; `androidx.browser` and test-only
+`kotlinx-coroutines-test` added; admin app gets the same screen. Device checklist at the end.
 
 ## What exists today
 
@@ -58,3 +61,16 @@ Only `app/src/main/assets/privacy.md`, which the in-app `LegalTextScreen` shows 
    - ViewModel tests need `kotlinx-coroutines-test` (test-only; not in the catalog yet) to replace `Dispatchers.Main`. OK to add?
 6. **Admin app**: apply the same redesign there (it shares `AuthScreen`), keeping the "الإدارة" badge under the name? I assume yes.
 7. **"No Google account"**: with `GetSignInWithGoogleOption`, Google's own sheet usually offers "add account" itself, so our `NoAccount` state may rarely show. I'll still handle it as specified.
+
+## Device checklist (not yet run)
+
+- [ ] Photo corner clean at mdpi / xhdpi / xxhdpi / xxxhdpi
+- [ ] Status and navigation bar areas dark with light icons, in both the app's light and dark themes
+- [ ] Sign-in succeeds (debug)
+- [ ] Cancelling Google's picker returns silently to the button
+- [ ] Airplane mode: error snackbar, then retry works once back online
+- [ ] Device with no Google account: message + "إضافة حساب" opens the add-account screen
+- [ ] Privacy link opens (after `PRIVACY_POLICY_URL` is set)
+- [ ] TalkBack order: photo, welcome, name (heading), value line, button, privacy link
+- [ ] **Release build**: sign-in works (needs the Play App Signing SHA-1 registered, see finding 5)
+- [ ] Admin app login screen (its own primary-coloured top bar still shows above this screen)
