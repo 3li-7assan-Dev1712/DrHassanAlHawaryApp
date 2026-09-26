@@ -3,14 +3,18 @@ package com.example.feature.auth.presentation.auth
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -76,31 +80,41 @@ fun AuthScreenContent(
     // Always the dark brand palette, like home: the background also fills the
     // status/navigation bar areas (edge-to-edge), so their icons must be light.
     LightSystemBarIcons()
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .background(BrandTokens.background)
             .safeDrawingPadding(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopCenter
     ) {
+        // At least the viewport tall, so the header centres in the space above the
+        // bottom-anchored button; scrolls when it can't fit (landscape, large fonts).
         Column(
             modifier = Modifier
                 .widthIn(max = 480.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp),
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = maxHeight)
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            WelcomeScreen(isAdmin = isAdmin)
-
-            Spacer(Modifier.height(40.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                WelcomeScreen(isAdmin = isAdmin)
+            }
 
             LoginWithGoogleComp(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth(),
                 isLoading = state.showSignInProgressBar,
                 onElementClick = onGoogleClick
             )
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
