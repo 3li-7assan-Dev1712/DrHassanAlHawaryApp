@@ -199,33 +199,43 @@ private fun Context.openAddGoogleAccount() {
     }
 }
 
-@Preview(
-    showBackground = true,
-    showSystemUi = false,
-    device = Devices.PIXEL_7,
-    name = "شاشة تسجيل الدخول"
-)
 @Composable
-private fun AuthScreenArabicPreview() {
+private fun AuthPreview(state: AuthUiState, isAdmin: Boolean = false) {
     HassanAlHawaryTheme {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            AuthScreenContent(state = AuthUiState.Idle, onGoogleClick = {})
+            AuthScreenContent(state = state, isAdmin = isAdmin, onGoogleClick = {})
         }
     }
 }
 
-@Preview(
-    showBackground = true,
-    showSystemUi = false,
-    widthDp = 360,
-    heightDp = 600,
-    name = "شاشة الإدارة - جهاز صغير"
-)
+@Preview(device = Devices.PIXEL_7, name = "Idle")
 @Composable
-private fun AuthScreenAdminSmallDevicePreview() {
-    HassanAlHawaryTheme {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            AuthScreenContent(state = AuthUiState.Loading, isAdmin = true, onGoogleClick = {})
-        }
-    }
-}
+private fun AuthIdlePreview() = AuthPreview(AuthUiState.Idle)
+
+@Preview(device = Devices.PIXEL_7, name = "Loading")
+@Composable
+private fun AuthLoadingPreview() = AuthPreview(AuthUiState.Loading)
+
+@Preview(device = Devices.PIXEL_7, name = "Error snackbar")
+@Composable
+private fun AuthErrorPreview() = AuthPreview(AuthUiState.Error)
+
+@Preview(device = Devices.PIXEL_7, name = "No Google account")
+@Composable
+private fun AuthNoAccountPreview() = AuthPreview(AuthUiState.NoAccount)
+
+@Preview(widthDp = 360, heightDp = 640, name = "Small phone 360x640")
+@Composable
+private fun AuthSmallPreview() = AuthPreview(AuthUiState.Idle)
+
+@Preview(widthDp = 360, heightDp = 640, fontScale = 1.3f, name = "Small phone, font 1.3x")
+@Composable
+private fun AuthLargeFontPreview() = AuthPreview(AuthUiState.Idle)
+
+@Preview(widthDp = 800, heightDp = 360, name = "Landscape")
+@Composable
+private fun AuthLandscapePreview() = AuthPreview(AuthUiState.Idle)
+
+@Preview(device = Devices.PIXEL_7, name = "Admin")
+@Composable
+private fun AuthAdminPreview() = AuthPreview(AuthUiState.Idle, isAdmin = true)
