@@ -1,11 +1,7 @@
 package com.example.feature.home.presentation
 
-import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,6 +35,7 @@ import com.example.core.ui.navigation.Routes
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.BrandTokens
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.util.LightSystemBarIcons
 import com.example.domain.module.NetworkMessageEvent
 import com.example.domain.text.HijriDate
 import com.example.feature.home.R
@@ -103,7 +100,7 @@ fun HomeScreenContent(
     onNotificationsClick: () -> Unit = {},
 ) {
     // The home screen always uses the dark brand palette (docs/plans/home-redesign.md, Q1).
-    DarkSystemBarIcons()
+    LightSystemBarIcons()
     Scaffold(
         containerColor = BrandTokens.background,
         // The host (MainActivity) already pads for the system bars; don't add them twice.
@@ -224,29 +221,6 @@ fun HomeScreenContent(
 
 
 private val SECTION_GAP = 20.dp
-
-/**
- * Light status/navigation bar icons while home is on screen (it is always dark),
- * restoring whatever the app theme had set when leaving - other screens follow
- * the light/dark setting, where forced light icons would be invisible.
- */
-@Composable
-private fun DarkSystemBarIcons() {
-    val view = LocalView.current
-    if (view.isInEditMode) return
-    DisposableEffect(view) {
-        val window = (view.context as? Activity)?.window ?: return@DisposableEffect onDispose {}
-        val controller = WindowCompat.getInsetsController(window, view)
-        val lightStatus = controller.isAppearanceLightStatusBars
-        val lightNavigation = controller.isAppearanceLightNavigationBars
-        controller.isAppearanceLightStatusBars = false
-        controller.isAppearanceLightNavigationBars = false
-        onDispose {
-            controller.isAppearanceLightStatusBars = lightStatus
-            controller.isAppearanceLightNavigationBars = lightNavigation
-        }
-    }
-}
 
 @Preview(showBackground = true, showSystemUi = false, device = Devices.PIXEL_7, name = "الشاشة الرئيسية")
 @Composable

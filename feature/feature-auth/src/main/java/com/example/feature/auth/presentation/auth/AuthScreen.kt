@@ -19,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Devices
@@ -28,7 +27,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.ui.theme.BrandTokens
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.util.LightSystemBarIcons
 import com.example.feature.auth.presentation.AuthScreenState
 import com.example.feature.auth.presentation.AuthViewModel
 import com.example.feature.auth.presentation.components.LoginWithGoogleComp
@@ -72,17 +73,13 @@ fun AuthScreenContent(
     modifier: Modifier = Modifier,
     isAdmin: Boolean = false
 ) {
+    // Always the dark brand palette, like home: the background also fills the
+    // status/navigation bar areas (edge-to-edge), so their icons must be light.
+    LightSystemBarIcons()
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                        MaterialTheme.colorScheme.surface
-                    )
-                )
-            )
+            .background(BrandTokens.background)
             .safeDrawingPadding(),
         contentAlignment = Alignment.Center
     ) {
