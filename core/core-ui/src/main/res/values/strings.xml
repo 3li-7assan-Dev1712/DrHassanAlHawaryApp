@@ -17,7 +17,7 @@
     <string name="rating_illustration">صورة تقييم التطبيق</string>
 
     <!-- Onboarding -->
-    <string name="share_app">مشاركة التطبيق مع الإخــوة</string>
+    <string name="share_app">مشاركة التطبيق مع الإخوة</string>
 
     <!-- Guest Content -->
     <string name="telegram_connect_title">اربط حسابك بتيليجرام</string>
@@ -50,20 +50,20 @@
 
     <!-- Article -->
 
-    <string name="app_name">الشيــخ د. حســن الهــواري</string>
+    <string name="app_name">الشيخ د. حسن الهواري</string>
     <string name="continue_with_google">المتابعة عبر Google</string>
     <string name="admin_badge">الإدارة</string>
-    <string name="articles">المـــقالات</string>
-    <string name="videos">الفيديوهــــات</string>
-    <string name="audios">الصـــوتيات</string>
-    <string name="profile">الملـــف الشخصـــي</string>
+    <string name="articles">المقالات</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="audios">الصوتيات</string>
+    <string name="profile">الملف الشخصي</string>
     <string name="loading">يتم التحميل…</string>
     <string name="study">الدراسة</string>
     <string name="competition">قائمة التميز</string>
 
 
     <string name="images">التصاميم</string>
-    <string name="lessons">الــمـحـــتويات</string>
+    <string name="lessons">المحتويات</string>
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
     <string name="welcome_to_app">مرحباً بك في تطبيق</string>
