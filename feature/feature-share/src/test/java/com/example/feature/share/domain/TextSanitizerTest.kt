@@ -72,6 +72,28 @@ class TextSanitizerTest {
     }
 
     @Test
+    fun `box-drawing and flower separator lines from the real article are removed`() {
+        val text = "مظاهر، أسباب، وتدابير\n═══════✿✿✿═══════\nالحمد لله، وبعد:"
+        assertEquals("مظاهر، أسباب، وتدابير\nالحمد لله، وبعد…", TextSanitizer.sanitize(text, 0, text.length).text)
+    }
+
+    @Test
+    fun `the facebook byline copied into the article body is removed`() {
+        val text = "الأزمة الاقتصادية الطاحنة - مظاهر، أسباب، وتدابير\n\n" +
+            "الشيخ د.حسن أحمد الهواري • September 23 at 9:55 PM\n\nبسم الله الرحمن الرحيم"
+        assertEquals(
+            "الأزمة الاقتصادية الطاحنة - مظاهر، أسباب، وتدابير\nبسم الله الرحمن الرحيم…",
+            TextSanitizer.sanitize(text, 0, text.length).text,
+        )
+    }
+
+    @Test
+    fun `a line that merely mentions a date in english is kept`() {
+        val text = "قال الشيخ في درسه September 23 كلامًا مهمًا."
+        assertEquals(text, TextSanitizer.sanitize(text, 0, text.length).text)
+    }
+
+    @Test
     fun `unmatched brackets and quotes are dropped, matched pairs kept`() {
         val text = "قال (رحمه الله) كلامًا «مهمًا جدًا وتابع (في المسألة"
         val result = TextSanitizer.sanitize(text, 0, text.length).text

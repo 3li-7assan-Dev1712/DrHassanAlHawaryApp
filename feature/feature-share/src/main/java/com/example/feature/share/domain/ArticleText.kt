@@ -39,7 +39,7 @@ object ArticleText {
     private const val MONTHS =
         "January|February|March|April|May|June|July|August|September|October|November|December|" +
             "Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec"
-    private val FACEBOOK_TIMESTAMPS = listOf(
+    internal val FACEBOOK_TIMESTAMPS = listOf(
         // "September 23 at 9:55 PM", "Sep 23, 2025 at 9:55 PM", "September 23"
         Regex("\\b(?:$MONTHS)\\s+\\d{1,2}(?:,\\s*\\d{4})?(?:\\s+at\\s+\\d{1,2}:\\d{2}\\s*(?:AM|PM|am|pm)?)?", RegexOption.IGNORE_CASE),
         // "Yesterday at 10:02 AM", "Today at 8:00"
@@ -54,4 +54,24 @@ object ArticleText {
     )
 
     private val FIRST_DASH = Regex("\\s+[-–—]\\s+")
+
+    /** "الشيخ د.حسن أحمد الهواري" and its spelling variants, as a whole string. */
+    private val AUTHOR_NAME = Regex("^(?:(?:ال)?شيخ\\s*)?(?:د\\s*\\.?\\s*)?حسن\\s+(?:(?:أ|ا)حمد\\s+)?(?:ال)?هوار[يى]$")
+
+    /**
+     * True for a Facebook post byline copied into the article body, e.g.
+     * "الشيخ د.حسن أحمد الهواري • September 23 at 9:55 PM": it has a timestamp, and
+     * besides that only the author's name and "•" separators.
+     */
+    internal fun isFacebookByline(line: String): Boolean {
+        var rest = line.replace("\u0640", "")
+        var hadTimestamp = false
+        FACEBOOK_TIMESTAMPS.forEach { pattern ->
+            if (pattern.containsMatchIn(rest)) hadTimestamp = true
+            rest = pattern.replace(rest, " ")
+        }
+        if (!hadTimestamp) return false
+        rest = rest.replace(Regex("[•·|\\-–—]"), " ").replace(WHITESPACE, " ").trim()
+        return rest.isEmpty() || AUTHOR_NAME.matches(rest)
+    }
 }

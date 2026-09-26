@@ -57,6 +57,7 @@ object TextSanitizer {
 
         var text = Mapped.of(fullText, start, end)
         text = removeEmojisAndTatweel(text)
+        text = removeLines(text, ArticleText::isFacebookByline)
         text = removeSeparatorLines(text)
         text = normalizeEllipses(text)
         text = collapseWhitespace(text)
@@ -100,15 +101,18 @@ object TextSanitizer {
             cp == 0x200D || cp == 0x20E3 // zero-width joiner, keycap
 
     /** Drops whole lines made only of separator characters (3+ of them). */
-    private fun removeSeparatorLines(text: Mapped): Mapped {
+    private fun removeSeparatorLines(text: Mapped): Mapped = removeLines(text) { line ->
+        val stripped = line.filterNot { it.isWhitespace() }
+        stripped.length >= 3 && stripped.all(::isSeparatorChar)
+    }
+
+    /** Drops the content of every line matching [drop] (its newline stays; blank runs collapse later). */
+    private fun removeLines(text: Mapped, drop: (String) -> Boolean): Mapped {
         val out = Mapped()
         var lineStart = 0
         while (lineStart <= text.length) {
             val nl = text.chars.indexOf("\n", lineStart).let { if (it < 0) text.length else it }
-            val line = text.chars.substring(lineStart, nl)
-            val stripped = line.filterNot { it.isWhitespace() }
-            val isSeparator = stripped.length >= 3 && stripped.all { it in SEPARATOR_CHARS }
-            if (!isSeparator) {
+            if (!drop(text.chars.substring(lineStart, nl))) {
                 for (i in lineStart until nl) out.add(text.chars[i], text.src[i])
             }
             if (nl < text.length) out.add('\n', text.src[nl])
@@ -116,6 +120,9 @@ object TextSanitizer {
         }
         return out
     }
+
+    /** ASCII/Arabic rule characters, plus box-drawing and block elements ("═══", "▬▬") used in Facebook posts. */
+    private fun isSeparatorChar(c: Char): Boolean = c in SEPARATOR_CHARS || c in '─'..'▟' || c == '▬'
 
     /** "..", "...", "....", "……" -> a single "…". */
     private fun normalizeEllipses(text: Mapped): Mapped {
