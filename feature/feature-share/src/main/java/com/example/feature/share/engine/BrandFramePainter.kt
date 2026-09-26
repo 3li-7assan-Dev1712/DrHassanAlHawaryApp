@@ -53,7 +53,7 @@ class BrandFramePainter(private val context: Context) {
         canvas.drawColor(Colors.background)
     }
 
-    /** Logo on the right, "الشيخ د. حسن الهواري" + [subtitle] to its left, centred on the logo. */
+    /** Logo on the right, "الشيخ د. حسن أحمد الهواري" + [subtitle] to its left, centred on the logo. */
     fun drawHeader(canvas: Canvas, logoResId: Int, subtitle: String) {
         drawLogo(canvas, logoResId)
 

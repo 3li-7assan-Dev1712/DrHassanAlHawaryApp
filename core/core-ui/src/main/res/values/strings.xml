@@ -98,9 +98,9 @@
          has no values-en override so an English locale still falls back to this. -->
     <string name="share_brand_line">تم الإنشاء بواسطة تطبيق الشيخ د. حسن الهواري</string>
     <!-- Burned into the share video frame: always Arabic, regardless of app locale. -->
-    <string name="share_frame_name" translatable="false">الشيخ د. حسن الهواري</string>
+    <string name="share_frame_name" translatable="false">الشيخ د. حسن أحمد الهواري</string>
     <string name="share_frame_subtitle" translatable="false">خطب ودروس</string>
-    <string name="share_frame_app_name" translatable="false">تطبيق الشيخ د. حسن الهواري</string>
+    <string name="share_frame_app_name" translatable="false">تطبيق الشيخ د. حسن أحمد الهواري</string>
     <string name="share_cta_label" translatable="false">حمّل التطبيق</string>
     <!-- Store link sent with the shared video (Telegram shows it as the caption). -->
     <string name="share_cta_url" translatable="false">https://play.google.com/store/apps/details?id=app.netlify.devalihassan</string>
