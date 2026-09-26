@@ -52,6 +52,7 @@ import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
+import com.example.feature.home.presentation.notifications.NotificationsScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
@@ -295,6 +296,8 @@ class MainActivity : ComponentActivity() {
                             Routes.VIDEOS_SCREEN -> navController.navigate(Routes.VIDEO_CATEGORY_SCREEN)
                             else -> navController.navigate(route)
                         }
+                    }, onNotificationsClick = {
+                        navController.navigate(Routes.NOTIFICATIONS_SCREEN)
                     }
 
 
@@ -637,6 +640,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                }
+                composable(Routes.NOTIFICATIONS_SCREEN) {
+                    NotificationsScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.Q_A_SCREEN) {
                     app.netlify.devalihassan.ui.q_a.QAScreen()

@@ -3,6 +3,7 @@ package com.example.feature.home.presentation
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data_local.NotificationDao
 import com.example.domain.module.NetworkMessageEvent
 import com.example.domain.module.NetworkStatus
 import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
@@ -33,6 +34,7 @@ class HomeScreenViewModel @Inject constructor(
     private val getLatestImagesUseCase: GetLatestImagesUseCase,
     private val syncLatestDataUseCase: SyncLatestDataUseCase,
     private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase,
+    private val notificationDao: NotificationDao,
 ) : ViewModel() {
 
 
@@ -53,6 +55,7 @@ class HomeScreenViewModel @Inject constructor(
     init {
         loadArticlesFromDb()
         loadLatestAudios()
+        observeUnreadNotifications()
 
         checkCurrentNetworkStatus()
         syncLatestData()
@@ -161,6 +164,12 @@ class HomeScreenViewModel @Inject constructor(
         }
 
 
+    }
+
+    private fun observeUnreadNotifications() {
+        notificationDao.getUnreadCount()
+            .onEach { count -> _homeScreenUiState.update { it.copy(unreadNotifications = count) } }
+            .launchIn(viewModelScope)
     }
 
 }

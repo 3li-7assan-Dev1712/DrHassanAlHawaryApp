@@ -16,4 +16,5 @@ data class HomeScreenUiState(
     val searchQuery: String = "",
     val isInOfflineMode: Boolean = false,
     val errorMessage: String? = null,
+    val unreadNotifications: Int = 0,
 )

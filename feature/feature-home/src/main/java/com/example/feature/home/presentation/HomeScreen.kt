@@ -61,7 +61,8 @@ fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
     onNavigateToDetailArticle: (articleId: String) -> Unit = {},
     onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit = { _, _ -> },
-    onCategoryClick: (route: String) -> Unit = {}
+    onCategoryClick: (route: String) -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
 ) {
     val homeScreenUiState by homeScreenViewModel.homeScreenUiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -86,7 +87,8 @@ fun HomeScreen(
         uiState = homeScreenUiState,
         onNavigateToDetailArticle = onNavigateToDetailArticle,
         onNavigateToDetailAudio = onNavigateToDetailAudio,
-        onCategoryClick = onCategoryClick
+        onCategoryClick = onCategoryClick,
+        onNotificationsClick = onNotificationsClick,
     )
 }
 
@@ -97,7 +99,8 @@ fun HomeScreenContent(
     uiState: HomeScreenUiState,
     onNavigateToDetailArticle: (articleId: String) -> Unit,
     onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit,
-    onCategoryClick: (route: String) -> Unit
+    onCategoryClick: (route: String) -> Unit,
+    onNotificationsClick: () -> Unit = {},
 ) {
     // The home screen always uses the dark brand palette (docs/plans/home-redesign.md, Q1).
     DarkSystemBarIcons()
@@ -105,7 +108,12 @@ fun HomeScreenContent(
         containerColor = BrandTokens.background,
         // The host (MainActivity) already pads for the system bars; don't add them twice.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { HomeHeader() }
+        topBar = {
+            HomeHeader(
+                hasUnreadNotifications = uiState.unreadNotifications > 0,
+                onNotificationsClick = onNotificationsClick,
+            )
+        }
     ) { contentPadding ->
 
         Box(

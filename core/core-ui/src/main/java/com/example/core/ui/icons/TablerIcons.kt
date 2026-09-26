@@ -38,12 +38,13 @@ object TablerIcons {
     @DrawableRes val School = R.drawable.ic_tabler_school
     @DrawableRes val User = R.drawable.ic_tabler_user
     @DrawableRes val PlayerPlay = R.drawable.ic_tabler_player_play
+    @DrawableRes val Bell = R.drawable.ic_tabler_bell
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
         "message-question" to MessageQuestion, "photo" to Photo, "user-circle" to UserCircle,
         "home" to Home, "search" to Search, "school" to School, "user" to User,
-        "player-play" to PlayerPlay,
+        "player-play" to PlayerPlay, "bell" to Bell,
     )
 }
 

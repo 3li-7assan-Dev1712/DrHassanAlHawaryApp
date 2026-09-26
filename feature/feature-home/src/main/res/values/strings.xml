@@ -25,4 +25,8 @@
     <string name="carousel_image_description">صورة</string>
     <string name="audio_icon_description">أيقونة صوت</string>
     <string name="no_images_available">لا توجد صور متاحة الآن</string>
+    <string name="notifications">الإشعارات</string>
+    <string name="notifications_empty">لا توجد إشعارات بعد</string>
+    <string name="notifications_clear_all">مسح الكل</string>
+    <string name="notifications_delete">حذف الإشعار</string>
 </resources>
