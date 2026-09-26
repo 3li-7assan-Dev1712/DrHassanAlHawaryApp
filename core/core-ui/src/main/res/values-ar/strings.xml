@@ -80,6 +80,8 @@
     <string name="share_link_instead">شارك الرابط بدلاً من ذلك</string>
     <string name="share_play">تشغيل</string>
     <string name="share_pause">إيقاف مؤقت</string>
+    <string name="share_quote_label">اقتباس مميز (اختياري)</string>
+    <string name="share_quote_hint">اكتب جملة من المقطع لتظهر في الفيديو</string>
 
     <!-- Share Article Excerpt as Image -->
     <string name="share_generating_image">جاري إنشاء الصورة</string>

@@ -93,6 +93,8 @@
     <string name="share_link_instead">Share the link instead</string>
     <string name="share_play">Play</string>
     <string name="share_pause">Pause</string>
+    <string name="share_quote_label">Highlighted quote (optional)</string>
+    <string name="share_quote_hint">Type a line from the clip to show in the video</string>
 
     <!-- Share Article Excerpt as Image -->
     <string name="share_generating_image">Generating image…</string>

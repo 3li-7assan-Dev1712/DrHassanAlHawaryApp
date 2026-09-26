@@ -97,6 +97,13 @@
     <!-- Burned into the exported video's pixels - always Arabic. Deliberately
          has no values-en override so an English locale still falls back to this. -->
     <string name="share_brand_line">تم الإنشاء بواسطة تطبيق الشيخ د. حسن الهواري</string>
+    <!-- Burned into the share video frame: always Arabic, regardless of app locale. -->
+    <string name="share_frame_name" translatable="false">الشيخ د. حسن الهواري</string>
+    <string name="share_frame_subtitle" translatable="false">خطب ودروس</string>
+    <string name="share_frame_app_name" translatable="false">تطبيق الشيخ د. حسن الهواري</string>
+    <string name="share_cta_label" translatable="false">حمّل التطبيق</string>
+    <!-- Store link sent with the shared video (Telegram shows it as the caption). -->
+    <string name="share_cta_url" translatable="false">https://play.google.com/store/apps/details?id=app.netlify.devalihassan</string>
     <string name="share_generating_video">جاري إنشاء الفيديو</string>
     <string name="share_button_label">مشاركة</string>
     <string name="share_trim_range">من %1$s إلى %2$s</string>
@@ -107,6 +114,8 @@
     <string name="share_link_instead">شارك الرابط بدلاً من ذلك</string>
     <string name="share_play">تشغيل</string>
     <string name="share_pause">إيقاف مؤقت</string>
+    <string name="share_quote_label">اقتباس مميز (اختياري)</string>
+    <string name="share_quote_hint">اكتب جملة من المقطع لتظهر في الفيديو</string>
 
     <!-- Share Article Excerpt as Image -->
     <string name="share_generating_image">جاري إنشاء الصورة</string>
