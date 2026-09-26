@@ -6,4 +6,9 @@
     <string name="auth_value_line">Sermons, lessons, articles and fatwas in one place</string>
     <string name="auth_continue_with_google">Continue with Google</string>
     <string name="auth_signing_in">Signing in</string>
+    <string name="auth_error_sign_in">Couldn’t sign in. Check your connection and try again.</string>
+    <string name="auth_retry">Retry</string>
+    <string name="auth_no_google_account">There’s no Google account on this device</string>
+    <string name="auth_add_account">Add account</string>
+    <string name="auth_dismiss">Dismiss</string>
 </resources>
