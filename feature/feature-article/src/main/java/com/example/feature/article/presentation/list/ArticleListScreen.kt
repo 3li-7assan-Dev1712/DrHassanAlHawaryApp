@@ -23,6 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -69,6 +74,24 @@ private fun ArticlesScreenContent(
 ) {
 
     val listState = rememberLazyListState()
+
+    // Paging's local-cache-first load can insert newer items (the mediator's remote
+    // fetch, or a genuinely new article) above whatever the list last anchored on,
+    // which otherwise leaves the list looking "scrolled down" without ever having
+    // moved. Track the newest item's key and snap/animate back to it when it changes.
+    var topItemKey by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(articles.itemCount) {
+        if (articles.itemCount == 0) return@LaunchedEffect
+        val newestKey = articles.peek(0)?.id
+        if (newestKey != null && newestKey != topItemKey) {
+            if (topItemKey == null) {
+                listState.scrollToItem(0)
+            } else {
+                listState.animateScrollToItem(0)
+            }
+            topItemKey = newestKey
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
