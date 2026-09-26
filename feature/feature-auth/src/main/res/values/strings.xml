@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="auth_sheikh_photo_description">صورة الشيخ د. حسن أحمد الهواري</string>
+    <string name="auth_welcome">مرحبًا بك في تطبيق</string>
+    <string name="auth_sheikh_name">الشيخ د. حسن أحمد الهواري</string>
+    <string name="auth_value_line">خطب ودروس ومقالات وفتاوى في مكان واحد</string>
 </resources>

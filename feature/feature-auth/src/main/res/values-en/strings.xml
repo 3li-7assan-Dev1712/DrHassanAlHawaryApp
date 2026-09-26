@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="auth_sheikh_photo_description">Photo of Sheikh Dr. Hassan Ahmed Al-Hawary</string>
+    <string name="auth_welcome">Welcome to the app of</string>
+    <string name="auth_sheikh_name">Sheikh Dr. Hassan Ahmed Al-Hawary</string>
+    <string name="auth_value_line">Sermons, lessons, articles and fatwas in one place</string>
 </resources>

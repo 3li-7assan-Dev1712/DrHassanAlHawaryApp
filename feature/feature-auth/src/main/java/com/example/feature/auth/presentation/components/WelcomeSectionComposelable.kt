@@ -29,11 +29,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.R
 import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Cairo
 import com.example.feature.auth.R as AuthR
 
 @Composable
@@ -47,41 +49,51 @@ fun WelcomeScreen(
     ) {
         SheikhPhoto()
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(20.dp))
 
         Text(
-            text = stringResource(R.string.welcome_to_app),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = stringResource(AuthR.string.auth_welcome),
+            color = BrandTokens.textSecondary,
+            fontFamily = Cairo,
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
         )
 
-        Spacer(Modifier.height(4.dp))
-
         Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp
-            ),
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
+            text = stringResource(AuthR.string.auth_sheikh_name),
+            color = BrandTokens.goldSoft,
+            fontFamily = Cairo,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 22.sp,
+            textAlign = TextAlign.Center,
         )
 
         if (isAdmin) {
-            Spacer(Modifier.height(12.dp))
-
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.tertiaryContainer
-            ) {
-                Text(
-                    text = stringResource(R.string.admin_badge),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.admin_badge),
+                color = BrandTokens.gold,
+                fontFamily = Cairo,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .border(1.dp, BrandTokens.goldStroke, RoundedCornerShape(50))
+                    .padding(horizontal = 14.dp, vertical = 4.dp),
+            )
         }
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            text = stringResource(AuthR.string.auth_value_line),
+            color = BrandTokens.textSecondary,
+            fontFamily = Cairo,
+            fontSize = 13.sp,
+            lineHeight = 22.sp, // ~1.7x
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -129,13 +141,13 @@ private fun SheikhPhoto(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(name = "Welcome Screen", widthDp = 320, heightDp = 400, showBackground = true)
+@Preview(name = "Welcome Screen", widthDp = 320, heightDp = 400, showBackground = true, backgroundColor = 0xFF1A1512)
 @Composable
 private fun WelcomeScreenPrv() {
     WelcomeScreen(modifier = Modifier)
 }
 
-@Preview(name = "Welcome Screen - Admin", widthDp = 320, heightDp = 420, showBackground = true)
+@Preview(name = "Welcome Screen - Admin", widthDp = 320, heightDp = 420, showBackground = true, backgroundColor = 0xFF1A1512)
 @Composable
 private fun WelcomeScreenAdminPrv() {
     WelcomeScreen(modifier = Modifier, isAdmin = true)
