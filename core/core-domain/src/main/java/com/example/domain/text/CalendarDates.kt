@@ -1,4 +1,4 @@
-package com.example.feature.share.domain
+package com.example.domain.text
 
 /** A Hijri date as announced in the source title - never computed, so it always
  * matches what the institute actually published (moon-sighting can differ from

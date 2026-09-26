@@ -1,4 +1,4 @@
-package com.example.feature.share.domain
+package com.example.domain.text
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

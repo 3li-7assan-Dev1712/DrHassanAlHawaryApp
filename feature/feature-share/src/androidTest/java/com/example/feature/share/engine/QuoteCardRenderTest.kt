@@ -8,9 +8,9 @@ import android.text.style.ForegroundColorSpan
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.core.ui.R
-import com.example.feature.share.domain.ArabicNumerals
-import com.example.feature.share.domain.ArticleText
-import com.example.feature.share.domain.TextSanitizer
+import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.ArticleText
+import com.example.domain.text.TextSanitizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

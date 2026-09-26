@@ -7,7 +7,7 @@ import android.graphics.RectF
 import android.text.Layout
 import android.text.StaticLayout
 import com.example.core.ui.R
-import com.example.feature.share.domain.ArabicNumerals
+import com.example.domain.text.ArabicNumerals
 import com.example.feature.share.domain.ShareCardContent
 import com.example.feature.share.engine.ShareFrameLayout.Colors
 import kotlin.math.max

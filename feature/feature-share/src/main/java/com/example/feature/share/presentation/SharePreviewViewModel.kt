@@ -22,7 +22,7 @@ import com.example.feature.share.domain.ShareBackgroundSource
 import com.example.feature.share.domain.ShareCardContent
 import com.example.feature.share.domain.ShareClip
 import com.example.feature.share.domain.ShareExportState
-import com.example.feature.share.domain.ShareTitleParser
+import com.example.domain.text.ShareTitleParser
 import com.example.feature.share.engine.AudioClipExtractor
 import com.example.feature.share.engine.ExportProgress
 import com.example.feature.share.engine.ShareCardBitmapRenderer

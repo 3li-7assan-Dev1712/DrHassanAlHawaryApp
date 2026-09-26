@@ -9,7 +9,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.example.core.ui.R
 import com.example.feature.share.domain.ShareBackgroundSource
 import com.example.feature.share.domain.ShareCardContent
-import com.example.feature.share.domain.ShareTitleParser
+import com.example.domain.text.ShareTitleParser
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals

@@ -7,7 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.example.core.ui.R
 import com.example.feature.share.domain.ShareBackgroundSource
 import com.example.feature.share.domain.ShareCardContent
-import com.example.feature.share.domain.ShareTitleParser
+import com.example.domain.text.ShareTitleParser
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

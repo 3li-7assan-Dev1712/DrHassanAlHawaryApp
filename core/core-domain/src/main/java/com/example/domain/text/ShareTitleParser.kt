@@ -1,4 +1,4 @@
-package com.example.feature.share.domain
+package com.example.domain.text
 
 /** The pieces of a server title, split so each can be laid out on its own. */
 data class ParsedShareTitle(

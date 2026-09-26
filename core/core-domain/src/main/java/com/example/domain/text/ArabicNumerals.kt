@@ -1,4 +1,4 @@
-package com.example.feature.share.domain
+package com.example.domain.text
 
 import java.util.Locale
 

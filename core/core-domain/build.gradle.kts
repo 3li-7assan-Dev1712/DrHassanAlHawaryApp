@@ -5,5 +5,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.javax.inject)
     implementation(libs.paging.common)
+    testImplementation(libs.junit)
 //    implementation(libs.androidx.paging.common.jvm)
 }

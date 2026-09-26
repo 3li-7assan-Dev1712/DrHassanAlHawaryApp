@@ -1,4 +1,4 @@
-package com.example.feature.share.domain
+package com.example.domain.text
 
 /**
  * Article text shared between the selection screen (feature-article) and the

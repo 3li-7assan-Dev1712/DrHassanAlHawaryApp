@@ -9,10 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.ui.R
 import com.example.domain.repository.ArticlesRepository
-import com.example.feature.share.domain.ArabicNumerals
-import com.example.feature.share.domain.ArticleText
+import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.ArticleText
 import com.example.feature.share.domain.ShareExportState
-import com.example.feature.share.domain.TextSanitizer
+import com.example.domain.text.TextSanitizer
 import com.example.feature.share.engine.QuoteCardPainter
 import com.example.feature.share.engine.QuoteCardRenderer
 import com.example.feature.share.engine.QuotePage

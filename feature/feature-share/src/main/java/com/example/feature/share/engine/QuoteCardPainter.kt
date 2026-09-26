@@ -9,7 +9,7 @@ import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.StaticLayout
 import com.example.core.ui.R
-import com.example.feature.share.domain.ArabicNumerals
+import com.example.domain.text.ArabicNumerals
 import com.example.feature.share.engine.ShareFrameLayout.Colors
 import kotlin.math.ceil
 import kotlin.math.floor
