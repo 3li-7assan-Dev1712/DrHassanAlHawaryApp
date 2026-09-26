@@ -92,7 +92,7 @@ object TextSanitizer {
         return out
     }
 
-    private fun isEmojiOrJoiner(cp: Int): Boolean =
+    internal fun isEmojiOrJoiner(cp: Int): Boolean =
         cp in 0x1F000..0x1FAFF || // pictographs, emoticons, transport, flags, supplemental symbols
             cp in 0x2600..0x27BF || // misc symbols + dingbats
             cp in 0x2B00..0x2BFF || // stars, arrows
@@ -122,7 +122,7 @@ object TextSanitizer {
     }
 
     /** ASCII/Arabic rule characters, plus box-drawing and block elements ("═══", "▬▬") used in Facebook posts. */
-    private fun isSeparatorChar(c: Char): Boolean = c in SEPARATOR_CHARS || c in '─'..'▟' || c == '▬'
+    internal fun isSeparatorChar(c: Char): Boolean = c in SEPARATOR_CHARS || c in '─'..'▟' || c == '▬'
 
     /** "..", "...", "....", "……" -> a single "…". */
     private fun normalizeEllipses(text: Mapped): Mapped {
