@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -109,6 +112,26 @@ class MainActivity : ComponentActivity() {
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
             HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme, brandTheme = themeState.brandTheme) {
+
+                // Follow the app's own light/dark setting, not the phone's: the plain
+                // enableEdgeToEdge() above picks bar icon colours from the system mode, so
+                // they vanished whenever the two differed. The window background (the XML
+                // theme is Material.Light) is repainted too, so nothing flashes white in
+                // dark mode. Declared before the screens so their own overrides (home and
+                // sign-in force light icons) apply on top.
+                val isDarkTheme = themeState.isDarkTheme
+                val windowBackground = MaterialTheme.colorScheme.background
+                DisposableEffect(isDarkTheme) {
+                    val transparent = android.graphics.Color.TRANSPARENT
+                    val barStyle = if (isDarkTheme) {
+                        SystemBarStyle.dark(transparent)
+                    } else {
+                        SystemBarStyle.light(transparent, transparent)
+                    }
+                    enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+                    window.decorView.setBackgroundColor(windowBackground.toArgb())
+                    onDispose {}
+                }
 
                 var flexibleUpdateDismissed by remember { mutableStateOf(false) }
 
