@@ -47,8 +47,14 @@ data class BrandPalette(
     val background: Color,
     val surface: Color,
     val divider: Color,
+    /** Fills (pills, the play button) under [onGold] content. */
     val goldSoft: Color,
     val gold: Color,
+    /**
+     * Gold for text and icons that sit directly on [background]: the active nav tab, the
+     * sign-in name. [goldSoft] in dark; in light that pale gold is ~1.5:1, so deep gold.
+     */
+    val goldText: Color,
     val goldStroke: Color,
     val onGold: Color,
     val textPrimary: Color,
@@ -64,6 +70,7 @@ val DarkBrandPalette = BrandPalette(
     divider = BrandTokens.divider,
     goldSoft = BrandTokens.goldSoft,
     gold = BrandTokens.gold,
+    goldText = BrandTokens.goldSoft,
     goldStroke = BrandTokens.goldStroke,
     onGold = BrandTokens.onGold,
     textPrimary = BrandTokens.textPrimary,
@@ -83,6 +90,7 @@ val LightBrandPalette = BrandPalette(
     divider = Color(0xFFE0D6C8),
     goldSoft = BrandTokens.goldSoft,
     gold = Color(0xFF9A5A00),
+    goldText = Color(0xFF9A5A00),
     goldStroke = BrandTokens.goldStroke,
     onGold = BrandTokens.onGold,
     textPrimary = Color(0xFF2A211E),

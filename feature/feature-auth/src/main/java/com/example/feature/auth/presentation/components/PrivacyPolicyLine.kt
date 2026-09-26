@@ -24,7 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.config.AppLinks
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.feature.auth.R
 
@@ -49,7 +49,7 @@ fun PrivacyPolicyLine(
                 url = url,
                 styles = TextLinkStyles(
                     style = SpanStyle(
-                        color = BrandTokens.textSecondary,
+                        color = Brand.colors.textSecondary,
                         textDecoration = TextDecoration.Underline,
                     ),
                 ),
@@ -64,7 +64,7 @@ fun PrivacyPolicyLine(
 
     Text(
         text = text,
-        color = BrandTokens.textMuted,
+        color = Brand.colors.textMuted,
         fontFamily = Cairo,
         fontSize = 12.sp,
         textAlign = TextAlign.Center,

@@ -36,7 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.R
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.feature.auth.R as AuthR
 
@@ -55,7 +55,7 @@ fun WelcomeScreen(
 
         Text(
             text = stringResource(AuthR.string.auth_welcome),
-            color = BrandTokens.textSecondary,
+            color = Brand.colors.textSecondary,
             fontFamily = Cairo,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
@@ -63,7 +63,7 @@ fun WelcomeScreen(
 
         Text(
             text = stringResource(AuthR.string.auth_sheikh_name),
-            color = BrandTokens.goldSoft,
+            color = Brand.colors.goldText,
             fontFamily = Cairo,
             fontWeight = FontWeight.SemiBold,
             fontSize = 22.sp,
@@ -76,12 +76,12 @@ fun WelcomeScreen(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.admin_badge),
-                color = BrandTokens.gold,
+                color = Brand.colors.gold,
                 fontFamily = Cairo,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
                 modifier = Modifier
-                    .border(1.dp, BrandTokens.goldStroke, RoundedCornerShape(50))
+                    .border(1.dp, Brand.colors.goldStroke, RoundedCornerShape(50))
                     .padding(horizontal = 14.dp, vertical = 4.dp),
             )
         }
@@ -90,7 +90,7 @@ fun WelcomeScreen(
 
         Text(
             text = stringResource(AuthR.string.auth_value_line),
-            color = BrandTokens.textSecondary,
+            color = Brand.colors.textSecondary,
             fontFamily = Cairo,
             fontSize = 13.sp,
             lineHeight = 22.sp, // ~1.7x
@@ -117,20 +117,21 @@ private val PHOTO_HALO = 8.dp
 private fun SheikhPhoto(modifier: Modifier = Modifier) {
     val photoSize =
         if (LocalConfiguration.current.screenHeightDp < COMPACT_HEIGHT_DP) PHOTO_SIZE_COMPACT else PHOTO_SIZE
+    val glow = Brand.colors.goldStroke.copy(alpha = 0.10f)
     Box(
         modifier = modifier
             .size(photoSize + PHOTO_HALO * 2)
             .drawBehind {
                 drawCircle(
                     brush = Brush.radialGradient(
-                        colors = listOf(BrandTokens.goldStroke.copy(alpha = 0.10f), Color.Transparent),
+                        colors = listOf(glow, Color.Transparent),
                         center = center,
                         radius = size.minDimension,
                     ),
                     radius = size.minDimension,
                 )
             }
-            .background(BrandTokens.surface.copy(alpha = 0.5f), CircleShape),
+            .background(Brand.colors.surface.copy(alpha = 0.5f), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         Image(
@@ -140,7 +141,7 @@ private fun SheikhPhoto(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(photoSize)
                 .clip(CircleShape)
-                .border(PHOTO_RING, BrandTokens.goldStroke, CircleShape),
+                .border(PHOTO_RING, Brand.colors.goldStroke, CircleShape),
         )
     }
 }

@@ -59,7 +59,7 @@ fun BottomNavigationBar(
 
 /**
  * The bottom navigation as designed: brand background with a hairline on top, no
- * selection pill; the active tab is goldSoft (icon + label), the rest textMuted.
+ * selection pill; the active tab is goldText (icon + label), the rest textMuted.
  * Pads itself for the system navigation bar (edge-to-edge).
  */
 @Composable
@@ -102,8 +102,8 @@ fun BrandBottomBar(
                     },
                     alwaysShowLabel = true,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Brand.colors.goldSoft,
-                        selectedTextColor = Brand.colors.goldSoft,
+                        selectedIconColor = Brand.colors.goldText,
+                        selectedTextColor = Brand.colors.goldText,
                         unselectedIconColor = Brand.colors.textMuted,
                         unselectedTextColor = Brand.colors.textMuted,
                         indicatorColor = Color.Transparent,

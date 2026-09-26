@@ -1,5 +1,6 @@
 package com.example.feature.auth.presentation.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -27,21 +28,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.feature.auth.R
 
 /**
- * Google's own dark-theme button colours (Sign in with Google branding guidelines).
- * They belong to Google's brand, not ours, so they stay here rather than in BrandTokens.
+ * Google's own button themes (Sign in with Google branding guidelines), dark and light,
+ * each with the official "G" cropped from that theme's asset (the crop keeps the theme's
+ * fill as its backdrop). Google's brand, not ours, so they stay here.
  */
-private object GoogleButtonColors {
-    val fill = Color(0xFF131314)
-    val stroke = Color(0xFF8E918F)
-    val text = Color(0xFFE3E3E3)
-}
+private class GoogleButtonStyle(
+    val fill: Color,
+    val stroke: Color,
+    val text: Color,
+    @DrawableRes val logo: Int,
+)
+
+private val GoogleDark = GoogleButtonStyle(
+    fill = Color(0xFF131314),
+    stroke = Color(0xFF8E918F),
+    text = Color(0xFFE3E3E3),
+    logo = R.drawable.ic_google_logo,
+)
+
+private val GoogleLight = GoogleButtonStyle(
+    fill = Color(0xFFFFFFFF),
+    stroke = Color(0xFF747775),
+    text = Color(0xFF1F1F1F),
+    logo = R.drawable.ic_google_logo_light,
+)
 
 /**
- * "Continue with Google" in Google's dark pill style: 48dp tall, 1dp stroke, the official
+ * "Continue with Google" in Google's pill style, dark or light with the app theme: 48dp
+ * tall, 1dp stroke, the official
  * "G" (cropped from Google's signin-assets kit, never redrawn) at 20dp on the start side.
  * While [isLoading] a spinner takes the logo's place and taps are ignored.
  */
@@ -52,13 +71,14 @@ fun LoginWithGoogleComp(
     onElementClick: () -> Unit
 ) {
     val loadingDescription = stringResource(R.string.auth_signing_in)
+    val google = if (Brand.colors.isDark) GoogleDark else GoogleLight
     Surface(
         onClick = onElementClick,
         enabled = !isLoading,
         shape = CircleShape,
-        color = GoogleButtonColors.fill,
-        contentColor = GoogleButtonColors.text,
-        border = BorderStroke(1.dp, GoogleButtonColors.stroke),
+        color = google.fill,
+        contentColor = google.text,
+        border = BorderStroke(1.dp, google.stroke),
         modifier = modifier
             .heightIn(min = 48.dp)
             .semantics {
@@ -74,12 +94,12 @@ fun LoginWithGoogleComp(
                 if (isLoading) {
                     CircularProgressIndicator(
                         strokeWidth = 2.dp,
-                        color = GoogleButtonColors.text,
+                        color = google.text,
                         modifier = Modifier.size(18.dp),
                     )
                 } else {
                     Image(
-                        painter = painterResource(R.drawable.ic_google_logo),
+                        painter = painterResource(google.logo),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                     )

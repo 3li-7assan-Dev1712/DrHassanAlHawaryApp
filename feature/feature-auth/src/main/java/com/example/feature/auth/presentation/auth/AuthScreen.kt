@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,7 +41,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.util.LightSystemBarIcons
@@ -90,13 +91,13 @@ fun AuthScreenContent(
     onAddAccount: () -> Unit = {},
     onDismissMessage: () -> Unit = {},
 ) {
-    // Always the dark brand palette, like home: the background also fills the
-    // status/navigation bar areas (edge-to-edge), so their icons must be light.
-    LightSystemBarIcons()
+    // The brand palette follows the light/dark setting, like home. The background also
+    // fills the status/navigation bar areas (edge-to-edge): on dark they need light icons.
+    if (Brand.colors.isDark) LightSystemBarIcons()
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(BrandTokens.background)
+            .background(Brand.colors.background)
             .safeDrawingPadding(),
         contentAlignment = Alignment.TopCenter
     ) {
@@ -171,16 +172,19 @@ private fun BoxScope.AuthMessage(
             .widthIn(max = 480.dp)
             .padding(horizontal = 16.dp, vertical = 16.dp)
             .semantics { liveRegion = LiveRegionMode.Polite },
-        containerColor = BrandTokens.surface,
-        contentColor = BrandTokens.textPrimary,
+        // Material's inverse colours: stands out on both the light and dark backgrounds.
         action = {
             TextButton(onClick = onAction) {
-                Text(actionLabel, color = BrandTokens.gold, fontFamily = Cairo)
+                Text(actionLabel, color = MaterialTheme.colorScheme.inversePrimary, fontFamily = Cairo)
             }
         },
         dismissAction = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.auth_dismiss), color = BrandTokens.textSecondary, fontFamily = Cairo)
+                Text(
+                    stringResource(R.string.auth_dismiss),
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                    fontFamily = Cairo,
+                )
             }
         },
     ) {
