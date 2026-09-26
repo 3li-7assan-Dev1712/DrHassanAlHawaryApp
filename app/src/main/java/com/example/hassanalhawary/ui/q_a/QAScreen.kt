@@ -53,7 +53,7 @@ fun QAScreen(
         
         // Large Logo Image at the top
         Image(
-            painter = painterResource(id = com.example.feature.home.R.drawable.fasalo_logo),
+            painter = painterResource(id = R.drawable.fasalo_logo),
             contentDescription = stringResource(id = R.string.q_a_title),
             modifier = Modifier
                 .size(200.dp)
