@@ -80,12 +80,12 @@ class MainActivityViewModel @Inject constructor(
         )
     }
         .catch {
-            emit(ThemeUiState(isReady = true, isDarkTheme = true, brandTheme = BrandTheme.BROWN))
+            emit(ThemeUiState(isReady = true, isDarkTheme = false, brandTheme = BrandTheme.BROWN))
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ThemeUiState(isReady = false, isDarkTheme = true, brandTheme = BrandTheme.BROWN)
+            initialValue = ThemeUiState(isReady = false, isDarkTheme = false, brandTheme = BrandTheme.BROWN)
         )
 
     //  2) single "app ready" flag for splash
