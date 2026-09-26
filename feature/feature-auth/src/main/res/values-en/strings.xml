@@ -4,4 +4,6 @@
     <string name="auth_welcome">Welcome to the app of</string>
     <string name="auth_sheikh_name">Sheikh Dr. Hassan Ahmed Al-Hawary</string>
     <string name="auth_value_line">Sermons, lessons, articles and fatwas in one place</string>
+    <string name="auth_continue_with_google">Continue with Google</string>
+    <string name="auth_signing_in">Signing in</string>
 </resources>

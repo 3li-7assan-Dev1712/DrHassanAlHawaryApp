@@ -4,4 +4,6 @@
     <string name="auth_welcome">مرحبًا بك في تطبيق</string>
     <string name="auth_sheikh_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="auth_value_line">خطب ودروس ومقالات وفتاوى في مكان واحد</string>
+    <string name="auth_continue_with_google">المتابعة باستخدام Google</string>
+    <string name="auth_signing_in">جارٍ تسجيل الدخول</string>
 </resources>
