@@ -7,6 +7,7 @@ import android.os.Looper
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.DefaultVideoFrameProcessor
 import androidx.media3.effect.OverlayEffect
 import androidx.media3.effect.Presentation
 import androidx.media3.effect.TextureOverlay
@@ -108,6 +109,15 @@ class ShareVideoExporter @Inject constructor() {
                     )
                     .build()
             )
+            // Keep the card's sRGB pixel values as-is. The default working colour space
+            // converts the sRGB bitmap to the BT.709 transfer curve, which crushed the
+            // dark brand background (#1A1512 decoded as #0B0907) and made every export
+            // look darker than its preview.
+            .setVideoFrameProcessorFactory(
+                DefaultVideoFrameProcessor.Factory.Builder()
+                    .setSdrWorkingColorSpace(DefaultVideoFrameProcessor.WORKING_COLOR_SPACE_ORIGINAL)
+                    .build()
+            )
             .addListener(listener)
             .build()
 
@@ -147,12 +157,14 @@ class ShareVideoExporter @Inject constructor() {
         // per frame than the card's native 1080x1920 drawing resolution (which
         // ShareCardBitmapRenderer/WaveformOverlay still draw at - this just
         // downscales it at encode time). Still sharp enough on a phone screen.
-        private const val OUTPUT_WIDTH = 720
+        // Exposed so WaveformOverlay draws its strip at exactly the output resolution.
+        const val OUTPUT_WIDTH = 720
         private const val OUTPUT_HEIGHT = 1280
         // 20, not 30: a pulsing waveform bar animation reads just as smooth at 20fps,
         // and dropping frame rate cuts the frame count that must be GPU-composited
-        // and H.264-encoded by a third - without touching resolution/bitrate. Exposed
-        // (not private) so WaveformOverlay's frame windowing always matches this exactly.
+        // and H.264-encoded by a third - without touching resolution/bitrate.
+        // (WaveformOverlay is driven by presentation time, not frame count, so it
+        // doesn't depend on this value.)
         // 60fps was considered and rejected: with a fixed target bitrate, file size is
         // governed by bitrate x duration, not frame count, so 60fps wouldn't meaningfully
         // grow the output - it would just make generation ~3x slower for no visible gain

@@ -1,5 +1,6 @@
 package com.example.feature.share.engine
 
+import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -8,6 +9,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.inject.Inject
 import kotlin.math.pow
@@ -97,6 +99,7 @@ class WaveformAnalyzer @Inject constructor() {
             codec.configure(format, null, null, 0)
             codec.start()
 
+            var pcm = PcmFormat.from(format)
             val bufferInfo = MediaCodec.BufferInfo()
             val totalUs = totalDurationMs * 1_000L
 
@@ -127,15 +130,14 @@ class WaveformAnalyzer @Inject constructor() {
                     }
 
                     val outputIndex = codec.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
-                    if (outputIndex >= 0) {
+                    if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                        pcm = PcmFormat.from(codec.outputFormat)
+                    } else if (outputIndex >= 0) {
                         if (bufferInfo.size > 0) {
-                            val outputBuffer = requireNotNull(codec.getOutputBuffer(outputIndex))
-                            outputBuffer.position(bufferInfo.offset)
-                            outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
-                            val shortBuffer = outputBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-                            val n = shortBuffer.remaining()
+                            val outputBuffer = requireNotNull(codec.getOutputBuffer(outputIndex)).order(ByteOrder.LITTLE_ENDIAN)
+                            val n = bufferInfo.size / pcm.bytesPerSample
                             for (j in 0 until n) {
-                                val s = shortBuffer.get(j) / 32768.0
+                                val s = pcm.sampleAt(outputBuffer, bufferInfo.offset + j * pcm.bytesPerSample)
                                 sumSquares += s * s
                             }
                             sampleCount += n
@@ -156,13 +158,12 @@ class WaveformAnalyzer @Inject constructor() {
             extractor.release()
         }
 
-        val peak = raw.maxOrNull()?.takeIf { it > 0f } ?: 1f
-        return FloatArray(pointCount) { i -> (raw[i] / peak).toDouble().pow(GAMMA).toFloat().coerceIn(0f, 1f) }
+        return normalize(raw)
     }
 
     private fun decodeToEnvelope(extractor: MediaExtractor, clipFilePath: String, durationMs: Long): FloatArray {
         val bucketCount = bucketCountFor(durationMs)
-        val sums = DoubleArray(bucketCount)
+        val sumSquares = DoubleArray(bucketCount)
         val counts = IntArray(bucketCount)
 
         var codec: MediaCodec? = null
@@ -188,6 +189,12 @@ class WaveformAnalyzer @Inject constructor() {
             codec.configure(format, null, null, 0)
             codec.start()
 
+            var pcm = PcmFormat.from(format)
+            // AudioClipExtractor rebases clip timestamps to 0, but don't rely on it:
+            // measure every sample from the first decoded one, so the envelope always
+            // spans exactly the clip wherever it sat in the source track.
+            var firstPtsUs = -1L
+
             val bufferInfo = MediaCodec.BufferInfo()
             var sawInputEos = false
             var sawOutputEos = false
@@ -209,10 +216,13 @@ class WaveformAnalyzer @Inject constructor() {
                 }
 
                 val outputIndex = codec.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
-                if (outputIndex >= 0) {
+                if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    pcm = PcmFormat.from(codec.outputFormat)
+                } else if (outputIndex >= 0) {
                     if (bufferInfo.size > 0) {
+                        if (firstPtsUs < 0) firstPtsUs = bufferInfo.presentationTimeUs
                         val outputBuffer = requireNotNull(codec.getOutputBuffer(outputIndex))
-                        accumulateRms(outputBuffer, bufferInfo, durationMs, bucketCount, sums, counts)
+                        accumulate(outputBuffer, bufferInfo, bufferInfo.presentationTimeUs - firstPtsUs, pcm, sumSquares, counts)
                     }
                     codec.releaseOutputBuffer(outputIndex, false)
                     if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
@@ -226,39 +236,67 @@ class WaveformAnalyzer @Inject constructor() {
             extractor.release()
         }
 
-        val raw = FloatArray(bucketCount) { i -> if (counts[i] > 0) (sums[i] / counts[i]).toFloat() else 0f }
-        val peak = raw.maxOrNull()?.takeIf { it > 0f } ?: 1f
-        val normalized = FloatArray(bucketCount) { i ->
-            (raw[i] / peak).toDouble().pow(GAMMA).toFloat().coerceIn(0f, 1f)
-        }
-        return smooth(normalized)
+        val raw = FloatArray(bucketCount) { i -> if (counts[i] > 0) sqrt(sumSquares[i] / counts[i]).toFloat() else 0f }
+        return smooth(normalize(raw))
     }
 
-    private fun accumulateRms(
-        outputBuffer: java.nio.ByteBuffer,
+    /** Adds each sample to the bucket its own timestamp falls in - not a whole
+     * decoder buffer (often longer than one 33 ms bucket) to a single rounded bucket. */
+    private fun accumulate(
+        outputBuffer: ByteBuffer,
         bufferInfo: MediaCodec.BufferInfo,
-        durationMs: Long,
-        bucketCount: Int,
-        sums: DoubleArray,
+        relativePtsUs: Long,
+        pcm: PcmFormat,
+        sumSquares: DoubleArray,
         counts: IntArray,
     ) {
-        val bucket = ((bufferInfo.presentationTimeUs / 1000.0 / durationMs) * bucketCount)
-            .roundToInt()
-            .coerceIn(0, bucketCount - 1)
+        val ordered = outputBuffer.order(ByteOrder.LITTLE_ENDIAN)
+        val sampleCount = bufferInfo.size / pcm.bytesPerSample
+        val bucketsPerSample = BUCKETS_PER_SECOND.toDouble() / (pcm.sampleRate * pcm.channels)
+        val startBucket = relativePtsUs / 1_000_000.0 * BUCKETS_PER_SECOND
+        val lastBucket = sumSquares.size - 1
 
-        outputBuffer.position(bufferInfo.offset)
-        outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
-        val shortBuffer = outputBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-
-        var sumSquares = 0.0
-        val sampleCount = shortBuffer.remaining()
         for (j in 0 until sampleCount) {
-            val s = shortBuffer.get(j) / 32768.0
-            sumSquares += s * s
+            val s = pcm.sampleAt(ordered, bufferInfo.offset + j * pcm.bytesPerSample)
+            val bucket = (startBucket + j * bucketsPerSample).toInt().coerceIn(0, lastBucket)
+            sumSquares[bucket] += s * s
+            counts[bucket]++
         }
-        if (sampleCount > 0) {
-            sums[bucket] += sqrt(sumSquares / sampleCount)
-            counts[bucket] += 1
+    }
+
+    /**
+     * Per-clip normalisation against the 95th percentile, not the single loudest
+     * bucket: one cough or mic bump used to set the scale and flatten every other
+     * bar toward zero. The floors under the reference keep a near-silent clip from
+     * being blown up into full-height noise.
+     */
+    private fun normalize(raw: FloatArray): FloatArray {
+        if (raw.isEmpty()) return raw
+        val sorted = raw.sorted()
+        val peak = sorted.last()
+        val p95 = sorted[((sorted.size - 1) * 0.95).roundToInt()]
+        val reference = maxOf(p95, peak * PEAK_FRACTION_FLOOR, ABSOLUTE_FLOOR)
+        return FloatArray(raw.size) { i -> (raw[i] / reference).coerceIn(0f, 1f).toDouble().pow(GAMMA).toFloat() }
+    }
+
+    /** Decoder output layout. Most decoders emit 16-bit PCM, but some emit float
+     * PCM - reading that as shorts would produce a garbage envelope. */
+    private class PcmFormat(val sampleRate: Int, val channels: Int, val isFloat: Boolean) {
+        val bytesPerSample: Int get() = if (isFloat) 4 else 2
+
+        fun sampleAt(buffer: ByteBuffer, byteIndex: Int): Double =
+            if (isFloat) buffer.getFloat(byteIndex).toDouble() else buffer.getShort(byteIndex) / 32768.0
+
+        companion object {
+            fun from(format: MediaFormat): PcmFormat = PcmFormat(
+                sampleRate = format.intOr(MediaFormat.KEY_SAMPLE_RATE, 44_100).coerceAtLeast(1),
+                channels = format.intOr(MediaFormat.KEY_CHANNEL_COUNT, 1).coerceAtLeast(1),
+                isFloat = format.intOr(MediaFormat.KEY_PCM_ENCODING, AudioFormat.ENCODING_PCM_16BIT) ==
+                    AudioFormat.ENCODING_PCM_FLOAT,
+            )
+
+            private fun MediaFormat.intOr(key: String, default: Int): Int =
+                if (containsKey(key)) getInteger(key) else default
         }
     }
 
@@ -294,6 +332,10 @@ class WaveformAnalyzer @Inject constructor() {
     companion object {
         private const val BUCKETS_PER_SECOND = 30
         private const val GAMMA = 0.6
+        /** The normalisation reference never drops below this share of the loudest bucket... */
+        private const val PEAK_FRACTION_FLOOR = 0.3f
+        /** ...nor below this absolute RMS, so a silent clip doesn't normalise noise to full height. */
+        private const val ABSOLUTE_FLOOR = 0.003f
         private const val SEED = 42L
         private const val TIMEOUT_US = 10_000L
         private const val OVERVIEW_POINT_COUNT = 60

@@ -2,12 +2,12 @@ package com.example.feature.share.engine
 
 /**
  * Layout for the "quote card" - a static branded image sharing an excerpt of
- * article text, as opposed to [ShareCardSpec]'s animated audio-clip video.
+ * article text, as opposed to the animated audio-clip video ([ShareFrameLayout]).
  * Reuses [ShareCardContent][com.example.feature.share.domain.ShareCardContent]
  * as its content model (title -> the excerpt itself, category -> the "from
  * this article" attribution line, instituteName -> the small brand name next
  * to the logo) and the same normalised 0..1 coordinate convention against a
- * 1080x1920 reference canvas, for the same reason [ShareCardSpec] does:
+ * 1080x1920 reference canvas:
  * [TextCardBitmapRenderer] (the exported image) and `TextCardPreview` (the
  * live Compose preview) both read this SAME spec, so neither can hardcode a
  * pixel value the other doesn't also derive from it.

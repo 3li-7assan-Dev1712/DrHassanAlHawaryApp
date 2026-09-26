@@ -26,7 +26,6 @@ import com.example.feature.share.domain.ShareTitleParser
 import com.example.feature.share.engine.AudioClipExtractor
 import com.example.feature.share.engine.ExportProgress
 import com.example.feature.share.engine.ShareCardBitmapRenderer
-import com.example.feature.share.engine.ShareCardSpec
 import com.example.feature.share.engine.ShareFileStore
 import com.example.feature.share.engine.ShareFrameLayout
 import com.example.feature.share.engine.ShareVideoExporter
@@ -66,7 +65,6 @@ class SharePreviewViewModel @Inject constructor(
 
     /** Identifies this share session's temp files - stable across rotation since the ViewModel survives it. */
     private val shareId = UUID.randomUUID().toString()
-    private val spec = ShareCardSpec.default()
 
     private val audioUrl = savedStateHandle.get<String>(ARG_AUDIO_URL).orEmpty()
     private val navArgLocalFilePath = savedStateHandle.get<String>(ARG_LOCAL_FILE_PATH)?.takeIf { it.isNotBlank() }
@@ -323,7 +321,7 @@ class SharePreviewViewModel @Inject constructor(
         envelope: FloatArray,
         isRetryAtLowerResolution: Boolean,
     ) {
-        val overlay = WaveformOverlay(envelope, spec, frameRate = ShareVideoExporter.VIDEO_FRAME_RATE)
+        val overlay = WaveformOverlay(context, envelope, clip.durationMs, ShareVideoExporter.OUTPUT_WIDTH)
         val outputFile = shareFileStore.exportFile(shareId)
 
         videoExporter.export(
