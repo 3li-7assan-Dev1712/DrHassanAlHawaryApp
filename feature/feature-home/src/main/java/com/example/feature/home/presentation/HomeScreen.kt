@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.navigation.Routes
+import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.BrandTokens
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.NetworkMessageEvent
@@ -108,32 +109,32 @@ fun HomeScreenContent(
                 Category(
                     Routes.ARTICLES_SCREEN,
                     stringResource(R.string.articles),
-                    CoreR.drawable.articles_icon
+                    TablerIcons.Notebook
                 ),
                 Category(
                     Routes.AUDIO_LIST_SCREEN,
                     stringResource(R.string.audios),
-                    CoreR.drawable.audios_icon
+                    TablerIcons.Headphones
                 ),
                 Category(
                     Routes.VIDEOS_SCREEN,
                     stringResource(R.string.videos),
-                    CoreR.drawable.videos_icon
+                    TablerIcons.Video
                 ),
                 Category(
                     Routes.Q_A_SCREEN,
                     stringResource(R.string.fasalo),
-                    R.drawable.fasalo_logo
+                    TablerIcons.MessageQuestion
                 ),
                 Category(
                     Routes.IMAGES_SCREEN,
                     stringResource(R.string.images),
-                    CoreR.drawable.images_icon
+                    TablerIcons.Photo
                 ),
                 Category(
                     Routes.ABOUT_DR_HASSAN_SCREEN,
                     stringResource(R.string.about_dr_hassan),
-                    CoreR.drawable.cv_icon
+                    TablerIcons.UserCircle
                 )
             )
 
@@ -142,7 +143,7 @@ fun HomeScreenContent(
                     ImageCarousel(imageList = uiState.latestImages, isLoadingImages = uiState.loadingImages)
                 }
                 item {
-                    LessonsByCategory(categories) { route ->
+                    LessonsByCategory(categories, modifier = Modifier.padding(top = 12.dp)) { route ->
                         onCategoryClick(route)
                     }
                 }
