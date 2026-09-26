@@ -148,25 +148,28 @@ fun HomeScreenContent(
                     }
                 }
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(SECTION_GAP))
                     LatestArticleAudioLazyRow(
                         title = stringResource(R.string.latest_articles),
                         showLoading = uiState.loadingLatestArticles,
                         items = uiState.latestArticles,
                         emptyMessage = stringResource(R.string.no_articles_available),
+                        onSeeAll = { onCategoryClick(Routes.ARTICLES_SCREEN) },
                         itemKey = { article -> article.id },
                         itemContent = { article ->
                             ArticleCard(
                                 article = article,
                                 onClick = { articleId ->
                                     onNavigateToDetailArticle(articleId)
-                                }
+                                },
+                                // 85% of the row, so the next card peeks in.
+                                modifier = Modifier.fillParentMaxWidth(0.85f),
                             )
                         }
                     )
                 }
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(SECTION_GAP))
 
                     if (uiState.errorMessage != null) {
                         Text(
@@ -207,12 +210,20 @@ fun HomeScreenContent(
 }
 
 
+private val SECTION_GAP = 20.dp
+
 @Preview(showBackground = true, showSystemUi = false, device = Devices.PIXEL_7, name = "الشاشة الرئيسية")
 @Composable
 fun HomeScreenPreview() {
     val dummyArticles = listOf(
-        ArticleFeed(id = "1", title = "أهمية الصلاة في وقتها", contentPreview = "محتوى المقال هنا..."),
-        ArticleFeed(id = "2", title = "فضل بر الوالدين", contentPreview = "محتوى المقال هنا...")
+        ArticleFeed(
+            id = "1",
+            title = "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير",
+            excerpt = "هبوط فظيع في قيمة سعر الصرف مقابل العملات الأخرى، حتى وصلت أرقامًا فلكية يصعب حسابها.",
+            publishedAt = System.currentTimeMillis() - 3 * 86_400_000L,
+            readingMinutes = 7,
+        ),
+        ArticleFeed(id = "2", title = "فضل بر الوالدين", excerpt = "إن بر الوالدين من أعظم القربات إلى الله تعالى وأحبها إليه.", readingMinutes = 3)
     )
     val dummyAudios = listOf(
         AudioFeed(id = "1", title = "تفسير سورة الفاتحة", audioUrl = "", duration = 300000),

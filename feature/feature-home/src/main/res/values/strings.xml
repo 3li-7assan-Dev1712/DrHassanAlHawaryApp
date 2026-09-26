@@ -11,8 +11,9 @@
     <string name="error_msg">حدث خطأ</string>
     <string name="about_dr_hassan">عن الشيخ</string>
 
-    <string name="latest_articles">آخر المقالات</string>
-    <string name="latest_audios">آخر الصوتيات</string>
+    <string name="latest_articles">أحدث المقالات</string>
+    <string name="latest_audios">أحدث الصوتيات</string>
+    <string name="see_all">عرض الكل</string>
     <string name="images">الصور</string>
     <string name="fasalo">فاسألوا</string>
     <string name="war">نوازل الحرب</string>

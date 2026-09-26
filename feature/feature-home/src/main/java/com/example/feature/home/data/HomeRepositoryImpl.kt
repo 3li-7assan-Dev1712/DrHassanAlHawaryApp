@@ -1,5 +1,6 @@
 package com.example.feature.home.data
 
+import com.example.domain.text.ArticleTextCleaner
 import android.util.Log
 import androidx.room.withTransaction
 import com.example.data_firebase.AudioFirestoreSource
@@ -31,14 +32,22 @@ class HomeRepositoryImpl @Inject constructor(
     private val firebaseArticlesSource: FirebaseArticlesSource
 ) : HomeRepository {
 
+    /** Display-only cleaning of scraped article text; entities are stored as scraped. */
+    private val textCleaner = ArticleTextCleaner()
+
 
     override fun getLatestArticles(): Flow<List<ArticleFeed>> {
         return articleDao.getLatestArticles().map { list ->
+            val now = System.currentTimeMillis()
             list.map { article ->
                 ArticleFeed(
                     id = article.id,
-                    title = article.title,
-                    contentPreview = article.content
+                    title = textCleaner.cleanTitle(article.title),
+                    excerpt = textCleaner.excerpt(article.content, article.title),
+                    // The record's date first; the byline inside the text only as a fallback.
+                    publishedAt = article.publishDate.takeIf { it > 0L }
+                        ?: textCleaner.publishedAtInText(article.content, now),
+                    readingMinutes = textCleaner.readingMinutes(article.content),
                 )
             }
         }
