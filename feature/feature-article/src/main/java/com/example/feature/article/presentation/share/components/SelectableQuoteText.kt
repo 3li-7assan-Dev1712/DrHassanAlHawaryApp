@@ -1,5 +1,6 @@
 package com.example.feature.article.presentation.share.components
 
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -29,13 +30,15 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import com.example.core.ui.theme.BrandGold
 
 /**
  * The full article body as one continuous, long-press-then-drag-selectable
  * block: long-press and drag to pick a start/end character range (a fresh
- * long-press starts a new selection; long-pressing near an existing handle
- * adjusts just that edge instead). A plain drag with no preceding long-press
- * is left unconsumed so the surrounding column can still scroll normally.
+ * long-press starts a new selection). Once a selection exists, its two handles
+ * can be dragged directly - no long-press - to keep extending or trimming it,
+ * including after scrolling. Any other plain drag is left unconsumed so the
+ * surrounding column still scrolls normally.
  * Mirrors how [TrimTimeline][com.example.feature.share.presentation.components.TrimTimeline]
  * lets the audio-share flow pick a free-form window instead of fixed points.
  *
@@ -52,7 +55,8 @@ fun SelectableQuoteText(
     selectionEnd: Int,
     onSelectionChanged: (start: Int, end: Int) -> Unit,
     modifier: Modifier = Modifier,
-    accentColor: Color = Color(0xFF342C2B),
+    // Gold, not the brand brown: brown handles/tint were invisible on the dark theme.
+    accentColor: Color = BrandGold,
 ) {
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
@@ -152,31 +156,93 @@ fun SelectableQuoteText(
                             selectionStart.coerceIn(0, text.length),
                             selectionEnd.coerceIn(0, text.length),
                         )
-                        drawPath(path, color = accentColor.copy(alpha = 0.28f))
+                        drawPath(path, color = accentColor.copy(alpha = SELECTION_ALPHA))
+                        // Cursor stems at both edges, like the system selection handles.
+                        listOf(selectionStart, selectionEnd).forEach { edge ->
+                            val r = lr.getCursorRect(edge.coerceIn(0, text.length))
+                            drawLine(
+                                color = accentColor,
+                                start = Offset(r.left, r.top),
+                                end = Offset(r.left, r.bottom),
+                                strokeWidth = STEM_WIDTH_DP.dp.toPx(),
+                            )
+                        }
                     }
                 },
         )
 
         if (selectionEnd > selectionStart) {
             layoutResult?.let { lr ->
-                SelectionHandle(rect = lr.getCursorRect(selectionStart.coerceIn(0, text.length)), color = accentColor)
-                SelectionHandle(rect = lr.getCursorRect(selectionEnd.coerceIn(0, text.length)), color = accentColor)
+                SelectionHandle(
+                    rect = lr.getCursorRect(selectionStart.coerceIn(0, text.length)),
+                    color = accentColor,
+                    onDragTo = { position ->
+                        val current = lr.getOffsetForPosition(position).coerceIn(0, textState.value.length)
+                        onSelectionChangedState.value(
+                            current.coerceAtMost((selectionEndState.value - 1).coerceAtLeast(0)),
+                            selectionEndState.value,
+                        )
+                    },
+                )
+                SelectionHandle(
+                    rect = lr.getCursorRect(selectionEnd.coerceIn(0, text.length)),
+                    color = accentColor,
+                    onDragTo = { position ->
+                        val current = lr.getOffsetForPosition(position).coerceIn(0, textState.value.length)
+                        onSelectionChangedState.value(
+                            selectionStartState.value,
+                            current.coerceAtLeast(selectionStartState.value + 1),
+                        )
+                    },
+                )
             }
         }
     }
 }
 
+/**
+ * A selection edge's knob, hanging under the cursor stem. Its own large touch
+ * target takes a plain drag immediately (the text underneath only reacts after a
+ * long-press), so the user can keep adjusting the selection at any time.
+ * [onDragTo] gets the finger's position in the text's coordinates, aimed at the
+ * middle of the line the stem sits on.
+ */
 @Composable
-private fun SelectionHandle(rect: Rect, color: Color) {
+private fun SelectionHandle(rect: Rect, color: Color, onDragTo: (Offset) -> Unit) {
+    val currentRect = rememberUpdatedState(rect)
+    val onDragToState = rememberUpdatedState(onDragTo)
+    val haptic = LocalHapticFeedback.current
     Box(
         modifier = Modifier
             .offset {
-                val radiusPx = HANDLE_SIZE_DP.roundToPx() / 2
-                IntOffset(rect.left.toInt() - radiusPx, rect.bottom.toInt())
+                val half = HANDLE_TOUCH_SIZE_DP.roundToPx() / 2
+                IntOffset(rect.left.toInt() - half, rect.bottom.toInt())
             }
-            .size(HANDLE_SIZE_DP)
-            .background(color, CircleShape),
-    )
+            .size(HANDLE_TOUCH_SIZE_DP)
+            // Swallow taps so tapping a knob doesn't count as "tap outside to clear".
+            .pointerInput(Unit) { detectTapGestures { } }
+            .pointerInput(Unit) {
+                var pointer = Offset.Zero
+                detectDragGestures(
+                    onDragStart = {
+                        val r = currentRect.value
+                        pointer = Offset(r.left, r.center.y)
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    },
+                ) { change, dragAmount ->
+                    change.consume()
+                    pointer += dragAmount
+                    onDragToState.value(pointer)
+                }
+            },
+    ) {
+        Box(
+            modifier = Modifier
+                .offset { IntOffset((HANDLE_TOUCH_SIZE_DP - HANDLE_SIZE_DP).roundToPx() / 2, 0) }
+                .size(HANDLE_SIZE_DP)
+                .background(color, CircleShape),
+        )
+    }
 }
 
 private fun Offset.isNear(rect: Rect, tolerancePx: Float): Boolean =
@@ -186,4 +252,7 @@ private fun Offset.isNear(rect: Rect, tolerancePx: Float): Boolean =
 private enum class DragMode { NONE, NEW, ADJUST_START, ADJUST_END }
 
 private const val HANDLE_TOUCH_DP = 24
-private val HANDLE_SIZE_DP = 16.dp
+private val HANDLE_SIZE_DP = 20.dp
+private val HANDLE_TOUCH_SIZE_DP = 48.dp
+private const val STEM_WIDTH_DP = 2
+private const val SELECTION_ALPHA = 0.35f
