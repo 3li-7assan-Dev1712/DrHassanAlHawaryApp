@@ -152,14 +152,14 @@ private fun VideoCategoryItem(
             is CategoryIcon.Drawable -> Icon(
                 painter = painterResource(id = icon.resId),
                 contentDescription = category.title,
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(48.dp)
             )
 
             is CategoryIcon.Vector -> Icon(
                 imageVector = icon.imageVector,
                 contentDescription = category.title,
-                tint = Color.White,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(48.dp)
             )
         }

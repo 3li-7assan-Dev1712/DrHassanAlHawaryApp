@@ -12,7 +12,9 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -24,11 +26,19 @@ fun Modifier.shimmer(cornerRadius: Dp = 0.dp, isLoading: Boolean): Modifier {
 @Composable
 fun Modifier.shimmer(cornerRadius: Dp = 0.dp): Modifier {
 
-    val shimmerColors = listOf(
-        Color.LightGray.copy(alpha = 0.3f),
-        Color.White.copy(alpha = 0.6f),
-        Color.LightGray.copy(alpha = 0.3f)
-    )
+    val shimmerColors = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
+        listOf(
+            Color.White.copy(alpha = 0.06f),
+            Color.White.copy(alpha = 0.16f),
+            Color.White.copy(alpha = 0.06f)
+        )
+    } else {
+        listOf(
+            Color.LightGray.copy(alpha = 0.3f),
+            Color.White.copy(alpha = 0.6f),
+            Color.LightGray.copy(alpha = 0.3f)
+        )
+    }
 
     val transition = rememberInfiniteTransition(label = "Shimmer")
     val translateAnim by transition.animateFloat(

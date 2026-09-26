@@ -73,7 +73,7 @@ fun UpdateScreen(
                     "يوجد إصدار جديد من التطبيق متاح حالياً مع ميزات وتحسينات جديدة. هل ترغب في التحديث الآن؟",
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(32.dp))

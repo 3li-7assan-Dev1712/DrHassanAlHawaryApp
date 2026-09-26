@@ -100,7 +100,7 @@ fun AudioListItem(
                 Icon(
                     imageVector = Icons.Default.PlayArrow,
                     contentDescription = null,
-                    tint = if (isPlaying) Color.White else MaterialTheme.colorScheme.primary,
+                    tint = if (isPlaying) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(26.dp)
                 )
             }

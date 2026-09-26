@@ -1,6 +1,7 @@
 package com.example.search.presentation.utils
 
 import androidx.compose.ui.graphics.Color
+import BrandText
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -9,7 +10,9 @@ import androidx.compose.ui.text.font.FontWeight
 
 fun algoliaHighlightToAnnotatedString(
     highlightedValue: String,
-    highlightColor: Color = Color(0xFFFFE082)
+    highlightColor: Color = Color(0xFFFFE082),
+    // Fixed dark text: the theme's onSurface is near-white in dark mode, unreadable on yellow.
+    highlightTextColor: Color = BrandText,
 ): AnnotatedString {
     return buildAnnotatedString {
         val regex = Regex("<em>(.*?)</em>")
@@ -23,6 +26,7 @@ fun algoliaHighlightToAnnotatedString(
             pushStyle(
                 SpanStyle(
                     background = highlightColor,
+                    color = highlightTextColor,
                     fontWeight = FontWeight.SemiBold
                 )
             )

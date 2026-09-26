@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,7 @@ fun TrimTimeline(
     onRangeChanged: (startMs: Long, endMs: Long) -> Unit,
     modifier: Modifier = Modifier,
     minDurationMs: Long = 5_000L,
-    accentColor: Color = Color(0xFF342C2B),
+    accentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val widthPxState = remember { mutableFloatStateOf(0f) }
     val totalDurationState = rememberUpdatedState(totalDurationMs)

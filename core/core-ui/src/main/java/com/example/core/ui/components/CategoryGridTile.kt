@@ -68,7 +68,7 @@ fun CategoryGridTile(
                     modifier = Modifier
                         .size(96.dp)
                         .clip(CircleShape),
-                    color = Color.White.copy(alpha = 0.18f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         icon()
@@ -80,7 +80,8 @@ fun CategoryGridTile(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White,
+                    // onPrimary: white on the light theme's brown, dark on the dark theme's cream.
+                    color = MaterialTheme.colorScheme.onPrimary,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

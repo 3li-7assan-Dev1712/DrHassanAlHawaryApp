@@ -144,7 +144,7 @@ private fun AudioCategoryItem(
         Icon(
             painter = painterResource(id = resolveCategoryIcon(category.id)),
             contentDescription = category.title,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onPrimary,
             modifier = Modifier.size(48.dp)
         )
     }
