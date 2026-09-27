@@ -200,3 +200,11 @@ f1874df chore: snapshot before UI pass 2
 - **Theme mismatch on splash:** it follows the system night mode, while the app follows its own setting, so a phone in dark mode with the app set to light shows a dark splash and then a light app.
 - **Download cancel:** a partially written file may remain (depends on `DownloadAudioUseCase`). It isn't marked as downloaded.
 - **Build environment:** every build stops the Gradle daemons first (Android Studio held jar locks). Studio may need a re-sync.
+
+## Follow-up: share clip selection (after the pass)
+- Length is free (5 s .. whole track): presets + a ±5 s stepper + edge handles (`b34ba95`).
+- Selection redesigned and fixed (`20d9a5a`):
+  - Step 1: tap or drag on the whole-recording strip to put the clip there.
+  - Step 2: drag an edge handle, drag the middle, or tap outside the clip.
+  - Bugs fixed: the zoomed strip re-centred under the finger mid-drag, so the window didn't follow it; a handle dragged near the track's start or end could crash (`coerceIn` with min > max); each drag step rounded, which added drift.
+  - The maths is now `core-domain/.../media/ClipWindow.kt` (+ `ClipWindowTest`, 6 tests).
