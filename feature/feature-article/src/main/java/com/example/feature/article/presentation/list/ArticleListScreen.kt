@@ -42,8 +42,9 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.theme.Brand
 import com.example.domain.module.Article
-import com.example.feature.article.data.util.formatDate
 import com.example.feature.article.presentation.components.ArticleItem
 
 
@@ -94,47 +95,12 @@ private fun ArticlesScreenContent(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-                    Text(
-                        text = stringResource(R.string.articles),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.5.sp
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-            )
-        }
+        containerColor = Brand.colors.background,
+        topBar = { AppTopBar(title = stringResource(R.string.articles), onBack = onNavigateBack) },
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
                 .padding(innerPadding)
         ) {
 
@@ -146,7 +112,7 @@ private fun ArticlesScreenContent(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Brand.colors.accentStrong,
                         strokeWidth = 3.dp
                     )
                 }
@@ -156,7 +122,7 @@ private fun ArticlesScreenContent(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(
                         count = articles.itemCount,
@@ -166,8 +132,7 @@ private fun ArticlesScreenContent(
                         if (art != null) {
                             ArticleItem(
                                 article = art,
-                                onReadMoreClicked = { onNavigateToArticleDetail(art.id) },
-                                formatDate = { date -> formatDate(date) }
+                                onClick = { onNavigateToArticleDetail(art.id) },
                             )
                         }
                     }
@@ -184,7 +149,7 @@ private fun ArticlesScreenContent(
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(32.dp),
                                     strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = Brand.colors.accentStrong
                                 )
                             }
                         }

@@ -1,9 +1,7 @@
 package com.example.feature.article.presentation.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,132 +10,106 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.core.ui.R
-import com.example.domain.text.ArabicDates
+import androidx.compose.ui.unit.em
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Article
+import com.example.domain.text.ArabicDates
+import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.ArticleTextCleaner
 import java.util.Date
 
+private val textCleaner = ArticleTextCleaner()
+
+/**
+ * One article in the list: the whole card opens the article. Cleaned title and excerpt
+ * (display only, the stored text is untouched) and "نُشر منذ … · قراءة X دقائق".
+ */
 @Composable
 fun ArticleItem(
     article: Article,
-    onReadMoreClicked: () -> Unit,
-    formatDate: (Date) -> String
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    // The screen background is `surface`, so in dark mode a `surface` card blends into it.
-    // Lift the card to a higher tonal container there; light mode keeps the white card + shadow.
-    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val cardColor = if (isDark) {
-        MaterialTheme.colorScheme.surfaceContainerHigh
-    } else {
-        MaterialTheme.colorScheme.surface
+    val colors = Brand.colors
+    val excerpt = remember(article.id, article.content) { textCleaner.excerpt(article.content, article.title) }
+    val readingMinutes = remember(article.id, article.content) {
+        if (article.content.isBlank()) null else textCleaner.readingMinutes(article.content)
     }
+    val meta = listOfNotNull(
+        ArabicDates.published(System.currentTimeMillis(), article.publishDate.time),
+        readingMinutes?.let(ArabicDates::readingTime),
+    ).joinToString(ArabicNumerals.DATE_SEPARATOR)
 
-    ElevatedCard(
-        onClick = onReadMoreClicked,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = cardColor
-        )
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = colors.surface,
+        border = BorderStroke(0.5.dp, colors.divider),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
-                            Color.Transparent
-                        )
-                    )
-                )
-                .padding(20.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = article.title,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 28.sp
-                ),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, lineHeight = 1.5.em),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
+                color = colors.textPrimary,
             )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = article.content,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    lineHeight = 22.sp
-                ),
-                maxLines = 4,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val published = ArabicDates.published(System.currentTimeMillis(), article.publishDate.time)
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.AccessTime,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = published,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-
-                Button(
-                    onClick = onReadMoreClicked,
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.read_more),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
-                    )
-                }
+            if (excerpt.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = excerpt,
+                    style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 1.6.em),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = colors.textSecondary,
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(TablerIcons.Clock),
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = colors.textMuted,
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = meta, style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
             }
         }
     }
+}
+
+private val previewArticle = Article(
+    id = "1",
+    title = "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير",
+    publishDate = Date(System.currentTimeMillis() - 5 * 3_600_000L),
+    content = "بسم الله الرحمن الرحيم\nفإن بلادنا تعيش أزمة اقتصادية طاحنة، وأسبابها جلية واضحة، فإلى الله المشتكى.",
+)
+
+@Preview(name = "Article card - light", locale = "ar", widthDp = 360)
+@Composable
+private fun ArticleItemLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) { ArticleItem(previewArticle, onClick = {}, modifier = Modifier.padding(16.dp)) }
+}
+
+@Preview(name = "Article card - dark", locale = "ar", widthDp = 360)
+@Composable
+private fun ArticleItemDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) { ArticleItem(previewArticle, onClick = {}, modifier = Modifier.padding(16.dp)) }
 }

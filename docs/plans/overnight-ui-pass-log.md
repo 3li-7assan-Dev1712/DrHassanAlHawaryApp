@@ -7,7 +7,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 0: Setup and inventory: Done
 - [x] Phase 1: Shared foundations: Done
 - [x] Phase 2: Quick fixes: Done (2.1 no app change: not app code)
-- [ ] Phase 3: Articles list and reader
+- [x] Phase 3: Articles list and reader: Done (bookmark and selection-share skipped)
 - [ ] Phase 4: Search
 - [ ] Phase 5: Fatwas list
 - [ ] Phase 6: Videos
@@ -51,6 +51,9 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - D1.4: I couldn't find a literal "gray vertical bar" composable in the code (no shared header exists). The gray on those screens came from the root Scaffold's `surfaceVariant` and from each screen's own M3 `TopAppBar` with a surfaceVariant gradient. Both are replaced by the flat `AppTopBar` on `background`. Check this on the device (checklist).
 - D2.1: Android Studio held a lock on a core-ui build jar, so I ran `./gradlew --stop` and rebuilt. Studio restarts its daemon when it needs one.
 - D2.2: The welcome screen's circular photo is `private` in the off-limits auth module, so it can't be reused without editing that screen. `SheikhPhoto` in core-ui copies its treatment (the welcome screen is unchanged).
+- D2.3: I amended the Phase 2 commit once to fix the log layout (a local, unpushed commit). After noticing the spec's "never rewrite history", I haven't amended again.
+- D1.5: `feature-home/.../values/strings.xml` had one "مجدداً". It's now "مجددًا" because the new resource test covers every module. That's a string-only change, and no Home code was touched.
+- D3.1: Reader body text uses `textSecondary` (the spec's "body text" token), and headings/basmala use `textPrimary`.
 
 ## Phase notes
 
@@ -73,3 +76,15 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - 2.6 Search default chip: `SearchViewModel` already starts on `SearchFilter.ALL` and resets facet filters in `init`, so no change was needed.
 - 2.7 Reader: the floating share button is gone. The reader uses `AppTopBar` with no title (the header shows it) and a share action.
 - 2.8 About text: it lives in the app (`core-domain/.../module/DoctorProfile.kt`), so I fixed it there: البكالوريوس, بكالوريوس, الدكتوراه, بالمدينة, الإسلامية, الإسهامات, إلى, a period after "في الشأن السوداني", a space in "المنورة (1990م)", and the double space.
+
+### Phase 3: Done (2 items skipped)
+- Articles list: the whole card is tappable (`Surface(onClick)`) and the "قراءة المزيد…" button is gone. Cards have 14dp corners, a 0.5dp `divider` border and a `surface` fill. Cleaned title (max 2 lines), `ArticleTextCleaner.excerpt` (max 2 lines), and a meta row with a Tabler clock: "نُشر منذ … · قراءة X دقائق" (the list has the body, so reading time is included). Uses `AppTopBar` on `background`.
+- Reader (Compose `Text`, no WebView):
+  - `AppTopBar` with back, font size and share. No title.
+  - 2dp `accentStrong` progress bar from the scroll position (the body is now a scrolling `Column`).
+  - Header: title/subtitle split at the first ":" (subtitle in `accentText`) and the meta line "الشيخ د. حسن الهواري · ٤ أبريل ٢٠٢٦ · قراءة X دقائق" (new `sheikh_name` string).
+  - Body: `ArticleTextCleaner.readerParagraphs`. A basmala on the first line is centered. Inner separators become a centered "✦ ✦ ✦" in `accent`. أولًا…عاشرًا headings are bold `textPrimary` with a 3dp `accentStrong` bar and no bullet. `*bold*` is rendered as bold spans. Emojis stay. Text is start-aligned: `TextAlign.Justify` and the forced RTL + U+200F hack were removed.
+- Font size: 4 steps (14/16/18/21sp, default step 1 = the old 16sp bodyLarge), stored under the new DataStore key `reader_font_step`. The top-bar action opens a dropdown with A− / A+ and a preview line.
+- New preference keys (same `local_data` store, exposed through `DataStoreRepository`): `reader_font_step` (int), `recent_searches` (string, for Phase 4), `theme_follow_system` (boolean, for Phase 8). No existing key changed.
+- Skipped: bookmark (no bookmark feature exists).
+- Skipped: "مشاركة كصورة" in the selection toolbar. The quote-image entry point doesn't take a `String`: it's a route that takes an article id plus selection offsets into `ArticleText.displayText(content)`. The reader now shows *cleaned* paragraphs, so offsets would have to be mapped back to the raw text. That isn't straightforward, so I left it for later. Share still opens the existing selection screen.

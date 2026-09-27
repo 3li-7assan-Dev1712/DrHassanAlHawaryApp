@@ -23,4 +23,19 @@ interface DataStoreRepository {
 
     suspend fun updateLastSyncTime(time: Long)
 
+    /** Article reader text-size step (0..3, 1 = the original size). */
+    fun readerFontStep(): Flow<Int>
+
+    suspend fun setReaderFontStep(step: Int)
+
+    /** Recent search queries, newest first. */
+    fun recentSearches(): Flow<List<String>>
+
+    suspend fun setRecentSearches(queries: List<String>)
+
+    /** True when the app follows the phone's light/dark setting ("تلقائي"). */
+    fun followSystemTheme(): Flow<Boolean>
+
+    suspend fun setFollowSystemTheme(follow: Boolean)
+
 }

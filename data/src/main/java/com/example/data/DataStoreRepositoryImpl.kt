@@ -40,4 +40,16 @@ class DataStoreRepositoryImpl @Inject constructor(
     override suspend fun updateLastSyncTime(time: Long) {
         localDataStore.updateLastSyncTime(time)
     }
+
+    override fun readerFontStep(): Flow<Int> = localDataStore.readerFontStep
+
+    override suspend fun setReaderFontStep(step: Int) = localDataStore.setReaderFontStep(step)
+
+    override fun recentSearches(): Flow<List<String>> = localDataStore.recentSearches
+
+    override suspend fun setRecentSearches(queries: List<String>) = localDataStore.setRecentSearches(queries)
+
+    override fun followSystemTheme(): Flow<Boolean> = localDataStore.followSystemTheme
+
+    override suspend fun setFollowSystemTheme(follow: Boolean) = localDataStore.setFollowSystemTheme(follow)
 }

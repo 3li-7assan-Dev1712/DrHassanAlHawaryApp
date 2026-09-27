@@ -136,4 +136,9 @@
 
     <string name="page_counter">%1$s من %2$s</string>
     <string name="share">مشاركة</string>
+    <string name="sheikh_name">الشيخ د. حسن الهواري</string>
+    <string name="reader_font_size">حجم الخط</string>
+    <string name="reader_font_smaller">تصغير الخط</string>
+    <string name="reader_font_larger">تكبير الخط</string>
+    <string name="reader_font_preview">الحمد لله رب العالمين</string>
 </resources>

@@ -5,11 +5,15 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.domain.repository.DataStoreRepository
+import com.example.domain.text.ArticleTextCleaner
 import com.example.feature.article.domain.use_case.GetArticleByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,8 +21,19 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailArticleViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val getArticleByIdUseCase: GetArticleByIdUseCase
+    private val getArticleByIdUseCase: GetArticleByIdUseCase,
+    private val dataStoreRepository: DataStoreRepository,
 ) : ViewModel() {
+    private val textCleaner = ArticleTextCleaner()
+
+    /** Reader text-size step, 0..[MAX_FONT_STEP]; 1 is the original size. */
+    val fontStep: StateFlow<Int> = dataStoreRepository.readerFontStep()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 1)
+
+    fun setFontStep(step: Int) {
+        viewModelScope.launch { dataStoreRepository.setReaderFontStep(step.coerceIn(0, MAX_FONT_STEP)) }
+    }
+
 //    private val articleId: String? = savedStateHandle["articleId"]
 
     private val _uiState = MutableStateFlow<DetailArticleUiState>(DetailArticleUiState.Loading)
@@ -40,7 +55,9 @@ class DetailArticleViewModel @Inject constructor(
                 getArticleByIdUseCase(articleId).collect { art ->
                     if (art != null) {
                         _uiState.value = DetailArticleUiState.Success(
-                            article = art
+                            article = art,
+                            paragraphs = textCleaner.readerParagraphs(art.content, art.title),
+                            readingMinutes = textCleaner.readingMinutes(art.content),
                         )
                     } else {
                         _uiState.value = DetailArticleUiState.Error(
@@ -59,4 +76,7 @@ class DetailArticleViewModel @Inject constructor(
 
     }
 
+    companion object {
+        const val MAX_FONT_STEP = 3
+    }
 }
