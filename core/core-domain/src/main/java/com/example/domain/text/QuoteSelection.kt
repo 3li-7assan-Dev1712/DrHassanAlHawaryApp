@@ -36,7 +36,8 @@ class SelectableArticle private constructor(
     }
 
     companion object {
-        const val BLOCK_BREAK = "\n\n"
+        /** A single line break: no blank line (and no big gap) between paragraphs. */
+        const val BLOCK_BREAK = "\n"
         private val cleaner = ArticleTextCleaner()
         private const val BULLETS = "▪▫•◦■□"
 

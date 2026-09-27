@@ -1,16 +1,13 @@
 package com.example.feature.article.presentation.share.components
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,10 +21,13 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -40,12 +40,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextIndent
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -55,11 +53,15 @@ import com.example.domain.text.SelectableArticle
 
 /**
  * The cleaned article as ONE text (so a selection can run across paragraphs), selected
- * like any Android text: long-press selects the word under the finger, keep dragging to
- * extend it freely, then drag either round handle to trim or grow it. Dragging near the
- * top or bottom of [viewport] scrolls [scrollState]. A tap outside the selection clears
- * it. A plain drag (no long-press) is left alone, so the page scrolls normally.
+ * like any Android text:
+ *  - long-press selects the word under the finger; keep dragging to extend it freely;
+ *  - afterwards, press either round handle (no long-press needed) and drag it to keep
+ *    selecting from that end - forwards or backwards, even past the other end;
+ *  - dragging near the top or bottom of [viewport] auto-scrolls [scrollState];
+ *  - a tap outside the selection clears it; a plain swipe just scrolls the page.
  *
+ * All touch handling lives on this (non-moving) text, not on separate handle views: a
+ * handle that moves while it's being dragged gets distorted finger deltas and stalls.
  * [selectionStart]/[selectionEnd] are offsets in [SelectableArticle.text].
  */
 @Composable
@@ -76,6 +78,7 @@ fun SelectableArticleText(
 ) {
     val colors = Brand.colors
     val haptics = LocalHapticFeedback.current
+    val density = LocalDensity.current
     val text = remember(article, colors) { styled(article, colors) }
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
@@ -84,36 +87,38 @@ fun SelectableArticleText(
 
     val current by rememberUpdatedState(selectionStart to selectionEnd)
     val onChange by rememberUpdatedState(onSelectionChanged)
-    val hasSelection = selectionEnd > selectionStart
+
+    val knobRadius = with(density) { KNOB_RADIUS.toPx() }
+    val knobGap = with(density) { KNOB_GAP.toPx() }
+    val touchRadius = with(density) { HANDLE_TOUCH_RADIUS.toPx() }
+    val edgePx = with(density) { AUTO_SCROLL_EDGE.toPx() }
+    val maxStepPx = with(density) { AUTO_SCROLL_MAX_STEP.toPx() }
 
     fun offsetAt(position: Offset): Int = (layout?.getOffsetForPosition(position) ?: 0).coerceIn(0, length)
 
-    /** Applies the finger at [pointer] (Text coordinates) to the active drag. */
-    fun update(pointer: Offset) {
-        drag.pointer = pointer
-        val at = offsetAt(pointer)
-        val (start, end) = current
-        when (drag.mode) {
-            DragMode.New -> onChange(minOf(drag.anchorStart, at), maxOf(drag.anchorEnd, at))
-            DragMode.Start -> onChange(at.coerceAtMost(end - 1).coerceAtLeast(0), end)
-            DragMode.End -> onChange(start, at.coerceAtLeast(start + 1).coerceAtMost(length))
-            DragMode.None -> Unit
-        }
+    /** Where a selection edge's knob is drawn (and grabbed): under the edge's cursor. */
+    fun knobCenter(lr: TextLayoutResult, edge: Int): Offset {
+        val r = lr.getCursorRect(edge.coerceIn(0, length))
+        return Offset(r.left, r.bottom + knobGap + knobRadius)
     }
 
-    // Edge auto-scroll while any drag is active: the finger stays put on screen, the text
+    /** The finger at [finger] (text coordinates) moves the active edge; the anchor stays. */
+    fun update(finger: Offset) {
+        drag.finger = finger
+        val at = offsetAt(finger + drag.grab)
+        val start = minOf(drag.anchorStart, at)
+        val end = maxOf(drag.anchorEnd, at)
+        if (end > start && (start to end) != current) onChange(start, end)
+    }
+
+    // Edge auto-scroll while a drag is active: the finger stays put on screen, the text
     // moves under it, so the selection keeps growing.
-    val density = LocalDensity.current
-    val edgePx = with(density) { AUTO_SCROLL_EDGE.toPx() }
-    val maxStepPx = with(density) { AUTO_SCROLL_MAX_STEP.toPx() }
     LaunchedEffect(drag.active) {
-        if (!drag.active) return@LaunchedEffect
         while (drag.active) {
             withFrameNanos { }
             val coords = coordinates ?: continue
             val bounds = viewport() ?: continue
-            val y = coords.localToWindow(drag.pointer).y
-            // Faster the closer the finger is to (or the further past) the edge.
+            val y = coords.localToWindow(drag.finger).y
             val speed = when {
                 y < bounds.top + edgePx -> -((bounds.top + edgePx - y) / edgePx).coerceIn(0f, 1f) * maxStepPx
                 y > bounds.bottom - edgePx -> ((y - (bounds.bottom - edgePx)) / edgePx).coerceIn(0f, 1f) * maxStepPx
@@ -121,14 +126,92 @@ fun SelectableArticleText(
             }
             if (speed != 0f) {
                 val moved = scrollState.scrollBy(speed)
-                if (moved != 0f) update(drag.pointer.copy(y = drag.pointer.y + moved))
+                if (moved != 0f) update(drag.finger.copy(y = drag.finger.y + moved))
             }
         }
     }
 
-    // Absolute (left-based) placement: the layout's cursor rects are left-based, and a
-    // mirrored RTL offset would put the handles on the wrong side.
-    Box(modifier = modifier, contentAlignment = AbsoluteAlignment.TopLeft) {
+    /** Follows pointer [id] until it lifts, moving the active edge. */
+    suspend fun AwaitPointerEventScope.track(id: PointerId) {
+        try {
+            while (true) {
+                val change = awaitPointerEvent().changes.firstOrNull { it.id == id } ?: break
+                if (!change.pressed) break
+                change.consume()
+                update(change.position)
+            }
+        } finally {
+            drag.active = false
+        }
+    }
+
+    // Absolute (left-based) placement: text-layout rects are left-based even in RTL.
+    Box(
+        contentAlignment = AbsoluteAlignment.TopLeft,
+        modifier = modifier
+            .semantics {
+                // Drag selection isn't usable with TalkBack: offer "select everything".
+                customActions = listOf(
+                    CustomAccessibilityAction(selectAllLabel) {
+                        onChange(0, length)
+                        true
+                    },
+                )
+            }
+            .pointerInput(article) {
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    val lr = layout ?: return@awaitEachGesture
+                    val (start, end) = current
+
+                    // 1. A press on a handle takes over at once: drag that end.
+                    if (end > start) {
+                        val toStart = (down.position - knobCenter(lr, start)).getDistance()
+                        val toEnd = (down.position - knobCenter(lr, end)).getDistance()
+                        if (minOf(toStart, toEnd) <= touchRadius) {
+                            val (edge, fixed) = if (toStart <= toEnd) start to end else end to start
+                            val cursor = lr.getCursorRect(edge)
+                            // Keep the knob's offset from the finger: aim at the edge's line.
+                            drag.grab = Offset(cursor.left, cursor.center.y) - down.position
+                            drag.anchorStart = fixed
+                            drag.anchorEnd = fixed
+                            drag.finger = down.position
+                            drag.active = true
+                            down.consume()
+                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            track(down.id)
+                            return@awaitEachGesture
+                        }
+                    }
+
+                    // 2. Otherwise wait for a long-press (a swipe before it scrolls the page).
+                    val longPress = awaitLongPressOrCancellation(down.id)
+                    if (longPress == null) {
+                        // 3. A plain tap outside the selection clears it.
+                        val up = currentEvent.changes.firstOrNull { it.id == down.id }
+                        val isTap = up != null && !up.pressed && !up.isConsumed &&
+                            (up.position - down.position).getDistance() < viewConfiguration.touchSlop
+                        if (isTap && end > start) {
+                            val at = offsetAt(up!!.position)
+                            if (at < start || at > end) onChange(0, 0)
+                        }
+                        return@awaitEachGesture
+                    }
+                    longPress.consume()
+                    val word = lr.getWordBoundary(offsetAt(longPress.position).coerceAtMost((length - 1).coerceAtLeast(0)))
+                    val wordStart = word.start.coerceIn(0, length)
+                    val wordEnd = word.end.coerceIn(wordStart, length).let { if (it == wordStart) (it + 1).coerceAtMost(length) else it }
+                    drag.grab = Offset.Zero
+                    drag.anchorStart = wordStart
+                    drag.anchorEnd = wordEnd
+                    drag.finger = longPress.position
+                    drag.active = true
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onChange(wordStart, wordEnd)
+                    track(longPress.id)
+                }
+            },
+    ) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 1.9.em),
@@ -136,46 +219,10 @@ fun SelectableArticleText(
             onTextLayout = { layout = it },
             modifier = Modifier
                 .fillMaxWidth()
+                // Room under the last line for its handle (bottom only: the text's origin,
+                // which all offsets use, doesn't move).
+                .padding(bottom = HANDLE_TOUCH_RADIUS)
                 .onGloballyPositioned { coordinates = it }
-                .semantics {
-                    // Drag selection isn't usable with TalkBack: offer "select everything".
-                    customActions = listOf(
-                        CustomAccessibilityAction(selectAllLabel) {
-                            onChange(0, length)
-                            true
-                        },
-                    )
-                }
-                .pointerInput(article) {
-                    detectTapGestures { position ->
-                        val (start, end) = current
-                        if (end <= start) return@detectTapGestures
-                        val at = offsetAt(position)
-                        if (at < start || at > end) onChange(0, 0)
-                    }
-                }
-                .pointerInput(article) {
-                    // After a long-press only: a plain drag must stay free to scroll the page.
-                    detectDragGesturesAfterLongPress(
-                        onDragStart = { position ->
-                            val lr = layout ?: return@detectDragGesturesAfterLongPress
-                            val at = offsetAt(position)
-                            val word: TextRange = lr.getWordBoundary(at.coerceAtMost((length - 1).coerceAtLeast(0)))
-                            drag.anchorStart = word.start.coerceIn(0, length)
-                            drag.anchorEnd = word.end.coerceIn(drag.anchorStart, length).let { if (it == drag.anchorStart) (it + 1).coerceAtMost(length) else it }
-                            drag.mode = DragMode.New
-                            drag.pointer = position
-                            drag.active = true
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onChange(drag.anchorStart, drag.anchorEnd)
-                        },
-                        onDragEnd = { drag.stop() },
-                        onDragCancel = { drag.stop() },
-                    ) { change, _ ->
-                        change.consume()
-                        update(change.position)
-                    }
-                }
                 .drawBehind {
                     val lr = layout ?: return@drawBehind
                     // A short accent bar at the start (right, in RTL) of each heading.
@@ -188,7 +235,7 @@ fun SelectableArticleText(
                             color = colors.accentStrong,
                             topLeft = Offset(size.width - 3.dp.toPx(), (top + bottom - barHeight) / 2),
                             size = Size(3.dp.toPx(), barHeight),
-                            cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()),
+                            cornerRadius = CornerRadius(2.dp.toPx()),
                         )
                     }
                     if (selectionEnd > selectionStart) {
@@ -197,72 +244,14 @@ fun SelectableArticleText(
                             lr.getPathForRange(selectionStart.coerceIn(0, length), selectionEnd.coerceIn(0, length)),
                             color = colors.accentStrong.copy(alpha = 0.32f),
                         )
+                        // Each end: a cursor stem and a round knob under it.
                         listOf(selectionStart, selectionEnd).forEach { edge ->
                             val r = lr.getCursorRect(edge.coerceIn(0, length))
-                            drawLine(colors.accentStrong, Offset(r.left, r.top), Offset(r.left, r.bottom), strokeWidth = 2.dp.toPx())
+                            drawLine(colors.accentStrong, Offset(r.left, r.top), Offset(r.left, r.bottom + knobGap), strokeWidth = 2.dp.toPx())
+                            drawCircle(colors.accentStrong, radius = knobRadius, center = knobCenter(lr, edge))
                         }
                     }
                 },
-        )
-
-        if (hasSelection) {
-            layout?.let { lr ->
-                listOf(DragMode.Start to selectionStart, DragMode.End to selectionEnd).forEach { (mode, edge) ->
-                    Handle(
-                        rect = lr.getCursorRect(edge.coerceIn(0, length)),
-                        onStart = { pointer ->
-                            drag.mode = mode
-                            drag.pointer = pointer
-                            drag.active = true
-                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        },
-                        onMove = { pointer -> update(pointer) },
-                        onEnd = { drag.stop() },
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * A round knob under a selection edge, with a 44dp touch target that takes a plain drag
- * right away. Reports the finger in the text's coordinates, aimed at the line's middle.
- */
-@Composable
-private fun Handle(rect: Rect, onStart: (Offset) -> Unit, onMove: (Offset) -> Unit, onEnd: () -> Unit) {
-    val colors = Brand.colors
-    val currentRect by rememberUpdatedState(rect)
-    Box(
-        modifier = Modifier
-            .absoluteOffset {
-                val half = TOUCH_SIZE.roundToPx() / 2
-                IntOffset(rect.left.toInt() - half, rect.bottom.toInt() - 6.dp.roundToPx())
-            }
-            .size(TOUCH_SIZE)
-            // Taps on a knob must not count as "tap outside to clear".
-            .pointerInput(Unit) { detectTapGestures { } }
-            .pointerInput(Unit) {
-                var pointer = Offset.Zero
-                detectDragGestures(
-                    onDragStart = {
-                        pointer = Offset(currentRect.left, currentRect.center.y)
-                        onStart(pointer)
-                    },
-                    onDragEnd = onEnd,
-                    onDragCancel = onEnd,
-                ) { change, amount ->
-                    change.consume()
-                    pointer += amount
-                    onMove(pointer)
-                }
-            },
-    ) {
-        Box(
-            Modifier
-                .absoluteOffset { IntOffset(((TOUCH_SIZE - KNOB_SIZE) / 2).roundToPx(), 0) }
-                .size(KNOB_SIZE)
-                .background(colors.accentStrong, CircleShape),
         )
     }
 }
@@ -291,24 +280,24 @@ private fun styled(article: SelectableArticle, colors: BrandPalette): AnnotatedS
     }
 }
 
-private enum class DragMode { None, New, Start, End }
-
-/** The one active drag (new selection or a handle), shared with the auto-scroll loop. */
+/**
+ * The one active drag. The selection is always [anchorStart]..[anchorEnd] stretched to
+ * the finger: a new selection anchors on the long-pressed word, a handle drag on the
+ * OTHER end - so a handle can be dragged either way, even past the other end.
+ */
 private class SelectionDrag {
-    var mode by mutableStateOf(DragMode.None)
     var active by mutableStateOf(false)
-    var pointer = Offset.Zero
+    var finger = Offset.Zero
+    /** Added to the finger to aim at the edge's text line, not at the knob under it. */
+    var grab = Offset.Zero
     var anchorStart = 0
     var anchorEnd = 0
-
-    fun stop() {
-        active = false
-        mode = DragMode.None
-    }
 }
 
-private val TOUCH_SIZE = 44.dp
-private val KNOB_SIZE = 16.dp
+private val KNOB_RADIUS = 7.dp
+private val KNOB_GAP = 2.dp
+/** How far from a knob's centre a press still grabs it. */
+private val HANDLE_TOUCH_RADIUS = 24.dp
 /** How close to the viewport's top/bottom a drag starts auto-scrolling. */
 private val AUTO_SCROLL_EDGE = 56.dp
 /** Scroll per frame at (or past) the very edge. */
