@@ -41,7 +41,12 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
-import com.example.feature.image.presentation.components.ImageGroupRow
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.theme.Brand
+import com.example.feature.image.presentation.components.DesignTile
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,45 +60,12 @@ fun ImagesGroupsScreen(
     val lazyPagingItems = viewModel.imageGroups.collectAsLazyPagingItems()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-                    Text(
-                        text = stringResource(R.string.images),
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface
+        topBar = { AppTopBar(title = stringResource(R.string.images), onBack = onNavigateBack) },
+        containerColor = Brand.colors.background
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
                 .padding(paddingValues)
         ) {
             when (val refreshState = lazyPagingItems.loadState.refresh) {
@@ -101,7 +73,7 @@ fun ImagesGroupsScreen(
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
                             strokeWidth = 3.dp,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Brand.colors.accentStrong
                         )
                     }
                 }
@@ -138,10 +110,14 @@ fun ImagesGroupsScreen(
                             )
                         }
                     } else {
-                        LazyColumn(
+                        // Designs come in many shapes: a staggered grid keeps each image's
+                        // own proportions instead of cropping them all to one ratio.
+                        LazyVerticalStaggeredGrid(
+                            columns = StaggeredGridCells.Fixed(2),
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp),
+                            contentPadding = PaddingValues(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalItemSpacing = 16.dp,
                         ) {
                             items(
                                 count = lazyPagingItems.itemCount,
@@ -149,26 +125,26 @@ fun ImagesGroupsScreen(
                             ) { index ->
                                 val group = lazyPagingItems[index]
                                 if (group != null) {
+                                    // Only for the count badge; loaded lazily per visible tile.
                                     val images by viewModel.imagesForGroup(group.id)
                                         .collectAsStateWithLifecycle()
-                                    ImageGroupRow(
+                                    DesignTile(
                                         group = group,
-                                        images = images,
-                                        onTitleClick = { onGroupClick(group.id) },
-                                        onImageClick = { imageIndex -> onImageClick(group.id, imageIndex) },
+                                        imageCount = images.size,
+                                        onClick = { onGroupClick(group.id) },
                                     )
                                 }
                             }
 
                             if (lazyPagingItems.loadState.append is LoadState.Loading) {
-                                item {
+                                item(span = StaggeredGridItemSpan.FullLine) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(16.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Brand.colors.accentStrong)
                                     }
                                 }
                             }

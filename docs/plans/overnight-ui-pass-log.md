@@ -11,7 +11,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 4: Search: Done (no audio durations in hits)
 - [x] Phase 5: Fatwas list: Done (playing state/chips/search icon skipped per spec)
 - [x] Phase 6: Videos: Done (chips/duration skipped: data not on screen/model)
-- [ ] Phase 7: Designs and viewer
+- [x] Phase 7: Designs and viewer: Done
 - [ ] Phase 8: Profile
 - [ ] Phase 9: About the Sheikh
 - [ ] Phase 10: Institute
@@ -117,3 +117,12 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - Duration badge: skipped. `Video` has no duration field.
 - Category pill restyled to an `accentContainer`/`onAccentContainer` pill. The play overlay is 40dp with a Tabler player-play icon.
 - Date: `ArabicDates.published` (Phase 1) with a Tabler clock. Cards have 14dp corners, a 0.5dp divider and a `surface` fill, and the whole card is tappable.
+
+### Phase 7: Done (save-to-gallery left as a follow-up)
+- List: `LazyVerticalStaggeredGrid` with 2 columns (available in the current Compose BOM 2025.07). Each image keeps its own proportions (`ContentScale.FillWidth`); loading and error placeholders are 4:5. Uses `AppTopBar` on `background`.
+- Tile (`DesignTile`, replacing the per-group horizontal `ImageGroupRow`): 10dp-corner image, title up to 2 lines that wraps rather than ellipsizing, and date meta (`ArabicDates.published`). A multi-image post is one tile with a count badge ("٩ صور", `DesignTitle.imageCount`: صورة/صورتان/٣ صور/١١ صورة). The count comes from the existing lazy `imagesForGroup` flow, and a tap opens the viewer at image 1.
+- Titles: `DesignTitle.clean` ("تصميم - 9 ذو الحجة 1447هـ" → "٩ ذو الحجة ١٤٤٧هـ").
+- Viewer (`ImageScreen`): black background, full-width image, `HorizontalPager`, pinch zoom 1×–4×, double-tap zoom (2.5×, toward the tapped point), and pan bounded to the zoomed image. The pager is locked while zoomed and each page resets when you swipe away. The top bar has close (x), a 1-line title and the counter "١ من ٩". A thumbnail strip appears for multi-image posts, with the current one outlined 2dp in `accentStrong`.
+- Share: loads the current image through the app's Coil `imageLoader` (`allowHardware(false)`), writes `cacheDir/share/design_<group>_<index>.png`, and shares it through the existing FileProvider (`${applicationId}.provider`, whose `provider_paths.xml` already exposes `cache/share/`).
+- Zoom gestures: `detectTransformGestures` consumes one-finger drags even at 1×, which would block pager swipes. The viewer uses the same primitives (`awaitEachGesture` + `calculateZoom`/`calculatePan`) and only consumes when 2 fingers are down or the image is zoomed. No new dependency.
+- Follow-up: save-to-gallery (not built, per spec).
