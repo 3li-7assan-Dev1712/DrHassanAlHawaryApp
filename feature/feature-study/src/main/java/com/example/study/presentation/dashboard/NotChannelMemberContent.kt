@@ -111,7 +111,7 @@ fun NotChannelMemberContent(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "للوصول إلى الدروس والمحتوى التعليمي والمشاركة في الاختبارات، يجب أن تكون عضواً في قناة المعهد الرسمية على تيليجرام.",
+                        text = "للوصول إلى الدروس والمحتوى التعليمي والمشاركة في الاختبارات، يجب أن تكون عضوًا في قناة المعهد الرسمية على تيليجرام.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         lineHeight = 26.sp,

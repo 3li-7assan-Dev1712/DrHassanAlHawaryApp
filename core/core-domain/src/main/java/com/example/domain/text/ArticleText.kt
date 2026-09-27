@@ -58,6 +58,12 @@ object ArticleText {
     /** "الشيخ د.حسن أحمد الهواري" and its spelling variants, as a whole string. */
     private val AUTHOR_NAME = Regex("^(?:(?:ال)?شيخ\\s*)?(?:د\\s*\\.?\\s*)?حسن\\s+(?:(?:أ|ا)حمد\\s+)?(?:ال)?هوار[يى]$")
 
+    /** True for a line that is only the author's name, e.g. "- الشيخ د. حسن أحمد الهواري -". */
+    internal fun isAuthorLine(line: String): Boolean {
+        val rest = line.replace("ـ", "").replace(Regex("[•·|\\-–—:،,()]"), " ").replace(WHITESPACE, " ").trim()
+        return rest.isNotEmpty() && AUTHOR_NAME.matches(rest)
+    }
+
     /**
      * True for a Facebook post byline copied into the article body, e.g.
      * "الشيخ د.حسن أحمد الهواري • September 23 at 9:55 PM": it has a timestamp, and

@@ -98,7 +98,7 @@ fun InstituteComingSoonContent(
                     Spacer(modifier = Modifier.height(28.dp))
 
                     Text(
-                        text = "منصة المعهد قريباً",
+                        text = "منصة المعهد قريبًا",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 0.5.sp
@@ -110,7 +110,7 @@ fun InstituteComingSoonContent(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "تم ربط حسابك بنجاح مع قناة المعهد على تيليجرام. نعمل حالياً على تجهيز محتوى الدراسة داخل التطبيق، وسيتم تفعيله قريباً إن شاء الله.",
+                        text = "تم ربط حسابك بنجاح مع قناة المعهد على تيليجرام. نعمل حاليًا على تجهيز محتوى الدراسة داخل التطبيق، وسيتم تفعيله قريبًا إن شاء الله.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         lineHeight = 26.sp,

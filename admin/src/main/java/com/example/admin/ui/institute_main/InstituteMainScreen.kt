@@ -373,7 +373,7 @@ fun LevelListItem(
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "الـمستوى ${levelName.takeLast(1)}",
+                text = "المستوى ${levelName.takeLast(1)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)

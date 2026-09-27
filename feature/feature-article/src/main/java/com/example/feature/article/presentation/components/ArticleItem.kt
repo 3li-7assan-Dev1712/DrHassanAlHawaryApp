@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.R
-import com.example.core.ui.util.getRelativeTimeText
+import com.example.domain.text.ArabicDates
 import com.example.domain.module.Article
 import java.util.Date
 
@@ -106,7 +106,7 @@ fun ArticleItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val relativeTime = getRelativeTimeText(article.publishDate, formatDate(article.publishDate))
+                val published = ArabicDates.published(System.currentTimeMillis(), article.publishDate.time)
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -117,7 +117,7 @@ fun ArticleItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = stringResource(R.string.published_since, relativeTime),
+                        text = published,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
                     )

@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.R
 import com.example.core.ui.components.shimmer
-import com.example.core.ui.util.getRelativeTimeText
+import com.example.domain.text.ArabicDates
 import com.example.domain.module.FixedCategories
 import com.example.domain.module.Video
 import java.text.SimpleDateFormat
@@ -159,10 +159,7 @@ fun VideoCard(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val defaultFormattedDate = remember(video.publishDate) {
-                    SimpleDateFormat("d MMM yyyy", Locale("ar")).format(video.publishDate)
-                }
-                val relativeTime = getRelativeTimeText(video.publishDate, defaultFormattedDate)
+                val published = ArabicDates.published(System.currentTimeMillis(), video.publishDate.time)
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -173,7 +170,7 @@ fun VideoCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = stringResource(R.string.published_since, relativeTime),
+                        text = published,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
                     )

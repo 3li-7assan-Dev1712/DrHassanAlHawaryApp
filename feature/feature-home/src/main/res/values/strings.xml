@@ -21,7 +21,7 @@
     <string name="lessons">المحتويات</string>
     <string name="no_articles_available">لا توجد مقالات متاحة الآن</string>
     <string name="home_offline_message">أنت الآن غير متصل بالإنترنت</string>
-    <string name="home_back_online_message">تم الاتصال بالإنترنت مجدداً</string>
+    <string name="home_back_online_message">تم الاتصال بالإنترنت مجددًا</string>
     <string name="carousel_image_description">صورة</string>
     <string name="audio_icon_description">أيقونة صوت</string>
     <string name="no_images_available">لا توجد صور متاحة الآن</string>

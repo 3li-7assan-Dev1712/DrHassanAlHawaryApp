@@ -39,12 +39,46 @@ object TablerIcons {
     @DrawableRes val User = R.drawable.ic_tabler_user
     @DrawableRes val PlayerPlay = R.drawable.ic_tabler_player_play
     @DrawableRes val Bell = R.drawable.ic_tabler_bell
+    // Not auto-mirrored: RTL screens use arrow-right for back and chevron-left for forward.
+    @DrawableRes val ArrowRight = R.drawable.ic_tabler_arrow_right
+    @DrawableRes val ChevronLeft = R.drawable.ic_tabler_chevron_left
+    @DrawableRes val X = R.drawable.ic_tabler_x
+    @DrawableRes val Check = R.drawable.ic_tabler_check
+    @DrawableRes val Clock = R.drawable.ic_tabler_clock
+    @DrawableRes val Share = R.drawable.ic_tabler_share
+    @DrawableRes val TextSize = R.drawable.ic_tabler_text_size
+    @DrawableRes val PlayerPause = R.drawable.ic_tabler_player_pause
+    @DrawableRes val Download = R.drawable.ic_tabler_download
+    @DrawableRes val CircleCheck = R.drawable.ic_tabler_circle_check
+    @DrawableRes val Send = R.drawable.ic_tabler_send
+    @DrawableRes val Logout = R.drawable.ic_tabler_logout
+    @DrawableRes val Trash = R.drawable.ic_tabler_trash
+    @DrawableRes val Sun = R.drawable.ic_tabler_sun
+    @DrawableRes val Moon = R.drawable.ic_tabler_moon
+    @DrawableRes val DeviceMobile = R.drawable.ic_tabler_device_mobile
+    @DrawableRes val World = R.drawable.ic_tabler_world
+    @DrawableRes val ZoomIn = R.drawable.ic_tabler_zoom_in
+    @DrawableRes val InfoCircle = R.drawable.ic_tabler_info_circle
+    @DrawableRes val Star = R.drawable.ic_tabler_star
+    @DrawableRes val Headset = R.drawable.ic_tabler_headset
+    @DrawableRes val ShieldLock = R.drawable.ic_tabler_shield_lock
+    @DrawableRes val FileText = R.drawable.ic_tabler_file_text
+    @DrawableRes val Code = R.drawable.ic_tabler_code
+    @DrawableRes val BrandTelegram = R.drawable.ic_tabler_brand_telegram
+    @DrawableRes val ExternalLink = R.drawable.ic_tabler_external_link
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
         "message-question" to MessageQuestion, "photo" to Photo, "user-circle" to UserCircle,
         "home" to Home, "search" to Search, "school" to School, "user" to User,
         "player-play" to PlayerPlay, "bell" to Bell,
+        "arrow-right" to ArrowRight, "chevron-left" to ChevronLeft, "x" to X, "check" to Check,
+        "clock" to Clock, "share" to Share, "text-size" to TextSize, "player-pause" to PlayerPause,
+        "download" to Download, "circle-check" to CircleCheck, "send" to Send, "logout" to Logout,
+        "trash" to Trash, "sun" to Sun, "moon" to Moon, "device-mobile" to DeviceMobile,
+        "world" to World, "zoom-in" to ZoomIn, "info-circle" to InfoCircle, "star" to Star,
+        "headset" to Headset, "shield-lock" to ShieldLock, "file-text" to FileText, "code" to Code,
+        "brand-telegram" to BrandTelegram, "external-link" to ExternalLink,
     )
 }
 

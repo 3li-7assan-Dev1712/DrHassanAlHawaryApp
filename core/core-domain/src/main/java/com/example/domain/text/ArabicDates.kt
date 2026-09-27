@@ -1,5 +1,8 @@
 package com.example.domain.text
 
+import java.util.Calendar
+import java.util.TimeZone
+
 /**
  * Relative dates and counted units in Arabic, with correct number agreement:
  * 1 -> the singular alone ("دقيقة"), 2 -> the dual ("دقيقتين"), 3-10 -> number +
@@ -47,6 +50,33 @@ object ArabicDates {
             days < 365 -> "منذ ${count(days / 30, MONTH)}"
             else -> "منذ ${count(days / 365, YEAR)}"
         }
+    }
+
+    /**
+     * The whole "published" phrase for list meta lines - callers must not add their own
+     * "نُشر"/"منذ": "نُشر الآن", "نُشر منذ ٣ دقائق", "نُشر أمس", "نُشر منذ أسبوعين", and past
+     * 30 days the calendar date, "نُشر في ٤ أبريل ٢٠٢٦". A future time reads as "نُشر الآن".
+     */
+    fun published(nowMillis: Long, thenMillis: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
+        val minutes = (nowMillis - thenMillis) / MINUTE_MS
+        val hours = minutes / 60
+        val days = hours / 24
+        return when {
+            minutes < 1 -> "نُشر الآن"
+            minutes < 60 -> "نُشر منذ ${count(minutes, MINUTE)}"
+            hours < 24 -> "نُشر منذ ${count(hours, HOUR)}"
+            days == 1L -> "نُشر أمس"
+            days < 7 -> "نُشر منذ ${count(days, DAY)}"
+            days <= 30 -> "نُشر منذ ${count(days / 7, WEEK)}"
+            else -> "نُشر في ${calendarDate(thenMillis, timeZone)}"
+        }
+    }
+
+    /** "٤ أبريل ٢٠٢٦" */
+    fun calendarDate(millis: Long, timeZone: TimeZone = TimeZone.getDefault()): String {
+        val c = Calendar.getInstance(timeZone).apply { timeInMillis = millis }
+        val month = ArabicNumerals.GREGORIAN_MONTHS[c.get(Calendar.MONTH)]
+        return "${ArabicNumerals.digits(c.get(Calendar.DAY_OF_MONTH))} $month ${ArabicNumerals.digits(c.get(Calendar.YEAR))}"
     }
 
     private const val MINUTE_MS = 60_000L

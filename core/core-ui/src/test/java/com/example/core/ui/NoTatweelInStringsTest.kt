@@ -37,7 +37,34 @@ class NoTatweelInStringsTest {
         )
     }
 
+    /**
+     * Tanween fath goes on the letter before the alif ("قريبًا"), not on the alif ("قريباً"):
+     * the second form renders the mark in the wrong place in Cairo.
+     */
+    @Test
+    fun `no string resource puts tanween on the alif`() {
+        val offenders = valuesXmlFiles().flatMap { file ->
+            file.readLines(Charsets.UTF_8).mapIndexedNotNull { i, line ->
+                if (TANWEEN_ON_ALIF in line) "${file.relativeTo(root)}:${i + 1}: ${line.trim()}" else null
+            }
+        }
+        assertTrue(
+            "Write \"ًا\" instead of \"اً\" in string resources:\n" + offenders.joinToString("\n"),
+            offenders.isEmpty(),
+        )
+    }
+
+    private val root: File
+        get() = generateSequence(File("").absoluteFile) { it.parentFile }
+            .first { File(it, "settings.gradle.kts").exists() }
+
+    private fun valuesXmlFiles(): List<File> = root.walkTopDown()
+        .onEnter { dir -> dir.name != "build" && dir.name != ".gradle" && !dir.name.startsWith(".") }
+        .filter { it.isFile && it.extension == "xml" && it.parentFile.name.startsWith("values") }
+        .toList()
+
     private companion object {
         const val TATWEEL = 'ـ'
+        const val TANWEEN_ON_ALIF = "اً"
     }
 }

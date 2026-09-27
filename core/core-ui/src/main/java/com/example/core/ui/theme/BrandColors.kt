@@ -62,6 +62,27 @@ data class BrandPalette(
     val textMuted: Color,
     /** True for the dark palette: its screens want light status/navigation bar icons. */
     val isDark: Boolean,
+    // Semantic tokens for the secondary screens (overnight UI pass). Screen code reads these,
+    // never raw hex.
+    /** Segmented-control track and other subtle fills. */
+    val surfaceMuted: Color = surface,
+    /** Outline icons. */
+    val accent: Color = gold,
+    /** Progress bars, active chip border, timeline dots. */
+    val accentStrong: Color = gold,
+    /** Chips, pills, icon circles. */
+    val accentContainer: Color = goldSoft,
+    /** Text and icons on [accentContainer]. */
+    val onAccentContainer: Color = onGold,
+    /** Links ("عرض الكل") and accent subtitles. */
+    val accentText: Color = goldText,
+    val success: Color = Color(0xFF1D9E75),
+    val successContainer: Color = Color(0xFFE1F5EE),
+    val onSuccessContainer: Color = Color(0xFF085041),
+    /** Destructive actions (delete account). */
+    val danger: Color = Color(0xFFA32D2D),
+    /** The فاسألوا button, under white text. */
+    val fasalooTeal: Color = Color(0xFF0F6E56),
 )
 
 val DarkBrandPalette = BrandPalette(
@@ -77,6 +98,17 @@ val DarkBrandPalette = BrandPalette(
     textSecondary = BrandTokens.textSecondary,
     textMuted = BrandTokens.textMuted,
     isDark = true,
+    surfaceMuted = Color(0xFF241C17),
+    accent = Color(0xFFEF9F27),
+    accentStrong = Color(0xFFEF9F27),
+    accentContainer = Color(0xFF412402),
+    onAccentContainer = Color(0xFFFAC775),
+    accentText = Color(0xFFFAC775),
+    success = Color(0xFF5DCAA5),
+    successContainer = Color(0xFF04342C),
+    onSuccessContainer = Color(0xFF9FE1CB),
+    danger = Color(0xFFF09595),
+    fasalooTeal = Color(0xFF0F6E56),
 )
 
 /**
@@ -97,6 +129,17 @@ val LightBrandPalette = BrandPalette(
     textSecondary = Color(0xFF5C524C),
     textMuted = Color(0xFF6F645A),
     isDark = false,
+    surfaceMuted = Color(0xFFEFEAE2),
+    accent = Color(0xFFBA7517),
+    accentStrong = Color(0xFFEF9F27),
+    accentContainer = Color(0xFFFAEEDA),
+    onAccentContainer = Color(0xFF633806),
+    accentText = Color(0xFF854F0B),
+    success = Color(0xFF1D9E75),
+    successContainer = Color(0xFFE1F5EE),
+    onSuccessContainer = Color(0xFF085041),
+    danger = Color(0xFFA32D2D),
+    fasalooTeal = Color(0xFF0F6E56),
 )
 
 val LocalBrandPalette = staticCompositionLocalOf { DarkBrandPalette }

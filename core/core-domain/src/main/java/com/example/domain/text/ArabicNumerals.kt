@@ -12,7 +12,7 @@ import java.util.Locale
  */
 object ArabicNumerals {
 
-    private val GREGORIAN_MONTHS = listOf(
+    internal val GREGORIAN_MONTHS = listOf(
         "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
         "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر",
     )

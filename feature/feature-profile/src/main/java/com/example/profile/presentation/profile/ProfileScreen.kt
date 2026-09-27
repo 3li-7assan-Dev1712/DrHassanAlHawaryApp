@@ -277,7 +277,7 @@ fun ProfileScreen(
                         if (!isAdmin) {
                             ProfileRow(
                                 icon = Icons.Default.DeleteForever,
-                                title = "حذف الحساب نهائياً",
+                                title = "حذف الحساب نهائيًا",
                                 iconColor = MaterialTheme.colorScheme.error,
                                 isLast = true,
                                 onClick = { showDeleteConfirmation = true }

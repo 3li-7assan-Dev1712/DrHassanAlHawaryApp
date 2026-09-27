@@ -85,7 +85,7 @@
     <string name="feature_coming_soon">"تتاح هذه الميزة قريبا ان شاء الله "</string>
     <string name="about_dr_hassan">عن الشيخ</string>
     <string name="no_audios_available">لا توجد صوتيات متاحة الآن</string>
-    <string name="no_videos_available">لا توجد فيديوهات متاحة حالياً</string>
+    <string name="no_videos_available">لا توجد فيديوهات متاحة حاليًا</string>
     <string name="search_illustration_description">ابحث عن كل المحتويات المسموعة والمرئية والمكتوبة بضغطة زر واحدة فقط</string>
     <string name="onboarding_skip">تخطي</string>
     <string name="onboarding_next">التالي</string>
@@ -113,7 +113,7 @@
     <string name="share_error_generic">تعذّر تجهيز الفيديو، حاول مرة أخرى</string>
     <string name="share_error_low_space">لا توجد مساحة تخزين كافية على الجهاز</string>
     <string name="share_retry">إعادة المحاولة</string>
-    <string name="share_link_instead">شارك الرابط بدلاً من ذلك</string>
+    <string name="share_link_instead">شارك الرابط بدلًا من ذلك</string>
     <string name="share_play">تشغيل</string>
     <string name="share_pause">إيقاف مؤقت</string>
     <string name="share_quote_label">اقتباس مميز (اختياري)</string>
@@ -124,7 +124,7 @@
     <string name="share_image_chooser">مشاركة الصورة</string>
     <string name="share_text_attribution">من مقال: %1$s</string>
     <string name="share_text_selection_title">اختيار جزء للمشاركة</string>
-    <string name="share_text_selection_hint">اضغط مطولاً على النص ثم اسحب لتحديد الجزء الذي تريد مشاركته</string>
+    <string name="share_text_selection_hint">اضغط مطولًا على النص ثم اسحب لتحديد الجزء الذي تريد مشاركته</string>
     <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
     <string name="share_text_char_count">%1$d / %2$d حرف</string>
     <string name="share_text_too_long">الجزء المحدد طويل جدًا، اختر جزءًا أقصر</string>

@@ -132,7 +132,7 @@ fun ImagesGroupsScreen(
                     if (lazyPagingItems.itemCount == 0) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text(
-                                text = "لا توجد مجموعات تصاميم حالياً.",
+                                text = "لا توجد مجموعات تصاميم حاليًا.",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

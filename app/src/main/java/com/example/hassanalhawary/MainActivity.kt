@@ -277,9 +277,9 @@ class MainActivity : ComponentActivity() {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            // This colour fills the status-bar padding above every screen. Home sits on the
-            // brand background (light or dark with the theme), so paint that strip to match.
-            containerColor = if (currentRoute == "home_screen") Brand.colors.background else MaterialTheme.colorScheme.surfaceVariant,
+            // This colour fills the status-bar padding above every screen: the brand
+            // background (light or dark with the theme), never the old gray surfaceVariant strip.
+            containerColor = Brand.colors.background,
             bottomBar = {
                 if (shouldShowBottomNav) {
                     BottomNavigationBar(
