@@ -27,7 +27,7 @@ import com.example.feature.share.engine.AudioClipExtractor
 import com.example.feature.share.engine.ExportProgress
 import com.example.feature.share.engine.ShareCardBitmapRenderer
 import com.example.feature.share.engine.ShareFileStore
-import com.example.feature.share.engine.ShareFrameLayout
+import com.example.domain.media.ClipWindow
 import com.example.feature.share.engine.ShareVideoExporter
 import com.example.feature.share.engine.WaveformAnalyzer
 import com.example.feature.share.engine.WaveformOverlay
@@ -423,9 +423,11 @@ class SharePreviewViewModel @Inject constructor(
      * cheap (just a state update + a resample of the already-computed overview), so
      * it runs on every drag delta with no debounce needed for a smooth drag. */
     fun onRangeChanged(newStartMs: Long, newEndMs: Long) {
-        val clampedStart = newStartMs.coerceIn(0L, totalTrackDurationMs)
-        val minEnd = (clampedStart + MIN_SHAREABLE_DURATION_MS).coerceAtMost(totalTrackDurationMs)
-        val clampedEnd = newEndMs.coerceIn(minEnd, totalTrackDurationMs)
+        // The same clamping the selector uses (ClipWindow): inside the track, >= 5 s, never throws.
+        val window = ClipWindow.startingAt(newStartMs, newEndMs - newStartMs, totalTrackDurationMs)
+        val clampedStart = window.startMs
+        val clampedEnd = window.endMs
+        if (clampedStart == _uiState.value.startMs && clampedEnd - clampedStart == _uiState.value.clipDurationMs) return
         hasWindowEnvelope = false
         _uiState.update { state ->
             state.copy(
@@ -437,23 +439,6 @@ class SharePreviewViewModel @Inject constructor(
         loadClipPreviewEnvelope(debounce = true)
     }
 
-    /**
-     * A duration chip ("١٥ ث" / "٣٠ ث" / "٦٠ ث"): keeps the start, sets the length (never
-     * past the end of the track - the window slides back if needed).
-     */
-    fun onClipLengthSelected(lengthMs: Long) {
-        val length = lengthMs.coerceIn(MIN_SHAREABLE_DURATION_MS, totalTrackDurationMs.coerceAtLeast(MIN_SHAREABLE_DURATION_MS))
-        val start = _uiState.value.startMs.coerceIn(0L, (totalTrackDurationMs - length).coerceAtLeast(0L))
-        onRangeChanged(start, start + length)
-    }
-
-    /** "−٥ ث" / "+٥ ث": moves the whole window, keeping its length. */
-    fun onNudge(deltaMs: Long) {
-        val state = _uiState.value
-        val length = state.clipDurationMs
-        val start = (state.startMs + deltaMs).coerceIn(0L, (totalTrackDurationMs - length).coerceAtLeast(0L))
-        onRangeChanged(start, start + length)
-    }
 
     /** Tapping Share is what starts generation - nothing runs eagerly before this. */
     fun onShareClicked() {

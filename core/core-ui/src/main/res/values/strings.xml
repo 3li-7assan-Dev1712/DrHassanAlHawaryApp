@@ -197,4 +197,6 @@
     <string name="empty_no_connection">تعذّر الاتصال بالإنترنت</string>
     <string name="empty_no_results">لا توجد نتائج</string>
     <string name="empty_try_another_word">جرّب كلمة أخرى</string>
+    <string name="share_step_place">١. اضغط أو اسحب لاختيار الموضع</string>
+    <string name="share_step_edges">٢. اسحب الطرفين لضبط البداية والنهاية</string>
 </resources>

@@ -86,8 +86,6 @@ fun SharePreviewScreen(
         onNavigateUp = onNavigateUp,
         onPlayPauseToggle = viewModel::onPlayPauseToggle,
         onRangeChanged = viewModel::onRangeChanged,
-        onLengthSelected = viewModel::onClipLengthSelected,
-        onNudge = viewModel::onNudge,
         onShareClick = viewModel::onShareClicked,
         onRetry = viewModel::onRetry,
         onShareLinkInstead = {
@@ -112,8 +110,6 @@ private fun SharePreviewScreen(
     onNavigateUp: () -> Unit,
     onPlayPauseToggle: () -> Unit,
     onRangeChanged: (startMs: Long, endMs: Long) -> Unit,
-    onLengthSelected: (Long) -> Unit,
-    onNudge: (Long) -> Unit,
     onShareClick: () -> Unit,
     onRetry: () -> Unit,
     onShareLinkInstead: () -> Unit,
@@ -131,7 +127,7 @@ private fun SharePreviewScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            val previewHeight = maxHeight * 0.4f
+            val previewHeight = (maxHeight * 0.4f).coerceAtMost(maxHeight - 420.dp).coerceAtLeast(140.dp)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -172,12 +168,11 @@ private fun SharePreviewScreen(
                     totalMs = uiState.totalTrackDurationMs,
                     startMs = uiState.startMs,
                     clipMs = uiState.clipDurationMs,
+                    playbackPositionMs = uiState.playbackPositionMs,
                     isPlaying = uiState.isPlaying,
                     isBuffering = uiState.isBuffering,
                     enabled = !isGenerating,
-                    onLengthSelected = onLengthSelected,
                     onRangeChanged = onRangeChanged,
-                    onNudge = onNudge,
                     onPlayPause = onPlayPauseToggle,
                 )
 
