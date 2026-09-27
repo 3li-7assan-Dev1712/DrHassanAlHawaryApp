@@ -437,16 +437,22 @@ class SharePreviewViewModel @Inject constructor(
         loadClipPreviewEnvelope(debounce = true)
     }
 
-    /** Optional highlighted quote drawn on the frame. Editing it after a video was
-     * generated makes that video stale, so the next Share tap regenerates it. */
-    fun onQuoteChanged(text: String) {
-        val quote = text.take(ShareFrameLayout.QUOTE_MAX_CHARS)
-        _uiState.update { state ->
-            state.copy(
-                content = state.content?.copy(quote = quote),
-                exportState = if (state.exportState is ShareExportState.Ready) ShareExportState.Idle else state.exportState,
-            )
-        }
+    /**
+     * A duration chip ("١٥ ث" / "٣٠ ث" / "٦٠ ث"): keeps the start, sets the length (never
+     * past the end of the track - the window slides back if needed).
+     */
+    fun onClipLengthSelected(lengthMs: Long) {
+        val length = lengthMs.coerceIn(MIN_SHAREABLE_DURATION_MS, totalTrackDurationMs.coerceAtLeast(MIN_SHAREABLE_DURATION_MS))
+        val start = _uiState.value.startMs.coerceIn(0L, (totalTrackDurationMs - length).coerceAtLeast(0L))
+        onRangeChanged(start, start + length)
+    }
+
+    /** "−٥ ث" / "+٥ ث": moves the whole window, keeping its length. */
+    fun onNudge(deltaMs: Long) {
+        val state = _uiState.value
+        val length = state.clipDurationMs
+        val start = (state.startMs + deltaMs).coerceIn(0L, (totalTrackDurationMs - length).coerceAtLeast(0L))
+        onRangeChanged(start, start + length)
     }
 
     /** Tapping Share is what starts generation - nothing runs eagerly before this. */

@@ -68,7 +68,6 @@ class ShareVideoExportTest {
             title = fields.title, category = null, instituteName = "",
             background = ShareBackgroundSource.Gradient, logoResId = R.drawable.admin_logo_app,
             kindLabel = fields.kindLabel, hijriDate = fields.hijriDate, gregorianDate = fields.gregorianDate,
-            quote = "ما من أيامٍ العملُ الصالحُ فيها أحبُّ إلى الله من هذه الأيام",
         )
         val base = File(context.cacheDir, "test_base.png")
         ShareCardBitmapRenderer().render(context, content).also { bitmap ->

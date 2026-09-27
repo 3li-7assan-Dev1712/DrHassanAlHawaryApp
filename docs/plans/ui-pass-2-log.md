@@ -8,7 +8,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - [x] Phase 0: Setup and inventory: Done
 - [x] Phase 1: Quick fixes: Done
 - [x] Phase 2: Audio player: Done
-- [ ] Phase 3: Share-as-video preview
+- [x] Phase 3: Share-as-video preview: Done
 - [ ] Phase 4: Category screens
 - [ ] Phase 5: Splash and onboarding
 - [ ] Phase 6: About and Share-app
@@ -53,3 +53,21 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
   - "مشاركة" opens the existing share-as-video route.
 - Speed cycles 1 → 1.25 → 1.5 → 2 → 0.75 → 1 via `MediaController.setPlaybackSpeed`. It's stored under the NEW DataStore key `playback_speed` (float, via `DataStoreRepository.playbackSpeed()`) and applied whenever the controller connects, so later playback uses it too.
 - The description card was kept (it only shows when a description exists).
+
+### Phase 3: Done
+- **Quote removed** (video share only; the article quote-image feature is untouched): the `QuoteField`, `onQuoteChanged`, `ShareCardContent.quote`, `ShareFramePainter.drawQuote`, `ShareFrameLayout.QUOTE_*`, the strings `share_quote_label` / `share_quote_hint` / `share_text_char_count` (values, values-ar, values-en), and the androidTest fixtures that passed a quote. The article strings `share_quote_subtitle` / `share_quote_source_label` / `share_quote_page_of` / `share_quote_multi_hint` stay. The frame's centre band now shows the sheikh's circular photo (`dr_hassan_photo`, 300px, 5px gold ring) through a new shared `BrandFramePainter.drawCirclePhoto`, which the header logo also uses now.
+- **One screen, no scrolling:** `BoxWithConstraints`. The preview is 40% of the height (9:16, 16dp corners). The share button is pinned at the bottom: "مشاركة الفيديو", and while generating it shows a small progress ring + "جارٍ التجهيز ٤٥٪" inside the same button. The full-screen `GenerationOverlay` is no longer used here; the article flow still uses it.
+- **One clip selector** (`components/ClipSelector.kt`, replacing the slider, the "من … إلى …" text and `TrimTimeline`, which is deleted):
+  - chips ١٥ ث / ٣٠ ث / ٦٠ ث. The default stays 60 s (`DEFAULT_WINDOW_MS`), and chips longer than the track are hidden.
+  - a thin overview bar of the whole lecture with the selection in `accentStrong`.
+  - a zoomed waveform strip showing 2× the clip, centred on it, with the window outlined and a handle at each end. Dragging inside the window moves it; dragging near a handle resizes that side (min 5 s). The visible range is frozen during a drag.
+  - "−٥ ث" / "+٥ ث" nudges (new VM `onNudge`) and the LTR-isolated range "٤:٣٢ – ٥:٣٢".
+  - a 44dp gold play button with "استمع للمقطع قبل المشاركة". The preview card's own waveform fills in sync (it already used `playbackPositionMs`). The separate slider is gone.
+  - Everything is forced LTR (rule A.4).
+- **Video frame:**
+  - Times are 52px (was 34) and use `formatMediaTime` ("٠:٢٠"), so no more "dots" from zero-padded Arabic-Indic zeros.
+  - The waveform is laid out left to right: played bars fill from the left, elapsed time on the left, total on the right.
+  - The speaker name in the video header is "الشيخ د. حسن الهواري" (new string `share_video_speaker_name`). The article quote images keep their own header name unchanged.
+  - Under the "حمّل التطبيق" pill there's a small LTR text link `dr-alhawary.com`. The only Play Store link in the code is the long `play.google.com/store/apps/details?id=…`, not a short link. The video footer moved up (`VIDEO_DIVIDER_Y`/`VIDEO_FOOTER_TOP`) so the link fits above `SAFE_BOTTOM`. The quote images' footer is unchanged (same default positions, no link).
+  - The animated overlay region was extended to cover the larger times.
+- The share androidTests still compile (`compileDebugAndroidTestKotlin`). Their direction checks are left/right-agnostic.

@@ -9,8 +9,8 @@ import com.example.domain.text.HijriDate
  * content-type model (Audio, Video, ...) so feature-video / feature-image
  * can reuse this same engine later.
  *
- * The video card draws [title], [kindLabel], [hijriDate]/[gregorianDate] and
- * [quote] as separate blocks - never one concatenated string, which is what
+ * The video card draws [title], [kindLabel] and [hijriDate]/[gregorianDate]
+ * as separate blocks - never one concatenated string, which is what
  * broke the bidi layout of the server's combined "title - date" strings (see
  * [ShareTitleParser]). The quote card only uses [title]/[category].
  */
@@ -25,8 +25,6 @@ data class ShareCardContent(
     val kindLabel: String? = null,
     val hijriDate: HijriDate? = null,
     val gregorianDate: GregorianDate? = null,
-    /** Optional user-entered highlight. Blank hides the quote card. */
-    val quote: String? = null,
 )
 
 sealed interface ShareBackgroundSource {

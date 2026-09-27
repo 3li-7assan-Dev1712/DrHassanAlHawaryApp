@@ -3,63 +3,49 @@ package com.example.feature.share.presentation
 import android.content.ClipData
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.core.ui.R
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
 import com.example.domain.text.ArabicNumerals
 import com.example.feature.share.domain.ShareExportState
-import com.example.feature.share.engine.ShareFrameLayout
-import com.example.feature.share.presentation.components.GenerationOverlay
-import com.example.feature.share.presentation.components.ShareActionBar
+import com.example.feature.share.presentation.components.ClipSelector
 import com.example.feature.share.presentation.components.ShareCardPreview
-import com.example.feature.share.presentation.components.TrimTimeline
-import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
 @UnstableApi
 @Composable
 fun SharePreviewScreen(
@@ -99,9 +85,9 @@ fun SharePreviewScreen(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
         onPlayPauseToggle = viewModel::onPlayPauseToggle,
-        onSeekWithinClip = viewModel::onSeekWithinClip,
         onRangeChanged = viewModel::onRangeChanged,
-        onQuoteChanged = viewModel::onQuoteChanged,
+        onLengthSelected = viewModel::onClipLengthSelected,
+        onNudge = viewModel::onNudge,
         onShareClick = viewModel::onShareClicked,
         onRetry = viewModel::onRetry,
         onShareLinkInstead = {
@@ -115,174 +101,141 @@ fun SharePreviewScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Everything fits one screen, no scrolling: the 9:16 preview at ~40% of the height, the
+ * clip selector, and the share button pinned at the bottom with the encoding progress
+ * inside it.
+ */
 @Composable
 private fun SharePreviewScreen(
     uiState: SharePreviewUiState,
     onNavigateUp: () -> Unit,
     onPlayPauseToggle: () -> Unit,
-    onSeekWithinClip: (Long) -> Unit,
     onRangeChanged: (startMs: Long, endMs: Long) -> Unit,
-    onQuoteChanged: (String) -> Unit,
+    onLengthSelected: (Long) -> Unit,
+    onNudge: (Long) -> Unit,
     onShareClick: () -> Unit,
     onRetry: () -> Unit,
     onShareLinkInstead: () -> Unit,
 ) {
+    val colors = Brand.colors
     val isGenerating = uiState.exportState is ShareExportState.Preparing ||
         uiState.exportState is ShareExportState.Encoding
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            stringResource(R.string.share_preview_title),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateUp) {
-                            Icon(
-                                Icons.Filled.Close,
-                                contentDescription = stringResource(R.string.share_preview_close),
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent
-                    ),
-                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-        ) { paddingValues ->
+    Scaffold(
+        topBar = { AppTopBar(title = stringResource(R.string.share_preview_title), onBack = onNavigateUp) },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            val previewHeight = maxHeight * 0.4f
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val content = uiState.content
                 if (content != null) {
-                    Box(
+                    ShareCardPreview(
+                        content = content,
+                        envelope = uiState.clipEnvelope,
+                        playbackPositionMs = uiState.playbackPositionMs,
+                        clipDurationMs = uiState.clipDurationMs,
                         modifier = Modifier
-                            .fillMaxWidth(0.72f)
-                            .clip(RoundedCornerShape(24.dp)),
-                    ) {
-                        ShareCardPreview(
-                            content = content,
-                            envelope = uiState.clipEnvelope,
-                            playbackPositionMs = uiState.playbackPositionMs,
-                            clipDurationMs = uiState.clipDurationMs,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-
-                    QuoteField(
-                        quote = content.quote.orEmpty(),
-                        enabled = !isGenerating,
-                        onQuoteChanged = onQuoteChanged,
+                            .height(previewHeight)
+                            .clip(RoundedCornerShape(16.dp)),
                     )
                 }
 
-                // Only ever appears while a background audio download this screen is
-                // actively waiting on is in flight - not for the overview decode, and
-                // never a full-screen block. Rare once the detail screen's silent
-                // prefetch has had a head start.
+                // Only while a background audio download this screen waits on is in flight.
                 uiState.downloadProgressPercent?.let { percent ->
                     LinearProgressIndicator(
                         progress = { percent / 100f },
                         modifier = Modifier
-                            .fillMaxWidth(0.72f)
-                            .padding(top = 8.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                            .fillMaxWidth(0.5f)
+                            .padding(top = 6.dp),
+                        color = colors.accentStrong,
+                        trackColor = colors.divider,
                     )
                 }
+                uiState.playbackErrorMessage?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
 
-                PlaybackScrubber(
-                    positionMs = uiState.playbackPositionMs,
-                    durationMs = uiState.clipDurationMs,
+                Spacer(Modifier.height(12.dp))
+                ClipSelector(
+                    overviewEnvelope = uiState.overviewEnvelope,
+                    totalMs = uiState.totalTrackDurationMs,
+                    startMs = uiState.startMs,
+                    clipMs = uiState.clipDurationMs,
                     isPlaying = uiState.isPlaying,
                     isBuffering = uiState.isBuffering,
-                    errorMessage = uiState.playbackErrorMessage,
-                    onPlayPauseToggle = onPlayPauseToggle,
-                    onSeek = onSeekWithinClip,
-                )
-
-                Text(
-                    text = stringResource(
-                        R.string.share_trim_range,
-                        formatDuration(uiState.startMs),
-                        formatDuration(uiState.startMs + uiState.clipDurationMs),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                TrimTimeline(
-                    overviewEnvelope = uiState.overviewEnvelope,
-                    totalDurationMs = uiState.totalTrackDurationMs,
-                    startMs = uiState.startMs,
-                    endMs = uiState.startMs + uiState.clipDurationMs,
+                    enabled = !isGenerating,
+                    onLengthSelected = onLengthSelected,
                     onRangeChanged = onRangeChanged,
-                    modifier = Modifier.padding(vertical = 16.dp),
+                    onNudge = onNudge,
+                    onPlayPause = onPlayPauseToggle,
                 )
+
+                Spacer(Modifier.weight(1f))
 
                 if (!uiState.isTooShortToShare) {
                     val errorMessage = uiState.errorMessage
                     if (errorMessage != null) {
-                        ErrorCard(
-                            message = errorMessage,
-                            onRetry = onRetry,
-                            onShareLinkInstead = onShareLinkInstead,
-                        )
+                        ErrorCard(message = errorMessage, onRetry = onRetry, onShareLinkInstead = onShareLinkInstead)
                     } else {
-                        ShareActionBar(
-                            enabled = !isGenerating,
-                            onShareClick = onShareClick,
-                        )
+                        ShareButton(exportState = uiState.exportState, enabled = !isGenerating, onClick = onShareClick)
                     }
                 }
+                Spacer(Modifier.height(12.dp))
             }
-        }
-
-        if (isGenerating) {
-            GenerationOverlay(
-                progress = uiState.exportState.toProgressFraction() ?: 0f,
-                titleText = stringResource(R.string.share_generating_video),
-                indeterminate = uiState.exportState is ShareExportState.Preparing,
-            )
         }
     }
 }
 
+/** "مشاركة الفيديو", or the encoding progress inside the same button while it's generated. */
 @Composable
-private fun QuoteField(
-    quote: String,
-    enabled: Boolean,
-    onQuoteChanged: (String) -> Unit,
-) {
-    OutlinedTextField(
-        value = quote,
-        onValueChange = { onQuoteChanged(it.take(ShareFrameLayout.QUOTE_MAX_CHARS)) },
+private fun ShareButton(exportState: ShareExportState, enabled: Boolean, onClick: () -> Unit) {
+    val colors = Brand.colors
+    val progress = exportState.toProgressFraction()
+    Button(
+        onClick = onClick,
         enabled = enabled,
-        label = { Text(stringResource(R.string.share_quote_label)) },
-        placeholder = { Text(stringResource(R.string.share_quote_hint)) },
-        supportingText = {
-            Text(
-                text = stringResource(R.string.share_text_char_count, quote.length, ShareFrameLayout.QUOTE_MAX_CHARS),
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        maxLines = 3,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp),
-    )
+            .height(52.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colors.accentStrong,
+            contentColor = colors.onGold,
+            disabledContainerColor = colors.accentContainer,
+            disabledContentColor = colors.onAccentContainer,
+        ),
+    ) {
+        if (!enabled) {
+            CircularProgressIndicator(
+                progress = { progress ?: 0f },
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = colors.onAccentContainer,
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                stringResource(
+                    R.string.share_preparing_percent,
+                    "${ArabicNumerals.digits(((progress ?: 0f) * 100).toInt())}٪",
+                ),
+            )
+        } else {
+            Icon(painterResource(TablerIcons.Share), contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.share_video_button), style = MaterialTheme.typography.titleSmall)
+        }
+    }
 }
 
 @Composable
@@ -294,7 +247,7 @@ private fun ErrorCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -303,7 +256,7 @@ private fun ErrorCard(
             color = MaterialTheme.colorScheme.error,
         )
         Row(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             OutlinedButton(onClick = onRetry) {
@@ -322,81 +275,3 @@ private fun ShareExportState.toProgressFraction(): Float? = when (this) {
     ShareExportState.Preparing -> 0f
     ShareExportState.Idle, is ShareExportState.Failed -> null
 }
-
-@Composable
-private fun PlaybackScrubber(
-    positionMs: Long,
-    durationMs: Long,
-    isPlaying: Boolean,
-    isBuffering: Boolean,
-    errorMessage: String?,
-    onPlayPauseToggle: () -> Unit,
-    onSeek: (Long) -> Unit,
-) {
-    // The ViewModel's position updates every 200ms from the player; without this
-    // local guard, that update fights the user's drag and the thumb never moves
-    // (same pattern as AudioDetailScreen's ThemedPlayerControls).
-    var isUserSeeking by remember { mutableStateOf(false) }
-    var seekPosition by remember { mutableFloatStateOf(positionMs.toFloat()) }
-
-    LaunchedEffect(positionMs) {
-        if (!isUserSeeking) seekPosition = positionMs.toFloat()
-    }
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            IconButton(onClick = onPlayPauseToggle) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = stringResource(
-                        if (isPlaying) R.string.share_pause else R.string.share_play
-                    ),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = if (isBuffering) 0.3f else 1f),
-                )
-            }
-            if (isBuffering) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-
-        if (errorMessage != null) {
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 4.dp),
-            )
-        }
-
-        Slider(
-            value = seekPosition,
-            valueRange = 0f..durationMs.toFloat().coerceAtLeast(1f),
-            onValueChange = {
-                isUserSeeking = true
-                seekPosition = it
-            },
-            onValueChangeFinished = {
-                isUserSeeking = false
-                onSeek(seekPosition.toLong())
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(formatDuration(positionMs), style = MaterialTheme.typography.labelMedium)
-            Text(formatDuration(durationMs), style = MaterialTheme.typography.labelMedium)
-        }
-    }
-}
-
-private fun formatDuration(ms: Long): String = ArabicNumerals.formatMediaTime(ms)

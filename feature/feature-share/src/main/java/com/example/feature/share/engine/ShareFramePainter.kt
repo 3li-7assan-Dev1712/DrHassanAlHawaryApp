@@ -29,6 +29,8 @@ class ShareFramePainter(context: Context) {
 
     private val brand = BrandFramePainter(context)
     private val subtitleText = context.getString(R.string.share_frame_subtitle)
+    private val speakerName = context.getString(R.string.share_video_speaker_name)
+    private val linkText = context.getString(R.string.share_video_link)
 
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rect = RectF()
@@ -39,19 +41,20 @@ class ShareFramePainter(context: Context) {
 
     fun drawStatic(canvas: Canvas, content: ShareCardContent) {
         brand.drawBackground(canvas)
-        brand.drawHeader(canvas, content.logoResId, subtitleText)
+        brand.drawHeader(canvas, content.logoResId, subtitleText, speakerName)
         val titleTop = content.kindLabel?.takeIf { it.isNotBlank() }
             ?.let { brand.drawGoldChip(canvas, it, ShareFrameLayout.CHIP_TOP) + ShareFrameLayout.TITLE_GAP_AFTER_CHIP }
             ?: ShareFrameLayout.TITLE_TOP_WITHOUT_CHIP
         drawTitleAndDate(canvas, content, titleTop)
-        content.quote?.trim()?.takeIf { it.isNotEmpty() }?.let { drawQuote(canvas, it) }
-        brand.drawFooter(canvas)
+        brand.drawCirclePhoto(canvas, R.drawable.dr_hassan_photo, ShareFrameLayout.photo, ShareFrameLayout.PHOTO_RING_WIDTH)
+        brand.drawFooter(canvas, ShareFrameLayout.VIDEO_DIVIDER_Y, ShareFrameLayout.VIDEO_FOOTER_TOP, linkText)
     }
 
     /**
      * The animated part: [bars] in time order (0..1 each, see [WaveformBars]),
-     * laid out right-to-left so the played portion ([progress] 0..1) fills in
-     * from the right, gold over gray; elapsed time on the right, total on the left.
+     * laid out LEFT TO RIGHT like every media timeline in the app (even in RTL): the
+     * played portion ([progress] 0..1) fills in from the left, gold over gray; elapsed
+     * time on the left, total on the right.
      * Draws only inside [ShareFrameLayout.animatedRegion].
      */
     fun drawWaveform(canvas: Canvas, bars: FloatArray, progress: Float, elapsedMs: Long, totalMs: Long) {
@@ -65,7 +68,7 @@ class ShareFramePainter(context: Context) {
         for (i in 0 until count) {
             val amplitude = bars.getOrElse(i) { 0f }.coerceIn(0f, 1f)
             val height = strip.height() * max(amplitude, ShareFrameLayout.BAR_MIN_HEIGHT_FRACTION)
-            val centerX = strip.right - (i + 0.5f) * pitch
+            val centerX = strip.left + (i + 0.5f) * pitch
             val played = (i + 0.5f) / count <= clampedProgress
             fillPaint.color = if (played) Colors.gold else Colors.muted
             rect.set(centerX - barWidth / 2f, centerY - height / 2f, centerX + barWidth / 2f, centerY + height / 2f)
@@ -76,11 +79,12 @@ class ShareFramePainter(context: Context) {
         val elapsed = ArabicNumerals.formatMediaTime(elapsedMs)
         val total = ArabicNumerals.formatMediaTime(totalMs)
         val elapsedLayout = elapsedCache?.takeIf { it.first == elapsed }?.second
-            ?: timeLayout(elapsed, halfWidth, Layout.Alignment.ALIGN_NORMAL).also { elapsedCache = elapsed to it }
+            ?: timeLayout(elapsed, halfWidth, Layout.Alignment.ALIGN_OPPOSITE).also { elapsedCache = elapsed to it }
         val totalLayout = totalCache?.takeIf { it.first == total }?.second
-            ?: timeLayout(total, halfWidth, Layout.Alignment.ALIGN_OPPOSITE).also { totalCache = total to it }
-        brand.draw(canvas, elapsedLayout, ShareFrameLayout.CONTENT_LEFT + halfWidth, ShareFrameLayout.TIMES_TOP)
-        brand.draw(canvas, totalLayout, ShareFrameLayout.CONTENT_LEFT, ShareFrameLayout.TIMES_TOP)
+            ?: timeLayout(total, halfWidth, Layout.Alignment.ALIGN_NORMAL).also { totalCache = total to it }
+        // RTL layouts: ALIGN_OPPOSITE is the left edge, ALIGN_NORMAL the right edge.
+        brand.draw(canvas, elapsedLayout, ShareFrameLayout.CONTENT_LEFT, ShareFrameLayout.TIMES_TOP)
+        brand.draw(canvas, totalLayout, ShareFrameLayout.CONTENT_LEFT + halfWidth, ShareFrameLayout.TIMES_TOP)
     }
 
     private fun drawTitleAndDate(canvas: Canvas, content: ShareCardContent, titleTop: Float) {
@@ -109,24 +113,6 @@ class ShareFramePainter(context: Context) {
         }
     }
 
-    private fun drawQuote(canvas: Canvas, quote: String) {
-        val textWidth = (ShareFrameLayout.CONTENT_WIDTH - 2 * ShareFrameLayout.QUOTE_PADDING_H).toInt()
-        val text = brand.fitLayout(
-            text = "«${ArabicNumerals.digits(quote.take(ShareFrameLayout.QUOTE_MAX_CHARS))}»",
-            typeface = brand.regular,
-            maxSize = ShareFrameLayout.QUOTE_TEXT_SIZE,
-            minSize = ShareFrameLayout.QUOTE_MIN_TEXT_SIZE,
-            color = Colors.onSurface,
-            width = textWidth,
-            alignment = Layout.Alignment.ALIGN_CENTER,
-            maxLines = ShareFrameLayout.QUOTE_MAX_LINES,
-        )
-        val cardHeight = text.height + 2 * ShareFrameLayout.QUOTE_PADDING_V
-        rect.set(ShareFrameLayout.CONTENT_LEFT, ShareFrameLayout.QUOTE_TOP, ShareFrameLayout.CONTENT_RIGHT, ShareFrameLayout.QUOTE_TOP + cardHeight)
-        fillPaint.color = Colors.surface
-        canvas.drawRoundRect(rect, ShareFrameLayout.QUOTE_RADIUS, ShareFrameLayout.QUOTE_RADIUS, fillPaint)
-        brand.draw(canvas, text, ShareFrameLayout.CONTENT_LEFT + ShareFrameLayout.QUOTE_PADDING_H, ShareFrameLayout.QUOTE_TOP + ShareFrameLayout.QUOTE_PADDING_V)
-    }
 
     private fun timeLayout(text: String, width: Float, alignment: Layout.Alignment): StaticLayout =
         brand.layout(text, brand.textPaint(brand.regular, ShareFrameLayout.TIMES_SIZE, Colors.secondaryText), width.toInt(), alignment, maxLines = 1)

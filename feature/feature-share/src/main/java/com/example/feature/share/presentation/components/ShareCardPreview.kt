@@ -50,10 +50,10 @@ fun ShareCardPreview(
     val painter = remember(context) { ShareFramePainter(context) }
     val bars = remember(envelope) { WaveformBars.fromEnvelope(envelope) }
 
-    // Kept across re-renders so editing the quote never flashes an empty card.
+    // Kept across re-renders so a content change never flashes an empty card.
     var frame by remember { mutableStateOf<ImageBitmap?>(null) }
     LaunchedEffect(content) {
-        // Debounce re-renders while the user is typing a quote; the first render is immediate.
+        // Debounce re-renders; the first render is immediate.
         if (frame != null) delay(RERENDER_DEBOUNCE_MS)
         frame = withContext(Dispatchers.Default) { renderer.render(context, content).asImageBitmap() }
     }

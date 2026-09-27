@@ -30,7 +30,7 @@ class ShareFrameRenderTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val outDir = File(context.cacheDir, "share_frame_renders").apply { mkdirs() }
 
-    private fun content(rawTitle: String, categoryId: String?, quote: String?): ShareCardContent {
+    private fun content(rawTitle: String, categoryId: String?): ShareCardContent {
         val fields = ShareTitleParser.toCardFields(rawTitle, categoryId)
         return ShareCardContent(
             title = fields.title,
@@ -41,7 +41,6 @@ class ShareFrameRenderTest {
             kindLabel = fields.kindLabel,
             hijriDate = fields.hijriDate,
             gregorianDate = fields.gregorianDate,
-            quote = quote,
         )
     }
 
@@ -59,17 +58,15 @@ class ShareFrameRenderTest {
     @Test
     fun rendersEdgeCases() {
         val khutba = "خطبة بعنوان: فضل العشر، والأضحية - الجمعة: ( ٢٧ ذو القعدة ١٤٤٧هـ، 2026/5/15م"
-        val quote = "ما من أيامٍ العملُ الصالحُ فيها أحبُّ إلى الله من هذه الأيام"
         val veryLong = "خطبة بعنوان: " + "وجوب الاعتصام بالكتاب والسنة وفهم السلف الصالح والتحذير من البدع والمحدثات في الدين وأثر ذلك على الفرد والمجتمع" +
             " - الجمعة: ( ٢٧ ذو القعدة ١٤٤٧هـ، 2026/5/15م"
 
         listOf(
-            "01_khutba_with_quote" to content(khutba, "khotab", quote),
-            "02_khutba_no_quote" to content(khutba, "khotab", null),
-            "03_lecture_bare_kind" to content("محاضرة - 6 ربيع الآخر 1448هـ", "lectures", null),
-            "04_short_title_lesson" to content("الصبر", "scientific_lessons", ""),
-            "05_very_long_title" to content(veryLong, "khotab", quote),
-            "06_no_category_no_date" to content("شرح الأربعين النووية (3)", null, null),
+            "01_khutba" to content(khutba, "khotab"),
+            "03_lecture_bare_kind" to content("محاضرة - 6 ربيع الآخر 1448هـ", "lectures"),
+            "04_short_title_lesson" to content("الصبر", "scientific_lessons"),
+            "05_very_long_title" to content(veryLong, "khotab"),
+            "06_no_category_no_date" to content("شرح الأربعين النووية (3)", null),
         ).forEach { (name, content) ->
             val bitmap = render(name, content)
             assertTitleGroupClearOfCenterBand(name, bitmap)
@@ -77,10 +74,10 @@ class ShareFrameRenderTest {
         }
     }
 
-    /** Rows just below CENTER_BAND_TOP (down to where the quote card may start) must be pure background. */
+    /** Rows just below CENTER_BAND_TOP (down to the centre photo) must be pure background. */
     private fun assertTitleGroupClearOfCenterBand(name: String, bitmap: Bitmap) {
         val background = ShareFrameLayout.Colors.background
-        for (y in ShareFrameLayout.CENTER_BAND_TOP.toInt() until ShareFrameLayout.QUOTE_TOP.toInt() step 4) {
+        for (y in ShareFrameLayout.CENTER_BAND_TOP.toInt() until ShareFrameLayout.photo.top.toInt() step 4) {
             for (x in 0 until bitmap.width step 4) {
                 assertEquals("$name: non-background pixel at ($x,$y) inside the centre band", background, bitmap.getPixel(x, y))
             }

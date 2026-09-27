@@ -24,7 +24,7 @@ import com.example.core.ui.theme.ShareFrameSurface
  * Vertical budget, top to bottom (see docs/plans/share-video-redesign.md §4):
  *  - header / chip / title / date all end above [CENTER_BAND_TOP], because
  *    WhatsApp/Telegram draw their play button over the centre ~25% of a video;
- *  - the optional quote card may sit in the centre band (it's decorative);
+ *  - the sheikh's circular photo sits in the centre band (it's decorative);
  *  - waveform, times and footer end above [SAFE_BOTTOM], clear of the
  *    WhatsApp Status controls over the bottom 7%.
  */
@@ -71,15 +71,10 @@ object ShareFrameLayout {
     const val DATE_GAP_AFTER_TITLE = 8f
     const val DATE_SIZE = 36f
 
-    // --- Optional quote card ---
-    const val QUOTE_TOP = 1030f
-    const val QUOTE_PADDING_H = 56f
-    const val QUOTE_PADDING_V = 44f
-    const val QUOTE_RADIUS = 40f
-    const val QUOTE_TEXT_SIZE = 38f
-    const val QUOTE_MIN_TEXT_SIZE = 30f
-    const val QUOTE_MAX_LINES = 3
-    const val QUOTE_MAX_CHARS = 120
+    // --- Centre: the sheikh's circular photo with a gold ring ---
+    const val PHOTO_DIAMETER = 300f
+    const val PHOTO_RING_WIDTH = 5f
+    val photo = RectF((WIDTH - PHOTO_DIAMETER) / 2f, 885f, (WIDTH + PHOTO_DIAMETER) / 2f, 885f + PHOTO_DIAMETER)
 
     // --- Waveform + times: the only animated region (drawn per frame by the overlay) ---
     val waveform = RectF(CONTENT_LEFT, 1370f, CONTENT_RIGHT, 1510f)
@@ -88,10 +83,11 @@ object ShareFrameLayout {
     const val BAR_WIDTH_FRACTION = 0.5f
     /** Silence still shows a short bar rather than a dot. */
     const val BAR_MIN_HEIGHT_FRACTION = 0.12f
-    const val TIMES_TOP = 1540f
-    const val TIMES_SIZE = 34f
+    const val TIMES_TOP = 1528f
+    /** Large enough to read on a phone: at 34px the Arabic-Indic zeros read as dots. */
+    const val TIMES_SIZE = 52f
     /** Everything [ShareFramePainter.drawWaveform] may touch - the overlay bitmap covers exactly this. */
-    val animatedRegion = RectF(0f, 1350f, WIDTH, 1600f)
+    val animatedRegion = RectF(0f, 1350f, WIDTH, 1614f)
 
     // --- Divider + footer ---
     const val DIVIDER_Y = 1654f
@@ -102,6 +98,13 @@ object ShareFrameLayout {
     const val CTA_PADDING_H = 48f
     const val CTA_TEXT_SIZE = 32f
     const val FOOTER_APP_NAME_SIZE = 34f
+
+    // The video frame's footer sits higher than the quote images' so a text link fits
+    // under the CTA pill (a pill inside a video can't be tapped) above SAFE_BOTTOM.
+    const val VIDEO_DIVIDER_Y = 1624f
+    const val VIDEO_FOOTER_TOP = 1648f
+    const val LINK_GAP = 8f
+    const val LINK_SIZE = 30f
 
     /** ARGB ints for Canvas, all from core-ui's theme tokens - no hex here. */
     object Colors {

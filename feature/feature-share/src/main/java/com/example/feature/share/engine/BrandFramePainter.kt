@@ -53,16 +53,16 @@ class BrandFramePainter(private val context: Context) {
         canvas.drawColor(Colors.background)
     }
 
-    /** Logo on the right, "الشيخ د. حسن أحمد الهواري" + [subtitle] to its left, centred on the logo. */
-    fun drawHeader(canvas: Canvas, logoResId: Int, subtitle: String) {
+    /** Logo on the right, [name] (default "الشيخ د. حسن أحمد الهواري") + [subtitle] to its left, centred on the logo. */
+    fun drawHeader(canvas: Canvas, logoResId: Int, subtitle: String, name: String = nameText) {
         drawLogo(canvas, logoResId)
 
         val width = (ShareFrameLayout.HEADER_TEXT_RIGHT - ShareFrameLayout.CONTENT_LEFT).toInt()
-        val name = fitLayout(nameText, medium, ShareFrameLayout.HEADER_NAME_SIZE, 30f, Colors.onSurface, width, Layout.Alignment.ALIGN_NORMAL, 1)
+        val nameLayout = fitLayout(name, medium, ShareFrameLayout.HEADER_NAME_SIZE, 30f, Colors.onSurface, width, Layout.Alignment.ALIGN_NORMAL, 1)
         val sub = fitLayout(subtitle, regular, ShareFrameLayout.HEADER_SUBTITLE_SIZE, 24f, Colors.secondaryText, width, Layout.Alignment.ALIGN_NORMAL, 1)
-        val top = ShareFrameLayout.HEADER_CENTER_Y - (name.height + sub.height) / 2f
-        draw(canvas, name, ShareFrameLayout.CONTENT_LEFT, top)
-        draw(canvas, sub, ShareFrameLayout.CONTENT_LEFT, top + name.height)
+        val top = ShareFrameLayout.HEADER_CENTER_Y - (nameLayout.height + sub.height) / 2f
+        draw(canvas, nameLayout, ShareFrameLayout.CONTENT_LEFT, top)
+        draw(canvas, sub, ShareFrameLayout.CONTENT_LEFT, top + nameLayout.height)
     }
 
     /** A centred gold pill with [label], its top at [top]. Returns its bottom edge. */
@@ -91,12 +91,20 @@ class BrandFramePainter(private val context: Context) {
         return top + ShareFrameLayout.CHIP_HEIGHT
     }
 
-    /** Divider, then the gold CTA pill on the left and the app name on the right. */
-    fun drawFooter(canvas: Canvas) {
+    /**
+     * Divider, then the gold CTA pill on the left and the app name on the right. With
+     * [link], a small text link under the pill (the pill itself can't be tapped in a video).
+     */
+    fun drawFooter(
+        canvas: Canvas,
+        dividerY: Float = ShareFrameLayout.DIVIDER_Y,
+        footerTop: Float = ShareFrameLayout.FOOTER_TOP,
+        link: String? = null,
+    ) {
         fillPaint.color = Colors.divider
         canvas.drawRect(
-            ShareFrameLayout.CONTENT_LEFT, ShareFrameLayout.DIVIDER_Y,
-            ShareFrameLayout.CONTENT_RIGHT, ShareFrameLayout.DIVIDER_Y + ShareFrameLayout.DIVIDER_HEIGHT,
+            ShareFrameLayout.CONTENT_LEFT, dividerY,
+            ShareFrameLayout.CONTENT_RIGHT, dividerY + ShareFrameLayout.DIVIDER_HEIGHT,
             fillPaint,
         )
 
@@ -105,18 +113,29 @@ class BrandFramePainter(private val context: Context) {
         val ctaWidth = max(ShareFrameLayout.CTA_MIN_WIDTH, ctaTextWidth + 2 * ShareFrameLayout.CTA_PADDING_H)
             .coerceAtMost(ShareFrameLayout.CONTENT_WIDTH / 2f)
         val radius = ShareFrameLayout.FOOTER_HEIGHT / 2f
-        rect.set(ShareFrameLayout.CONTENT_LEFT, ShareFrameLayout.FOOTER_TOP, ShareFrameLayout.CONTENT_LEFT + ctaWidth, ShareFrameLayout.FOOTER_TOP + ShareFrameLayout.FOOTER_HEIGHT)
+        rect.set(ShareFrameLayout.CONTENT_LEFT, footerTop, ShareFrameLayout.CONTENT_LEFT + ctaWidth, footerTop + ShareFrameLayout.FOOTER_HEIGHT)
         fillPaint.color = Colors.goldSoft
         canvas.drawRoundRect(rect, radius, radius, fillPaint)
         val cta = layout(ctaText, ctaPaint, ctaWidth.toInt(), Layout.Alignment.ALIGN_CENTER, maxLines = 1)
-        draw(canvas, cta, ShareFrameLayout.CONTENT_LEFT, ShareFrameLayout.FOOTER_TOP + (ShareFrameLayout.FOOTER_HEIGHT - cta.height) / 2f)
+        draw(canvas, cta, ShareFrameLayout.CONTENT_LEFT, footerTop + (ShareFrameLayout.FOOTER_HEIGHT - cta.height) / 2f)
+        if (link != null) {
+            // LTR text, centred under the pill.
+            val linkPaint = textPaint(medium, ShareFrameLayout.LINK_SIZE, Colors.goldLight)
+            val linkLayout = StaticLayout.Builder.obtain(link, 0, link.length, linkPaint, ctaWidth.toInt())
+                .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                .setTextDirection(TextDirectionHeuristics.LTR)
+                .setIncludePad(false)
+                .setMaxLines(1)
+                .build()
+            draw(canvas, linkLayout, ShareFrameLayout.CONTENT_LEFT, footerTop + ShareFrameLayout.FOOTER_HEIGHT + ShareFrameLayout.LINK_GAP)
+        }
 
         val nameLeft = ShareFrameLayout.CONTENT_LEFT + ctaWidth + 24f
         val name = fitLayout(
             appNameText, regular, ShareFrameLayout.FOOTER_APP_NAME_SIZE, 24f, Colors.secondaryText,
             (ShareFrameLayout.CONTENT_RIGHT - nameLeft).toInt(), Layout.Alignment.ALIGN_NORMAL, 1,
         )
-        draw(canvas, name, nameLeft, ShareFrameLayout.FOOTER_TOP + (ShareFrameLayout.FOOTER_HEIGHT - name.height) / 2f)
+        draw(canvas, name, nameLeft, footerTop + (ShareFrameLayout.FOOTER_HEIGHT - name.height) / 2f)
     }
 
     /**
@@ -187,8 +206,11 @@ class BrandFramePainter(private val context: Context) {
         canvas.restore()
     }
 
-    private fun drawLogo(canvas: Canvas, logoResId: Int) {
-        val bounds = ShareFrameLayout.logo
+    private fun drawLogo(canvas: Canvas, logoResId: Int) =
+        drawCirclePhoto(canvas, logoResId, ShareFrameLayout.logo, ShareFrameLayout.LOGO_RING_WIDTH)
+
+    /** [logoResId] centre-cropped into the circle [bounds], with a gold ring of [ringWidth]. */
+    fun drawCirclePhoto(canvas: Canvas, logoResId: Int, bounds: RectF, ringWidth: Float) {
         val diameter = bounds.width()
         val source = decodeSampledBitmap(logoResId, diameter.toInt())
         val square = centerSquare(source.width, source.height)
@@ -204,7 +226,7 @@ class BrandFramePainter(private val context: Context) {
         canvas.drawCircle(bounds.centerX(), bounds.centerY(), diameter / 2f, fillPaint)
         fillPaint.shader = null
 
-        strokePaint.strokeWidth = ShareFrameLayout.LOGO_RING_WIDTH
+        strokePaint.strokeWidth = ringWidth
         strokePaint.color = Colors.gold
         canvas.drawCircle(bounds.centerX(), bounds.centerY(), (diameter - strokePaint.strokeWidth) / 2f, strokePaint)
 

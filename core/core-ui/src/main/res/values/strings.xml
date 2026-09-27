@@ -116,8 +116,6 @@
     <string name="share_link_instead">شارك الرابط بدلًا من ذلك</string>
     <string name="share_play">تشغيل</string>
     <string name="share_pause">إيقاف مؤقت</string>
-    <string name="share_quote_label">اقتباس مميز (اختياري)</string>
-    <string name="share_quote_hint">اكتب جملة من المقطع لتظهر في الفيديو</string>
 
     <!-- Share Article Excerpt as Image -->
     <string name="share_generating_image">جاري إنشاء الصورة</string>
@@ -126,7 +124,6 @@
     <string name="share_text_selection_title">اختيار جزء للمشاركة</string>
     <string name="share_text_selection_hint">اضغط مطولًا على النص ثم اسحب لتحديد الجزء الذي تريد مشاركته</string>
     <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
-    <string name="share_text_char_count">%1$d / %2$d حرف</string>
     <string name="share_text_too_long">الجزء المحدد طويل جدًا، اختر جزءًا أقصر</string>
     <string name="share_text_clear_selection">مسح التحديد</string>
     <string name="share_text_continue">متابعة</string>
@@ -178,4 +175,11 @@
     <string name="audio_forward_10">تقديم ١٠ ثوانٍ</string>
     <string name="audio_speed">السرعة</string>
     <string name="audio_download">تحميل</string>
+    <string name="share_video_speaker_name">الشيخ د. حسن الهواري</string>
+    <string name="share_video_link">dr-alhawary.com</string>
+    <string name="share_video_button">مشاركة الفيديو</string>
+    <string name="share_listen_clip">استمع للمقطع قبل المشاركة</string>
+    <string name="share_nudge_back">−٥ ث</string>
+    <string name="share_nudge_forward">+٥ ث</string>
+    <string name="share_preparing_percent">جارٍ التجهيز %1$s</string>
 </resources>
