@@ -46,6 +46,8 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Video
 import com.example.feature.video.presentation.components.VideoCard
@@ -76,46 +78,16 @@ fun VideosScreenContent(
     onNavigateBack: () -> Unit,
     onNavigateToVideo: (String, String) -> Unit
 ) {
+    // "الكل" is a category on the previous screen, not a title: show "الفيديوهات" for it.
+    val title = categoryTitle?.takeIf { it.isNotBlank() && it != ALL_CATEGORIES_TITLE }
+        ?: stringResource(id = R.string.videos)
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = categoryTitle ?: stringResource(id = R.string.videos),
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 0.5.sp
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-            )
-        }
+        containerColor = Brand.colors.background,
+        topBar = { AppTopBar(title = title, onBack = onNavigateBack) },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
                 .padding(paddingValues)
         ) {
             val isMediatorRefreshing = videos.loadState.mediator?.refresh is LoadState.Loading
@@ -127,7 +99,7 @@ fun VideosScreenContent(
                 ) {
                     CircularProgressIndicator(
                         strokeWidth = 3.dp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Brand.colors.accentStrong
                     )
                 }
             } else if (videos.itemCount == 0 && videos.loadState.refresh is LoadState.NotLoading) {
@@ -153,7 +125,7 @@ fun VideosScreenContent(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(
                         count = videos.itemCount,
@@ -181,7 +153,7 @@ fun VideosScreenContent(
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(32.dp),
                                     strokeWidth = 2.dp,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = Brand.colors.accentStrong
                                 )
                             }
                         }
@@ -191,6 +163,8 @@ fun VideosScreenContent(
         }
     }
 }
+
+private const val ALL_CATEGORIES_TITLE = "الكل"
 
 @Preview(
     showBackground = true,

@@ -10,7 +10,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 3: Articles list and reader: Done (bookmark and selection-share skipped)
 - [x] Phase 4: Search: Done (no audio durations in hits)
 - [x] Phase 5: Fatwas list: Done (playing state/chips/search icon skipped per spec)
-- [ ] Phase 6: Videos
+- [x] Phase 6: Videos: Done (chips/duration skipped: data not on screen/model)
 - [ ] Phase 7: Designs and viewer
 - [ ] Phase 8: Profile
 - [ ] Phase 9: About the Sheikh
@@ -109,3 +109,11 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - Category chips: skipped. The list is already opened per category (`categoryId` route argument from the category screen), so chips would duplicate that screen.
 - Top-bar search icon: omitted. The Search route takes no preset filter.
 - `AppTopBar` on `background` replaces the M3 TopAppBar and the gray gradient. The old `formatDuration` moved to `components/DurationFormat.kt` because the audio detail screen still uses it.
+
+### Phase 6: Done (category chips and duration badge skipped by the spec's rules)
+- Title: "الفيديوهات" (`R.string.videos`) when the category title is "الكل" or missing, otherwise the category name. Uses `AppTopBar` on `background`, with no gray gradient.
+- Category chips: skipped. The list is paged by category (`getPaginatedVideoUseCase(categoryId)`), so all videos and their categories are never loaded on this screen.
+- Thumbnail: `maxresdefault.jpg` first, falling back to the original `hqdefault.jpg` on error. Both use a 16:9 `ContentScale.Crop` box on `surfaceMuted`.
+- Duration badge: skipped. `Video` has no duration field.
+- Category pill restyled to an `accentContainer`/`onAccentContainer` pill. The play overlay is 40dp with a Tabler player-play icon.
+- Date: `ArabicDates.published` (Phase 1) with a Tabler clock. Cards have 14dp corners, a 0.5dp divider and a `surface` fill, and the whole card is tappable.
