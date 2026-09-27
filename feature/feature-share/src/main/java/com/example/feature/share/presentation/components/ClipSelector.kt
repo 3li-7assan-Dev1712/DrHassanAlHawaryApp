@@ -47,9 +47,13 @@ import com.example.domain.text.BidiText
 import kotlin.math.abs
 import kotlin.math.max
 
-/** Clip lengths offered as chips, in ms. */
+/** Quick presets only: the length itself is free (the stepper and the handles). */
 private val CLIP_LENGTHS = listOf(15_000L, 30_000L, 60_000L)
 private const val NUDGE_MS = 5_000L
+/** One tap on the length stepper. */
+private const val LENGTH_STEP_MS = 5_000L
+/** Extra context shown around the window, so its handles never sit on the strip's edges. */
+private const val STRIP_CONTEXT_MS = 40_000L
 private const val STRIP_BARS = 60
 private const val MIN_CLIP_MS = 5_000L
 
@@ -76,8 +80,10 @@ fun ClipSelector(
 ) {
     val colors = Brand.colors
     Column(modifier = modifier.fillMaxWidth()) {
+        // The length is free: presets for speed, then a stepper for any length from 5 s up
+        // to the whole track; the strip's handles resize it too.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            CLIP_LENGTHS.filter { it <= max(totalMs, CLIP_LENGTHS.first()) }.forEach { length ->
+            CLIP_LENGTHS.filter { it <= totalMs }.forEach { length ->
                 val selected = abs(clipMs - length) < 500
                 Surface(
                     onClick = { onLengthSelected(length) },
@@ -94,6 +100,13 @@ fun ClipSelector(
                     )
                 }
             }
+            Spacer(Modifier.weight(1f))
+            LengthStepper(
+                clipMs = clipMs,
+                totalMs = totalMs,
+                enabled = enabled,
+                onLengthSelected = onLengthSelected,
+            )
         }
         Spacer(Modifier.height(12.dp))
 
@@ -153,6 +166,50 @@ fun ClipSelector(
     }
 }
 
+/** "− ٠:٤٥ +": the clip length in 5 s steps, from [MIN_CLIP_MS] up to the whole track. */
+@Composable
+private fun LengthStepper(clipMs: Long, totalMs: Long, enabled: Boolean, onLengthSelected: (Long) -> Unit) {
+    val colors = Brand.colors
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .background(colors.surface, RoundedCornerShape(50))
+                .padding(horizontal = 2.dp),
+        ) {
+            StepButton("−", enabled && clipMs > MIN_CLIP_MS) {
+                // Snap to the step grid first, so 47 s goes to 45 s, not 42 s.
+                val snapped = (clipMs - 1) / LENGTH_STEP_MS * LENGTH_STEP_MS
+                onLengthSelected(snapped.coerceAtLeast(MIN_CLIP_MS))
+            }
+            Text(
+                text = ArabicNumerals.formatMediaTime(clipMs),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                color = colors.textPrimary,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+            StepButton("+", enabled && clipMs < totalMs) {
+                val snapped = (clipMs / LENGTH_STEP_MS + 1) * LENGTH_STEP_MS
+                onLengthSelected(snapped.coerceAtMost(totalMs))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StepButton(label: String, enabled: Boolean, onClick: () -> Unit) {
+    val colors = Brand.colors
+    Surface(onClick = onClick, enabled = enabled, shape = CircleShape, color = androidx.compose.ui.graphics.Color.Transparent) {
+        Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = if (enabled) colors.accentText else colors.textMuted,
+            )
+        }
+    }
+}
+
 @Composable
 private fun NudgeButton(label: String, enabled: Boolean, onClick: () -> Unit) {
     val colors = Brand.colors
@@ -205,7 +262,7 @@ private fun ZoomedStrip(
     onRangeChanged: (Long, Long) -> Unit,
 ) {
     val colors = Brand.colors
-    val visibleMs = (clipMs * 2).coerceAtMost(totalMs).coerceAtLeast(1L)
+    val visibleMs = max(clipMs * 2, clipMs + STRIP_CONTEXT_MS).coerceAtMost(totalMs).coerceAtLeast(1L)
     val visibleStart = (startMs + clipMs / 2 - visibleMs / 2).coerceIn(0L, (totalMs - visibleMs).coerceAtLeast(0L))
     val bars = remember(envelope, visibleStart, visibleMs, totalMs) { sample(envelope, totalMs, visibleStart, visibleMs) }
 
@@ -221,7 +278,7 @@ private fun ZoomedStrip(
             .background(colors.surface, RoundedCornerShape(10.dp))
             .pointerInput(enabled, totalMs) {
                 if (!enabled || totalMs <= 0) return@pointerInput
-                val handleSlop = 20.dp.toPx()
+                val handleSlop = 28.dp.toPx()
                 var mode = 0 // 0 move, 1 start handle, 2 end handle
                 // Frozen for the whole gesture, so the strip doesn't re-centre under the finger.
                 var frozenVisibleStart = 0L
