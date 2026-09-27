@@ -15,7 +15,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 8: Profile: Done
 - [x] Phase 9: About the Sheikh: Done
 - [x] Phase 10: Institute: Done (channel button omitted: no URL)
-- [ ] Phase 11: فاسألوا
+- [x] Phase 11: فاسألوا: Done
 - [ ] Phase 12: Consistency pass
 - [ ] Phase 13: Final report
 
@@ -156,3 +156,11 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - "فتح قناة المعهد": omitted. No institute channel URL exists in the code (only the Telegram *login* OAuth URL and فاسألوا's `t.me/Fasalu1447`).
 - No "notify me" button (per spec; it needs backend work).
 - The Guest / NotChannelMember states keep their existing content. They sit on the new `background` but weren't redesigned (not in the spec).
+
+### Phase 11: Done
+- `AppTopBar` with a back arrow and "فاسألوا" on `background` (it was flat `surfaceVariant` gray). `QAScreen` gained `onNavigateBack` and `onOpenSearch` parameters (both with defaults), wired in `MainActivity`. No route was added or changed.
+- The existing `fasalo_logo` drawable, now at 72dp.
+- Title "أرسل سؤالك الشرعي" and the body "فاسألوا هي المنصة الموحدة لأسئلة الفتاوى، وتعمل عبر تيليجرام.".
+- Steps card with numbered `accentContainer` circles (١، ٢، ٣): افتح فاسألوا في تيليجرام / اكتب سؤالك بوضوح واختصار / تابع الرد في المحادثة نفسها.
+- "قبل أن تسأل" card: the subtitle "لعل سؤالك أُجيب عنه من قبل" and a read-only field "ابحث في الفتاوى المجاب عنها" that opens the existing Search screen. There's no audio preset because the route has no preset argument.
+- Button: `fasalooTeal` with white text and the Tabler send icon, "افتح في تيليجرام". The current intent is already the `https://t.me/Fasalu1447` link (it opens Telegram when installed). On `ActivityNotFoundException` it retries the same link explicitly in a browser (`CATEGORY_APP_BROWSER` selector). If that fails too, a Snackbar shows "تعذّر فتح تيليجرام…" (new string `q_a_cannot_open`). Custom Tabs wasn't used because `androidx.browser` isn't a dependency of `:app`, and adding it is off-limits.

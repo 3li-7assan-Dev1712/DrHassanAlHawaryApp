@@ -674,7 +674,11 @@ class MainActivity : ComponentActivity() {
                     NotificationsScreen(onBack = { navController.popBackStack() })
                 }
                 composable(Routes.Q_A_SCREEN) {
-                    app.netlify.devalihassan.ui.q_a.QAScreen()
+                    app.netlify.devalihassan.ui.q_a.QAScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        // The Search route takes no preset filter, so this opens plain Search.
+                        onOpenSearch = { navController.navigate(Routes.SEARCH_SCREEN) },
+                    )
                 }
 
                 // profile screens
