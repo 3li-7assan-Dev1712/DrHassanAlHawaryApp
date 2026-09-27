@@ -17,7 +17,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 10: Institute: Done (channel button omitted: no URL)
 - [x] Phase 11: فاسألوا: Done
 - [x] Phase 12: Consistency pass: Done
-- [ ] Phase 13: Final report
+- [x] Phase 13: Final report: Done
 
 ## Phase 0: inventory
 
@@ -170,3 +170,103 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - Edge-to-edge: already enabled (`enableEdgeToEdge` + bar styles in `MainActivity`), so no change was needed. Bar icon contrast now follows the *effective* theme, including "تلقائي" (Phase 8). The root Scaffold's `innerPadding` already applies the status/navigation insets to every screen, so no per-screen `WindowInsets` changes were needed.
 - Previews: light + dark `@Preview`s for `AppTopBar`, the article card, reader, search (idle/too short), fatwa rows, video card, about, institute and فاسألوا. The profile screen's preview was dropped because it needs a Hilt ViewModel and the old one only rendered through one.
 - Not touched: `AudioCategoryScreen` / `VideoCategoryScreen` (the category pickers before the lists) still use the M3 top bar and `surface`. They weren't in this pass's list of screens.
+
+## Phase 13: Final report
+
+### 1. Summary
+
+Every phase built with `./gradlew assembleDebug testDebugUnitTest` (+ `:core:core-domain:test`, see D1.3) and committed.
+
+| Phase | Status | Notes |
+|---|---|---|
+| 0 Setup & inventory | Done | Baseline was green. |
+| 1 Shared foundations | Done | Tokens, `AppTopBar`, `ArabicDates.published`, `BidiText`, cleaners, strings pass + test, 26 Tabler icons. |
+| 2 Quick fixes | Done | 2.1: the swap button isn't in the app (likely Android's rotation suggestion). 2.4 and 2.6 were already correct. |
+| 3 Articles list & reader | Done | Skipped: bookmark (no feature exists) and "مشاركة كصورة" in the selection toolbar (the entry point takes offsets, not a String). |
+| 4 Search | Done | Audio durations aren't in the Algolia hits, so there's no "· ١٨:٢٠". |
+| 5 Fatwas list | Done | Playing state, category chips and search icon skipped: the data or route support isn't there. |
+| 6 Videos | Done | Category chips and duration badge skipped: paged list, and no duration field. |
+| 7 Designs & viewer | Done | Save-to-gallery is a follow-up. |
+| 8 Profile | Done | |
+| 9 About the Sheikh | Done | |
+| 10 Institute | Done | "فتح قناة المعهد" omitted: there's no channel URL in the code. |
+| 11 فاسألوا | Done | |
+| 12 Consistency | Done | Edge-to-edge was already on. |
+| 13 Final report | Done | This section. |
+
+### 2. Decisions made on my own
+See **Decisions** above (D0.1–D8.1). The main ones:
+- Plurals use the tested pure-Kotlin `ArabicDates.count`, not Android `plurals` (D1.1).
+- "هـ" keeps its tatweel (D1.2).
+- New installs default to "تلقائي" (D8.1).
+- A shared `SheikhPhoto` in core-ui, because the welcome screen's copy is private to the off-limits module (D2.2).
+- The viewer uses low-level zoom gestures instead of `detectTransformGestures`, so the pager still swipes (Phase 7).
+- One amend of my own Phase 2 commit (D2.3). There were no other history rewrites.
+
+### 3. Commits on `ui/overnight-polish`
+```
+29c73e9 ui: phase 12 - consistency pass
+0acae74 ui: phase 11 - fasaloo
+1712e06 ui: phase 10 - institute
+12ce2fe ui: phase 9 - about the sheikh
+e2e78a6 ui: phase 8 - profile
+1157232 ui: phase 7 - designs grid and viewer
+409c2dc ui: phase 6 - videos
+6f6454e ui: phase 5 - fatwas list
+c503e64 ui: phase 4 - search
+3eb1d3e ui: phase 3 - articles list and article reader
+07b4357 ui: phase 2 - quick fixes
+1a94511 ui: phase 1 - shared foundations
+81f12b6 ui: phase 0 - setup and inventory
+de75627 chore: snapshot before overnight UI pass
+```
+(plus the commit that adds this report: "ui: phase 13 - final report")
+
+### 4. Manual follow-ups for Ali
+Content (fix in the admin app / Firestore; I didn't touch stored content):
+- Delete or fix the test article "اختبار / محتوى للاختبار".
+- The placeholder fatwa "فتوى جديدة بالتصنيف".
+- Typo "احام الربا" → "أحكام الربا".
+- Cut-off audio title "أحكام صيام المرأة ا".
+- Descriptive titles for designs. Most are "تصميم - <date>", which now display as just the date.
+- About text: it's in-app, so I fixed it (Phase 2.8). Please proofread `DoctorProfile.kt`. Its `socialLinks` are placeholders (facebook.com, youtube.com, wa.me/123456789, dr.hassan@example.com): replace them with the real links, or delete them.
+
+Backend / dashboard:
+- Review Algolia's Arabic settings in the dashboard: `queryLanguages`/`indexLanguages` = `ar`, `ignorePlurals`, `removeStopWords`. Also check that `type` is a normal facet (not `filterOnly(type)`), or the new chip counts come back empty.
+- Consider adding `duration` to audio records in the index if you want "صوتية · ١٨:٢٠" in search.
+- Institute "notify me" needs an FCM topic and a sender.
+- Institute channel URL: add it to the app (e.g. `AppLinks`) and the "فتح قناة المعهد" button can be added.
+
+Product decisions / skipped items:
+- Designs viewer: save-to-gallery.
+- Reader: bookmarks (no feature exists), and "مشاركة كصورة" from the selection toolbar (needs mapping cleaned-text selections back to raw offsets for the quote-image route).
+- Fatwas list: a playing state needs the player's current item in the list VM. Category chips aren't needed while the list is opened per category.
+- Search → a preset filter (e.g. audio) would need a route argument (e.g. for فاسألوا "ابحث في الفتاوى").
+- Videos: a duration badge needs a duration in `Video`. Category chips would need the unpaged list.
+- The black round swap button over "حسابي" isn't the app's: confirm it's Android's rotation suggestion (appears when auto-rotate is off and the phone is tilted).
+- `AudioCategoryScreen` / `VideoCategoryScreen` still use the old top bar and `surface`. A future pass could move them to `AppTopBar` + `background`.
+- Custom Tabs fallback for Telegram would need `androidx.browser` in `:app`. The browser selector is used instead.
+
+### 5. Device checklist (morning)
+Check each in light, dark and "تلقائي" (flip the phone's dark mode), and at 1.3× font scale:
+- [ ] Status/navigation bar strip matches the screen background on every screen, with readable bar icons in both themes. No gray strip or gray vertical bar left on Search, Videos, Institute, reader.
+- [ ] Articles list: whole card opens, no "قراءة المزيد", title and excerpt ≤ 2 lines each, meta "نُشر منذ … · قراءة X دقائق" with no "منذ منذ".
+- [ ] Reader: back / font size / share in the top bar, no FAB, progress bar moves while scrolling, subtitle in gold, centered basmala, "✦ ✦ ✦" ornaments, أولًا… headings with the gold bar, no justified spacing, bold `*…*` spans. A−/A+ persists after reopening.
+- [ ] Search: placeholder is clearly muted, "ال" shows "اكتب كلمة أطول قليلًا", typing searches after a short pause, chip counts appear, "الكل" groups with "عرض الكل", whole-word highlights only, suggestions + recent searches + "مسح".
+- [ ] Fatwas: cleaned titles, Arabic-Indic durations, "محفوظ" on downloaded items.
+- [ ] Videos: "الفيديوهات" title for "الكل", no black bars in thumbnails, sharper thumbnails where available, date phrase.
+- [ ] Designs: 2-column staggered grid, "٩ صور" badge, date-as-title in Arabic digits. Viewer: black background, pinch/double-tap zoom, pan stops at the edges, swipe works at 1× and is locked while zoomed, "١ من ٩", thumbnail strip, share sends a PNG.
+- [ ] Profile: "حسابي", ringed avatar, email reads left-to-right, تلقائي/فاتح/داكن (an existing user keeps their old choice), font-size row, outline icons, "الحساب" section, delete row red + dialog.
+- [ ] About: round photo with no square corner, two role chips, 4 tabs, timeline with year chips, research newest first with "لم يُنشر بعد", website + فاسألوا links open.
+- [ ] Institute: "@handle" (not "handle@"), green status chip "من طلاب المعهد · الدفعة …", coming-soon card, linked line.
+- [ ] فاسألوا: back arrow, steps card, search field opens Search, teal button opens Telegram (and the browser if Telegram isn't installed).
+
+### 6. Known risks
+- **Build environment:** Android Studio's Gradle daemon kept locking a core-ui jar. Every build ran `./gradlew --stop` first. Studio may need a Gradle re-sync in the morning.
+- **Not run on a device:** everything is compile- and unit-test-verified only (no emulator, per spec). Gesture feel in the viewer and layout at 1.3× are unverified.
+- **Search cost:** debounced search-as-you-type sends more Algolia requests than the old keyboard-only search.
+- **Header stripping:** `cleanBody`/`readerParagraphs` drop *leading* lines that repeat the title (whole words). A short first sentence that happens to be part of the title would be hidden. Only the opening header block is affected.
+- **Reader performance:** the body is a scrolling `Column` (needed for the progress bar), so very long articles compose all paragraphs at once.
+- **Theme default:** new installs follow the system (dark phones open dark). Existing users are unaffected.
+- **Share PNG:** if Coil returns a non-bitmap drawable (e.g. animated), share silently does nothing. The PNG goes under the FileProvider path named `share_videos` (it's the `cache/share/` folder).
+- **Facet counts:** if `type` is `filterOnly` in Algolia, chip counts won't show. That degrades gracefully to no counts.
