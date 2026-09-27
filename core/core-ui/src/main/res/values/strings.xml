@@ -162,4 +162,14 @@
     <string name="appearance">المظهر</string>
     <string name="settings">الإعدادات</string>
     <string name="reader_font_setting">حجم خط القراءة</string>
+    <string name="about_tab_bio">نبذة</string>
+    <string name="about_tab_qualifications">المؤهلات</string>
+    <string name="about_tab_research">البحوث</string>
+    <string name="about_tab_contributions">المساهمات</string>
+    <string name="about_unpublished">لم يُنشر بعد</string>
+    <string name="about_official_channels">القنوات الرسمية</string>
+    <string name="about_website">الموقع الرسمي</string>
+    <string name="about_fasaloo">فاسألوا على تيليجرام</string>
+    <string name="about_media_contributions">المساهمات الإعلامية</string>
+    <string name="about_teaching_contributions">المساهمات التعليمية</string>
 </resources>

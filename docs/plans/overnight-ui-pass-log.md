@@ -13,7 +13,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 6: Videos: Done (chips/duration skipped: data not on screen/model)
 - [x] Phase 7: Designs and viewer: Done
 - [x] Phase 8: Profile: Done
-- [ ] Phase 9: About the Sheikh
+- [x] Phase 9: About the Sheikh: Done
 - [ ] Phase 10: Institute
 - [ ] Phase 11: فاسألوا
 - [ ] Phase 12: Consistency pass
@@ -138,3 +138,13 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - A confirmation dialog already existed. It's restyled to the spec: title "حذف الحساب؟", one sentence saying deletion is permanent, "حذف الحساب" in `danger` and "إلغاء". It still calls the existing `deleteAccount()`.
 - The version line is unchanged ("الإصدار 1.0.7", Western digits).
 - Admin also uses `ProfileScreen(isAdmin = true)`: the new parameters have defaults, so the admin call site is unchanged.
+
+### Phase 9: Done
+- Photo: the shared `SheikhPhoto` (Phase 2) at 112dp with a 2dp `accent` ring. The welcome screen's component is private to the off-limits auth module (D2.2).
+- The name comes from one string resource, `sheikh_name` ("الشيخ د. حسن الهواري", also used by the reader meta line). The role line is split at " - " into two `accentContainer` chips.
+- Tabs: an M3 `TabRow` with no pager: نبذة، المؤهلات، البحوث، المساهمات. The indicator is `accentStrong` on `background`.
+- المؤهلات: a vertical timeline with an `accentStrong` dot and connecting line, a year chip parsed from "(1990م)" → "١٩٩٠م" (the year is removed from the text), the title, and the institution in `textMuted`. Parsing is the new pure-Kotlin `DatedEntry` (tested).
+- البحوث: sorted newest first with date chips ("نوفمبر ٢٠١٣م"). "لم ينشر" items get a "لم يُنشر بعد" chip.
+- المساهمات: the media and teaching lists under plain headers. Emoji headers (🎓 📺 ✍️ 📚) are gone.
+- القنوات الرسمية: the website `https://www.dr-alhawary.com` (from the spec) and فاسألوا `https://t.me/Fasalu1447` (already in `QAScreen`). The URLs are shown LTR-isolated. The `socialLinks` in `DoctorProfile` are placeholders (facebook.com, youtube.com, wa.me/123456789, example email), so they weren't used, and no URL was invented.
+- Content fix (in-app data): the master's entry had an unclosed parenthesis ("… تحقيق ودراسة(1995م)"). It's now "… تحقيق ودراسة) (1995م)".
