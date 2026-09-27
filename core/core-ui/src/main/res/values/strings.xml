@@ -141,4 +141,17 @@
     <string name="reader_font_smaller">تصغير الخط</string>
     <string name="reader_font_larger">تكبير الخط</string>
     <string name="reader_font_preview">الحمد لله رب العالمين</string>
+    <string name="search_title">البحث</string>
+    <string name="search_placeholder">ابحث في المقالات والصوتيات والفيديوهات</string>
+    <string name="search_too_short">اكتب كلمة أطول قليلًا</string>
+    <string name="search_suggested">مواضيع مقترحة</string>
+    <string name="search_recent">عمليات البحث الأخيرة</string>
+    <string name="search_clear_recent">مسح</string>
+    <string name="search_view_all">عرض الكل</string>
+    <string name="search_clear_query">مسح البحث</string>
+    <string name="search_type_article">مقال</string>
+    <string name="search_type_audio">صوتية</string>
+    <string name="search_type_video">فيديو</string>
+    <string name="search_type_image">تصميم</string>
+    <string name="search_error">حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.</string>
 </resources>

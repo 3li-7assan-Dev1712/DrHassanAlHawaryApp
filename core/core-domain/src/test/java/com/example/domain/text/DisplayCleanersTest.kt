@@ -30,6 +30,17 @@ class DisplayCleanersTest {
     }
 
     @Test
+    fun `design titles drop the section prefix and use arabic digits`() {
+        assertEquals("٩ ذو الحجة ١٤٤٧هـ", DesignTitle.clean("تصميم - 9 ذو الحجة 1447هـ"))
+        assertEquals("فضل العشر", DesignTitle.clean("فضل العشر"))
+        assertEquals("تصميم", DesignTitle.clean("تصميم"))
+        assertEquals("صورة", DesignTitle.imageCount(1))
+        assertEquals("صورتان", DesignTitle.imageCount(2))
+        assertEquals("٣ صور", DesignTitle.imageCount(3))
+        assertEquals("١١ صورة", DesignTitle.imageCount(11))
+    }
+
+    @Test
     fun `handles and ltr fragments are isolated`() {
         assertEquals("⁦@ali_7assan⁩", BidiText.handle("ali_7assan"))
         assertEquals("⁦@ali_7assan⁩", BidiText.handle("@ali_7assan"))

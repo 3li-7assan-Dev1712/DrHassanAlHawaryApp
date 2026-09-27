@@ -8,7 +8,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 1: Shared foundations: Done
 - [x] Phase 2: Quick fixes: Done (2.1 no app change: not app code)
 - [x] Phase 3: Articles list and reader: Done (bookmark and selection-share skipped)
-- [ ] Phase 4: Search
+- [x] Phase 4: Search: Done (no audio durations in hits)
 - [ ] Phase 5: Fatwas list
 - [ ] Phase 6: Videos
 - [ ] Phase 7: Designs and viewer
@@ -88,3 +88,15 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - New preference keys (same `local_data` store, exposed through `DataStoreRepository`): `reader_font_step` (int), `recent_searches` (string, for Phase 4), `theme_follow_system` (boolean, for Phase 8). No existing key changed.
 - Skipped: bookmark (no bookmark feature exists).
 - Skipped: "مشاركة كصورة" in the selection toolbar. The quote-image entry point doesn't take a `String`: it's a route that takes an article id plus selection offsets into `ArticleText.displayText(content)`. The reader now shows *cleaned* paragraphs, so offsets would have to be mapped back to the raw text. That isn't straightforward, so I left it for later. Share still opens the existing selection screen.
+
+### Phase 4: Done (audio durations not available)
+- Tab-root `AppTopBar` "البحث" (no back arrow). New `SearchBar`: 48dp rounded `surface` field with a 0.5dp divider border, Tabler search icon, `textMuted` placeholder "ابحث في المقالات والصوتيات والفيديوهات" (bodyMedium, gone once text exists, distinct from `textPrimary` input), and a Tabler x clear button.
+- Minimum query + debounce: `ArabicSearchText.isSearchable` (after a leading "ال" is removed, some word must have 2+ letters). Otherwise the new `SearchUiState.TooShort` shows "اكتب كلمة أطول قليلًا" and nothing is sent. Typing searches after a 300 ms debounce; the keyboard's search button searches immediately.
+- Chip counts: the query asks Algolia for `facets = [type]`. This is a query parameter only: `type` is already filtered on, and index settings are untouched. Counts come from the latest unfiltered ("الكل") response and are kept while a type chip is selected ("مقالات ٥"). With no facet data there are no counts.
+- "الكل" groups results by type (مقالات, صوتيات, فيديوهات, صور) with a header "صوتيات · ٩" and "عرض الكل", which selects that chip. Each group previews 3 rows from the current page of hits.
+- Rows (`SearchResultRow`): a type icon (notebook/headphones/video/photo) in a 34dp `accentContainer` circle, the cleaned title (article → `ArticleTextCleaner.cleanTitle`, audio → `AudioTitleCleaner`, design → `DesignTitle`), and meta "مقال · قراءة ٥ دقائق" / "صوتية" / "فيديو" / "تصميم".
+- Whole-word highlighting (bold `accentText`) from the new pure-Kotlin `ArabicSearchText` (tashkeel/tatweel/hamza/ة/ى/ؤ/ئ normalization plus one-prefix stripping). Tested: "احكام" matches "أحكام"; "الصيام" matches "صيام" and "والصيام"; "ال" matches nothing; no fragment highlights. Algolia's `<em>` fragment highlights and the old `HighlightingUtil` / result cards were removed.
+- Article snippet: about 100 characters of `cleanBody` around the first matching word, snapped to word boundaries, with "…" on the cut sides (`ArabicSearchText.snippet`, tested).
+- Empty state: the large magnifier illustration is replaced by suggested topic chips (الزكاة، الصيام، الحج، البيوع، الأسرة; a tap searches) and up to 8 recent searches (new DataStore key `recent_searches`, saved when a search is submitted or a result opened) with "مسح".
+- Not done: audio durations in the meta ("صوتية · ١٨:٢٠"). Algolia hits don't carry a duration field in this codebase, so audio rows show "صوتية" only.
+- `DesignTitle` (Phase 7 helper) was added here because Search needed it: "تصميم - 9 ذو الحجة 1447هـ" → "٩ ذو الحجة ١٤٤٧هـ", plus the صورة/صورتان/٣ صور/١١ صورة count.

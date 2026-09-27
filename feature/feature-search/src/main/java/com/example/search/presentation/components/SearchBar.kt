@@ -1,121 +1,103 @@
 package com.example.search.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.core.ui.theme.CairoTypography
+import com.example.core.ui.R
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
 
-
+/**
+ * Rounded surface field: search icon, a muted placeholder that can never be mistaken
+ * for typed text (textMuted, and gone the moment there is text), and a clear (x) button.
+ */
 @Composable
 fun SearchBar(
-    modifier: Modifier = Modifier,
     searchQuery: String,
     onQueryChanged: (String) -> Unit,
-    hint: String,
-    onSearchClicked: () -> Unit = {}
+    modifier: Modifier = Modifier,
+    onSearchClicked: () -> Unit = {},
 ) {
-
     val keyboardController = LocalSoftwareKeyboardController.current
+    val colors = Brand.colors
 
-
-
-
-    Row(
-        modifier = modifier.padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = colors.surface,
+        border = BorderStroke(0.5.dp, colors.divider),
     ) {
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = "Search Icon", // Important for accessibility
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp)
-        )
-
-        // Using BasicTextField for more control over styling and no default Material decorations
-        BasicTextField(
-            value = searchQuery,
-            onValueChange = onQueryChanged,
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp),
-            textStyle = TextStyle(
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = CairoTypography.bodyLarge.fontSize,
-                fontFamily = CairoTypography.bodyLarge.fontFamily
-            ),
-            singleLine = true,
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-
-
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 12.dp)) {
+            Icon(
+                painter = painterResource(TablerIcons.Search),
+                contentDescription = null,
+                tint = colors.textMuted,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            BasicTextField(
+                value = searchQuery,
+                onValueChange = onQueryChanged,
+                modifier = Modifier.weight(1f),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.textPrimary),
+                singleLine = true,
+                cursorBrush = SolidColor(colors.accentStrong),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = {
                     keyboardController?.hide()
                     onSearchClicked()
-                }
-            ),
-
-            decorationBox = { innerTextField ->
-                Box(contentAlignment = Alignment.CenterStart) {
-                    if (searchQuery.isEmpty()) {
-                        Text(
-                            text = hint,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                }),
+                decorationBox = { innerTextField ->
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        if (searchQuery.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.search_placeholder),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.textMuted,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        innerTextField()
                     }
-                    innerTextField()
+                },
+            )
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { onQueryChanged("") }) {
+                    Icon(
+                        painter = painterResource(TablerIcons.X),
+                        contentDescription = stringResource(R.string.search_clear_query),
+                        tint = colors.textMuted,
+                        modifier = Modifier.size(18.dp),
+                    )
                 }
-            }
-        )
-
-        // let user clear the search query
-        if (searchQuery.isNotEmpty()) {
-            IconButton(onClick = { onQueryChanged("") }) { // Clear the query
-                Icon(
-                    imageVector = Icons.Default.Close, // Or Icons.Filled.Clear
-                    contentDescription = "Clear Search"
-                )
+            } else {
+                Spacer(Modifier.width(12.dp))
             }
         }
-      /*  if (searchQuery.isNotEmpty()) {
-            IconButton(onClick = { onSearchClicked() }) { // Clear the query
-                Icon(
-                    imageVector = Icons.Default.Search, // Or Icons.Filled.Clear
-                    contentDescription = "search content"
-                )
-            }
-        }*/
     }
-}
-
-@Preview(showBackground = true, widthDp = 320, heightDp = 120)
-@Composable
-fun SearchBarPreview() {
-    SearchBar(
-        searchQuery = "Search Query",
-        onQueryChanged = { /* Handle query changes */ },
-        hint = "Search"
-    )
-
 }
