@@ -12,7 +12,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - [x] Phase 4: Category screens: Done (no counts available)
 - [x] Phase 5: Splash and onboarding: Done
 - [x] Phase 6: About and Share-app: Done (no what's-new row)
-- [ ] Phase 7: Empty and error states
+- [x] Phase 7: Empty and error states: Done (no downloads state exists)
 - [ ] Phase 8: Final report
 
 ## Phase 0: inventory
@@ -115,3 +115,12 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - "مشاركة الرابط" (primary, `accentStrong`) opens the system share sheet through the existing `ShareAppUseCase` (ACTION_SEND text/plain) with the message + link.
 - "نسخ الرابط" copies the link and shows the Snackbar "تم نسخ الرابط".
 - "رمز QR" opens a `ModalBottomSheet` with "امسح الرمز لتحميل التطبيق", the QR at 200dp on white (both themes), and "أظهره لمن حولك في المسجد أو الدرس". The button only shows when `packageName == app.netlify.devalihassan`.
+
+### Phase 7: Done (only existing states; no downloads screen exists)
+- A new shared `EmptyState(illustration, title, body)` in `core-ui/components/Illustration.kt`, built on the Phase 5 fixed-height `IllustrationBox` and the `_dark` variants.
+- Search, no results: the document illustration, "لا توجد نتائج", "جرّب كلمة أخرى".
+- Search, error: the computer-and-server illustration, "تعذّر الاتصال بالإنترنت". The screen has no retry action, so there's no button.
+- Designs list, load error: the computer-and-server illustration, "تعذّر الاتصال بالإنترنت". No existing retry action, so no button (I didn't wire paging's `retry()`: that would be new UI logic).
+- Institute "منصة المعهد قريبًا" card: the journey illustration (160dp, ≤ 180dp) replaces the school-icon circle.
+- "No downloads yet" (whiteboard): skipped. The app has no downloads screen or state to put it in. The whiteboard (`rate_illu` + `_dark`) stays available through `Illustration.Whiteboard`.
+- The other empty lists (audio "no audios", videos "no videos", designs "no groups") aren't connection/search/download states in the spec's list, so they were left as they are.

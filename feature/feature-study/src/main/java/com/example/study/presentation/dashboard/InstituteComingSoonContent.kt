@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import coil.compose.AsyncImage
 import com.example.core.ui.R
+import com.example.core.ui.components.Illustration
+import com.example.core.ui.components.IllustrationBox
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
@@ -151,19 +153,7 @@ private fun ComingSoonCard(isLinked: Boolean) {
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(colors.accentContainer, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(TablerIcons.School),
-                    contentDescription = null,
-                    tint = colors.onAccentContainer,
-                    modifier = Modifier.size(26.dp),
-                )
-            }
+            IllustrationBox(Illustration.Journey, height = 160.dp)
             Spacer(Modifier.height(14.dp))
             Text(
                 text = "منصة المعهد قريبًا",

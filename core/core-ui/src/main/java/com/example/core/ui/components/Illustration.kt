@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,43 @@ enum class Illustration(@DrawableRes val light: Int, @DrawableRes val dark: Int)
     Document(R.drawable.summary_illu, R.drawable.summary_illu_dark),
     Whiteboard(R.drawable.rate_illu, R.drawable.rate_illu_dark),
     AboutApp(R.drawable.about_app_illu, R.drawable.about_app_illu_dark),
+}
+
+/**
+ * An existing empty/error state, illustrated: the drawing in a fixed-height box, a title
+ * and an optional body. No action here: screens add their own existing retry, if any.
+ */
+@Composable
+fun EmptyState(
+    illustration: Illustration,
+    title: String,
+    modifier: Modifier = Modifier,
+    body: String? = null,
+    height: Dp = 180.dp,
+) {
+    val colors = Brand.colors
+    androidx.compose.foundation.layout.Column(
+        modifier = modifier.padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        IllustrationBox(illustration, height = height)
+        androidx.compose.foundation.layout.Spacer(Modifier.height(20.dp))
+        androidx.compose.material3.Text(
+            text = title,
+            style = androidx.compose.material3.MaterialTheme.typography.titleMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+            color = colors.textPrimary,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
+        if (body != null) {
+            androidx.compose.foundation.layout.Spacer(Modifier.height(6.dp))
+            androidx.compose.material3.Text(
+                text = body,
+                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
+        }
+    }
 }
 
 /**

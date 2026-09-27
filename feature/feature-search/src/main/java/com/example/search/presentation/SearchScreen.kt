@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.EmptyState
+import com.example.core.ui.components.Illustration
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
@@ -158,7 +160,12 @@ fun SearchScreenContent(
                 is SearchUiState.Success -> {
                     val hits = remember(state.results) { state.results.hits.map(::parseHit) }
                     if (hits.isEmpty()) {
-                        CenteredMessage(stringResource(R.string.error_msg))
+                        EmptyState(
+                            illustration = Illustration.Document,
+                            title = stringResource(R.string.empty_no_results),
+                            body = stringResource(R.string.empty_try_another_word),
+                            modifier = Modifier.align(Alignment.Center),
+                        )
                     } else {
                         SearchResults(
                             hits = hits,
@@ -171,7 +178,11 @@ fun SearchScreenContent(
                     }
                 }
 
-                is SearchUiState.Error -> CenteredMessage(stringResource(R.string.search_error))
+                is SearchUiState.Error -> EmptyState(
+                    illustration = Illustration.ComputerAndServer,
+                    title = stringResource(R.string.empty_no_connection),
+                    modifier = Modifier.align(Alignment.Center),
+                )
             }
         }
     }

@@ -194,4 +194,7 @@
     <string name="share_app_qr">رمز QR</string>
     <string name="share_app_qr_title">امسح الرمز لتحميل التطبيق</string>
     <string name="share_app_qr_hint">أظهره لمن حولك في المسجد أو الدرس</string>
+    <string name="empty_no_connection">تعذّر الاتصال بالإنترنت</string>
+    <string name="empty_no_results">لا توجد نتائج</string>
+    <string name="empty_try_another_word">جرّب كلمة أخرى</string>
 </resources>

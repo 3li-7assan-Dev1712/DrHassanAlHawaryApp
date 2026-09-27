@@ -42,6 +42,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.EmptyState
+import com.example.core.ui.components.Illustration
 import com.example.core.ui.theme.Brand
 import com.example.feature.image.presentation.components.DesignTile
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
@@ -84,18 +86,9 @@ fun ImagesGroupsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.ImageNotSupported,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = Brand.colors.textMuted.copy(alpha = 0.5f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "فشل في تحميل المجموعات.\nيرجى المحاولة مرة أخرى.",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Brand.colors.textMuted
+                        EmptyState(
+                            illustration = Illustration.ComputerAndServer,
+                            title = stringResource(R.string.empty_no_connection),
                         )
                     }
                 }
