@@ -45,6 +45,7 @@ import app.netlify.devalihassan.core.util.LocaleForce
 import app.netlify.devalihassan.ui.navigation.BottomNavigationBar
 import app.netlify.devalihassan.ui.navigation.Routes
 import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.components.ContentCategories
 import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
@@ -411,7 +412,12 @@ class MainActivity : ComponentActivity() {
                 composable(Routes.AUDIO_CATEGORY_SCREEN) {
                     AudioCategoryScreen(
                         onCategoryClick = { categoryId, categoryTitle ->
-                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
+                            if (categoryId == ContentCategories.ALL_ID) {
+                                // "الكل": the list with no category filter (its args are nullable).
+                                navController.navigate(Routes.AUDIO_LIST_SCREEN)
+                            } else {
+                                navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
+                            }
                         },
                         onNavigateUp = { navController.popBackStack() }
                     )

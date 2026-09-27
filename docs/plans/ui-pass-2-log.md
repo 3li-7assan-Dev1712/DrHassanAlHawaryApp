@@ -9,7 +9,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - [x] Phase 1: Quick fixes: Done
 - [x] Phase 2: Audio player: Done
 - [x] Phase 3: Share-as-video preview: Done
-- [ ] Phase 4: Category screens
+- [x] Phase 4: Category screens: Done (no counts available)
 - [ ] Phase 5: Splash and onboarding
 - [ ] Phase 6: About and Share-app
 - [ ] Phase 7: Empty and error states
@@ -71,3 +71,9 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
   - Under the "حمّل التطبيق" pill there's a small LTR text link `dr-alhawary.com`. The only Play Store link in the code is the long `play.google.com/store/apps/details?id=…`, not a short link. The video footer moved up (`VIDEO_DIVIDER_Y`/`VIDEO_FOOTER_TOP`) so the link fits above `SAFE_BOTTOM`. The quote images' footer is unchanged (same default positions, no link).
   - The animated overlay region was extended to cover the larger times.
 - The share androidTests still compile (`compileDebugAndroidTestKotlin`). Their direction checks are left/right-agnostic.
+
+### Phase 4: Done (no count lines: counts aren't loaded on these screens)
+- One shared definition, `core-ui/components/CategoryList.kt` → `ContentCategories`: الكل (`layout-grid`), فتاوى (`messages`), دروس علمية (`books`), خطب الجمعة والعيدين (`building-mosque`), محاضرات (`microphone`), تلاوات (`book`), in that order. The ids match the stored ones (`all`, `fatawah`, `scientific_lessons`, `khotab`, `lectures`, `telawat`). `ContentCategories.resolve` maps whatever the VM loaded onto it. An unknown category goes at the end with a generic icon (Tabler `music`) and its own title. New Tabler icons: layout-grid, messages, books, building-mosque, microphone, book (+ music as the generic one).
+- Both screens use the new shared `CategoryScreenContent`: an `AppTopBar` with a start-aligned title "الصوتيات" / "الفيديوهات" ("تصنيفات" dropped) and a back arrow on `background`, then one `surface` card of compact rows. Each row has a 40dp `accentContainer` circle with the icon in `onAccentContainer`, the name (14sp, weight 500), a chevron-left and hairline dividers. The gradient `CategoryGridTile` grid is no longer used (the file is left in place, unused). Both themes use the palette's surface (white in light, #2C2C2A in dark).
+- Audio gained "الكل". It opens `audio_list_screen` with no query args. `categoryId`/`categoryTitle` are nullable route args already, the DAO filters with `:categoryId IS NULL OR …`, and the list title falls back to "الصوتيات". No architecture change.
+- Count lines: skipped. No counts are available on these screens without new queries.
