@@ -14,7 +14,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 7: Designs and viewer: Done
 - [x] Phase 8: Profile: Done
 - [x] Phase 9: About the Sheikh: Done
-- [ ] Phase 10: Institute
+- [x] Phase 10: Institute: Done (channel button omitted: no URL)
 - [ ] Phase 11: فاسألوا
 - [ ] Phase 12: Consistency pass
 - [ ] Phase 13: Final report
@@ -148,3 +148,11 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - المساهمات: the media and teaching lists under plain headers. Emoji headers (🎓 📺 ✍️ 📚) are gone.
 - القنوات الرسمية: the website `https://www.dr-alhawary.com` (from the spec) and فاسألوا `https://t.me/Fasalu1447` (already in `QAScreen`). The URLs are shown LTR-isolated. The `socialLinks` in `DoctorProfile` are placeholders (facebook.com, youtube.com, wa.me/123456789, example email), so they weren't used, and no URL was invented.
 - Content fix (in-app data): the master's entry had an unclosed parenthesis ("… تحقيق ودراسة(1995م)"). It's now "… تحقيق ودراسة) (1995م)".
+
+### Phase 10: Done ("فتح قناة المعهد" omitted: no URL in code)
+- Tab-root `AppTopBar` ("معهد الشيخ حسن الهواري الفقهي", start-aligned, no back arrow) on `background`. It replaces the centered M3 bar.
+- Profile card: 56dp avatar with a 2dp `accent` ring, the name, "@handle" via `BidiText.handle`, and a status chip on `successContainer` with a `success` dot and the real status text: `institute_student` + " · " + `formatBatchName(batch)` → "من طلاب المعهد · الدفعة الأولى". A non-member gets a neutral `surfaceMuted` chip with "ليس من طلاب المعهد".
+- Coming-soon card: a Tabler school icon in a 52dp `accentContainer` circle, "منصة المعهد قريبًا", and the body "نجهّز محتوى الدراسة داخل التطبيق، وسيُفعَّل قريبًا إن شاء الله.". A hairline then separates a success line (Tabler circle-check in `success`) "تم ربط حسابك بقناة المعهد على تيليجرام", shown only when `isConnectedToTelegram`.
+- "فتح قناة المعهد": omitted. No institute channel URL exists in the code (only the Telegram *login* OAuth URL and فاسألوا's `t.me/Fasalu1447`).
+- No "notify me" button (per spec; it needs backend work).
+- The Guest / NotChannelMember states keep their existing content. They sit on the new `background` but weren't redesigned (not in the spec).
