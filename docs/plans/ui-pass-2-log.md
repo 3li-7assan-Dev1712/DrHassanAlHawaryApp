@@ -208,3 +208,7 @@ f1874df chore: snapshot before UI pass 2
   - Step 2: drag an edge handle, drag the middle, or tap outside the clip.
   - Bugs fixed: the zoomed strip re-centred under the finger mid-drag, so the window didn't follow it; a handle dragged near the track's start or end could crash (`coerceIn` with min > max); each drag step rounded, which added drift.
   - The maths is now `core-domain/.../media/ClipWindow.kt` (+ `ClipWindowTest`, 6 tests).
+
+## Follow-up: Institute icon and dark illustrations
+- Institute "منصة المعهد قريبًا" card: back to the Tabler school icon in a 52dp `accentContainer` circle (instead of the journey illustration), as Ali asked.
+- Dark illustration variants re-mapped to a warm palette that matches the dark theme. The old light-gray ink (#D3D1C7) glared on the boy's hair, monitor and clothes. Now: white fills → #3B312A, light grays → #4A3E35, mid grays → #5E5046, ink → #8A7666, gold → #E9B45E, skin unchanged. The light versions are unchanged. This applies to all 7 illustrations (study_boy, network_error, share_app_illu, journey_illu, summary_illu, about_app_illu, rate_illu).

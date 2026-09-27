@@ -18,9 +18,9 @@ import com.example.core.ui.R
 import com.example.core.ui.theme.Brand
 
 /**
- * The app's illustrations, each with a dark variant (`<name>_dark`: white fills → #2C2C2A,
- * light grays → #3A332E, mid grays → #444441, ink → #D3D1C7, gold unchanged, skin
- * unchanged). Picked by the APP's theme ([Brand.colors]), not the system's: the app has
+ * The app's illustrations, each with a warm dark variant (`<name>_dark`: white fills →
+ * #3B312A, light grays → #4A3E35, mid grays → #5E5046, ink → #8A7666, gold → #E9B45E,
+ * skin unchanged) that sits on the dark background without light-gray glare. Picked by the APP's theme ([Brand.colors]), not the system's: the app has
  * its own light/dark setting, which a `drawable-night` folder wouldn't follow.
  */
 enum class Illustration(@DrawableRes val light: Int, @DrawableRes val dark: Int) {
