@@ -88,14 +88,14 @@ fun ImagesGroupsScreen(
                             imageVector = Icons.Default.ImageNotSupported,
                             contentDescription = null,
                             modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            tint = Brand.colors.textMuted.copy(alpha = 0.5f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "فشل في تحميل المجموعات.\nيرجى المحاولة مرة أخرى.",
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Brand.colors.textMuted
                         )
                     }
                 }
@@ -106,7 +106,7 @@ fun ImagesGroupsScreen(
                             Text(
                                 text = "لا توجد مجموعات تصاميم حاليًا.",
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = Brand.colors.textMuted
                             )
                         }
                     } else {

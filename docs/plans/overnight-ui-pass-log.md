@@ -16,7 +16,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 9: About the Sheikh: Done
 - [x] Phase 10: Institute: Done (channel button omitted: no URL)
 - [x] Phase 11: فاسألوا: Done
-- [ ] Phase 12: Consistency pass
+- [x] Phase 12: Consistency pass: Done
 - [ ] Phase 13: Final report
 
 ## Phase 0: inventory
@@ -164,3 +164,9 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - Steps card with numbered `accentContainer` circles (١، ٢، ٣): افتح فاسألوا في تيليجرام / اكتب سؤالك بوضوح واختصار / تابع الرد في المحادثة نفسها.
 - "قبل أن تسأل" card: the subtitle "لعل سؤالك أُجيب عنه من قبل" and a read-only field "ابحث في الفتاوى المجاب عنها" that opens the existing Search screen. There's no audio preset because the route has no preset argument.
 - Button: `fasalooTeal` with white text and the Tabler send icon, "افتح في تيليجرام". The current intent is already the `https://t.me/Fasalu1447` link (it opens Telegram when installed). On `ActivityNotFoundException` it retries the same link explicitly in a browser (`CATEGORY_APP_BROWSER` selector). If that fails too, a Snackbar shows "تعذّر فتح تيليجرام…" (new string `q_a_cannot_open`). Custom Tabs wasn't used because `androidx.browser` isn't a dependency of `:app`, and adding it is off-limits.
+
+### Phase 12: Done
+- Background / surface: every touched screen is now `background` + `surface` cards with 0.5dp `divider` hairlines: articles list + reader, search, fatwas list, videos, designs, profile, about, institute (coming-soon and not-a-member states), فاسألوا. The root Scaffold's status-bar strip is `background` too (Phase 1). This pass also moved the remaining `onSurfaceVariant` empty-state texts on the audio/videos/designs lists to `textMuted`, and replaced the gray `surfaceVariant` card in the Institute "not a channel member" state with a `surface` card.
+- Edge-to-edge: already enabled (`enableEdgeToEdge` + bar styles in `MainActivity`), so no change was needed. Bar icon contrast now follows the *effective* theme, including "تلقائي" (Phase 8). The root Scaffold's `innerPadding` already applies the status/navigation insets to every screen, so no per-screen `WindowInsets` changes were needed.
+- Previews: light + dark `@Preview`s for `AppTopBar`, the article card, reader, search (idle/too short), fatwa rows, video card, about, institute and فاسألوا. The profile screen's preview was dropped because it needs a Hilt ViewModel and the old one only rendered through one.
+- Not touched: `AudioCategoryScreen` / `VideoCategoryScreen` (the category pickers before the lists) still use the M3 top bar and `surface`. They weren't in this pass's list of screens.

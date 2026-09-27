@@ -112,13 +112,13 @@ fun VideosScreenContent(
                         imageVector = Icons.Default.VideoLibrary,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                        tint = Brand.colors.textMuted.copy(alpha = 0.5f)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = stringResource(R.string.no_videos_available),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Brand.colors.textMuted
                     )
                 }
             } else {
