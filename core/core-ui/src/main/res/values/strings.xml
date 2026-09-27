@@ -172,4 +172,10 @@
     <string name="about_fasaloo">فاسألوا على تيليجرام</string>
     <string name="about_media_contributions">المساهمات الإعلامية</string>
     <string name="about_teaching_contributions">المساهمات التعليمية</string>
+    <string name="audio_downloading_lesson">جارٍ تحميل الدرس</string>
+    <string name="audio_cancel_download">إلغاء التحميل</string>
+    <string name="audio_rewind_10">رجوع ١٠ ثوانٍ</string>
+    <string name="audio_forward_10">تقديم ١٠ ثوانٍ</string>
+    <string name="audio_speed">السرعة</string>
+    <string name="audio_download">تحميل</string>
 </resources>

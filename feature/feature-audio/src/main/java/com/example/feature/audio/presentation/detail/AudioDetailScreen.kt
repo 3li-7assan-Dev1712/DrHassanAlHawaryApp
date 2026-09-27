@@ -3,82 +3,74 @@ package com.example.feature.audio.presentation.detail
 import android.content.ComponentName
 import android.content.Intent
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.SheikhPhoto
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.domain.module.FixedCategories
 import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.AudioTitleCleaner
+import com.example.domain.text.ShareTitleParser
 import com.google.common.util.concurrent.ListenableFuture
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioDetailScreen(
     onNavigateUp: () -> Unit,
@@ -87,10 +79,9 @@ fun AudioDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-
     val context = LocalContext.current
     val sessionToken = remember {
-        SessionToken(context, ComponentName(context,  PlaybackService::class.java))
+        SessionToken(context, ComponentName(context, PlaybackService::class.java))
     }
 
     val controllerFuture: ListenableFuture<MediaController> = remember {
@@ -113,9 +104,11 @@ fun AudioDetailScreen(
         onNavigateUp = onNavigateUp,
         onPlayPauseToggle = viewModel::onPlayPauseToggle,
         onSeek = viewModel::onSeek,
-        onRewind = { viewModel.onRewind(10) },
-        onForward = { viewModel.onForward(10) },
+        onRewind = { viewModel.onRewind(SKIP_SECONDS) },
+        onForward = { viewModel.onForward(SKIP_SECONDS) },
+        onCycleSpeed = viewModel::onCycleSpeed,
         onDownload = viewModel::onDownloadClicked,
+        onCancelDownload = viewModel::onCancelDownload,
         onShare = {
             val audioUrl = uiState.audioUrl
             // §1: audio metadata/duration may still be loading right after the screen
@@ -135,8 +128,8 @@ fun AudioDetailScreen(
     )
 }
 
+private const val SKIP_SECONDS = 10
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioDetailScreen(
     uiState: AudioDetailUiState,
@@ -145,326 +138,184 @@ fun AudioDetailScreen(
     onSeek: (Long) -> Unit,
     onRewind: () -> Unit,
     onForward: () -> Unit,
+    onCycleSpeed: () -> Unit,
     onDownload: () -> Unit,
+    onCancelDownload: () -> Unit,
     onShare: () -> Unit
 ) {
-
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            uiState.title,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                letterSpacing = 0.5.sp
-                            )
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateUp) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    actions = {
-                        val canShare = !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L
-                        IconButton(onClick = onShare, enabled = canShare) {
-                            Icon(
-                                Icons.Filled.Share,
-                                contentDescription = "Share",
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = if (canShare) 1f else 0.38f)
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent
-                    ),
-                    windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.surface
-        ) { paddingValues ->
-            if (uiState.isLoadingDetails) {
-                LoadingSection(paddingValues)
-            } else {
-                AudioDetailContent(
-                    paddingValues,
-                    uiState,
-                    onPlayPauseToggle,
-                    uiState.currentPositionMillis,
-                    onSeek,
-                    onRewind,
-                    onForward,
-                    onDownload
-                )
-            }
-        }
-
-        // Full Screen Downloading Overlay
-        if (uiState.downloadProgress > 0f && !uiState.isDownloaded && uiState.downloadProgress < 100f) {
+    val colors = Brand.colors
+    Scaffold(
+        // Back arrow only: the title is shown once, under the photo.
+        topBar = { AppTopBar(title = "", onBack = onNavigateUp) },
+        containerColor = colors.background,
+    ) { paddingValues ->
+        if (uiState.isLoadingDetails) {
             Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(strokeWidth = 3.dp, color = colors.accentStrong)
+            }
+        } else {
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                    .padding(32.dp),
-                contentAlignment = Alignment.Center
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(
-                        progress = { uiState.downloadProgress / 100f },
-                        modifier = Modifier.size(80.dp),
-                        strokeWidth = 6.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
+                Spacer(Modifier.height(8.dp))
+                SheikhPhoto(size = 200.dp, ringWidth = 2.dp, ringColor = colors.accent)
+                Spacer(Modifier.height(20.dp))
+                TitleBlock(uiState)
+
+                if (uiState.isDownloading) {
+                    Spacer(Modifier.height(16.dp))
+                    DownloadCard(progress = uiState.downloadProgress, onCancel = onCancelDownload)
+                }
+
+                Spacer(Modifier.height(24.dp))
+                SeekBar(uiState = uiState, onSeek = onSeek)
+                Spacer(Modifier.height(16.dp))
+                TransportRow(uiState, onRewind, onPlayPauseToggle, onForward)
+                Spacer(Modifier.height(24.dp))
+                ActionRow(uiState, onCycleSpeed, onDownload, onShare)
+                Spacer(Modifier.height(32.dp))
+            }
+        }
+    }
+}
+
+/**
+ * Category chip (only when the item has one), the cleaned title, a gold date line for
+ * titles that carry one (Friday sermons: "خطبة بعنوان: … - الجمعة: ( ٢٤ صفر …"), and the
+ * sheikh's name.
+ */
+@Composable
+private fun TitleBlock(uiState: AudioDetailUiState) {
+    val colors = Brand.colors
+    val categoryTitle = remember(uiState.category) {
+        FixedCategories.AUDIO_CATEGORIES.find { it.id == uiState.category }?.title
+    }
+    val (title, dateLine) = remember(uiState.title) {
+        val parsed = ShareTitleParser.parse(uiState.title)
+        val date = ArabicNumerals.formatDateLine(parsed.hijriDate, parsed.gregorianDate)
+        if (date != null && parsed.title.isNotBlank()) {
+            AudioTitleCleaner.clean(parsed.title) to date
+        } else {
+            AudioTitleCleaner.clean(uiState.title) to null
+        }
+    }
+
+    if (categoryTitle != null) {
+        Text(
+            text = categoryTitle,
+            style = MaterialTheme.typography.labelMedium,
+            color = colors.onAccentContainer,
+            modifier = Modifier
+                .background(colors.accentContainer, RoundedCornerShape(50))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+        )
+        Spacer(Modifier.height(10.dp))
+    }
+    Text(
+        text = ArabicNumerals.digits(title),
+        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold, lineHeight = 1.5.em),
+        color = colors.textPrimary,
+        textAlign = TextAlign.Center,
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis,
+    )
+    if (dateLine != null) {
+        Spacer(Modifier.height(4.dp))
+        Text(text = dateLine, style = MaterialTheme.typography.bodyMedium, color = colors.accentText, textAlign = TextAlign.Center)
+    }
+    Spacer(Modifier.height(4.dp))
+    Text(text = stringResource(R.string.sheikh_name), style = MaterialTheme.typography.bodyMedium, color = colors.textSecondary)
+}
+
+/** Inline, non-blocking download progress with a cancel (x). Playback keeps streaming. */
+@Composable
+private fun DownloadCard(progress: Float, onCancel: () -> Unit) {
+    val colors = Brand.colors
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = colors.surface,
+        border = BorderStroke(0.5.dp, colors.divider),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(painterResource(TablerIcons.Download), contentDescription = null, tint = colors.accent, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(10.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "جار تحميل ملفات الدرس الرجاء الإنتظار، قد يستغرق الأمر وقتا برجاء الإنتظار",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            lineHeight = 28.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
+                        text = stringResource(R.string.audio_downloading_lesson),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colors.textPrimary,
+                        modifier = Modifier.weight(1f),
                     )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
                     Text(
-                        text = "${uiState.downloadProgress.toInt()}%",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.primary
+                        text = "${ArabicNumerals.digits(progress.toInt())}٪",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.accentText,
                     )
                 }
+                Spacer(Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { (progress / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp),
+                    color = colors.accentStrong,
+                    trackColor = colors.divider,
+                    strokeCap = StrokeCap.Round,
+                )
+            }
+            IconButton(onClick = onCancel) {
+                Icon(
+                    painterResource(TablerIcons.X),
+                    contentDescription = stringResource(R.string.audio_cancel_download),
+                    tint = colors.textMuted,
+                    modifier = Modifier.size(18.dp),
+                )
             }
         }
     }
 }
 
+/**
+ * One track, ONE round thumb (no stop dot, no bar thumb). Media timelines run left to
+ * right even in RTL: elapsed on the left, total on the right.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AudioDetailContent(
-    paddingValues: PaddingValues,
-    uiState: AudioDetailUiState,
-    onPlayPauseToggle: () -> Unit,
-    currentPosition: Long,
-    onSeek: (Long) -> Unit,
-    onRewind: () -> Unit,
-    onForward: () -> Unit,
-    onDownload: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                        MaterialTheme.colorScheme.surface
-                    )
-                )
-            )
-            .padding(paddingValues)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        AudioTitleSection(uiState)
-
-        Spacer(modifier = Modifier.height(56.dp))
-
-        ThemedPlayerControls(
-            uiState = uiState,
-            onPlayPauseToggle = onPlayPauseToggle,
-            currentPosition = currentPosition,
-            onSeek = onSeek,
-            totalDuration = uiState.totalDurationMillis,
-            onRewind = onRewind,
-            onForward = onForward,
-            onDownload = onDownload,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        AudioDescriptionSection(uiState)
-        
-        Spacer(modifier = Modifier.height(64.dp))
-    }
-}
-
-@Composable
-private fun AudioDescriptionSection(
-    uiState: AudioDetailUiState
-) {
-    if (uiState.description != null) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-                    shape = RoundedCornerShape(28.dp)
-                )
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
-                    shape = RoundedCornerShape(28.dp)
-                )
-                .padding(28.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.audio_detail_description_title),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp
-                ),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = uiState.description,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 28.sp,
-                    letterSpacing = 0.25.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f),
-                modifier = Modifier.animateContentSize()
-            )
-        }
-    }
-}
-
-@Composable
-private fun AudioTitleSection(
-    uiState: AudioDetailUiState,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Highly Polished Image Container
-        Surface(
-            modifier = Modifier
-                .size(280.dp)
-                .shadow(
-                    elevation = 24.dp,
-                    shape = CircleShape,
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-                ),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(
-                width = 5.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
-                        MaterialTheme.colorScheme.primaryContainer
-                    )
-                )
-            )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
-                    .clip(CircleShape)
-            ) {
-                Image(
-                    modifier = Modifier.fillMaxSize(),
-                    painter = painterResource(
-                        id = R.drawable.dr_hassan_image
-                    ),
-                    contentDescription = uiState.title,
-                    contentScale = ContentScale.Crop,
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Text(
-            text = uiState.title,
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold,
-                lineHeight = 36.sp,
-                letterSpacing = 0.25.sp
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 36.dp),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-private fun LoadingSection(paddingValues: PaddingValues) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues), contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            strokeWidth = 3.dp,
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-}
-
-
-@Composable
-fun ThemedPlayerControls(
-    modifier: Modifier = Modifier,
-    uiState: AudioDetailUiState,
-    onPlayPauseToggle: () -> Unit,
-    currentPosition: Long,
-    totalDuration: Long,
-    onSeek: (Long) -> Unit,
-    onRewind: () -> Unit,
-    onForward: () -> Unit,
-    onDownload: () -> Unit
-) {
+private fun SeekBar(uiState: AudioDetailUiState, onSeek: (Long) -> Unit) {
+    val colors = Brand.colors
     var isUserSeeking by remember { mutableStateOf(false) }
-    var sliderPosition by remember { mutableStateOf(currentPosition.toFloat()) }
-
-    LaunchedEffect(currentPosition) {
-        if (!isUserSeeking) {
-            sliderPosition = currentPosition.toFloat()
-        }
+    var sliderPosition by remember { mutableFloatStateOf(uiState.currentPositionMillis.toFloat()) }
+    LaunchedEffect(uiState.currentPositionMillis) {
+        if (!isUserSeeking) sliderPosition = uiState.currentPositionMillis.toFloat()
     }
+    val sliderColors = SliderDefaults.colors(
+        thumbColor = colors.accentStrong,
+        activeTrackColor = colors.accentStrong,
+        inactiveTrackColor = colors.divider,
+        disabledActiveTrackColor = colors.divider,
+        disabledInactiveTrackColor = colors.divider,
+    )
 
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // --- Seek Bar ---
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Column(Modifier.fillMaxWidth()) {
             Slider(
                 value = sliderPosition,
-                valueRange = 0f..(totalDuration.toFloat().coerceAtLeast(1f)),
+                valueRange = 0f..(uiState.totalDurationMillis.toFloat().coerceAtLeast(1f)),
                 onValueChange = {
                     isUserSeeking = true
                     sliderPosition = it
@@ -473,206 +324,212 @@ fun ThemedPlayerControls(
                     isUserSeeking = false
                     onSeek(sliderPosition.toLong())
                 },
+                enabled = uiState.totalDurationMillis > 0,
+                colors = sliderColors,
+                thumb = {
+                    Box(
+                        Modifier
+                            .size(16.dp)
+                            .background(colors.accentStrong, CircleShape),
+                    )
+                },
+                track = { state ->
+                    SliderDefaults.Track(
+                        sliderState = state,
+                        modifier = Modifier.height(4.dp),
+                        colors = sliderColors,
+                        drawStopIndicator = null,
+                        thumbTrackGapSize = 0.dp,
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = uiState.totalDurationMillis > 0 && !uiState.isBuffering,
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                )
             )
-            if (uiState.isBuffering && uiState.totalDurationMillis > 0) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    ArabicNumerals.formatMediaTime(sliderPosition.toLong()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.textSecondary,
+                )
+                Text(
+                    ArabicNumerals.formatMediaTime(uiState.totalDurationMillis),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = colors.textMuted,
                 )
             }
         }
+    }
+}
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 2.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                ArabicNumerals.formatMediaTime(uiState.currentPositionMillis),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                ),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                ArabicNumerals.formatMediaTime(uiState.totalDurationMillis),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 1.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- Main Player Action Buttons ---
+/** Left to right: back 10 (counter-clockwise), play/pause (gold circle), forward 10 (clockwise). */
+@Composable
+private fun TransportRow(
+    uiState: AudioDetailUiState,
+    onRewind: () -> Unit,
+    onPlayPauseToggle: () -> Unit,
+    onForward: () -> Unit,
+) {
+    val colors = Brand.colors
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            ControlIconButton(
-                onClick = onRewind,
-                enabled = !uiState.isBuffering,
-                painter = painterResource(id = R.drawable.round_backword_icon),
-                contentDescription = "Rewind 10 seconds",
-                iconSize = 36.dp
-            )
-
-            // Play/Pause with standard fade transition
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(96.dp)) {
+            SkipButton(TablerIcons.Rotate, stringResource(R.string.audio_rewind_10), onRewind)
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
                 if (uiState.isBuffering && uiState.totalDurationMillis == 0L) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(72.dp),
-                        strokeWidth = 4.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    CircularProgressIndicator(Modifier.size(64.dp), strokeWidth = 3.dp, color = colors.accentStrong)
                 } else {
-                    AnimatedContent(
-                        targetState = uiState.isPlaying,
-                        label = "PlayPause",
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(250)) togetherWith fadeOut(animationSpec = tween(250))
+                    Surface(
+                        onClick = onPlayPauseToggle,
+                        shape = CircleShape,
+                        color = colors.accentStrong,
+                        modifier = Modifier.size(76.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(if (uiState.isPlaying) TablerIcons.PlayerPause else TablerIcons.PlayerPlay),
+                                contentDescription = stringResource(if (uiState.isPlaying) R.string.share_pause else R.string.share_play),
+                                tint = colors.onGold,
+                                modifier = Modifier.size(34.dp),
+                            )
                         }
-                    ) { playing ->
-                        MainPlayButton(
-                            isPlaying = playing,
-                            onClick = onPlayPauseToggle,
-                            enabled = !uiState.isBuffering && uiState.totalDurationMillis > 0
-                        )
                     }
                 }
             }
+            SkipButton(TablerIcons.RotateClockwise, stringResource(R.string.audio_forward_10), onForward)
+        }
+    }
+}
 
-            ControlIconButton(
-                onClick = onForward,
-                enabled = !uiState.isBuffering,
-                painter = painterResource(id = R.drawable.round_forward_icon),
-                contentDescription = "Forward 10 seconds",
-                iconSize = 36.dp
+@Composable
+private fun SkipButton(@DrawableRes icon: Int, description: String, onClick: () -> Unit) {
+    val colors = Brand.colors
+    IconButton(onClick = onClick, modifier = Modifier.size(64.dp)) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(painterResource(icon), contentDescription = description, tint = colors.textPrimary, modifier = Modifier.size(44.dp))
+            Text(
+                text = ArabicNumerals.digits(SKIP_SECONDS),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = colors.textPrimary,
             )
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // --- Download Status / Button ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+/** Three labeled circles: السرعة (current speed), تحميل (idle / % / محفوظ), مشاركة. */
+@Composable
+private fun ActionRow(
+    uiState: AudioDetailUiState,
+    onCycleSpeed: () -> Unit,
+    onDownload: () -> Unit,
+    onShare: () -> Unit,
+) {
+    val colors = Brand.colors
+    val canShare = !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        ActionCircle(label = stringResource(R.string.audio_speed), onClick = onCycleSpeed) {
+            Text(
+                text = speedLabel(uiState.playbackSpeed),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = colors.accentText,
+            )
+        }
+        ActionCircle(
+            label = stringResource(if (uiState.isDownloaded) R.string.audio_saved else R.string.audio_download),
+            onClick = onDownload,
+            enabled = !uiState.isDownloaded && !uiState.isDownloading,
         ) {
-            if (uiState.isDownloaded) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_download),
-                        contentDescription = "Downloaded",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+            when {
+                uiState.isDownloaded -> Icon(painterResource(TablerIcons.Check), null, tint = colors.success, modifier = Modifier.size(22.dp))
+                uiState.isDownloading -> Box(contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        progress = { (uiState.downloadProgress / 100f).coerceIn(0f, 1f) },
+                        modifier = Modifier.size(40.dp),
+                        strokeWidth = 2.dp,
+                        color = colors.accentStrong,
+                        trackColor = colors.divider,
                     )
                     Text(
-                        text = "تم التنزيل",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.primary
+                        "${ArabicNumerals.digits(uiState.downloadProgress.toInt())}٪",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.textPrimary,
                     )
                 }
-            } else if (uiState.downloadProgress <= 0f) {
-                ControlIconButton(
-                    onClick = onDownload,
-                    enabled = true,
-                    painter = painterResource(id = R.drawable.ic_download),
-                    contentDescription = "Download Audio",
-                    iconSize = 28.dp
-                )
+                else -> Icon(painterResource(TablerIcons.Download), null, tint = colors.accent, modifier = Modifier.size(22.dp))
             }
         }
-    }
-}
-
-@Composable
-fun MainPlayButton(
-    isPlaying: Boolean,
-    onClick: () -> Unit,
-    enabled: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier
-            .size(90.dp)
-            .shadow(20.dp, CircleShape, spotColor = MaterialTheme.colorScheme.primary),
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.primary,
-        enabled = enabled,
-        onClick = onClick
-    ) {
-        Box(contentAlignment = Alignment.Center) {
+        ActionCircle(label = stringResource(R.string.share), onClick = onShare, enabled = canShare) {
             Icon(
-                painter = painterResource(
-                    id = if (isPlaying) R.drawable.round_pause_icon else R.drawable.round_play_icon
-                ),
-                contentDescription = if (isPlaying) "Pause" else "Play",
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onPrimary
+                painterResource(TablerIcons.Share),
+                null,
+                tint = if (canShare) colors.accent else colors.textMuted,
+                modifier = Modifier.size(22.dp),
             )
         }
     }
 }
 
 @Composable
-fun ControlIconButton(
-    onClick: () -> Unit,
-    painter: Painter,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    iconSize: androidx.compose.ui.unit.Dp = 24.dp
-) {
-    IconButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.size(iconSize + 24.dp)
-    ) {
-        Icon(
-            painter = painter,
-            contentDescription = contentDescription,
-            modifier = Modifier.size(iconSize),
-            tint = if (enabled) MaterialTheme.colorScheme.onSurface 
-                   else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+private fun ActionCircle(label: String, onClick: () -> Unit, enabled: Boolean = true, content: @Composable () -> Unit) {
+    val colors = Brand.colors
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Surface(
+            onClick = onClick,
+            enabled = enabled,
+            shape = CircleShape,
+            color = colors.surface,
+            border = BorderStroke(0.5.dp, colors.divider),
+            modifier = Modifier.size(52.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) { content() }
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(label, style = MaterialTheme.typography.labelMedium, color = colors.textSecondary)
+    }
+}
+
+/** "١×", "١٫٢٥×", "٠٫٧٥×". */
+private fun speedLabel(speed: Float): String {
+    val western = if (speed % 1f == 0f) speed.toInt().toString() else speed.toString().trimEnd('0')
+    return ArabicNumerals.digits(western).replace('.', '٫') + "×"
+}
+
+@Preview(name = "Player - light", locale = "ar", widthDp = 360, heightDp = 780)
+@Composable
+private fun AudioDetailLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) {
+        AudioDetailScreen(
+            uiState = AudioDetailUiState(
+                title = "مقطع بعنوان: حكم تبديل العملة بمقابل",
+                category = "fatawah",
+                totalDurationMillis = 1_330_000L,
+                currentPositionMillis = 189_000L,
+                isLoadingDetails = false,
+                isDownloading = true,
+                downloadProgress = 45f,
+            ),
+            onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {}, onForward = {},
+            onCycleSpeed = {}, onDownload = {}, onCancelDownload = {}, onShare = {},
         )
     }
 }
 
-
-// --- Previews ---
-@Preview(showBackground = true, name = "Audio Detail Screen (Highly Polished)")
+@Preview(name = "Player - dark", locale = "ar", widthDp = 360, heightDp = 780)
 @Composable
-fun AudioDetailScreenPolishedPreview() {
-    MaterialTheme {
-        val sampleUiState = AudioDetailUiState(
-            title = "أهمية العلم في حياة المسلم",
-            description = "شرح مفصل حول أهمية طلب العلم وفضله في الإسلام والمجتمع، مع استعراض الأدلة من الكتاب والسنة وكيفية تطبيق ذلك في الحياة اليومية لرفع شأن الأمة.",
-            totalDurationMillis = 3600000L,
-            currentPositionMillis = 1200000L,
-            isPlaying = false,
-            isFavorite = true,
-            isLoadingDetails = false,
-        )
+private fun AudioDetailDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) {
         AudioDetailScreen(
-            uiState = sampleUiState,
-            onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {},
-            onForward = {}, onDownload = {}, onShare = {}
+            uiState = AudioDetailUiState(
+                title = "خطبة بعنوان: فضل العشر - الجمعة: ( ٢٧ ذو القعدة ١٤٤٧هـ، 2026/5/15م",
+                category = "khotab",
+                totalDurationMillis = 1_330_000L,
+                isLoadingDetails = false,
+                isDownloaded = true,
+                playbackSpeed = 1.25f,
+            ),
+            onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {}, onForward = {},
+            onCycleSpeed = {}, onDownload = {}, onCancelDownload = {}, onShare = {},
         )
     }
 }

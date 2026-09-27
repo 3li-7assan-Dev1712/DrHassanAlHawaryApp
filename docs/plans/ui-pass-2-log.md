@@ -7,7 +7,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 
 - [x] Phase 0: Setup and inventory: Done
 - [x] Phase 1: Quick fixes: Done
-- [ ] Phase 2: Audio player
+- [x] Phase 2: Audio player: Done
 - [ ] Phase 3: Share-as-video preview
 - [ ] Phase 4: Category screens
 - [ ] Phase 5: Splash and onboarding
@@ -39,3 +39,17 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - 1.3 Onboarding spelling fixed in `feature-onboarding/res/values/strings.xml`: أحصل→احصل (2×), إنقطع إتصالك→انقطع اتصالك, ابدا التدرج→ابدأ التدرج, ملفات ال pdf→ملفات PDF.
 - 1.4 Skip interval: the player already skipped 10 s (`onRewind(10)`/`onForward(10)`). The "١٠" labels come with the new transport icons in Phase 2.
 - 1.5 New `ArabicNumerals.formatMediaTime` (tested: ٠:٢٠، ٣:٠٩، ٢٢:٠٠، ١:٠٥:٣٠). It's used by the player's elapsed/total times, the share preview's times and the share video frame's times (the frame's "dots" were Arabic-Indic zeros from the old zero-padded format).
+
+### Phase 2: Done
+- **What the download is for:** it's the user's own "save for offline" download (`DownloadAudioUseCase`, started only by the download button). Playback never waited for it: the player already streamed `audioUrl` and switched to the local file when it existed (`switchToLocalPlayback`). The share flow doesn't wait on it either. So the fix was purely UI: the full-screen dimmed overlay is gone, and an inline card appears under the title while downloading: Tabler download icon, "جارٍ تحميل الدرس", the percentage "٤٥٪" in Arabic-Indic digits, a 3dp `accentStrong` bar, and (x). The (x) calls the new `onCancelDownload()`, which cancels the download coroutine (`downloadJob`). An already-downloaded file skips the download (the button is disabled and shows "محفوظ"). No cache layer was added.
+- Top bar: back arrow only (`AppTopBar` with an empty title), so the title isn't shown twice. The top-bar share icon is gone.
+- Photo: the shared `SheikhPhoto` (200dp, one 2dp `accent` ring, `clip(CircleShape)` + Crop). The old 280dp gradient-ring surface with shadow and `dr_hassan_image` (the one with the cream corner) is gone.
+- Under the photo: a category chip (`accentContainer`) from `FixedCategories.AUDIO_CATEGORIES` when `category` (the id) matches, then the title via `ShareTitleParser.parse` + `AudioTitleCleaner`. A title with a date (sermons) gets a gold `accentText` date line from `ArabicNumerals.formatDateLine`. Then "الشيخ د. حسن الهواري" in `textSecondary`.
+- Seek bar: M3 `Slider` with a custom 16dp round thumb, and a track with `drawStopIndicator = null` and `thumbTrackGapSize = 0.dp`. That removes both the end dot and the M3 bar thumb. It's forced LTR, with elapsed on the left and total on the right (`formatMediaTime`).
+- Transport (forced LTR): Tabler `rotate` (counter-clockwise) with "١٠", a 76dp `accentStrong` play/pause circle, and Tabler `rotate-clockwise` with "١٠". Skips are 10 s.
+- Action row with three labeled 52dp circles:
+  - "السرعة" shows "١×"/"١٫٢٥×"…
+  - "تحميل": download icon → circular progress with "٪" → green check with the label "محفوظ".
+  - "مشاركة" opens the existing share-as-video route.
+- Speed cycles 1 → 1.25 → 1.5 → 2 → 0.75 → 1 via `MediaController.setPlaybackSpeed`. It's stored under the NEW DataStore key `playback_speed` (float, via `DataStoreRepository.playbackSpeed()`) and applied whenever the controller connects, so later playback uses it too.
+- The description card was kept (it only shows when a description exists).

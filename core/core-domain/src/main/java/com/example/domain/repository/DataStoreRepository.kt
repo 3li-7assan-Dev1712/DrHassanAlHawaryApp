@@ -38,4 +38,9 @@ interface DataStoreRepository {
 
     suspend fun setFollowSystemTheme(follow: Boolean)
 
+    /** Audio player speed (1.0 = normal). */
+    fun playbackSpeed(): Flow<Float>
+
+    suspend fun setPlaybackSpeed(speed: Float)
+
 }

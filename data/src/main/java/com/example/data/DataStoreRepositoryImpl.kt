@@ -52,4 +52,8 @@ class DataStoreRepositoryImpl @Inject constructor(
     override fun followSystemTheme(): Flow<Boolean> = localDataStore.followSystemTheme
 
     override suspend fun setFollowSystemTheme(follow: Boolean) = localDataStore.setFollowSystemTheme(follow)
+
+    override fun playbackSpeed(): Flow<Float> = localDataStore.playbackSpeed
+
+    override suspend fun setPlaybackSpeed(speed: Float) = localDataStore.setPlaybackSpeed(speed)
 }

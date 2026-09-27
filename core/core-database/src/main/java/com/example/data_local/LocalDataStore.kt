@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -39,6 +40,8 @@ val KEY_READER_FONT_STEP = intPreferencesKey("reader_font_step")
 val KEY_RECENT_SEARCHES = stringPreferencesKey("recent_searches")
 private const val SEARCH_SEPARATOR = "\n"
 /** "تلقائي": follow the phone's dark mode. Absent = on only if the user never picked a theme. */
+/** Audio player speed (1.0 = normal), applied to later playback too. */
+val KEY_PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
 val KEY_THEME_FOLLOW_SYSTEM = booleanPreferencesKey("theme_follow_system")
 
 
@@ -189,6 +192,12 @@ class LocalDataStore @Inject constructor(
 
     suspend fun setFollowSystemTheme(follow: Boolean) {
         dataStore.edit { it[KEY_THEME_FOLLOW_SYSTEM] = follow }
+    }
+
+    val playbackSpeed: Flow<Float> = dataStore.data.map { it[KEY_PLAYBACK_SPEED] ?: 1f }
+
+    suspend fun setPlaybackSpeed(speed: Float) {
+        dataStore.edit { it[KEY_PLAYBACK_SPEED] = speed }
     }
 
     fun getLastSyncTime(): Flow<Long> {

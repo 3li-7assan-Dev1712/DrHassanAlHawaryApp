@@ -66,6 +66,19 @@ object TablerIcons {
     @DrawableRes val Code = R.drawable.ic_tabler_code
     @DrawableRes val BrandTelegram = R.drawable.ic_tabler_brand_telegram
     @DrawableRes val ExternalLink = R.drawable.ic_tabler_external_link
+    /** Counter-clockwise: "back 10 s" in the player. */
+    @DrawableRes val Rotate = R.drawable.ic_tabler_rotate
+    /** Clockwise: "forward 10 s" in the player. */
+    @DrawableRes val RotateClockwise = R.drawable.ic_tabler_rotate_clockwise
+    @DrawableRes val Messages = R.drawable.ic_tabler_messages
+    @DrawableRes val Books = R.drawable.ic_tabler_books
+    @DrawableRes val BuildingMosque = R.drawable.ic_tabler_building_mosque
+    @DrawableRes val Microphone = R.drawable.ic_tabler_microphone
+    @DrawableRes val Book = R.drawable.ic_tabler_book
+    @DrawableRes val LayoutGrid = R.drawable.ic_tabler_layout_grid
+    @DrawableRes val Copy = R.drawable.ic_tabler_copy
+    @DrawableRes val QrCode = R.drawable.ic_tabler_qrcode
+    @DrawableRes val Music = R.drawable.ic_tabler_music
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
@@ -79,6 +92,9 @@ object TablerIcons {
         "world" to World, "zoom-in" to ZoomIn, "info-circle" to InfoCircle, "star" to Star,
         "headset" to Headset, "shield-lock" to ShieldLock, "file-text" to FileText, "code" to Code,
         "brand-telegram" to BrandTelegram, "external-link" to ExternalLink,
+        "rotate" to Rotate, "rotate-clockwise" to RotateClockwise, "messages" to Messages, "books" to Books,
+        "building-mosque" to BuildingMosque, "microphone" to Microphone, "book" to Book,
+        "layout-grid" to LayoutGrid, "copy" to Copy, "qrcode" to QrCode, "music" to Music,
     )
 }
 

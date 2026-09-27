@@ -21,6 +21,8 @@ data class AudioDetailUiState(
     val isFavorite: Boolean = false,
     val isDownloaded: Boolean = false,
     val downloadProgress: Float = 0f,
+    /** True from the download tap until it finishes, fails or is cancelled. */
+    val isDownloading: Boolean = false,
 
     val isLoadingDetails: Boolean = true // Loading metadata for the screen itself
 )
