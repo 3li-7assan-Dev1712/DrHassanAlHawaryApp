@@ -223,7 +223,6 @@ Viewer:
 - Steps card with numbered circles (١، ٢، ٣): "افتح فاسألوا في تيليجرام"، "اكتب سؤالك بوضوح واختصار"، "تابع الرد في المحادثة نفسها".
 - "قبل أن تسأل" card: the subtitle "لعل سؤالك أُجيب عنه من قبل" and a read-only field "ابحث في الفتاوى المجاب عنها" that opens the existing Search screen (with an audio preset only if the route already supports it).
 - Button: `fasalooTeal` with white text and the send icon, "افتح في تيليجرام". If the current Telegram intent can't be resolved (`ActivityNotFoundException`), fall back to the equivalent `https://t.me/…` link in the browser or a Custom Tab; if that fails too, show a Snackbar.
-
 ## Phase 12: Consistency pass
 
 - Fix gray-card-on-white and white-on-gray inconsistencies on every touched screen: `background`, `surface` cards, hairline dividers.
