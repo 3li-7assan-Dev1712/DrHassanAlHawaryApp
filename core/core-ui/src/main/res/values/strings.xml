@@ -121,10 +121,10 @@
     <string name="share_generating_image">جاري إنشاء الصورة</string>
     <string name="share_image_chooser">مشاركة الصورة</string>
     <string name="share_text_attribution">من مقال: %1$s</string>
-    <string name="share_text_selection_title">اختيار جزء للمشاركة</string>
-    <string name="share_text_selection_hint">اضغط مطولًا على النص ثم اسحب لتحديد الجزء الذي تريد مشاركته</string>
+    <string name="share_text_selection_title">اختر نصًا للمشاركة</string>
+    <string name="share_text_selection_hint">اضغط على جملة لتحديدها، ثم اضغط على ما قبلها أو بعدها لإضافته</string>
     <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
-    <string name="share_text_too_long">الجزء المحدد طويل جدًا، اختر جزءًا أقصر</string>
+    <string name="share_text_too_long">النص طويل، اختر جزءًا أقصر</string>
     <string name="share_text_clear_selection">مسح التحديد</string>
     <string name="share_text_continue">متابعة</string>
     <string name="share_text_selected_count">%1$d حرف</string>
@@ -199,4 +199,5 @@
     <string name="empty_try_another_word">جرّب كلمة أخرى</string>
     <string name="share_step_place">١. اضغط أو اسحب لاختيار الموضع</string>
     <string name="share_step_edges">٢. اسحب الطرفين لضبط البداية والنهاية</string>
+    <string name="share_text_clear">مسح</string>
 </resources>

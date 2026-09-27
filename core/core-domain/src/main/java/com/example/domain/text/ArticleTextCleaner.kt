@@ -34,7 +34,7 @@ class ArticleTextCleaner(
      * are dropped too.
      */
     fun cleanBody(raw: String, rawTitle: String = ""): String {
-        val lines = bodyLines(raw, rawTitle, reader = false)
+        val lines = bodyLines(raw, rawTitle, reader = false).map { it.second }
         // "Leading" basmala = in the opening block, before the prose starts (the first line
         // that ends a sentence). Posts put it after the title/byline, not always on line 1;
         // a basmala quoted later in the article is content and stays.
@@ -50,7 +50,15 @@ class ArticleTextCleaner(
      * or last).
      */
     fun readerParagraphs(raw: String, rawTitle: String = ""): List<String> =
-        bodyLines(raw, rawTitle, reader = true).dropLastWhile { it == ORNAMENT }
+        readerLines(raw, rawTitle).map { it.second }
+
+    /**
+     * [readerParagraphs] with, for each paragraph, the index of the raw line it came from
+     * (`raw.split('\n')`), or -1 for an [ORNAMENT]. Lets a screen show the reader's cleaned
+     * paragraphs while still addressing the original text.
+     */
+    fun readerLines(raw: String, rawTitle: String = ""): List<Pair<Int, String>> =
+        bodyLines(raw, rawTitle, reader = true).dropLastWhile { it.second == ORNAMENT }
 
     /** True for a short line that is just the basmala (diacritics allowed). */
     fun isBasmala(line: String): Boolean = BASMALA.containsMatchIn(line.trim()) && line.length <= BASMALA_LINE_MAX
@@ -64,13 +72,14 @@ class ArticleTextCleaner(
         return line.substring(match.groups[1]!!.range.first).trim()
     }
 
-    private fun bodyLines(raw: String, rawTitle: String, reader: Boolean): List<String> {
+    /** Kept lines as (raw line index, text); ornaments have index -1. */
+    private fun bodyLines(raw: String, rawTitle: String, reader: Boolean): List<Pair<Int, String>> {
         val title = " " + normalizeForCompare(InlineBold.strip(cleanTitle(rawTitle))) + " "
-        val out = mutableListOf<String>()
+        val out = mutableListOf<Pair<Int, String>>()
         var inHeader = true
-        for (rawLine in raw.replace("\r\n", "\n").split('\n')) {
+        for ((index, rawLine) in raw.replace("\r\n", "\n").split('\n').withIndex()) {
             if (isSeparatorLine(rawLine)) {
-                if (reader && !inHeader && out.isNotEmpty() && out.last() != ORNAMENT) out += ORNAMENT
+                if (reader && !inHeader && out.isNotEmpty() && out.last().second != ORNAMENT) out += -1 to ORNAMENT
                 continue
             }
             // A removed emoji can leave "طاحنة ،": no space before punctuation.
@@ -84,7 +93,7 @@ class ArticleTextCleaner(
                 if (title.isNotBlank() && compare.isNotEmpty() && title.contains(" $compare ")) continue
                 if (!isBasmala(plain)) inHeader = false
             }
-            out += if (reader) normalizeSpaces(rawLine.replace("ـ", "")) else plain
+            out += index to (if (reader) normalizeSpaces(rawLine.replace("ـ", "")) else plain)
         }
         return out
     }

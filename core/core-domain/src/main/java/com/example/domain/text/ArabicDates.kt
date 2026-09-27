@@ -11,8 +11,19 @@ import java.util.TimeZone
  */
 object ArabicDates {
 
-    /** The forms of one unit: singular, dual (genitive, as after "منذ"/"قراءة"), plural (3-10), and 11+. */
-    class Unit(val singular: String, val dual: String, val plural: String, val many: String = singular)
+    /**
+     * The forms of one unit, per the Arabic plural categories (CLDR): [singular] for 1,
+     * [dual] for 2 (genitive, as after "منذ"/"قراءة"), [plural] for 3-10, [many] for
+     * 11-99, and [other] for 0 and 100, 101, 102, 200… (the last two digits decide: 103 is
+     * "few" again, 111 "many").
+     */
+    class Unit(
+        val singular: String,
+        val dual: String,
+        val plural: String,
+        val many: String = singular,
+        val other: String = singular,
+    )
 
     val MINUTE = Unit("دقيقة", "دقيقتين", "دقائق")
     val HOUR = Unit("ساعة", "ساعتين", "ساعات")
@@ -21,13 +32,23 @@ object ArabicDates {
     val MONTH = Unit("شهر", "شهرين", "أشهر", many = "شهرًا")
     val YEAR = Unit("سنة", "سنتين", "سنوات")
 
-    /** "دقيقة", "دقيقتين", "٣ دقائق", "١١ دقيقة". */
-    fun count(n: Long, unit: Unit): String = when {
-        n <= 1L -> unit.singular
-        n == 2L -> unit.dual
-        n in 3L..10L -> "${ArabicNumerals.digits(n.toString())} ${unit.plural}"
-        else -> "${ArabicNumerals.digits(n.toString())} ${unit.many}"
+    /** "دقيقة", "دقيقتين", "٣ دقائق", "١١ دقيقة", "١٠٠ دقيقة", "١٠٣ دقائق". */
+    fun count(n: Long, unit: Unit): String {
+        val number = ArabicNumerals.digits(n.toString())
+        return when {
+            n == 1L || n < 0L -> unit.singular
+            n == 2L -> unit.dual
+            n % 100 in 3L..10L -> "$number ${unit.plural}"
+            n % 100 in 11L..99L -> "$number ${unit.many}"
+            else -> "$number ${unit.other}" // 0, 100-102, 200-202…
+        }
     }
+
+    /** Characters in a quote: "حرف واحد", "حرفان", "٣ أحرف", "٩٨ حرفًا", "١٠٠ حرف", "٢١٢ حرفًا". */
+    val CHARACTER = Unit(singular = "حرف واحد", dual = "حرفان", plural = "أحرف", many = "حرفًا", other = "حرف")
+
+    /** Images of a quote: "صورة واحدة", "صورتان", "٣ صور", "١١ صورة". */
+    val IMAGE = Unit(singular = "صورة واحدة", dual = "صورتان", plural = "صور", many = "صورة", other = "صورة")
 
     /** "قراءة ٧ دقائق" */
     fun readingTime(minutes: Int): String = "قراءة ${count(minutes.toLong().coerceAtLeast(1), MINUTE)}"
