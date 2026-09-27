@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -111,7 +112,11 @@ class MainActivity : ComponentActivity() {
 
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
-            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme, brandTheme = themeState.brandTheme) {
+            // "تلقائي" follows the phone; otherwise the explicit light/dark choice.
+            val systemDark = isSystemInDarkTheme()
+            val isDarkTheme = if (themeState.followSystem) systemDark else themeState.isDarkTheme
+
+            HassanAlHawaryTheme(darkTheme = isDarkTheme, brandTheme = themeState.brandTheme) {
 
                 // Follow the app's own light/dark setting, not the phone's: the plain
                 // enableEdgeToEdge() above picks bar icon colours from the system mode, so
@@ -119,7 +124,6 @@ class MainActivity : ComponentActivity() {
                 // theme is Material.Light) is repainted too, so nothing flashes white in
                 // dark mode. Declared before the screens so their own overrides (home and
                 // sign-in force light icons) apply on top.
-                val isDarkTheme = themeState.isDarkTheme
                 val windowBackground = MaterialTheme.colorScheme.background
                 DisposableEffect(isDarkTheme) {
                     val transparent = android.graphics.Color.TRANSPARENT
@@ -182,7 +186,8 @@ class MainActivity : ComponentActivity() {
                                     val deepLinkUri = intent?.data
                                     MainAppContent(
                                         onLogout = { mainActivityViewModel.logoutSuccess() },
-                                        isDarkThemeEnabled = themeState.isDarkTheme,
+                                        isDarkThemeEnabled = isDarkTheme,
+                                        followSystemTheme = themeState.followSystem,
                                         userEmail = mainActivityState.currentUserDate?.email ?: "",
                                         idToken = mainActivityState.idToken ?: "",
                                         deepLinkUri = deepLinkUri
@@ -222,6 +227,7 @@ class MainActivity : ComponentActivity() {
     fun MainAppContent(
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,
+        followSystemTheme: Boolean = false,
         userEmail: String,
         idToken: String,
         deepLinkUri: Uri?
@@ -690,6 +696,8 @@ class MainActivity : ComponentActivity() {
                             mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
                         },
                         isDarkTheme = isDarkThemeEnabled,
+                        followSystemTheme = followSystemTheme,
+                        onFollowSystemThemeChanged = { mainActivityViewModel.updateFollowSystemTheme(it) },
                         onLogout = {
                             onLogout()
                         }

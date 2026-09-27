@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.ui.theme.BrandTheme
 import com.example.domain.module.AppConfig
+import com.example.domain.repository.DataStoreRepository
 import com.example.domain.use_cases.GetAppConfigUseCase
 import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
@@ -35,8 +36,11 @@ import javax.inject.Inject
 
 data class ThemeUiState(
     val isReady: Boolean = false,
+    /** The user's explicit light/dark choice (used when [followSystem] is off). */
     val isDarkTheme: Boolean = false,
-    val brandTheme: BrandTheme = BrandTheme.BROWN
+    val brandTheme: BrandTheme = BrandTheme.BROWN,
+    /** "تلقائي": follow the phone's dark mode instead of [isDarkTheme]. */
+    val followSystem: Boolean = false,
 )
 
 @HiltViewModel
@@ -55,6 +59,7 @@ class MainActivityViewModel @Inject constructor(
     private val getAppConfigUseCase: GetAppConfigUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
+    private val dataStoreRepository: DataStoreRepository,
 ) : ViewModel() {
 
     private val TAG = "MainActivityViewModel"
@@ -71,12 +76,14 @@ class MainActivityViewModel @Inject constructor(
 
     val themeState = kotlinx.coroutines.flow.combine(
         observeDarkThemePreferenceUseCase(),
-        observeBrandThemePreferenceUseCase()
-    ) { isDark, brandTheme ->
+        observeBrandThemePreferenceUseCase(),
+        dataStoreRepository.followSystemTheme(),
+    ) { isDark, brandTheme, followSystem ->
         ThemeUiState(
             isReady = true,
             isDarkTheme = isDark,
-            brandTheme = BrandTheme.fromStorageValue(brandTheme)
+            brandTheme = BrandTheme.fromStorageValue(brandTheme),
+            followSystem = followSystem,
         )
     }
         .catch {
@@ -146,6 +153,10 @@ class MainActivityViewModel @Inject constructor(
 
     fun updateDarkThemePreference(isDarkTheme: Boolean) {
         viewModelScope.launch { updateDarkThemePreferenceUseCase(isDarkTheme) }
+    }
+
+    fun updateFollowSystemTheme(follow: Boolean) {
+        viewModelScope.launch { dataStoreRepository.setFollowSystemTheme(follow) }
     }
 
     fun updateBrandThemePreference(brandTheme: BrandTheme) {

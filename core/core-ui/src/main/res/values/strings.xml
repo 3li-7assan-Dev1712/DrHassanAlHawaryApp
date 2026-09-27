@@ -155,4 +155,11 @@
     <string name="search_type_image">تصميم</string>
     <string name="search_error">حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.</string>
     <string name="audio_saved">محفوظ</string>
+    <string name="my_account">حسابي</string>
+    <string name="theme_system">تلقائي</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="appearance">المظهر</string>
+    <string name="settings">الإعدادات</string>
+    <string name="reader_font_setting">حجم خط القراءة</string>
 </resources>

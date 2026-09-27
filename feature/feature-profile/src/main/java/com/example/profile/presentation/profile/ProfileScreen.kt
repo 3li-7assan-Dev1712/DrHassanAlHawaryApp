@@ -1,6 +1,9 @@
 package com.example.profile.presentation.profile
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,47 +11,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Gavel
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Policy
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,18 +40,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
+import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.BidiText
 import com.example.profile.presentation.components.ProfileRoute
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** The three appearance choices; [SYSTEM] follows the phone's dark mode. */
+enum class ThemeChoice { SYSTEM, LIGHT, DARK }
+
 @Composable
 fun ProfileScreen(
     isAdmin: Boolean = false,
@@ -79,10 +67,15 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     isDarkTheme: Boolean,
     onThemeChanged: (Boolean) -> Unit,
+    /** True when "تلقائي" is on. */
+    followSystemTheme: Boolean = false,
+    onFollowSystemThemeChanged: (Boolean) -> Unit = {},
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val readerFontStep by viewModel.readerFontStep.collectAsState()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val colors = Brand.colors
 
     LaunchedEffect(state.signOutResult) {
         val result = state.signOutResult ?: return@LaunchedEffect
@@ -93,12 +86,13 @@ fun ProfileScreen(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("حذف الحساب", fontWeight = FontWeight.Bold) },
+            containerColor = colors.surface,
+            title = { Text("حذف الحساب؟", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
             text = {
                 Text(
-                    "هل أنت متأكد من رغبتك في حذف حسابك؟\n\n" +
-                            "تنبيه: هذا الإجراء سيؤدي إلى حذف جميع بياناتك، سجل الدراسة، وتقدمك في الاختبارات بشكل نهائي ولا يمكن التراجع عنه.",
-                    textAlign = TextAlign.Start
+                    "سيُحذف حسابك وجميع بياناتك وسجل دراستك نهائيًا، ولا يمكن التراجع عن ذلك.",
+                    textAlign = TextAlign.Start,
+                    color = colors.textSecondary,
                 )
             },
             confirmButton = {
@@ -107,14 +101,14 @@ fun ProfileScreen(
                         showDeleteConfirmation = false
                         viewModel.deleteAccount()
                     },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.textButtonColors(contentColor = colors.danger)
                 ) {
-                    Text("حذف نهائي", fontWeight = FontWeight.Bold)
+                    Text("حذف الحساب", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("إلغاء")
+                    Text("إلغاء", color = colors.textPrimary)
                 }
             }
         )
@@ -123,176 +117,104 @@ fun ProfileScreen(
     val userName = state.userData?.username ?: "زائر التطبيق"
     val userEmail = state.userData?.email ?: ""
     val profileUrl = state.userData?.userProfilePictureUrl.orEmpty()
+    val themeChoice = when {
+        followSystemTheme -> ThemeChoice.SYSTEM
+        isDarkTheme -> ThemeChoice.DARK
+        else -> ThemeChoice.LIGHT
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            stringResource(com.example.core.ui.R.string.profile),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    ),
-                    windowInsets = WindowInsets(0.dp)
-                )
-            }
+            containerColor = colors.background,
+            topBar = { AppTopBar(title = stringResource(R.string.my_account)) }
         ) { padding ->
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                // --- Header Section ---
-                item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Surface(
-                            modifier = Modifier.size(100.dp),
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                            tonalElevation = 2.dp
-                        ) {
-                            SubcomposeAsyncImage(
-                                model = profileUrl,
-                                modifier = Modifier.fillMaxSize().clip(CircleShape),
-                                contentDescription = "profile image",
-                                loading = {
-                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        CircularProgressIndicator(modifier = Modifier.size(32.dp))
-                                    }
-                                },
-                                error = {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = null,
-                                        modifier = Modifier.padding(20.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            )
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        Text(
-                            text = userName,
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        
-                        if (userEmail.isNotBlank()) {
-                            Text(
-                                text = userEmail,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
+                item { ProfileHeader(name = userName, email = userEmail, photoUrl = profileUrl) }
 
                 if (!isAdmin) {
-                    // --- Settings Section ---
                     item {
-                        ProfileSectionCard(title = "الإعدادات العامة") {
-                            AppearanceSettings(
-                                isDarkTheme = isDarkTheme,
-                                onThemeChange = onThemeChanged
+                        ProfileSection(title = stringResource(R.string.appearance)) {
+                            ThemeSegmentedControl(
+                                selected = themeChoice,
+                                onSelect = { choice ->
+                                    when (choice) {
+                                        ThemeChoice.SYSTEM -> onFollowSystemThemeChanged(true)
+                                        ThemeChoice.LIGHT -> {
+                                            onFollowSystemThemeChanged(false)
+                                            onThemeChanged(false)
+                                        }
+                                        ThemeChoice.DARK -> {
+                                            onFollowSystemThemeChanged(false)
+                                            onThemeChanged(true)
+                                        }
+                                    }
+                                },
                             )
                         }
                     }
 
-
-                    // --- App Info Section ---
                     item {
-                        ProfileSectionCard(title = "التطبيق") {
-                            ProfileRow(
-                                icon = Icons.Default.Info,
-                                title = "عن التطبيق",
-                                onClick = { onNavigate(ProfileRoute.About) }
-                            )
-                            ProfileRow(
-                                icon = Icons.Default.Share,
-                                title = "مشاركة التطبيق",
-                                onClick = { onNavigate(ProfileRoute.Share) }
-                            )
-                            ProfileRow(
-                                icon = Icons.Default.Star,
-                                title = "تقييم التطبيق",
-                                isLast = true,
-                                onClick = { onNavigate(ProfileRoute.Rate) }
-                            )
+                        ProfileSection(title = stringResource(R.string.settings)) {
+                            FontSizeRow(step = readerFontStep, onStepChange = viewModel::setReaderFontStep)
                         }
                     }
 
-                    // --- Support & Legal Section ---
                     item {
-                        ProfileSectionCard(title = "الدعم والسياسات") {
-                            ProfileRow(
-                                icon = Icons.Default.SupportAgent,
-                                title = "الدعم والتواصل",
-                                onClick = { onNavigate(ProfileRoute.Support) }
-                            )
-                            ProfileRow(
-                                icon = Icons.Default.Policy,
-                                title = "سياسة الخصوصية",
-                                onClick = { onNavigate(ProfileRoute.Privacy) }
-                            )
-                            ProfileRow(
-                                icon = Icons.Default.Gavel,
-                                title = "الشروط والأحكام",
-                                onClick = { onNavigate(ProfileRoute.Terms) }
-                            )
-                            ProfileRow(
-                                icon = Icons.Default.Code,
-                                title = "التراخيص والمصادر",
-                                isLast = true,
-                                onClick = { onNavigate(ProfileRoute.Licenses) }
-                            )
+                        ProfileSection(title = "التطبيق") {
+                            ProfileRow(TablerIcons.InfoCircle, "عن التطبيق") { onNavigate(ProfileRoute.About) }
+                            ProfileRow(TablerIcons.Share, "مشاركة التطبيق") { onNavigate(ProfileRoute.Share) }
+                            ProfileRow(TablerIcons.Star, "تقييم التطبيق", isLast = true) { onNavigate(ProfileRoute.Rate) }
+                        }
+                    }
+
+                    item {
+                        ProfileSection(title = "الدعم والسياسات") {
+                            ProfileRow(TablerIcons.Headset, "الدعم والتواصل") { onNavigate(ProfileRoute.Support) }
+                            ProfileRow(TablerIcons.ShieldLock, "سياسة الخصوصية") { onNavigate(ProfileRoute.Privacy) }
+                            ProfileRow(TablerIcons.FileText, "الشروط والأحكام") { onNavigate(ProfileRoute.Terms) }
+                            ProfileRow(TablerIcons.Code, "التراخيص والمصادر", isLast = true) { onNavigate(ProfileRoute.Licenses) }
                         }
                     }
                 }
 
-                // --- Danger Zone Section ---
                 item {
-                    ProfileSectionCard(title = if (isAdmin) "الحساب" else "منطقة الخطر") {
+                    ProfileSection(title = "الحساب") {
                         ProfileRow(
-                            icon = Icons.AutoMirrored.Default.ExitToApp,
+                            icon = TablerIcons.Logout,
                             title = "تسجيل الخروج",
-                            iconColor = MaterialTheme.colorScheme.primary,
                             isLast = isAdmin,
                             onClick = { viewModel.signOut() }
                         )
                         if (!isAdmin) {
                             ProfileRow(
-                                icon = Icons.Default.DeleteForever,
+                                icon = TablerIcons.Trash,
                                 title = "حذف الحساب نهائيًا",
-                                iconColor = MaterialTheme.colorScheme.error,
+                                tint = colors.danger,
+                                textColor = colors.danger,
                                 isLast = true,
                                 onClick = { showDeleteConfirmation = true }
                             )
                         }
                     }
                 }
-                
+
                 item {
                     Text(
                         text = "الإصدار ${state.currentAppVersion}",
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        color = colors.textMuted,
                     )
                 }
             }
@@ -302,7 +224,7 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+                    .background(colors.background.copy(alpha = 0.8f)),
                 contentAlignment = Alignment.Center
             ) {
                 LoadingScreen()
@@ -311,167 +233,199 @@ fun ProfileScreen(
     }
 }
 
+/** 48dp avatar with an accent ring, the name, and the email (LTR isolate, muted). */
 @Composable
-private fun ProfileSectionCard(
-    title: String,
-    content: @Composable () -> Unit
-) {
+private fun ProfileHeader(name: String, email: String, photoUrl: String) {
+    val colors = Brand.colors
+    ProfileCard {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .border(2.dp, colors.accent, CircleShape)
+                    .padding(3.dp)
+                    .clip(CircleShape)
+                    .background(colors.accentContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                SubcomposeAsyncImage(
+                    model = photoUrl,
+                    modifier = Modifier.fillMaxSize(),
+                    contentDescription = null,
+                    error = {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Icon(
+                                painter = painterResource(TablerIcons.User),
+                                contentDescription = null,
+                                tint = colors.onAccentContainer,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                    },
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = colors.textPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (email.isNotBlank()) {
+                    Text(
+                        text = BidiText.ltr(email),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileCard(content: @Composable () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        color = Brand.colors.surface,
+        border = BorderStroke(0.5.dp, Brand.colors.divider),
+    ) {
+        Column { content() }
+    }
+}
+
+@Composable
+private fun ProfileSection(title: String, content: @Composable () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            color = Brand.colors.textMuted,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
         )
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-            ),
-            border = androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                content()
-            }
-        }
+        ProfileCard(content)
     }
 }
 
 @Composable
 private fun ProfileRow(
-    icon: ImageVector,
+    @DrawableRes icon: Int,
     title: String,
-    iconColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    tint: Color = Brand.colors.accent,
+    textColor: Color = Brand.colors.textPrimary,
     isLast: Boolean = false,
     onClick: () -> Unit
 ) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        headlineContent = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
-            )
-        },
-        leadingContent = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(24.dp)
-            )
-        },
-        trailingContent = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Default.KeyboardArrowRight, // RTL arrow
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-            )
-        }
-    )
-    if (!isLast) {
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            thickness = 0.5.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    val colors = Brand.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(painter = painterResource(icon), contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+        Spacer(Modifier.width(14.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = textColor,
+            modifier = Modifier.weight(1f),
         )
+        Icon(
+            painter = painterResource(TablerIcons.ChevronLeft),
+            contentDescription = null,
+            tint = colors.textMuted,
+            modifier = Modifier.size(18.dp),
+        )
+    }
+    if (!isLast) {
+        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = colors.divider)
     }
 }
 
-/**
- * Appearance picker: a light/dark segmented control, replacing plain on-off
- * switches with something closer to a real theme picker.
- */
+/** تلقائي / فاتح / داكن on a surfaceMuted track. */
 @Composable
-fun AppearanceSettings(
-    isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
-) {
-    Column(
+private fun ThemeSegmentedControl(selected: ThemeChoice, onSelect: (ThemeChoice) -> Unit) {
+    val colors = Brand.colors
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(12.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(colors.surfaceMuted)
+            .padding(4.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(
-                text = "وضع العرض",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        listOf(
+            Triple(ThemeChoice.SYSTEM, R.string.theme_system, TablerIcons.DeviceMobile),
+            Triple(ThemeChoice.LIGHT, R.string.theme_light, TablerIcons.Sun),
+            Triple(ThemeChoice.DARK, R.string.theme_dark, TablerIcons.Moon),
+        ).forEach { (choice, label, icon) ->
+            val isSelected = choice == selected
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(4.dp)
+                    .weight(1f)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(if (isSelected) colors.surface else Color.Transparent)
+                    .then(if (isSelected) Modifier.border(0.5.dp, colors.divider, RoundedCornerShape(9.dp)) else Modifier)
+                    .clickable { onSelect(choice) }
+                    .padding(vertical = 9.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                DisplayModeSegment(
-                    label = "فاتح",
-                    icon = Icons.Default.LightMode,
-                    selected = !isDarkTheme,
-                    modifier = Modifier.weight(1f),
-                    onClick = { onThemeChange(false) }
-                )
-                DisplayModeSegment(
-                    label = "داكن",
-                    icon = Icons.Default.DarkMode,
-                    selected = isDarkTheme,
-                    modifier = Modifier.weight(1f),
-                    onClick = { onThemeChange(true) }
+                val contentColor = if (isSelected) colors.textPrimary else colors.textMuted
+                Icon(painterResource(icon), contentDescription = null, tint = if (isSelected) colors.accent else contentColor, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(label),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                 )
             }
         }
     }
 }
 
+/** The article reader's text size (the same preference as the reader's A−/A+). */
 @Composable
-private fun DisplayModeSegment(
-    label: String,
-    icon: ImageVector,
-    selected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
+private fun FontSizeRow(step: Int, onStepChange: (Int) -> Unit) {
+    val colors = Brand.colors
     Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) MaterialTheme.colorScheme.primary else Color.Transparent)
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(6.dp))
+        Icon(painterResource(TablerIcons.TextSize), contentDescription = null, tint = colors.accent, modifier = Modifier.size(22.dp))
+        Spacer(Modifier.width(14.dp))
         Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = contentColor,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
+            text = stringResource(R.string.reader_font_setting),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = colors.textPrimary,
+            modifier = Modifier.weight(1f),
         )
+        OutlinedButton(
+            onClick = { onStepChange(step - 1) },
+            enabled = step > 0,
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            border = BorderStroke(0.5.dp, colors.divider),
+        ) { Text("A−", color = colors.textPrimary) }
+        Text(
+            text = ArabicNumerals.digits(step + 1),
+            color = colors.textMuted,
+            modifier = Modifier.padding(horizontal = 10.dp),
+        )
+        OutlinedButton(
+            onClick = { onStepChange(step + 1) },
+            enabled = step < ProfileScreenViewModel.MAX_READER_FONT_STEP,
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            border = BorderStroke(0.5.dp, colors.divider),
+        ) { Text("A+", color = colors.textPrimary) }
     }
-}
-
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-private fun ProfileScreenPreview() {
-    ProfileScreen(
-        onNavigate = {},
-        onThemeChanged = {},
-        isDarkTheme = false,
-        onLogout = {}
-    )
 }

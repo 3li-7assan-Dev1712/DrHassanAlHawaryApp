@@ -12,7 +12,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 5: Fatwas list: Done (playing state/chips/search icon skipped per spec)
 - [x] Phase 6: Videos: Done (chips/duration skipped: data not on screen/model)
 - [x] Phase 7: Designs and viewer: Done
-- [ ] Phase 8: Profile
+- [x] Phase 8: Profile: Done
 - [ ] Phase 9: About the Sheikh
 - [ ] Phase 10: Institute
 - [ ] Phase 11: فاسألوا
@@ -54,6 +54,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - D2.3: I amended the Phase 2 commit once to fix the log layout (a local, unpushed commit). After noticing the spec's "never rewrite history", I haven't amended again.
 - D1.5: `feature-home/.../values/strings.xml` had one "مجدداً". It's now "مجددًا" because the new resource test covers every module. That's a string-only change, and no Home code was touched.
 - D3.1: Reader body text uses `textSecondary` (the spec's "body text" token), and headings/basmala use `textPrimary`.
+- D8.1: New installs (no stored theme key) now start on "تلقائي" (follow the phone), as the spec asks. Before this, a new install defaulted to light.
 
 ## Phase notes
 
@@ -126,3 +127,14 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - Share: loads the current image through the app's Coil `imageLoader` (`allowHardware(false)`), writes `cacheDir/share/design_<group>_<index>.png`, and shares it through the existing FileProvider (`${applicationId}.provider`, whose `provider_paths.xml` already exposes `cache/share/`).
 - Zoom gestures: `detectTransformGestures` consumes one-finger drags even at 1×, which would block pager swipes. The viewer uses the same primitives (`awaitEachGesture` + `calculateZoom`/`calculatePan`) and only consumes when 2 fingers are down or the image is zoomed. No new dependency.
 - Follow-up: save-to-gallery (not built, per spec).
+
+### Phase 8: Done
+- The title is "حسابي" (new core-ui string `my_account`, same as the tab's `nav_account`), in a tab-root `AppTopBar` with no back arrow.
+- Header card: 48dp avatar with a 2dp `accent` ring (Tabler user icon on `accentContainer` when there's no photo), the name, and the email in an LTR isolate (`BidiText.ltr`) in `textMuted`.
+- "المظهر": a segmented control تلقائي / فاتح / داكن on a `surfaceMuted` track. It uses the NEW key `theme_follow_system`. When that key is absent, it defaults to "follow system" only if the existing `dark_theme_enabled` key has no stored value. Existing users who picked light or dark keep their choice. `MainActivityViewModel.themeState.followSystem` + `isSystemInDarkTheme()` decide the effective theme in `MainActivity` (window background and bar icons follow it too). The meaning of the old key is unchanged.
+- "الإعدادات": a "حجم خط القراءة" row with A−/A+ on the reader's `reader_font_step` preference (Phase 3). `ProfileScreenViewModel` reads and writes it through `DataStoreRepository`.
+- "التطبيق" and "الدعم والسياسات": same items, now with Tabler outline icons in `accent` (info-circle, share, star, headset, shield-lock, file-text, code) and a chevron-left. Cards have 14dp corners on `surface` with 0.5dp hairline dividers.
+- "منطقة الخطر" is renamed to "الحساب". Sign-out is neutral (`accent` icon, `textPrimary` text). The delete row uses `danger` for both icon and text: "حذف الحساب نهائيًا".
+- A confirmation dialog already existed. It's restyled to the spec: title "حذف الحساب؟", one sentence saying deletion is permanent, "حذف الحساب" in `danger` and "إلغاء". It still calls the existing `deleteAccount()`.
+- The version line is unchanged ("الإصدار 1.0.7", Western digits).
+- Admin also uses `ProfileScreen(isAdmin = true)`: the new parameters have defaults, so the admin call site is unchanged.
