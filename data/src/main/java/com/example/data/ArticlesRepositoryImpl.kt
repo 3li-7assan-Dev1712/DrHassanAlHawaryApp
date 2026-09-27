@@ -9,6 +9,7 @@ import androidx.paging.map
 import androidx.room.withTransaction
 import com.example.data.di.ApplicationScope
 import com.example.data.mappers.toDomainModel
+import com.example.data.mappers.toEntity
 import com.example.data.util.ArticleRemoteMediator
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_local.AppDatabase
@@ -22,6 +23,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -59,6 +61,13 @@ class ArticlesRepositoryImpl
     }
 
     override suspend fun getArticleById(articleId: String): Flow<Article?> {
+        // Room only holds the articles that were synced or paged in, so an article opened
+        // from search can be missing. Fetch it once from Firestore and cache it.
+        if (articleDao.getArticleById(articleId).first() == null) {
+            firebaseArticlesSource.getArticleById(articleId)
+                ?.takeIf { !it.isDeleted }
+                ?.let { articleDao.upsertAll(listOf(it.toEntity())) }
+        }
         return articleDao.getArticleById(articleId).map { art ->
             art?.toDomainModel()
         }

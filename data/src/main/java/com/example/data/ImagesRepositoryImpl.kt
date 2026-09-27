@@ -7,6 +7,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.example.data.mappers.toEntity
 import com.example.data.util.ImageGroupRemoteMediator
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.AppDatabase
@@ -93,7 +94,16 @@ class ImagesRepositoryImpl @Inject constructor(
 
         return flow {
 
-            val localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
+            var localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
+
+            // Room only holds the groups that were paged in, so a group opened from search
+            // can be missing. Fetch the group itself first; its images are fetched below.
+            if (localData == null) {
+                imageFirestoreSource.fetchImageGroupById(groupId)
+                    ?.takeIf { !it.isDeleted }
+                    ?.let { appDatabase.imageDao().upsertImageGroups(listOf(it.toEntity())) }
+                localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
+            }
 
             Log.d(
                 "ImageRepositoryImpl",

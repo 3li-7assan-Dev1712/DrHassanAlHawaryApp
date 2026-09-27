@@ -69,6 +69,17 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
+    /** One group by document id, for groups opened before they were paged into Room (e.g. from search). */
+    suspend fun fetchImageGroupById(groupId: String): ImageGroupDto? {
+        return try {
+            val document = imagesGroupCollection.document(groupId).get().await()
+            if (document.exists()) document.toImageGroupDtoSafe() else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to fetch image group $groupId", e)
+            null
+        }
+    }
+
     suspend fun fetchLatestImageGroup(): ImageGroup? {
         try {
             val snapshot = imagesGroupCollection

@@ -142,6 +142,17 @@ class FirebaseArticlesSource @Inject constructor(
         }
     }
 
+    /** One article by document id, for items opened before they were paged into Room (e.g. from search). */
+    suspend fun getArticleById(articleId: String): ArticleDto? {
+        return try {
+            val document = articlesCollection.document(articleId).get().await()
+            document.toObject<ArticleDto>()?.copy(id = document.id)
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error fetching article $articleId: ${e.message}", e)
+            null
+        }
+    }
+
     suspend fun getUpdatedArticles(lastSyncTime: Long): List<ArticleDto> {
         return try {
             val snapshot = articlesCollection
