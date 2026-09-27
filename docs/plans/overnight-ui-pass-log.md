@@ -9,7 +9,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - [x] Phase 2: Quick fixes: Done (2.1 no app change: not app code)
 - [x] Phase 3: Articles list and reader: Done (bookmark and selection-share skipped)
 - [x] Phase 4: Search: Done (no audio durations in hits)
-- [ ] Phase 5: Fatwas list
+- [x] Phase 5: Fatwas list: Done (playing state/chips/search icon skipped per spec)
 - [ ] Phase 6: Videos
 - [ ] Phase 7: Designs and viewer
 - [ ] Phase 8: Profile
@@ -100,3 +100,12 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - Empty state: the large magnifier illustration is replaced by suggested topic chips (الزكاة، الصيام، الحج، البيوع، الأسرة; a tap searches) and up to 8 recent searches (new DataStore key `recent_searches`, saved when a search is submitted or a result opened) with "مسح".
 - Not done: audio durations in the meta ("صوتية · ١٨:٢٠"). Algolia hits don't carry a duration field in this codebase, so audio rows show "صوتية" only.
 - `DesignTitle` (Phase 7 helper) was added here because Search needed it: "تصميم - 9 ذو الحجة 1447هـ" → "٩ ذو الحجة ١٤٤٧هـ", plus the صورة/صورتان/٣ صور/١١ صورة count.
+
+### Phase 5: Done (playing state, category chips and search icon skipped by the spec's rules)
+- Titles go through `AudioTitleCleaner` (display only; the title passed to the player route is unchanged).
+- Compact rows: 40dp `accentContainer` play circle with an `onAccentContainer` Tabler play icon, title (max 2 lines), and the duration via `ArabicNumerals.formatDuration` (Arabic-Indic). Cards have 12dp corners, a 0.5dp divider and a `surface` fill.
+- The lone ✓ (`DownloadDone`) is replaced by a Tabler download icon + "محفوظ" (new string `audio_saved`), driven by the existing `isDownloaded` flag.
+- Playing state: skipped. The list screen has no access to the player, and `isPlaying` is always false from the mapper. The row keeps an `accentStrong` + pause look for when that flag is ever set.
+- Category chips: skipped. The list is already opened per category (`categoryId` route argument from the category screen), so chips would duplicate that screen.
+- Top-bar search icon: omitted. The Search route takes no preset filter.
+- `AppTopBar` on `background` replaces the M3 TopAppBar and the gray gradient. The old `formatDuration` moved to `components/DurationFormat.kt` because the audio detail screen still uses it.

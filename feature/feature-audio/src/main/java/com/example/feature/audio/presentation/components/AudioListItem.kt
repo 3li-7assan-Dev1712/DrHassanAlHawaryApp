@@ -1,7 +1,7 @@
 package com.example.feature.audio.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,207 +13,148 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow.Companion.Ellipsis
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.em
+import com.example.core.ui.R
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Audio
+import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.AudioTitleCleaner
 import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
-
+/**
+ * A compact fatwa row: 40dp play circle, the cleaned title (display only - the stored
+ * title and the one passed to the player are untouched), the duration in Arabic-Indic
+ * digits, and "محفوظ" with a download icon when the file is saved on the device.
+ */
 @Composable
 fun AudioListItem(
     audio: Audio,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = Brand.colors
+    val title = remember(audio.id, audio.title) { AudioTitleCleaner.clean(audio.title) }
+    // The list has no access to the player, so isPlaying is always false here today; the
+    // playing look is kept for when it does.
     val isPlaying = audio.isPlaying
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (isPlaying)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-            else
-                MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isPlaying) 4.dp else 1.dp
-        ),
-        border = if (isPlaying)
-            androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-            )
-        else null
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = colors.surface,
+        border = BorderStroke(0.5.dp, if (isPlaying) colors.accentStrong else colors.divider),
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Leading Icon Container with premium gradient
             Box(
                 modifier = Modifier
-                    .size(52.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (isPlaying) {
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.tertiary
-                                )
-                            )
-                        } else {
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                                )
-                            )
-                        }
-                    ),
-                contentAlignment = Alignment.Center
+                    .size(40.dp)
+                    .background(if (isPlaying) colors.accentStrong else colors.accentContainer, CircleShape),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    painter = painterResource(if (isPlaying) TablerIcons.PlayerPause else TablerIcons.PlayerPlay),
                     contentDescription = null,
-                    tint = if (isPlaying) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(26.dp)
+                    tint = if (isPlaying) colors.surface else colors.onAccentContainer,
+                    modifier = Modifier.size(20.dp),
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Text Content
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
                 Text(
-                    text = audio.title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.SemiBold,
-                        letterSpacing = 0.1.sp,
-                        lineHeight = 22.sp
-                    ),
-                    color = if (isPlaying) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                    overflow = Ellipsis,
-                    maxLines = 2
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, lineHeight = 1.5.em),
+                    color = colors.textPrimary,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2,
                 )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Text(
-                        text = formatDuration(audio.durationInMillis),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                    if (audio.durationInMillis > 0) {
+                        Text(
+                            text = ArabicNumerals.formatDuration(audio.durationInMillis),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textMuted,
+                        )
+                    }
                     if (audio.isDownloaded) {
-                        Spacer(modifier = Modifier.width(8.dp))
+                        if (audio.durationInMillis > 0) Spacer(modifier = Modifier.width(10.dp))
                         Icon(
-                            imageVector = Icons.Default.DownloadDone,
-                            contentDescription = "Downloaded",
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(14.dp)
+                            painter = painterResource(TablerIcons.Download),
+                            contentDescription = null,
+                            tint = colors.accent,
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(R.string.audio_saved),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.accentText,
                         )
                     }
                 }
             }
-
-            if (isPlaying) {
-                Text(
-                    text = "جاري التشغيل",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
         }
     }
 }
 
-
-@Preview(showBackground = true)
 @Composable
-fun AudioListItemPreview() {
-    MaterialTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            AudioListItem(
-                audio = Audio(
-                    id = "1",
-                    title = "شرح كتاب التوحيد - الدرس الأول من السلسلة المباركة",
-                    audioUrl = "",
-                    durationInMillis = 3600000,
-                    publishDate = Date(),
-                    isPlaying = true,
-                    isDownloaded = true,
-                    lastPlayedTimestamp = null,
-                    type = "دروس علمية"
-                ),
-                onClick = {}
-            )
-            AudioListItem(
-                audio = Audio(
-                    id = "2",
-                    title = "تفسير سورة الفاتحة",
-                    audioUrl = "",
-                    durationInMillis = 1850000,
-                    publishDate = Date(),
-                    isPlaying = false,
-                    isDownloaded = false,
-                    lastPlayedTimestamp = null,
-                    type = "تفسير"
-                ),
-                onClick = {}
-            )
-        }
+private fun AudioListItemPreviewContent() {
+    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        AudioListItem(
+            audio = Audio(
+                id = "1",
+                title = "خدمة المقاطع الصوتية - مقطع بعنوان: حكم لبس النقاب - خدمة فضيلة الشيخ د. حسن",
+                audioUrl = "",
+                durationInMillis = 1_100_000,
+                publishDate = Date(),
+                isDownloaded = true,
+                lastPlayedTimestamp = null,
+            ),
+            onClick = {},
+        )
+        AudioListItem(
+            audio = Audio(
+                id = "2",
+                title = "مقطع بعنوان: ⏪(٢) التعريف بصحيح البخاري",
+                audioUrl = "",
+                durationInMillis = 185_000,
+                publishDate = Date(),
+                lastPlayedTimestamp = null,
+            ),
+            onClick = {},
+        )
     }
 }
 
-/**
- * Formats a duration from milliseconds into a HH:mm:ss or mm:ss string.
- * @param millis The duration in milliseconds.
- * @return A formatted string like "01:39:21" or "39:21".
- */
-fun formatDuration(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1)
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1)
+@Preview(name = "Fatwa rows - light", locale = "ar", widthDp = 360, showBackground = true, backgroundColor = 0xFFF4EEE5)
+@Composable
+private fun AudioListItemLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) { AudioListItemPreviewContent() }
+}
 
-    return if (hours > 0) {
-        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-    }
+@Preview(name = "Fatwa rows - dark", locale = "ar", widthDp = 360, showBackground = true, backgroundColor = 0xFF1A1512)
+@Composable
+private fun AudioListItemDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) { AudioListItemPreviewContent() }
 }
