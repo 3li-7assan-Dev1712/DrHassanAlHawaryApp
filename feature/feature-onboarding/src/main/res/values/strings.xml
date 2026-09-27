@@ -16,7 +16,7 @@
     <string name="search_illustration_description">ابحث عن كل المحتويات المسموعة والمرئية والمكتوبة بضغطة زر واحدة فقط</string>
     <string name="onboarding_skip">تخطي</string>
     <string name="onboarding_next">التالي</string>
-    <string name="onboarding_get_started">"لنبدأ "</string>
+    <string name="onboarding_get_started">لنبدأ</string>
     <string name="study">الدراسة</string>
     <string name="study_institure_des">اطلب العلم واحصل على كل دروس الشيخ د. حسن الهواري مجموعة ومرتبة في مكان واحد\nوكذلك منطقة دراسة مخصصة داخل التطبيق للمعهد الفقهي</string>
     <string name="journey_title">ابدأ رحلتك التعليمية واحفظ تقدمك</string>
@@ -27,4 +27,10 @@
     <string name="pdf_illu_descritption">يمكنك الحصول على ملفات ومرفقات الدروس بشكل سهل وسريع وذلك بالدخول على الدرس لتجد كل ملحقات الدرس الخاصة به في مكان واحد</string>
 
 
+    <string name="onboarding_all_title">كل علم الشيخ في مكان واحد</string>
+    <string name="onboarding_all_body">خطب ودروس ومقالات وفتاوى، مرتبة في مكان واحد.</string>
+    <string name="onboarding_offline_title">انقطع اتصالك بالإنترنت؟</string>
+    <string name="onboarding_offline_body">احصل على الدروس والمقاطع الصوتية دون إنترنت بعد تحميلها داخل التطبيق.</string>
+    <string name="onboarding_share_title">شارك ما ينفع</string>
+    <string name="onboarding_share_body">شارك مقاطع الخطب والدروس كفيديو، والاقتباسات من المقالات كصور.</string>
 </resources>

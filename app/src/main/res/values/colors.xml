@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="splash_bg">#342C2B</color>
+    <!-- Splash background = the light app background (LightBrandPalette.background); values-night has the dark one. -->
+    <color name="splash_bg">#F4EEE5</color>
 
 </resources>

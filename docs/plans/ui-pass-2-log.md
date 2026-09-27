@@ -10,7 +10,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - [x] Phase 2: Audio player: Done
 - [x] Phase 3: Share-as-video preview: Done
 - [x] Phase 4: Category screens: Done (no counts available)
-- [ ] Phase 5: Splash and onboarding
+- [x] Phase 5: Splash and onboarding: Done
 - [ ] Phase 6: About and Share-app
 - [ ] Phase 7: Empty and error states
 - [ ] Phase 8: Final report
@@ -30,6 +30,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - **QR:** `docs/assets/qr_play_store.png` does NOT exist. Ali put `qr_play_store.png` in `docs/plans/` instead (see Phase 6). `applicationId` = `app.netlify.devalihassan` (read from `app/build.gradle.kts`).
 
 ## Decisions
+- D5.1: Illustration night variants are `_dark` drawables picked by the app theme rather than `drawable-night` (the app's theme preference isn't the system night mode). The splash itself does follow system night mode: `values-night` is the only option before any app code runs.
 
 ## Phase notes
 
@@ -77,3 +78,22 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - Both screens use the new shared `CategoryScreenContent`: an `AppTopBar` with a start-aligned title "الصوتيات" / "الفيديوهات" ("تصنيفات" dropped) and a back arrow on `background`, then one `surface` card of compact rows. Each row has a 40dp `accentContainer` circle with the icon in `onAccentContainer`, the name (14sp, weight 500), a chevron-left and hairline dividers. The gradient `CategoryGridTile` grid is no longer used (the file is left in place, unused). Both themes use the palette's surface (white in light, #2C2C2A in dark).
 - Audio gained "الكل". It opens `audio_list_screen` with no query args. `categoryId`/`categoryTitle` are nullable route args already, the DAO filters with `:categoryId IS NULL OR …`, and the list title falls back to "الصوتيات". No architecture change.
 - Count lines: skipped. No counts are available on these screens without new queries.
+
+### Phase 5: Done
+**Splash**
+- No vector logo exists, only `app/res/drawable-nodpi/app_splash.png` (1024², transparent outside a dark circle, but with a faint alpha ≤ 39 box around it and faint box edges baked into the dark fill). I regenerated it with PIL. Everything outside the circle is now alpha 0 (the box and the stray arc are gone), the dark fill is repainted flat (removes the faint vertical box edges), and the circle is re-centred and resized to 64% of the canvas, which fits inside the splash icon mask's central 192/288 circle. There's no icon background colour and no shadow.
+- Splash background per theme: `values/colors.xml` `splash_bg` = #F4EEE5 (the light app background) and a new `values-night/colors.xml` `splash_bg` = #1A1512 (the dark app background).
+- `core-splashscreen` is already a dependency and `Theme.SplashScreen` sets `windowSplashScreenBackground`/`AnimatedIcon` for every API level, so no separate `values-v31` theme was needed (it would duplicate the same values).
+- The unused `splash_screen` composable route had an artificial `delay(3000L)`. It's removed; the activity and route are kept. `MainActivity` keeps the real readiness gate (`setKeepOnScreenCondition { !appReady }`).
+
+**Onboarding**
+- 3 pages on `background`: person at computer (`study_boy`) "كل علم الشيخ في مكان واحد"; computer and server (`network_error`) "انقطع اتصالك بالإنترنت؟"; person and globe (`share_app_illu`) "شارك ما ينفع", with the spec's body texts. Buttons: "التالي" / "لنبدأ" (`accentStrong`) and "تخطي", directly on the page background (the tonal-elevation bottom bar is gone). The illustration box is a fixed 240dp, `ContentScale.Fit`, bottom-aligned (new shared `IllustrationBox`).
+- The journey, document (summary), person-at-computer and computer-and-server vectors moved from `feature-onboarding/res` to `core-ui/res` so the Phase 7 empty states in other modules can use them.
+- Brand colours: the accent #fcdfa6 → #FAC775 in the vectors (no background rects exist, so they're already transparent). Dark variants are `<name>_dark.xml` with the spec's mapping, **chosen by the app's own theme** (`Brand.colors.isDark`) via the `Illustration` enum, instead of a `drawable-night` folder, which follows the *system* night mode and would show light art in the app's dark mode (and vice versa). Colours found per vector:
+- `study_boy`: #e6e6e6 ×13 (light neutral), #ff000000 ×10 (dark ink), #fcdfa6 ×7 (accent), #ccc ×5 (mid gray), #090814 ×5 (dark ink), #2f2e41 ×5 (dark ink), #ed9da0 ×4 (skin), #fff ×3 (white/near-white), #d6d6e3 ×2 (light neutral), #3f3d56 ×2 (dark ink), #f2f2f2 ×1 (white/near-white), #00000000 ×1 (transparent), #d7d7d7 ×1 (light neutral)
+- `network_error`: #fcdfa6 ×10 (accent), #f2f2f2 ×8 (white/near-white), #e6e6e6 ×6 (light neutral), #090814 ×2 (dark ink), #2f2e41 ×2 (dark ink), #ff000000 ×1 (dark ink)
+- `journey_illu`: #ed9da0 ×7 (skin), #090814 ×5 (dark ink), #3f3d56 ×3 (dark ink), #e6e6e6 ×3 (light neutral), #fcdfa6 ×2 (accent), #f2f2f2 ×1 (white/near-white), #fff ×1 (white/near-white)
+- `summary_illu`: #fcdfa6 ×13 (accent), #090814 ×7 (dark ink), #d6d6e3 ×6 (light neutral), #fff ×4 (white/near-white), #f2f2f2 ×2 (white/near-white)
+- `share_app_illu`: #fcdfa6 ×44 (accent), #ff000000 ×10 (dark ink), #fff ×9 (white/near-white), #ed9da0 ×5 (skin), #090814 ×4 (dark ink), #d6d6e3 ×4 (light neutral), #fffeff ×3 (white/near-white), #2f2e43 ×2 (dark ink), #e2e3e4 ×2 (light neutral), #e6e6e6 ×1 (light neutral), #f2f2f2 ×1 (white/near-white), #ff6363 ×1 (skin), #c8c8c8 ×1 (mid gray)
+- `about_app_illu`: #090814 ×18 (dark ink), #fcdfa6 ×5 (accent), #fff ×5 (white/near-white), #ed9da0 ×4 (skin), #d6d6e3 ×3 (light neutral), #e6e6e6 ×3 (light neutral), #3f3d56 ×2 (dark ink), #f2f2f2 ×1 (white/near-white), #ff000000 ×1 (dark ink), #e6e8ec ×1 (light neutral)
+- `rate_illu`: #090814 ×38 (dark ink), #e6e6e6 ×13 (light neutral), #ccc ×8 (mid gray), #ed9da0 ×6 (skin), #fcdfa6 ×5 (accent), #cacaca ×2 (mid gray), #fff ×1 (white/near-white), #2f2e41 ×1 (dark ink)
