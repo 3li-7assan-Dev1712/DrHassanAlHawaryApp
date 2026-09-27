@@ -200,8 +200,10 @@ class SharePreviewViewModel @Inject constructor(
             instituteName = instituteName,
             background = ShareBackgroundSource.Gradient,
             logoResId = R.drawable.admin_logo_app,
-            // Don't repeat the chip when it already became the title.
-            kindLabel = titleFields.kindLabel?.takeIf { it != effectiveTitle },
+            // "خطبة بعنوان" / "محاضرة بعنوان" above the title. No chip when the kind itself
+            // already became the title ("محاضرة - <date>"): it would say the same word twice.
+            kindLabel = titleFields.kindLabel?.takeIf { it != effectiveTitle }
+                ?.let { ShareTitleParser.titledKindLabel(ShareTitleParser.parse(rawTitle), categoryId) },
             hijriDate = titleFields.hijriDate,
             gregorianDate = titleFields.gregorianDate,
         )

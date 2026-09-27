@@ -118,6 +118,25 @@ object ShareTitleParser {
         }
     }
 
+    /**
+     * The share video's chip: the kind as "<noun> بعنوان" - "خطبة بعنوان", "محاضرة بعنوان",
+     * "درس بعنوان", "فتوى بعنوان" - from the title's own kind word ("خطبة العيد" -> خطبة)
+     * or else the category. Recitations stay "تلاوة" ("تلاوة بعنوان" isn't said). Null when
+     * nothing is known. (The home card keeps [kindLabel].)
+     */
+    fun titledKindLabel(parsed: ParsedShareTitle, categoryId: String?): String? {
+        val noun = parsed.kind?.trim()?.substringBefore(' ')?.takeIf { it.isNotEmpty() }
+            ?: when (categoryId) {
+                CATEGORY_KHOTAB -> KHUTBA
+                "scientific_lessons" -> "درس"
+                "lectures" -> "محاضرة"
+                "fatawah" -> "فتوى"
+                "telawat" -> return "تلاوة"
+                else -> return null
+            }
+        return if (noun == "تلاوة") noun else "$noun بعنوان"
+    }
+
     fun kindLabel(parsed: ParsedShareTitle, categoryId: String?): String? {
         val mentionsEid = parsed.title.contains("عيد")
         val kind = parsed.kind

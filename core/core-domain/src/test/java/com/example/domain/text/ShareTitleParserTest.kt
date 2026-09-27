@@ -119,4 +119,21 @@ class ShareTitleParserTest {
         assertNull(parsed.gregorianDate)
         assertEquals("سلسلة 2026/13/40", parsed.title)
     }
+
+    @Test
+    fun `the share chip reads "kind بعنوان"`() {
+        fun chip(raw: String, category: String?) = ShareTitleParser.titledKindLabel(ShareTitleParser.parse(raw), category)
+        org.junit.Assert.assertEquals(
+            "خطبة بعنوان",
+            chip("خطبة بعنوان: فضل العشر، والأضحية - الجمعة: ( ٢٧ ذو القعدة ١٤٤٧هـ، 2026/5/15م", "khotab"),
+        )
+        org.junit.Assert.assertEquals("محاضرة بعنوان", chip("محاضرة بعنوان: الصبر", "lectures"))
+        // No kind in the title: from the category.
+        org.junit.Assert.assertEquals("خطبة بعنوان", chip("فضل العشر", "khotab"))
+        org.junit.Assert.assertEquals("محاضرة بعنوان", chip("الصبر", "lectures"))
+        org.junit.Assert.assertEquals("درس بعنوان", chip("شرح الأربعين النووية (3)", "scientific_lessons"))
+        org.junit.Assert.assertEquals("فتوى بعنوان", chip("حكم لبس النقاب", "fatawah"))
+        org.junit.Assert.assertEquals("تلاوة", chip("سورة الكهف", "telawat"))
+        org.junit.Assert.assertNull(chip("شرح الأربعين النووية (3)", null))
+    }
 }
