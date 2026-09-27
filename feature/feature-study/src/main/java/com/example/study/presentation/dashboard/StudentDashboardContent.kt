@@ -1,5 +1,6 @@
 package com.example.study.presentation.dashboard
 
+import com.example.domain.text.BidiText
 import android.util.Log
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -433,7 +434,7 @@ fun StudentHeader(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "@$username",
+                        text = BidiText.handle(username),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

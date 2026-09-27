@@ -6,7 +6,7 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 
 - [x] Phase 0: Setup and inventory: Done
 - [x] Phase 1: Shared foundations: Done
-- [ ] Phase 2: Quick fixes
+- [x] Phase 2: Quick fixes: Done (2.1 no app change: not app code)
 - [ ] Phase 3: Articles list and reader
 - [ ] Phase 4: Search
 - [ ] Phase 5: Fatwas list
@@ -43,12 +43,14 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - **Edge-to-edge:** already on (`enableEdgeToEdge` in `MainActivity`, with bar styles that follow the app theme).
 
 ## Decisions
+
+- D0.1: The rejected shell call in Phase 0 was a `cd … && cat` read. From then on I used the Read/Grep tools instead of a retry.
 - D1.1: Plurals are pure Kotlin (`ArabicDates.count`), not Android `plurals`. The existing, tested helper already implements the Arabic categories (one → singular alone, two → dual, 3–10 → plural, 11+ → singular), always emits Arabic-Indic digits whatever the device locale, and runs in JVM tests. `pluralStringResource` would format digits by locale and can't be tested without Robolectric. Where the spec asks for plurals, the same helper is used.
 - D1.2: The Hijri abbreviation "هـ" keeps its tatweel (it's part of the conventional abbreviation, not stretching). Resource files contain no tatweel.
 - D1.3: `core-domain` is a plain JVM module, so root `testDebugUnitTest` doesn't run its tests. Every phase gate also runs `:core:core-domain:test`.
 - D1.4: I couldn't find a literal "gray vertical bar" composable in the code (no shared header exists). The gray on those screens came from the root Scaffold's `surfaceVariant` and from each screen's own M3 `TopAppBar` with a surfaceVariant gradient. Both are replaced by the flat `AppTopBar` on `background`. Check this on the device (checklist).
-
-- D0.1: The rejected shell call in Phase 0 was a `cd … && cat` read. From then on I used the Read/Grep tools instead of a retry.
+- D2.1: Android Studio held a lock on a core-ui build jar, so I ran `./gradlew --stop` and rebuilt. Studio restarts its daemon when it needs one.
+- D2.2: The welcome screen's circular photo is `private` in the off-limits auth module, so it can't be reused without editing that screen. `SheikhPhoto` in core-ui copies its treatment (the welcome screen is unchanged).
 
 ## Phase notes
 
@@ -61,3 +63,13 @@ Spec: `docs/plans/overnight-ui-pass.md`. Branch: `ui/overnight-polish` (from `a4
 - 1.6 `AudioTitleCleaner`, `InlineBold` (strip/parse `*bold*`), `ArticleTextCleaner.cleanBody(raw, rawTitle)` (now also drops leading title/title-part lines and author-only lines, and strips `*`), `readerParagraphs` (keeps basmala, emojis and bold markers; an inner separator becomes "✦ ✦ ✦"), `sectionHeading`, `isBasmala`. Reading time already existed (`readingMinutes` + `ArabicDates.readingTime`). Tests: `DisplayCleanersTest`.
 - 1.7 "اً" → "ًا" in every `values*/strings.xml` (4 strings) and in hardcoded UI text (ForceUpdate, Designs empty state, Profile delete row, Institute cards). The admin "الـمستوى" is now "المستوى". The existing `NoTatweelInStringsTest` gained a second test for "اً".
 - 1.8 Downloaded 26 Tabler outline SVGs (all succeeded), converted them to `ic_tabler_*.xml` in core-ui, and registered them in `TablerIcons`. Licenses already credit Tabler Icons (MIT).
+
+### Phase 2: Done
+- 2.1 Institute swap button: **not in the app.** No FloatingActionButton, swap icon or overlay exists in `feature-study`, `app` or any shared module (grep for FAB/Swap/swap). A round black button with swap arrows near the navigation bar matches Android's **rotation-suggestion button**, which the system shows when auto-rotate is off and the phone is tilted. It can also be an accessibility/assistant floating button. Nothing to gate behind `BuildConfig.DEBUG`. It's in the follow-ups for Ali to confirm on the device.
+- 2.2 Institute handle: `StudentHeader` shows `BidiText.handle(username)` → "@ali_7assan", isolated LTR.
+- 2.3 Designs viewer counter: new string `page_counter` "%1$s من %2$s" with Arabic-Indic digits → "١ من ٩".
+- 2.4 Video thumbnails: already a 16:9 box with `ContentScale.Crop` in `VideoCard`, so no change was needed.
+- 2.5 About photo: the framed/cornered look is baked into `dr_hassan_image.png`. The About hero now uses a new shared `core-ui/components/SheikhPhoto` (the plain `dr_hassan_photo.jpg`, `clip(CircleShape)` + Crop + thin `accent` ring). The profile URL in `DoctorProfile` is a placeholder that never loads, so the bundled photo is shown directly.
+- 2.6 Search default chip: `SearchViewModel` already starts on `SearchFilter.ALL` and resets facet filters in `init`, so no change was needed.
+- 2.7 Reader: the floating share button is gone. The reader uses `AppTopBar` with no title (the header shows it) and a share action.
+- 2.8 About text: it lives in the app (`core-domain/.../module/DoctorProfile.kt`), so I fixed it there: البكالوريوس, بكالوريوس, الدكتوراه, بالمدينة, الإسلامية, الإسهامات, إلى, a period after "في الشأن السوداني", a space in "المنورة (1990م)", and the double space.

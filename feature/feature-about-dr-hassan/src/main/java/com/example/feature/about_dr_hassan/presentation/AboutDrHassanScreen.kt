@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.core.ui.R
+import com.example.core.ui.components.SheikhPhoto
 import com.example.domain.module.doctorProfileData
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,14 +143,10 @@ fun HeroSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        AsyncImage(
-            modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-            model = imageUrl,
-            contentDescription = "Profile",
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.dr_hassan_image),
-            error = painterResource(R.drawable.dr_hassan_image)
-        )
+        // The profile URL is a placeholder that never loads: show the bundled photo,
+        // clipped to a circle (no dark square frame, no corner poking out).
+        SheikhPhoto(size = 112.dp, contentDescription = name)
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
             text = name,

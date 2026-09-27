@@ -44,6 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.AppTopBarAction
+import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Article
 import java.util.Date
@@ -65,41 +68,23 @@ fun ArticleDetailScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                title = {
-                    Text(
-                        text = (uiState as? DetailArticleUiState.Success)?.article?.title
-                            ?: stringResource(R.string.loading),
-                        maxLines = 2,
-                        modifier = Modifier.fillMaxWidth(),
-                        overflow = Ellipsis
-                    )
-
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(id = R.string.back))
+            val state = uiState
+            // No title here: the article header shows it in full. Share lives in the
+            // bar instead of a floating button over the text.
+            AppTopBar(
+                title = "",
+                onBack = onNavigateBack,
+                actions = {
+                    if (state is DetailArticleUiState.Success) {
+                        AppTopBarAction(
+                            icon = TablerIcons.Share,
+                            contentDescription = stringResource(R.string.share),
+                            onClick = { onNavigateToShareSelection(state.article.id) },
+                        )
                     }
                 },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
             )
-
         },
-        floatingActionButton = {
-            val state = uiState
-            if (state is DetailArticleUiState.Success) {
-                FloatingActionButton(
-                    onClick = { onNavigateToShareSelection(state.article.id) },
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                ) {
-                    Icon(Icons.Filled.Share, "Share article")
-                }
-            }
-        }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (val state = uiState) {

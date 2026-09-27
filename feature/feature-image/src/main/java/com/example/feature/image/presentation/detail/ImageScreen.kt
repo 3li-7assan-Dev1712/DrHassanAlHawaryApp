@@ -29,7 +29,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
+import com.example.core.ui.R
 import com.example.core.ui.components.shimmer
+import com.example.domain.text.ArabicNumerals
+import androidx.compose.ui.res.stringResource
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -129,7 +132,11 @@ fun ImageScreen(
                         // Pager position indicator text
                         if (pagerState.pageCount > 0) {
                             Text(
-                                text = "${pagerState.currentPage + 1} / ${pagerState.pageCount}",
+                                text = stringResource(
+                                    R.string.page_counter,
+                                    ArabicNumerals.digits(pagerState.currentPage + 1),
+                                    ArabicNumerals.digits(pagerState.pageCount),
+                                ),
                                 style = MaterialTheme.typography.bodyLarge,
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
