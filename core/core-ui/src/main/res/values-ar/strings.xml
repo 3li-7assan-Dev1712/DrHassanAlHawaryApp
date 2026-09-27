@@ -86,7 +86,7 @@
     <string name="share_image_chooser">مشاركة الصورة</string>
     <string name="share_text_attribution">من مقال: %1$s</string>
     <string name="share_text_selection_title">اختر نصًا للمشاركة</string>
-    <string name="share_text_selection_hint">اضغط على جملة لتحديدها، ثم اضغط على ما قبلها أو بعدها لإضافته</string>
+    <string name="share_text_selection_hint">اضغط مطولًا على النص ثم اسحب لتحديد الجزء الذي تريده، واسحب المقبضين لتعديله</string>
     <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
     <string name="share_text_too_long">النص طويل، اختر جزءًا أقصر</string>
     <string name="share_text_clear_selection">مسح التحديد</string>

@@ -1,10 +1,8 @@
 package com.example.feature.article.presentation.share
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,21 +24,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -50,18 +44,16 @@ import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.BrandTokens
-import com.example.domain.text.ArticleTextCleaner
-import com.example.domain.text.QuoteBlock
-import com.example.domain.text.QuoteSentence
-import com.example.domain.text.SentenceSelection
+import com.example.domain.text.SelectableArticle
 import com.example.domain.text.quoteCounter
+import com.example.feature.article.presentation.share.components.SelectableArticleText
 import com.example.feature.share.presentation.components.QuoteCardPreview
 
 /**
- * Pick the text for the quote images by tapping whole sentences of the cleaned article:
- * tap one to select it, tap the one just before or after to extend, tap an end to trim
- * it, tap anywhere else to start over. Hands the article id + the selection's range in
- * the display text to feature-share's quote-image screen (wired by the app module).
+ * Pick the text for the quote images: long-press on the cleaned article to select the
+ * word there, keep dragging to select freely (across paragraphs, auto-scrolling at the
+ * edges), then drag the handles to adjust. Hands the article id + the selection's range
+ * in the display text to feature-share's quote-image screen (wired by the app module).
  */
 @Composable
 fun ArticleShareSelectionScreen(
@@ -74,7 +66,7 @@ fun ArticleShareSelectionScreen(
     ArticleShareSelectionContent(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
-        onSentenceTapped = viewModel::onSentenceTapped,
+        onSelectionChanged = viewModel::onSelectionChanged,
         onClearSelection = viewModel::onClearSelection,
         onContinue = {
             uiState.selectionRange?.let { onContinueToPreview(uiState.articleId, it.first, it.last + 1) }
@@ -86,23 +78,17 @@ fun ArticleShareSelectionScreen(
 private fun ArticleShareSelectionContent(
     uiState: ArticleShareSelectionUiState,
     onNavigateUp: () -> Unit,
-    onSentenceTapped: (Int) -> Unit,
+    onSelectionChanged: (start: Int, end: Int) -> Unit,
     onClearSelection: () -> Unit,
     onContinue: () -> Unit,
 ) {
     val colors = Brand.colors
-    val haptics = LocalHapticFeedback.current
-    val onTap: (Int) -> Unit = { index ->
-        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        onSentenceTapped(index)
-    }
-
     Scaffold(
         containerColor = colors.background,
         topBar = { AppTopBar(title = stringResource(R.string.share_text_selection_title), onBack = onNavigateUp) },
         bottomBar = { SelectionPanel(uiState, onClearSelection, onContinue) },
     ) { padding ->
-        val document = uiState.document
+        val article = uiState.article
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -111,7 +97,7 @@ private fun ArticleShareSelectionContent(
             when {
                 uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center), color = colors.accentStrong)
 
-                document == null || document.sentences.isEmpty() -> Text(
+                article == null || article.text.isBlank() -> Text(
                     text = uiState.errorMessage.orEmpty(),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyLarge,
@@ -120,29 +106,40 @@ private fun ArticleShareSelectionContent(
                         .padding(16.dp),
                 )
 
-                else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    item { ArticleHeader(uiState.articleTitle) }
-                    items(document.blocks) { block ->
-                        when (block) {
-                            QuoteBlock.Ornament -> Text(
-                                text = ArticleTextCleaner.ORNAMENT,
-                                color = colors.accent,
-                                style = MaterialTheme.typography.labelLarge,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                            )
-
-                            is QuoteBlock.Paragraph -> SentenceParagraph(block, uiState.selection, onTap)
-                        }
-                    }
-                }
+                else -> SelectableBody(uiState, article, onSelectionChanged)
             }
         }
+    }
+}
+
+@Composable
+private fun SelectableBody(
+    uiState: ArticleShareSelectionUiState,
+    article: SelectableArticle,
+    onSelectionChanged: (start: Int, end: Int) -> Unit,
+) {
+    val scrollState = rememberScrollState()
+    var viewport by remember { mutableStateOf<Rect?>(null) }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { viewport = it.boundsInWindow() }
+            .verticalScroll(scrollState)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        ArticleHeader(uiState.articleTitle)
+        SelectableArticleText(
+            article = article,
+            selectionStart = uiState.selectionStart,
+            selectionEnd = uiState.selectionEnd,
+            onSelectionChanged = onSelectionChanged,
+            scrollState = scrollState,
+            viewport = { viewport },
+            selectAllLabel = stringResource(R.string.share_text_select_all),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+        )
     }
 }
 
@@ -166,83 +163,6 @@ private fun ArticleHeader(title: String) {
             color = colors.textSecondary,
             modifier = Modifier.padding(bottom = 12.dp),
         )
-    }
-}
-
-/**
- * One paragraph as a single Text, each sentence a clickable link (so TalkBack can reach
- * and activate every sentence), selected ones with a background span that hugs each line.
- */
-@Composable
-private fun SentenceParagraph(block: QuoteBlock.Paragraph, selection: SentenceSelection?, onTap: (Int) -> Unit) {
-    val colors = Brand.colors
-    val baseStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 1.9.em)
-    val selected = SpanStyle(background = colors.accentContainer, color = colors.onAccentContainer)
-    val text = remember(block, selection, colors) { annotate(block.sentences, selection, selected, onTap) }
-
-    when (block.kind) {
-        QuoteBlock.Kind.Basmala -> Text(
-            text = text,
-            style = baseStyle.copy(fontWeight = FontWeight.SemiBold),
-            color = colors.textPrimary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-        )
-
-        QuoteBlock.Kind.Heading -> Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
-        ) {
-            Box(
-                Modifier
-                    .width(3.dp)
-                    .height(18.dp)
-                    .background(colors.accentStrong, RoundedCornerShape(2.dp)),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(text = text, style = baseStyle.copy(fontWeight = FontWeight.Bold), color = colors.textPrimary)
-        }
-
-        // Start-aligned, never justified (Android justifies Arabic by stretching spaces).
-        QuoteBlock.Kind.Body -> Text(
-            text = text,
-            style = baseStyle,
-            color = colors.textSecondary,
-            textAlign = TextAlign.Start,
-            modifier = Modifier.padding(bottom = 14.dp),
-        )
-    }
-}
-
-private fun annotate(
-    sentences: List<QuoteSentence>,
-    selection: SentenceSelection?,
-    selectedStyle: SpanStyle,
-    onTap: (Int) -> Unit,
-): AnnotatedString = buildAnnotatedString {
-    fun isSelected(i: Int) = selection != null && i in selection.first..selection.last
-    sentences.forEachIndexed { position, sentence ->
-        if (position > 0) {
-            // The space between two selected sentences is highlighted too: one unbroken run.
-            val bothSelected = isSelected(sentences[position - 1].index) && isSelected(sentence.index)
-            if (bothSelected) withStyle(selectedStyle) { append(" ") } else append(" ")
-        }
-        val link = LinkAnnotation.Clickable(
-            tag = "sentence-${sentence.index}",
-            styles = TextLinkStyles(style = if (isSelected(sentence.index)) selectedStyle else SpanStyle()),
-        ) { onTap(sentence.index) }
-        withLink(link) { append(sentence.text) }
-    }
-}
-
-private inline fun AnnotatedString.Builder.withStyle(style: SpanStyle, block: AnnotatedString.Builder.() -> Unit) {
-    val index = pushStyle(style)
-    try {
-        block()
-    } finally {
-        pop(index)
     }
 }
 
@@ -337,18 +257,20 @@ private val previewContent = listOf(
 
 @Composable
 private fun SelectionPreview() {
-    val document = com.example.domain.text.QuoteDocument.build(previewContent, "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير")
+    val article = SelectableArticle.build(previewContent, "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير")
+    val start = article.text.indexOf("فإن بلادنا")
     ArticleShareSelectionContent(
         uiState = ArticleShareSelectionUiState(
             isLoading = false,
             articleTitle = "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير",
-            document = document,
-            selection = SentenceSelection(2, 3),
-            characterCount = 98,
+            article = article,
+            selectionStart = start,
+            selectionEnd = start + 60,
+            characterCount = 60,
             pageCount = 1,
         ),
         onNavigateUp = {},
-        onSentenceTapped = {},
+        onSelectionChanged = { _, _ -> },
         onClearSelection = {},
         onContinue = {},
     )

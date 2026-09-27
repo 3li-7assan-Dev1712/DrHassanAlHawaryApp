@@ -8,8 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.core.ui.R
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.ArticleText
-import com.example.domain.text.QuoteDocument
-import com.example.domain.text.SentenceSelection
+import com.example.domain.text.SelectableArticle
 import com.example.domain.text.TextSanitizer
 import com.example.feature.article.domain.use_case.GetArticleByIdUseCase
 import com.example.feature.share.engine.QuoteCardPainter
@@ -28,11 +27,11 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Sentence-based selection of article text for the quote images. The article is shown
- * cleaned (as in the reader) and split into sentences ([QuoteDocument]); taps build a
- * contiguous [SentenceSelection]. "متابعة" still hands the next step what it has always
- * taken: the article id + a range in [ArticleText.displayText] - it rebuilds that text,
- * sanitizes the range and paginates it, exactly as measured here.
+ * Free long-press-and-drag selection of article text for the quote images. The article
+ * is shown cleaned (as in the reader) as one text ([SelectableArticle]). "متابعة" still
+ * hands the next step what it has always taken: the article id + a range in
+ * [ArticleText.displayText] - it rebuilds that text, sanitizes the range and paginates
+ * it, exactly as measured here.
  */
 @HiltViewModel
 class ArticleShareSelectionViewModel @Inject constructor(
@@ -69,15 +68,16 @@ class ArticleShareSelectionViewModel @Inject constructor(
                     // The flow can re-emit the same article: keep the user's selection then.
                     if (article.content == loadedContent) return@collect
                     loadedContent = article.content
-                    val document = withContext(Dispatchers.Default) { QuoteDocument.build(article.content, article.title) }
+                    val selectable = withContext(Dispatchers.Default) { SelectableArticle.build(article.content, article.title) }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             articleId = articleId,
                             articleTitle = ArticleText.cleanTitle(article.title),
-                            document = document,
-                            selection = null,
-                            errorMessage = if (document.sentences.isEmpty()) "Article not found" else null,
+                            article = selectable,
+                            selectionStart = 0,
+                            selectionEnd = 0,
+                            errorMessage = if (selectable.text.isBlank()) "Article not found" else null,
                         )
                     }
                 }
@@ -87,16 +87,15 @@ class ArticleShareSelectionViewModel @Inject constructor(
         }
     }
 
-    /** A tap on sentence [index]: select / extend / trim / restart (see [SentenceSelection.tap]). */
-    fun onSentenceTapped(index: Int) {
-        _uiState.update { it.copy(selection = SentenceSelection.tap(it.selection, index)) }
+    /** The drag selection, in [SelectableArticle.text] offsets. */
+    fun onSelectionChanged(start: Int, end: Int) {
+        val state = _uiState.value
+        if (start == state.selectionStart && end == state.selectionEnd) return
+        _uiState.update { it.copy(selectionStart = start, selectionEnd = end) }
         measure()
     }
 
-    fun onClearSelection() {
-        _uiState.update { it.copy(selection = null) }
-        measure()
-    }
+    fun onClearSelection() = onSelectionChanged(0, 0)
 
     /**
      * Characters and images for the current selection, measured with the quote-image
@@ -105,16 +104,16 @@ class ArticleShareSelectionViewModel @Inject constructor(
     private fun measure() {
         measureJob?.cancel()
         val state = _uiState.value
-        val document = state.document
+        val article = state.article
         val range = state.selectionRange
-        if (document == null || range == null) {
+        if (article == null || range == null) {
             _uiState.update { it.copy(characterCount = 0, pageCount = 0, firstPage = null) }
             return
         }
         measureJob = viewModelScope.launch {
             delay(MEASURE_DEBOUNCE_MS)
             val (characters, pages) = withContext(Dispatchers.Default) {
-                val quote = TextSanitizer.sanitize(document.displayText, range.first, range.last + 1).text
+                val quote = TextSanitizer.sanitize(article.displayText, range.first, range.last + 1).text
                 val painter = painter ?: QuoteCardPainter(context).also { painter = it }
                 quote.length to painter.paginate(SpannableString(ArabicNumerals.digits(quote)))
             }

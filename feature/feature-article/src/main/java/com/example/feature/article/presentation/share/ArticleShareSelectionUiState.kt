@@ -1,7 +1,6 @@
 package com.example.feature.article.presentation.share
 
-import com.example.domain.text.QuoteDocument
-import com.example.domain.text.SentenceSelection
+import com.example.domain.text.SelectableArticle
 import com.example.feature.share.engine.QuotePage
 
 data class ArticleShareSelectionUiState(
@@ -9,9 +8,11 @@ data class ArticleShareSelectionUiState(
     val articleId: String = "",
     /** The cleaned article title, shown as a non-selectable header. */
     val articleTitle: String = "",
-    /** The article as the reader shows it, split into tappable sentences. */
-    val document: QuoteDocument? = null,
-    val selection: SentenceSelection? = null,
+    /** The article as the reader shows it, as one selectable text. */
+    val article: SelectableArticle? = null,
+    /** The selection in [SelectableArticle.text] (end exclusive); empty when end <= start. */
+    val selectionStart: Int = 0,
+    val selectionEnd: Int = 0,
     /** Characters of the cleaned excerpt that goes on the images (after the sanitizer). */
     val characterCount: Int = 0,
     /** Images the quote-image step will make, from its own pagination. */
@@ -22,13 +23,13 @@ data class ArticleShareSelectionUiState(
     val maxPages: Int? = null,
     val errorMessage: String? = null,
 ) {
-    val hasSelection: Boolean get() = selection != null
+    /** The selection in [SelectableArticle.displayText] - what the next step takes - or null. */
+    val selectionRange: IntRange?
+        get() = if (selectionEnd > selectionStart) article?.toSource(selectionStart, selectionEnd) else null
+
+    val hasSelection: Boolean get() = selectionRange != null
 
     val isTooLong: Boolean get() = maxPages != null && pageCount > maxPages
 
     val canContinue: Boolean get() = hasSelection && pageCount > 0 && !isTooLong
-
-    /** The selection in [QuoteDocument.displayText] coordinates (end exclusive), or null. */
-    val selectionRange: IntRange?
-        get() = selection?.let { document?.range(it.first, it.last) }
 }
