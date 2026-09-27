@@ -20,10 +20,10 @@
     <string name="study">الدراسة</string>
     <string name="study_institure_des">اطلب العلم واحصل على كل دروس الشيخ د. حسن الهواري مجموعة ومرتبة في مكان واحد\nوكذلك منطقة دراسة مخصصة داخل التطبيق للمعهد الفقهي</string>
     <string name="journey_title">ابدأ رحلتك التعليمية واحفظ تقدمك</string>
-    <string name="journey_description">ابدا التدرج الصحيح في دراسة الفقه دراسة تأصيلية واحفظ تقدمك في مختلف الأجهزة عن طريق تسجيل حساب على التطبيق</string>
-    <string name="network_error_title">إنقطع إتصالك بالإنترنت؟</string>
-    <string name="network_error_description">أحصل على الدروس والمقاطع الصوتية من دون إنترنت وذلك بعد تحميلها داخل التطبيق</string>
-    <string name="pdf_illu_title">أحصل على ملفات ال pdf وتصفحها بشكل مرتب</string>
+    <string name="journey_description">ابدأ التدرج الصحيح في دراسة الفقه دراسة تأصيلية واحفظ تقدمك في مختلف الأجهزة عن طريق تسجيل حساب على التطبيق</string>
+    <string name="network_error_title">انقطع اتصالك بالإنترنت؟</string>
+    <string name="network_error_description">احصل على الدروس والمقاطع الصوتية من دون إنترنت وذلك بعد تحميلها داخل التطبيق</string>
+    <string name="pdf_illu_title">احصل على ملفات PDF وتصفحها بشكل مرتب</string>
     <string name="pdf_illu_descritption">يمكنك الحصول على ملفات ومرفقات الدروس بشكل سهل وسريع وذلك بالدخول على الدرس لتجد كل ملحقات الدرس الخاصة به في مكان واحد</string>
 
 

@@ -1,5 +1,9 @@
 package com.example.profile.presentation.profile
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -40,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +78,7 @@ fun ProfileScreen(
     viewModel: ProfileScreenViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     val readerFontStep by viewModel.readerFontStep.collectAsState()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val colors = Brand.colors
@@ -171,7 +177,7 @@ fun ProfileScreen(
                         ProfileSection(title = "التطبيق") {
                             ProfileRow(TablerIcons.InfoCircle, "عن التطبيق") { onNavigate(ProfileRoute.About) }
                             ProfileRow(TablerIcons.Share, "مشاركة التطبيق") { onNavigate(ProfileRoute.Share) }
-                            ProfileRow(TablerIcons.Star, "تقييم التطبيق", isLast = true) { onNavigate(ProfileRoute.Rate) }
+                            ProfileRow(TablerIcons.Star, "تقييم التطبيق", isLast = true) { openStoreListing(context) }
                         }
                     }
 
@@ -229,6 +235,25 @@ fun ProfileScreen(
             ) {
                 LoadingScreen()
             }
+        }
+    }
+}
+
+/**
+ * "تقييم التطبيق": the Play Store listing directly (market:// in the store app, else the
+ * web listing). No in-app review API: it would be a new dependency.
+ */
+private fun openStoreListing(context: Context) {
+    val id = context.packageName
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$id")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: ActivityNotFoundException) {
+        try {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$id")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (_: ActivityNotFoundException) {
+            // No store and no browser: nothing to open.
         }
     }
 }

@@ -71,7 +71,6 @@ import com.example.profile.presentation.components.LegalTextScreen
 import com.example.profile.presentation.components.ProfileRoute
 import com.example.profile.presentation.navigation.ProfileDestinations
 import com.example.profile.presentation.profile.ProfileScreen
-import com.example.profile.presentation.rate_app.RateAppScreen
 import com.example.profile.presentation.share_app.ShareAppScreen
 import com.example.profile.presentation.support.SupportScreen
 import com.example.search.presentation.SearchScreen
@@ -688,7 +687,6 @@ class MainActivity : ComponentActivity() {
                             when (route) {
                                 ProfileRoute.About -> navController.navigate(ProfileDestinations.ABOUT)
                                 ProfileRoute.Share -> navController.navigate(ProfileDestinations.SHARE)
-                                ProfileRoute.Rate -> navController.navigate(ProfileDestinations.RATE)
                                 ProfileRoute.Privacy -> navController.navigate(ProfileDestinations.PRIVACY)
                                 ProfileRoute.Terms -> navController.navigate(ProfileDestinations.TERMS)
                                 ProfileRoute.Licenses -> navController.navigate(ProfileDestinations.LICENSES)
@@ -720,13 +718,6 @@ class MainActivity : ComponentActivity() {
                         )
                 }
 
-                composable(ProfileDestinations.RATE) {
-                    RateAppScreen(
-                        packageName = "app.netlify.devalihassan",
-                        onBack = { navController.popBackStack() },
-
-                        )
-                }
 
                 composable(ProfileDestinations.PRIVACY) {
                     LegalTextScreen(

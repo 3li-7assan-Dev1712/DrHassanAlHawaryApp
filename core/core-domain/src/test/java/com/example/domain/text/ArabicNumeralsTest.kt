@@ -55,4 +55,13 @@ class ArabicNumeralsTest {
         assertEquals("٣٢:١٥", ArabicNumerals.formatDuration(32 * 60_000L + 15_000L))
         assertEquals("١:٠٢:٠٥", ArabicNumerals.formatDuration(3_725_000))
     }
+
+    @Test
+    fun `media times have no leading zero on minutes`() {
+        org.junit.Assert.assertEquals("٠:٢٠", ArabicNumerals.formatMediaTime(20_000))
+        org.junit.Assert.assertEquals("٣:٠٩", ArabicNumerals.formatMediaTime(189_000))
+        org.junit.Assert.assertEquals("٢٢:٠٠", ArabicNumerals.formatMediaTime(1_320_000))
+        org.junit.Assert.assertEquals("١:٠٥:٣٠", ArabicNumerals.formatMediaTime(3_930_000))
+        org.junit.Assert.assertEquals("٠:٠٠", ArabicNumerals.formatMediaTime(-5))
+    }
 }

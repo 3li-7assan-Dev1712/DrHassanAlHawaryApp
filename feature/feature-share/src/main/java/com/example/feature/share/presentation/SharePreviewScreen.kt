@@ -50,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.core.ui.R
+import com.example.domain.text.ArabicNumerals
 import com.example.feature.share.domain.ShareExportState
 import com.example.feature.share.engine.ShareFrameLayout
 import com.example.feature.share.presentation.components.GenerationOverlay
@@ -398,9 +399,4 @@ private fun PlaybackScrubber(
     }
 }
 
-private fun formatDuration(ms: Long): String {
-    val totalSeconds = TimeUnit.MILLISECONDS.toSeconds(ms.coerceAtLeast(0L))
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%d:%02d".format(minutes, seconds)
-}
+private fun formatDuration(ms: Long): String = ArabicNumerals.formatMediaTime(ms)

@@ -73,8 +73,8 @@ class ShareFramePainter(context: Context) {
         }
 
         val halfWidth = ShareFrameLayout.CONTENT_WIDTH / 2f
-        val elapsed = ArabicNumerals.formatDuration(elapsedMs)
-        val total = ArabicNumerals.formatDuration(totalMs)
+        val elapsed = ArabicNumerals.formatMediaTime(elapsedMs)
+        val total = ArabicNumerals.formatMediaTime(totalMs)
         val elapsedLayout = elapsedCache?.takeIf { it.first == elapsed }?.second
             ?: timeLayout(elapsed, halfWidth, Layout.Alignment.ALIGN_NORMAL).also { elapsedCache = elapsed to it }
         val totalLayout = totalCache?.takeIf { it.first == total }?.second

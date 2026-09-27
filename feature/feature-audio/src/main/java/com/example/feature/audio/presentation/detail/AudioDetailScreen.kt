@@ -74,7 +74,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
-import com.example.feature.audio.presentation.components.formatDuration
+import com.example.domain.text.ArabicNumerals
 import com.google.common.util.concurrent.ListenableFuture
 
 
@@ -497,7 +497,7 @@ fun ThemedPlayerControls(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                formatDuration(uiState.currentPositionMillis),
+                ArabicNumerals.formatMediaTime(uiState.currentPositionMillis),
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp
@@ -505,7 +505,7 @@ fun ThemedPlayerControls(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                formatDuration(uiState.totalDurationMillis),
+                ArabicNumerals.formatMediaTime(uiState.totalDurationMillis),
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp

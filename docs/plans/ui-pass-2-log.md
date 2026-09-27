@@ -6,7 +6,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 ## Checklist
 
 - [x] Phase 0: Setup and inventory: Done
-- [ ] Phase 1: Quick fixes
+- [x] Phase 1: Quick fixes: Done
 - [ ] Phase 2: Audio player
 - [ ] Phase 3: Share-as-video preview
 - [ ] Phase 4: Category screens
@@ -32,3 +32,10 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 ## Decisions
 
 ## Phase notes
+
+### Phase 1: Done
+- 1.1 Gray bar: there are no View-based scroll containers in the app (no ScrollView, NestedScrollView, RecyclerView or WebView, and no `scrollbars` attribute), and Compose scroll containers never draw scrollbars, so there's nothing to disable. Pass 1 removed the root Scaffold's gray `surfaceVariant` strip and the gray top-bar gradients; that change is harmless and stays. If a thin bar still shows at the left edge, it isn't drawn by the app's views. The most likely source is the system's back-gesture edge indicator. It's on the device checklist.
+- 1.2 "تقييم التطبيق" now opens `market://details?id=<packageName>`, falling back to `https://play.google.com/store/apps/details?id=<packageName>`. Nothing referenced the Rate screen and route except that row, so I deleted them: `RateAppScreen.kt`, `ProfileRoute.Rate`, `ProfileDestinations.RATE` and the `composable(RATE)` entry in `MainActivity`. The `rate_illu` drawable stays (it's used in Phase 7). No in-app review API.
+- 1.3 Onboarding spelling fixed in `feature-onboarding/res/values/strings.xml`: أحصل→احصل (2×), إنقطع إتصالك→انقطع اتصالك, ابدا التدرج→ابدأ التدرج, ملفات ال pdf→ملفات PDF.
+- 1.4 Skip interval: the player already skipped 10 s (`onRewind(10)`/`onForward(10)`). The "١٠" labels come with the new transport icons in Phase 2.
+- 1.5 New `ArabicNumerals.formatMediaTime` (tested: ٠:٢٠، ٣:٠٩، ٢٢:٠٠، ١:٠٥:٣٠). It's used by the player's elapsed/total times, the share preview's times and the share video frame's times (the frame's "dots" were Arabic-Indic zeros from the old zero-padded format).

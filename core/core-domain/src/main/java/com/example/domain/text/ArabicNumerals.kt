@@ -61,6 +61,23 @@ object ArabicNumerals {
         return parts.takeIf { it.isNotEmpty() }?.joinToString(DATE_SEPARATOR)
     }
 
+    /**
+     * Media player / share-clip times: no leading zero on minutes, Arabic-Indic digits.
+     * "٠:٢٠", "٣:٠٩", "٢٢:٠٠", and "١:٠٥:٣٠" past an hour. Negative input clamps to zero.
+     */
+    fun formatMediaTime(millis: Long): String {
+        val totalSeconds = millis.coerceAtLeast(0L) / 1000L
+        val hours = totalSeconds / 3600L
+        val minutes = (totalSeconds % 3600L) / 60L
+        val seconds = totalSeconds % 60L
+        val western = if (hours > 0) {
+            String.format(Locale.ROOT, "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            String.format(Locale.ROOT, "%d:%02d", minutes, seconds)
+        }
+        return digits(western)
+    }
+
     /** "٠١:٠٥", or "١:٠٢:٠٥" past an hour. Negative input clamps to zero. */
     fun formatDuration(millis: Long): String {
         val totalSeconds = millis.coerceAtLeast(0L) / 1000L
