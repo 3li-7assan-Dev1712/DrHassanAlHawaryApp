@@ -13,7 +13,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - [x] Phase 5: Splash and onboarding: Done
 - [x] Phase 6: About and Share-app: Done (no what's-new row)
 - [x] Phase 7: Empty and error states: Done (no downloads state exists)
-- [ ] Phase 8: Final report
+- [x] Phase 8: Final report: Done
 
 ## Phase 0: inventory
 
@@ -124,3 +124,79 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - Institute "منصة المعهد قريبًا" card: the journey illustration (160dp, ≤ 180dp) replaces the school-icon circle.
 - "No downloads yet" (whiteboard): skipped. The app has no downloads screen or state to put it in. The whiteboard (`rate_illu` + `_dark`) stays available through `Illustration.Whiteboard`.
 - The other empty lists (audio "no audios", videos "no videos", designs "no groups") aren't connection/search/download states in the spec's list, so they were left as they are.
+
+## Phase 8: Final report
+
+### 1. Summary
+Every phase passed `assembleDebug testDebugUnitTest` + `:core:core-domain:test` and was committed. The share androidTests also compile.
+
+| Phase | Status | Notes |
+|---|---|---|
+| 0 Setup & inventory | Done | `ui/pass-2` from HEAD (it already contains `ui/overnight-polish`). |
+| 1 Quick fixes | Done | No View scroll containers exist, so there are no scrollbars to disable (see 1.1). Rate → Play Store, and the Rate screen/route are deleted. Spelling fixed. `formatMediaTime`. |
+| 2 Audio player | Done | The overlay was the user's offline download: now an inline cancellable card. Speed button + persisted speed. |
+| 3 Share-as-video | Done | Quote removed, sheikh photo in the frame, one-screen layout, one clip selector, larger times, LTR waveform, link under the CTA. |
+| 4 Category screens | Done | Shared definition + compact list; audio "الكل". No counts (not loaded on these screens). |
+| 5 Splash & onboarding | Done | Cleaned logo PNG, per-theme splash background, no artificial delay; 3 pages; gold + dark illustration variants. |
+| 6 About & Share app | Done | "ما الجديد" omitted (no release notes). The QR is included (see D6.1). |
+| 7 Empty/error states | Done | Search (no results, error), designs load error, institute coming-soon. There's no downloads state to illustrate. |
+| 8 Final report | Done | This section. |
+
+### 2. Decisions made on my own
+- D5.1: the illustrations' dark variants follow the app theme (`_dark` drawables), not `drawable-night`.
+- D6.1: I used the QR from `docs/plans/` because `docs/assets/` doesn't exist. It's unverified: scan it on the device.
+- Playback direction (A.4): the player seek bar, transport row, share clip selector and share-frame waveform are all forced LTR.
+- Speed values cycle 1 → 1.25 → 1.5 → 2 → 0.75 and are stored as a float under the new `playback_speed` key.
+- The share video's footer moved up (video only) so the `dr-alhawary.com` link fits above the WhatsApp-safe bottom. I used `dr-alhawary.com` because the code only has the long Play Store URL.
+- The share video's header name is a new string, so the article quote images keep theirs.
+- The onboarding vectors moved from `feature-onboarding/res` to `core-ui/res` so empty states in other modules can use them (resources only, no code moved).
+- The unused `CategoryGridTile` and the old onboarding strings were left in place (unused).
+
+### 3. Commits on `ui/pass-2`
+```
+8815572 ui2: phase 7 - empty and error states
+896723a ui2: phase 6 - about and share-app
+f35c5fa ui2: phase 5 - splash and onboarding
+4335ed2 ui2: phase 4 - category screens
+497b32f ui2: phase 3 - share-as-video preview
+fce26d9 ui2: phase 2 - audio player
+98bb3ae ui2: phase 1 - quick fixes
+c0092a8 ui2: phase 0 - setup and inventory
+f1874df chore: snapshot before UI pass 2
+```
+(plus "ui2: phase 8 - final report")
+
+### 4. Manual follow-ups for Ali
+- **Scan the QR** in Share app → "رمز QR". If it doesn't open the Play Store listing, replace `core-ui/res/drawable-nodpi/qr_play_store.png`. Also consider moving the source image to `docs/assets/`.
+- **Logo:** the splash uses a cleaned-up raster. A transparent **vector** (or a clean high-res PNG with no baked frame) of the logo would be sharper. The admin app's splash (`admin/res/drawable-nodpi/app_splash.png`) wasn't touched.
+- **"ما الجديد في هذا الإصدار":** write release notes (e.g. an asset `whats_new.md`) and the row can be added to About.
+- **Play Store short link:** if you create one (e.g. a `g.co` or Firebase link), put it in the video frame instead of `dr-alhawary.com`.
+- **In-app review API:** "تقييم التطبيق" now opens the store listing. The in-app review flow is a separate decision (new dependency).
+- **Playback direction:** timelines run left to right as the spec asked. If you prefer right to left, remove the `LayoutDirection.Ltr` providers in `AudioDetailScreen`/`ClipSelector` and flip `ShareFramePainter.drawWaveform`.
+- **Illustrations:** they're all vectors, so no raster "stage" was needed. The dark variants use the fixed mapping, so please eyeball them in dark mode (hair, monitors and ink become light).
+- **Retry buttons:** the error states have none because none existed. Paging's `retry()` could be wired to the designs error later.
+- **Downloads:** there's no downloads screen for the "لا توجد تنزيلات بعد" state (whiteboard art is ready as `Illustration.Whiteboard`).
+- **Partial downloads:** cancelling a download mid-way stops the coroutine. Check whether `DownloadAudioUseCase` leaves a partial file behind.
+
+### 5. Device checklist (light and dark each)
+- [ ] Player idle: back arrow only, round photo (no cream corner), category chip, cleaned title (+ gold date line on a sermon), sheikh name, ONE round thumb with no dot or bar, time left→right, ↺١٠ · ▶ · ↻١٠ left→right, skip is 10 s.
+- [ ] Player download: tap تحميل → inline card with ٪ and bar; (x) cancels. Playback keeps going and starts before the download finishes. On finish the button shows ✓ محفوظ.
+- [ ] Speed: cycles ١× → ١٫٢٥× → ١٫٥× → ٢× → ٠٫٧٥×. Open another lecture: the speed persists.
+- [ ] Share preview: fits one screen with no scroll. Chips ١٥/٣٠/٦٠ ث; overview bar; drag the window and its handles; −٥ث/+٥ث; the range label updates. The play button previews and the card's waveform fills left→right. The share button shows progress inside it and then opens the share sheet.
+- [ ] Exported video: sheikh photo in the centre, "الشيخ د. حسن الهواري", readable times (no dots), waveform fills from the left, `dr-alhawary.com` under "حمّل التطبيق".
+- [ ] Audio categories: "الصوتيات", compact list with icons, "الكل" opens all audios. Video categories: "الفيديوهات", same list.
+- [ ] Splash in both system themes: no faint box or arc around the logo, and no white flash into onboarding/home.
+- [ ] Onboarding: 3 pages, titles don't jump, swipe / تخطي / التالي / لنبدأ, and no gray band behind the buttons.
+- [ ] About: illustration, logo + "تطبيق الشيخ د. حسن الهواري", "الإصدار 1.0.7"; the website and تواصل معنا rows open.
+- [ ] Share app: the share sheet has message + link; نسخ الرابط shows the Snackbar; the QR sheet shows a white-backed code that scans.
+- [ ] Rate row opens the Play Store app (or the web listing).
+- [ ] Empty states: search with nonsense → document art + "لا توجد نتائج"; airplane mode on search/designs → computer-and-server art.
+- [ ] No gray bar at the left edge on any screen. If one still appears, note which screen: it isn't drawn by the app's views (Phase 1.1).
+
+### 6. Known risks
+- **Not run on a device:** compile + unit tests only (no emulator, per the rules). The player's LTR slider inside an RTL screen, the clip-selector gestures and the new frame layout are unverified visually.
+- **Share frame layout:** the times grew and the footer moved (video only). The instrumented render/export tests still compile but weren't run.
+- **Splash logo:** the PNG was reprocessed. Anti-aliased edges of the gold letters were kept (only pixels darker than the letters were flattened).
+- **Theme mismatch on splash:** it follows the system night mode, while the app follows its own setting, so a phone in dark mode with the app set to light shows a dark splash and then a light app.
+- **Download cancel:** a partially written file may remain (depends on `DownloadAudioUseCase`). It isn't marked as downloaded.
+- **Build environment:** every build stops the Gradle daemons first (Android Studio held jar locks). Studio may need a re-sync.
