@@ -182,4 +182,16 @@
     <string name="share_nudge_back">−٥ ث</string>
     <string name="share_nudge_forward">+٥ ث</string>
     <string name="share_preparing_percent">جارٍ التجهيز %1$s</string>
+    <string name="about_app_name">تطبيق الشيخ د. حسن الهواري</string>
+    <string name="about_app_description">خطب الشيخ ودروسه ومقالاته وفتاواه في مكان واحد، مع الاستماع دون إنترنت ومشاركة المقاطع والاقتباسات.</string>
+    <string name="about_contact_us">تواصل معنا</string>
+    <string name="share_app_heading">شارك التطبيق لينتفع به غيرك</string>
+    <string name="share_app_message_label">نص المشاركة</string>
+    <string name="share_app_message">تطبيق الشيخ د. حسن الهواري: خطب ودروس ومقالات وفتاوى في مكان واحد</string>
+    <string name="share_app_share_link">مشاركة الرابط</string>
+    <string name="share_app_copy_link">نسخ الرابط</string>
+    <string name="share_app_link_copied">تم نسخ الرابط</string>
+    <string name="share_app_qr">رمز QR</string>
+    <string name="share_app_qr_title">امسح الرمز لتحميل التطبيق</string>
+    <string name="share_app_qr_hint">أظهره لمن حولك في المسجد أو الدرس</string>
 </resources>

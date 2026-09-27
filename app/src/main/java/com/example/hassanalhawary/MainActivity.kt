@@ -713,7 +713,10 @@ class MainActivity : ComponentActivity() {
                 }
 
                 composable(ProfileDestinations.ABOUT) {
-                    AboutAppScreen(onBack = { navController.popBackStack() })
+                    AboutAppScreen(
+                        onBack = { navController.popBackStack() },
+                        onContact = { navController.navigate(ProfileDestinations.SUPPORT) },
+                    )
                 }
 
                 composable(ProfileDestinations.SHARE) {

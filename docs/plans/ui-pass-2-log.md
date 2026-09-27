@@ -11,7 +11,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - [x] Phase 3: Share-as-video preview: Done
 - [x] Phase 4: Category screens: Done (no counts available)
 - [x] Phase 5: Splash and onboarding: Done
-- [ ] Phase 6: About and Share-app
+- [x] Phase 6: About and Share-app: Done (no what's-new row)
 - [ ] Phase 7: Empty and error states
 - [ ] Phase 8: Final report
 
@@ -31,6 +31,7 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 
 ## Decisions
 - D5.1: Illustration night variants are `_dark` drawables picked by the app theme rather than `drawable-night` (the app's theme preference isn't the system night mode). The splash itself does follow system night mode: `values-night` is the only option before any app code runs.
+- D6.1: The QR check says `docs/assets/qr_play_store.png`, but Ali added the image as `docs/plans/qr_play_store.png` (there's no `docs/assets/`). It's clearly the file meant for this feature and `applicationId` is `app.netlify.devalihassan`, so I used it: it's copied to `core-ui/res/drawable-nodpi/qr_play_store.png`. I couldn't decode the QR here (no QR library installed), so **scanning it is on the device checklist**. If it doesn't open the Play Store listing, delete the button (one `if`) or replace the PNG.
 
 ## Phase notes
 
@@ -97,3 +98,20 @@ Branch: `ui/pass-2`, created from HEAD. `ui/overnight-polish` was already contai
 - `share_app_illu`: #fcdfa6 ×44 (accent), #ff000000 ×10 (dark ink), #fff ×9 (white/near-white), #ed9da0 ×5 (skin), #090814 ×4 (dark ink), #d6d6e3 ×4 (light neutral), #fffeff ×3 (white/near-white), #2f2e43 ×2 (dark ink), #e2e3e4 ×2 (light neutral), #e6e6e6 ×1 (light neutral), #f2f2f2 ×1 (white/near-white), #ff6363 ×1 (skin), #c8c8c8 ×1 (mid gray)
 - `about_app_illu`: #090814 ×18 (dark ink), #fcdfa6 ×5 (accent), #fff ×5 (white/near-white), #ed9da0 ×4 (skin), #d6d6e3 ×3 (light neutral), #e6e6e6 ×3 (light neutral), #3f3d56 ×2 (dark ink), #f2f2f2 ×1 (white/near-white), #ff000000 ×1 (dark ink), #e6e8ec ×1 (light neutral)
 - `rate_illu`: #090814 ×38 (dark ink), #e6e6e6 ×13 (light neutral), #ccc ×8 (mid gray), #ed9da0 ×6 (skin), #fcdfa6 ×5 (accent), #cacaca ×2 (mid gray), #fff ×1 (white/near-white), #2f2e41 ×1 (dark ink)
+
+### Phase 6: Done ("ما الجديد" omitted: no release notes in the project)
+**About ("عن التطبيق")**
+- Ali's illustration (`about_app_illu`, gold #FAC775 + a `_dark` variant) at the top, capped at 210dp wide / 160dp tall. Then a 28dp logo circle (`admin_logo_app`, thin `accent` ring) next to "تطبيق الشيخ د. حسن الهواري". This replaces the old `appName` label, which presented the sheikh's name as the app name.
+- Then "الإصدار <versionName>" with Latin digits. It comes from the existing `AppInfoProvider` (PackageManager `versionName`, which equals `BuildConfig.VERSION_NAME`; `BuildConfig` of `:app` isn't visible from `:feature-profile`).
+- A description card with the spec's text.
+- Two rows:
+  - "الموقع الرسمي" with the LTR subtitle `dr-alhawary.com`, which opens `https://www.dr-alhawary.com`.
+  - "تواصل معنا", which uses the same target as Profile's "الدعم والتواصل" (`ProfileDestinations.SUPPORT`, passed in from `MainActivity` via a new `onContact` parameter; no new route).
+- "ما الجديد في هذا الإصدار": omitted. There are no release notes in the project (the only assets are licenses/privacy/terms).
+
+**Share app ("مشاركة التطبيق")**
+- Ali's illustration (`share_app_illu` + `_dark`), max 170dp wide. Heading "شارك التطبيق لينتفع به غيرك".
+- Message preview card: the label "نص المشاركة", the message text, and the Play Store link, LTR-isolated.
+- "مشاركة الرابط" (primary, `accentStrong`) opens the system share sheet through the existing `ShareAppUseCase` (ACTION_SEND text/plain) with the message + link.
+- "نسخ الرابط" copies the link and shows the Snackbar "تم نسخ الرابط".
+- "رمز QR" opens a `ModalBottomSheet` with "امسح الرمز لتحميل التطبيق", the QR at 200dp on white (both themes), and "أظهره لمن حولك في المسجد أو الدرس". The button only shows when `packageName == app.netlify.devalihassan`.
