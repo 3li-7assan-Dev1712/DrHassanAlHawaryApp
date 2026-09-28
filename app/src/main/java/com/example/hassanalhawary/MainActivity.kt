@@ -732,6 +732,7 @@ class MainActivity : ComponentActivity() {
                     LegalTextScreen(
                         title = "سياسة الخصوصية",
                         assetFileName = "privacy.md",
+                        contactLabel = "للأسئلة عن خصوصيتك: تواصل معنا",
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -740,6 +741,7 @@ class MainActivity : ComponentActivity() {
                     LegalTextScreen(
                         title = "الشروط والأحكام",
                         assetFileName = "terms.md",
+                        contactLabel = "للأسئلة عن الشروط: تواصل معنا",
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -748,6 +750,7 @@ class MainActivity : ComponentActivity() {
                     LegalTextScreen(
                         title = "التراخيص والمصادر المفتوحة",
                         assetFileName = "licenses.md",
+                        contactLabel = "للأسئلة عن التراخيص: تواصل معنا",
                         onBack = { navController.popBackStack() }
                     )
                 }

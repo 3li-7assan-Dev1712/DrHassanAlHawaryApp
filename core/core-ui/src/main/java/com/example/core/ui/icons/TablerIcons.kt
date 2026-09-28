@@ -79,6 +79,7 @@ object TablerIcons {
     @DrawableRes val Copy = R.drawable.ic_tabler_copy
     @DrawableRes val QrCode = R.drawable.ic_tabler_qrcode
     @DrawableRes val Music = R.drawable.ic_tabler_music
+    @DrawableRes val Mail = R.drawable.ic_tabler_mail
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
@@ -94,7 +95,7 @@ object TablerIcons {
         "brand-telegram" to BrandTelegram, "external-link" to ExternalLink,
         "rotate" to Rotate, "rotate-clockwise" to RotateClockwise, "messages" to Messages, "books" to Books,
         "building-mosque" to BuildingMosque, "microphone" to Microphone, "book" to Book,
-        "layout-grid" to LayoutGrid, "copy" to Copy, "qrcode" to QrCode, "music" to Music,
+        "layout-grid" to LayoutGrid, "copy" to Copy, "qrcode" to QrCode, "music" to Music, "mail" to Mail,
     )
 }
 
