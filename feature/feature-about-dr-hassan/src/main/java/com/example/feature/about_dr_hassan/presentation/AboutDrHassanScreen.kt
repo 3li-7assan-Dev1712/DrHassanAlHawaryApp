@@ -30,9 +30,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
@@ -101,8 +101,9 @@ private fun AboutContent(doctor: DoctorProfile, onNavigateBack: () -> Unit) {
             item { HeroSection(roleLine = doctor.title) }
 
             item {
-                TabRow(
+                ScrollableTabRow(
                     selectedTabIndex = tab,
+                    edgePadding = 0.dp,
                     containerColor = colors.background,
                     contentColor = colors.textPrimary,
                     indicator = { positions ->
