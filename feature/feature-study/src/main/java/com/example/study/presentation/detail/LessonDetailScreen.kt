@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.widget.Toast
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -419,12 +421,11 @@ private fun PlayerControls(
                         color = MaterialTheme.colorScheme.primary
                     )
                 } else {
+                    val reduced = reducedMotion
                     AnimatedContent(
                         targetState = isPlaying,
                         label = "PlayPause",
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(250)) togetherWith fadeOut(animationSpec = tween(250))
-                        }
+                        transitionSpec = { Motion.contentSwap(reduced) }
                     ) { playing ->
                         MainPlayButton(
                             isPlaying = playing,

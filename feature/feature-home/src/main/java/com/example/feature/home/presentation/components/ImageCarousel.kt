@@ -1,6 +1,8 @@
 package com.example.feature.home.presentation.components
 
 import android.util.Log
+import com.example.core.ui.theme.Motion
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -70,7 +72,10 @@ fun ImageCarousel(
                     val nextPage =
                         (pagerState.currentPage + 1) % pagerState.pageCount
 
-                    pagerState.animateScrollToPage(nextPage)
+                    pagerState.animateScrollToPage(
+                        nextPage,
+                        animationSpec = tween(Motion.MEDIUM, easing = Motion.EmphasizedDecelerate),
+                    )
                 }
             }
         }

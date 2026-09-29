@@ -17,7 +17,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 8: Container transform
 - [x] Phase 9: Onboarding, splash, sign-in
 - [x] Phase 10: Share preview, quote selection, image viewer
-- [ ] Phase 11: Haptics and polish check (next session)
+- [x] Phase 11: Haptics and polish check
 - [ ] Phase 12: Reduced-motion pass and final report (next session)
 
 ## Phase 0: inventory
@@ -108,6 +108,22 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - Quote selection: the highlight and both handles fade in when a selection appears and out when it's cleared (`stateChangeSpec`; the last range is drawn while fading out). Resizing a selection stays immediate. The bottom panel's thumbnail is a `Crossfade` (200ms, snap when reduced) keyed on the first page.
 - Image viewer: vertical `draggable` on the pager (outside its moving layer), disabled while zoomed; the image follows the finger, the black background fades with the distance, the top bar and thumbnails fade 3× faster. Past 25% of the height, letting go pops the screen immediately, so the Phase 8 container transform shrinks it from where the finger left it into its tile (or the shared-axis pop if the tile isn't on screen); otherwise it springs back (`spring(0.85, MediumLow)`, snap when reduced). Decision: no separate "fling off-screen" animation before the pop, because the container would then shrink an empty black box.
 - Pinch zoom, double tap and the horizontal pager keep their own gestures; the vertical drag only claims vertical movement past the touch slop.
+
+## Phase 11: Haptics and polish check (done)
+
+- Haptics, whole app (grep for `performHapticFeedback`): play/pause `ContextClick`, download complete `Confirm`, clip 5 s steps and length chips `SegmentTick`, quote selection `LongPress` (start) and `TextHandleMove` (grab a handle; both pre-existing). Nothing else. The newer types exist in compose ui 1.10.1, so no fallbacks were needed.
+- Rule fixes in code that predates this pass:
+  - Study map (`LevelsJourneyMap`): the current level pulsed forever (`infiniteRepeatable`) → grows once to 1.15 (`medium`) and stays; the path reveal went from 1.4 s to `long` (400ms); both instant under reduced motion.
+  - Study motivational pager: auto-scroll tween 600ms → `medium` emphasized; off under reduced motion.
+  - Study segmented indicator: 260ms FastOutSlowIn → `stateChangeSpec()`.
+  - Lesson detail play/pause: 250ms fade → `Motion.contentSwap`.
+  - Home carousel autoplay: default spring → `tween(medium, emphasized)` (springs are for gestures only).
+- Left alone, with reasons:
+  - Shimmer (1.6 s, infinite): the spec says keep it; it is a loading indicator, not decoration, and is still under reduced motion.
+  - `feature-splash-screen`'s `SplashScreen` composable (1.5 s overshoot): its `splash_screen` route is registered but nothing navigates to it (start destination is `home_screen`). Unreachable; removing it is outside this pass.
+  - Indeterminate progress spinners/rings: functional.
+- Nothing animates on every scroll: the reader title flips on a threshold; the reading-progress bar and onboarding parallax follow the gesture directly with no animation of their own; `animateItem` only runs on data changes.
+- No animation longer than `long` remains outside the shimmer and the unreachable splash composable.
 
 ## Device checklist (phases 0–7)
 

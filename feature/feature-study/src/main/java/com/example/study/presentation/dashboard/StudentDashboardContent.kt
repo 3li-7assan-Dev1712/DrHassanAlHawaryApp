@@ -2,6 +2,9 @@ package com.example.study.presentation.dashboard
 
 import com.example.domain.text.BidiText
 import android.util.Log
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.stateChangeSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -260,15 +263,16 @@ fun MotivationMessagesSection(
 
     val pagerState = rememberPagerState(pageCount = { messages.size })
 
-    // Auto-scroll logic
-    if (!isLoading && messages.isNotEmpty()) {
+    // Auto-scroll logic (off when the system says "Remove animations")
+    val reduced = reducedMotion
+    if (!isLoading && messages.isNotEmpty() && !reduced) {
         LaunchedEffect(messages) {
             while (true) {
                 delay(3000)
                 val nextPage = (pagerState.currentPage + 1) % messages.size
                 pagerState.animateScrollToPage(
                     nextPage,
-                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                    animationSpec = tween(Motion.MEDIUM, easing = Motion.EmphasizedDecelerate)
                 )
             }
         }
@@ -586,7 +590,7 @@ fun DashboardChips(
 
         val indicatorOffset by animateDpAsState(
             targetValue = outerPadding + (segmentWidth * selectedIndex),
-            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+            animationSpec = stateChangeSpec(),
             label = "segmented_offset"
         )
 

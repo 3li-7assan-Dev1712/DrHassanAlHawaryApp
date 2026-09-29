@@ -1,5 +1,8 @@
 package com.example.study.presentation.dashboard
 
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -80,14 +83,13 @@ fun LevelsJourneyMap(
         val pathAnim = remember { Animatable(0f) }
         var startPulse by remember { mutableStateOf(false) }
 
-        // Pulse starts only after path animation finishes
+        // Once the path has reached it, the current level grows a little and stays that way
+        // (it used to pulse forever; the motion rules allow no looping decoration).
+        val reduced = reducedMotion
         val pulseScale by animateFloatAsState(
             targetValue = if (startPulse) 1.15f else 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(600, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = ""
+            animationSpec = if (reduced) snap() else tween(Motion.MEDIUM, easing = Motion.EmphasizedDecelerate),
+            label = "currentLevel"
         )
 
         LaunchedEffect(currentLevelIndex, totalLength, hasPlayedAnimation) {
@@ -96,7 +98,7 @@ fun LevelsJourneyMap(
             val step = totalLength / (levels.size + 1)
             val targetDistance = step * currentLevelIndex
 
-            if (hasPlayedAnimation) {
+            if (hasPlayedAnimation || reduced) {
                 // If animation already played, jump to the target directly
                 pathAnim.snapTo(targetDistance)
                 startPulse = true
@@ -106,10 +108,8 @@ fun LevelsJourneyMap(
                 pathAnim.snapTo(0f)
                 pathAnim.animateTo(
                     targetValue = targetDistance,
-                    animationSpec = tween(
-                        durationMillis = 1400,
-                        easing = FastOutSlowInEasing
-                    )
+                    // Drawn along the path in `long` (was 1.4 s).
+                    animationSpec = tween(Motion.LONG, easing = Motion.EmphasizedDecelerate)
                 )
                 startPulse = true
                 onAnimationFinished() // Mark as played
