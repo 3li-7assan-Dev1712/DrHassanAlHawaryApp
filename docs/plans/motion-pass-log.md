@@ -2,7 +2,7 @@
 
 Spec: `docs/plans/motion-pass.md`. Branch: `ui/motion` (from `116c053 chore: snapshot before motion pass`).
 
-This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a later session.
+Two sessions: phases 0–7, then 8–12 (the split Ali asked for). All phases done.
 
 ## Phases
 
@@ -18,7 +18,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 9: Onboarding, splash, sign-in
 - [x] Phase 10: Share preview, quote selection, image viewer
 - [x] Phase 11: Haptics and polish check
-- [ ] Phase 12: Reduced-motion pass and final report (next session)
+- [x] Phase 12: Reduced-motion pass and final report
 
 ## Phase 0: inventory
 
@@ -125,36 +125,53 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - Nothing animates on every scroll: the reader title flips on a threshold; the reading-progress bar and onboarding parallax follow the gesture directly with no animation of their own; `animateItem` only runs on data changes.
 - No animation longer than `long` remains outside the shimmer and the unreachable splash composable.
 
-## Device checklist (phases 0–7)
+## Phase 12: Reduced-motion pass (done)
 
-- Tabs الرئيسية / بحث / المعهد / حسابي: fade through, no sliding.
-- Deeper and back (home → articles → reader, categories → list → player, profile → about): in Arabic the new screen comes in from the LEFT and the old one drifts right; back mirrors it.
-- Predictive back on Android 14+: the back gesture previews the pop transition.
-- Home: first open staggers the five sections; going back to Home or switching tabs doesn't replay it.
-- Lists: loading → content crossfades; new articles at the top slide the list; search filter changes rearrange rows.
-- Player: play/pause icon swap + light haptic; seek thumb grows while dragging; buffering ring around the button; download ring → check pop + confirm haptic; speed label slides; download card grows/shrinks smoothly.
-- Profile: the segmented pill slides; switching light/dark crossfades the whole app and the bar icons flip at the end.
-- Reader: A−/A+ fades the body; the title appears in the top bar once scrolled past, and leaves when scrolled back.
-- Search: pill colours and counts animate; the quote screen counter rolls.
-- Everything again with Developer options → "Remove animations" (or Accessibility → Remove animations): screen changes are a quick fade, no stagger, still shimmer, no carousel autoplay, instant swaps.
+Every addition was checked against `LocalReducedMotion` (a grep for `animate*AsState`, `AnimatedContent`, `AnimatedVisibility`, `Crossfade` and `Animatable` across the app, file by file):
 
-## Known risks
+| Addition | Under reduced motion |
+|---|---|
+| Screen transitions (fade through, shared axis) | plain 100ms fade |
+| Container transforms | off (plain 100ms fade) |
+| Content swaps, count slides, speed label, play/pause icon, download check, sign-in label | instant swap |
+| List item placement / arrival | off |
+| Home entrance stagger, onboarding parallax, carousel and study pager autoplay | off |
+| Shimmer | still placeholder |
+| Colour and size state changes (pills, segmented pill, top-bar title, highlight, seek thumb, theme colours, study indicator) | snap |
+| Reader text-size fade, quote thumbnail, sign-in width, download card | instant |
+| Theme switch bar icons | set at once (no 300ms wait) |
+| Splash exit | removed at once |
+| Image viewer spring back | snap |
+| Progress (spinners, buffering ring, download ring, reading bar, preview playhead, generation progress) | kept: functional |
+| Onboarding dots, dismiss drag | kept: they follow the finger, no animation of their own |
 
-- Theme switch recomposes the whole tree every frame for 300ms (the palette is a `staticCompositionLocalOf` of plain colours). Fine on recent phones; check a low-end device.
-- `AnimatedContent` around the paging lists: the `LazyListState` is hoisted outside, so scroll position survives; if a list ever jumps to the top after a refresh, look there first.
-- Quote counter animates on every character while a handle is dragged (see Phase 6).
-- Recurring Windows lock on `core-ui/.../classes.jar` during builds (Android Studio open at the same time); `./gradlew --stop` clears it.
+Two pre-existing animations were also brought in line here: the video player's title overlay (default spring fade → `short`, none when reduced) and the share generation progress (default spring → `stateChangeSpec()`).
 
-## Next session (phases 8–12)
+### Debug-only "force reduced motion"
 
-Start from the first unchecked phase. `SharedTransitionLayout` / `sharedBounds` are available (compose animation 1.10.1). Haptic types `Confirm` / `SegmentTick` exist (already using `Confirm` and `ContextClick`). `core-splashscreen` 1.2.0 is a dependency (`installSplashScreen()` in `MainActivity`). Phase 12 still needs the debug-only "force reduced motion" switch; `LocalReducedMotion` is provided in `HassanAlHawaryTheme`, so that is the one place to override it.
+`ReducedMotionOverride.forced` (core-ui `Motion.kt`) is OR-ed into `Context.animationsRemoved()`, the one function both Compose (`rememberSystemReducedMotion`) and the splash use. `MainActivity` sets it only when `BuildConfig.DEBUG` and the launch intent has the extra:
+
+```
+adb shell am start -n app.netlify.devalihassan/.MainActivity --ez force_reduced_motion true
+```
+
+It lasts for that process (force-stop the app to turn it off). Release builds never read the extra. The real setting (Settings → Accessibility → Remove animations, or Developer options → Animator duration scale → Off) still works and is picked up live, without a restart.
 
 ## Decisions
 
 - The spec says "same rules as overnight-ui-pass A–C". Its off-limits list (Home, sign-in, carousel, feature-share) is superseded here: this spec explicitly asks for motion on Home, sign-in and share, so those are in scope for the motion items listed.
-- Ali was present at the start and asked for phases 0–7 only; stopping after Phase 7 is intentional, not a skip.
+- Ali asked for the pass in two sessions (0–7, then 8–12).
+- Compose resolves to 1.10.1 (not the BOM's 1.8), so no **Needs** item was skipped.
+- Reduced motion is provided by the theme, not only the NavHost, so onboarding and sign-in follow it too.
+- Download card: `AnimatedVisibility` (expand + fade) instead of `animateContentSize` on a parent whose size never changes.
+- Theme animation covers the Material colour scheme as well as the brand palette.
+- Reader text size: fade-through of the body, not a two-copy crossfade (one `ScrollState` can't drive two columns).
+- Article shared-element keys carry their source (Home / list) to avoid a Home → list morph; the reader matches both.
+- Image viewer: releasing past 25% pops at once and lets the container transform take the image home, rather than flinging it off first.
+- Preview waveform smoothing between the VM's 200ms polls (the spec asked to verify smoothness; it stepped).
+- Pre-existing looping pulse and >400ms animations in the study screens were changed to meet the section B rules; the shimmer and the unreachable `splash_screen` composable were left (see Phase 11).
 
-## Commits
+## Commits on `ui/motion`
 
 - `116c053` chore: snapshot before motion pass
 - `26b762b` motion: phase 0 - setup and inventory
@@ -164,4 +181,42 @@ Start from the first unchecked phase. `SharedTransitionLayout` / `sharedBounds` 
 - `edefb30` motion: phase 4 - player
 - `d663085` motion: phase 5 - profile and theme
 - `0c2d4f1` motion: phase 6 - search and chips
-- (this commit) motion: phase 7 - reader
+- `6c7938e` motion: phase 7 - reader
+- `d6799ca` motion: phase 8 - container transform for article, audio and design flows
+- `931fd28` motion: phase 9 - onboarding, splash, sign-in
+- `95e1c6c` motion: phase 10 - share preview, quote selection, image viewer
+- `5a04360` motion: phase 11 - haptics and polish check
+- (this commit) motion: phase 12 - reduced-motion pass and final report
+
+Every phase built with `assembleDebug testDebugUnitTest`. Nothing has been run on a device or emulator yet.
+
+## Device checklist
+
+In Arabic, on a real phone:
+
+1. **Tabs** الرئيسية / بحث / المعهد / حسابي: fade through (quick fade out, fade + slight grow in), no sliding.
+2. **Deeper and back** (home → categories → list → player, profile → about): the new screen comes in from the LEFT and the old one drifts right; back mirrors it.
+3. **Predictive back** (Android 14+, gesture navigation): dragging back from the edge previews the pop; letting go completes it, cancelling restores the screen.
+4. **Container transforms**, forward and back: Home article card → reader, articles-list card → reader (title morphs), Home audio card → player (gold circle → play button), design tile → viewer. Also go back after scrolling the card off screen (should fall back to the slide).
+5. **Home**: first open staggers header, carousel, grid, articles, audio; going back to Home or switching tabs doesn't replay it.
+6. **Lists**: loading → content crossfades; search filter changes rearrange rows; "الكل" ↔ one type.
+7. **Player**: play/pause swap + light haptic; seek thumb grows while dragging; buffering ring around the button (try a slow network); download ring → check pop + confirm haptic; speed label slides; download card grows/shrinks.
+8. **Theme**: the segmented pill slides; light ↔ dark crossfades the whole app; the bar icons flip at the end, not the start.
+9. **Reader**: A−/A+ (profile and reader) fades the body; the title appears in the top bar once scrolled past and leaves when scrolled back; the progress line tracks the scroll with no lag.
+10. **Search pills**: colours and counts animate. **Quote selection**: counter rolls, highlight fades in/out, thumbnail crossfades.
+11. **Share preview**: haptic ticks every 5 s while dragging the clip or a handle, and on length chips; the waveform fill glides while previewing.
+12. **Onboarding**: illustrations lag the swipe (parallax), the dot pill stretches, التالي → لنبدأ crossfades.
+13. **Splash**: the logo fades and shrinks as the first screen appears.
+14. **Sign-in**: the button shrinks to a spinner circle; cancel the Google sheet and it grows back with the label.
+15. **Image viewer**: swipe down (and up) to dismiss: the image follows, the background fades; a short swipe springs back; pinch zoom still works and blocks the swipe while zoomed.
+16. **Everything again with reduced motion** (system setting, or the adb command above): quick fades only, no stagger/parallax/autoplay, still shimmer, instant swaps, splash gone at once.
+
+## Known risks
+
+- **Shared elements are unverified on device.** Most likely issues: the reader title / player play button joining the morph a few frames late on the way in (they sit behind the loading crossfade); `scaleToBounds` looking stretched while a full screen shrinks into a small card. If a flow misbehaves, removing its `modifier = Modifier.shared…` argument in `MainActivity` turns it back into the plain slide without touching anything else.
+- Shared-element keys: articles by id + source, audio by URL, designs by group id. An audio URL appears once on Home, so no collision today; if another screen ever gets `SharedKeys.audio(...)` while Home is also composed, they would morph into each other.
+- Theme switch recomposes the whole tree every frame for 300ms (the palette is a `staticCompositionLocalOf` of plain colours). Check a low-end phone.
+- Share preview recomposes every frame while previewing (waveform smoothing).
+- Quote counter animates on every character while a handle is dragged.
+- `AnimatedContent` around paging lists keeps the hoisted `LazyListState`; if a list ever jumps to the top after a refresh, look there first.
+- Recurring Windows file lock on `core-ui/.../classes.jar` while Android Studio is open; `./gradlew --stop` clears it.

@@ -1,6 +1,7 @@
 package com.example.feature.share.presentation.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import com.example.core.ui.theme.stateChangeSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ fun GenerationOverlay(
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = stateChangeSpec(),
         label = "generationProgress",
     )
 

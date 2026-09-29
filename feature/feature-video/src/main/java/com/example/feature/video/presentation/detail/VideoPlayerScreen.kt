@@ -6,6 +6,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -148,8 +152,9 @@ private fun YoutubePlayerComponent(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter),
-            enter = fadeIn(),
-            exit = fadeOut()
+            // `short` fades; instant under reduced motion.
+            enter = if (reducedMotion) EnterTransition.None else fadeIn(Motion.stateChange()),
+            exit = if (reducedMotion) ExitTransition.None else fadeOut(Motion.stateChange())
         ) {
             Row(
                 modifier = Modifier

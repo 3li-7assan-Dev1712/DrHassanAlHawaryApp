@@ -42,6 +42,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.navigation.NavBackStackEntry
 import com.example.core.ui.theme.LocalSharedTransitionScope
 import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.ReducedMotionOverride
 import com.example.core.ui.theme.animationsRemoved
 import com.example.core.ui.theme.ProvideNavAnimatedScope
 import com.example.core.ui.theme.SharedKeys
@@ -115,6 +116,12 @@ class MainActivity : ComponentActivity() {
     val TAG = "MainActivity"
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Debug builds only: launch with
+        //   adb shell am start -n app.netlify.devalihassan/.MainActivity --ez force_reduced_motion true
+        // to test the "Remove animations" behaviour without changing the phone's settings.
+        if (BuildConfig.DEBUG && intent?.getBooleanExtra(EXTRA_FORCE_REDUCED_MOTION, false) == true) {
+            ReducedMotionOverride.forced = true
+        }
         val splashScreen = installSplashScreen()
 
 
@@ -861,4 +868,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private companion object {
+        /** Debug builds: forces reduced motion for this run (see onCreate). */
+        const val EXTRA_FORCE_REDUCED_MOTION = "force_reduced_motion"
+    }
 }

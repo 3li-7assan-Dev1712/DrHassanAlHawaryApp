@@ -200,6 +200,20 @@ fun rememberSystemReducedMotion(): Boolean {
     return reduced
 }
 
-/** True when the system "Remove animations" setting is on (for code outside Compose). */
+/**
+ * Debug-only switch to test reduced motion without changing the phone's settings. The app
+ * sets [forced] at launch from an intent extra in debug builds only (see MainActivity and
+ * docs/plans/motion-pass-log.md); release builds never touch it.
+ */
+object ReducedMotionOverride {
+    @Volatile
+    var forced: Boolean = false
+}
+
+/**
+ * True when the system "Remove animations" setting is on, or the debug override is. The
+ * one source for both Compose ([rememberSystemReducedMotion]) and code outside it (splash).
+ */
 fun Context.animationsRemoved(): Boolean =
-    Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    ReducedMotionOverride.forced ||
+        Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
