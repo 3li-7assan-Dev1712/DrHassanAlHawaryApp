@@ -1,6 +1,10 @@
 package com.example.core.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import com.example.core.ui.theme.stateChangeSpec
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -42,8 +46,12 @@ fun AppTopBar(
     onBack: (() -> Unit)? = null,
     containerColor: Color = Brand.colors.background,
     contentColor: Color = Brand.colors.textPrimary,
+    titleVisible: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    // Screens with a large in-page title (the reader) show this one only once that has
+    // scrolled away; it fades (`short`) and always keeps its space, so nothing shifts.
+    val titleAlpha by animateFloatAsState(if (titleVisible) 1f else 0f, stateChangeSpec(), label = "topBarTitle")
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -72,6 +80,7 @@ fun AppTopBar(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .weight(1f)
+                .graphicsLayer { alpha = titleAlpha }
                 .padding(horizontal = 4.dp),
         )
         Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, content = actions)

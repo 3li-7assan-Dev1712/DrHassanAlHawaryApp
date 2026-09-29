@@ -13,7 +13,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 4: Player
 - [x] Phase 5: Profile and theme
 - [x] Phase 6: Search and chips
-- [ ] Phase 7: Reader
+- [x] Phase 7: Reader
 - [ ] Phase 8: Container transform (next session)
 - [ ] Phase 9: Onboarding, splash, sign-in (next session)
 - [ ] Phase 10: Share preview, quote selection, image viewer (next session)
@@ -80,6 +80,36 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - "الكل" ↔ a single type: handled by Phase 3's `animateItem` on the result rows and headers; search's `AnimatedContent` keeps the same content key for any non-empty result, so it doesn't crossfade over it.
 - Reduced motion: colours snap, counts swap.
 
+## Phase 7: Reader (done)
+
+- `AppTopBar` got an optional `titleVisible: Boolean = true`; the title fades with `stateChangeSpec()` via `graphicsLayer` alpha and always keeps its space, so nothing shifts. All other callers are unchanged.
+- Reader: the big title reports where it ends in the scroll content (`onGloballyPositioned`, + the 16dp top padding); `derivedStateOf { scrollState.value > titleBottom }` drives the bar title (the part before the ":", one line with ellipsis). No recomposition while scrolling except when the flag flips.
+- Reading-progress line: already driven directly by the scroll (`derivedStateOf` + the lambda `progress` overload of `LinearProgressIndicator`, which does not animate). Verified, left as is.
+
+## Device checklist (phases 0–7)
+
+- Tabs الرئيسية / بحث / المعهد / حسابي: fade through, no sliding.
+- Deeper and back (home → articles → reader, categories → list → player, profile → about): in Arabic the new screen comes in from the LEFT and the old one drifts right; back mirrors it.
+- Predictive back on Android 14+: the back gesture previews the pop transition.
+- Home: first open staggers the five sections; going back to Home or switching tabs doesn't replay it.
+- Lists: loading → content crossfades; new articles at the top slide the list; search filter changes rearrange rows.
+- Player: play/pause icon swap + light haptic; seek thumb grows while dragging; buffering ring around the button; download ring → check pop + confirm haptic; speed label slides; download card grows/shrinks smoothly.
+- Profile: the segmented pill slides; switching light/dark crossfades the whole app and the bar icons flip at the end.
+- Reader: A−/A+ fades the body; the title appears in the top bar once scrolled past, and leaves when scrolled back.
+- Search: pill colours and counts animate; the quote screen counter rolls.
+- Everything again with Developer options → "Remove animations" (or Accessibility → Remove animations): screen changes are a quick fade, no stagger, still shimmer, no carousel autoplay, instant swaps.
+
+## Known risks
+
+- Theme switch recomposes the whole tree every frame for 300ms (the palette is a `staticCompositionLocalOf` of plain colours). Fine on recent phones; check a low-end device.
+- `AnimatedContent` around the paging lists: the `LazyListState` is hoisted outside, so scroll position survives; if a list ever jumps to the top after a refresh, look there first.
+- Quote counter animates on every character while a handle is dragged (see Phase 6).
+- Recurring Windows lock on `core-ui/.../classes.jar` during builds (Android Studio open at the same time); `./gradlew --stop` clears it.
+
+## Next session (phases 8–12)
+
+Start from the first unchecked phase. `SharedTransitionLayout` / `sharedBounds` are available (compose animation 1.10.1). Haptic types `Confirm` / `SegmentTick` exist (already using `Confirm` and `ContextClick`). `core-splashscreen` 1.2.0 is a dependency (`installSplashScreen()` in `MainActivity`). Phase 12 still needs the debug-only "force reduced motion" switch; `LocalReducedMotion` is provided in `HassanAlHawaryTheme`, so that is the one place to override it.
+
 ## Decisions
 
 - The spec says "same rules as overnight-ui-pass A–C". Its off-limits list (Home, sign-in, carousel, feature-share) is superseded here: this spec explicitly asks for motion on Home, sign-in and share, so those are in scope for the motion items listed.
@@ -88,3 +118,11 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 ## Commits
 
 - `116c053` chore: snapshot before motion pass
+- `26b762b` motion: phase 0 - setup and inventory
+- `1b7d3ba` motion: phase 1 - foundations
+- `4826ba5` motion: phase 2 - screen transitions
+- `ae84d4a` motion: phase 3 - loading, empty and error states; lists
+- `edefb30` motion: phase 4 - player
+- `d663085` motion: phase 5 - profile and theme
+- `0c2d4f1` motion: phase 6 - search and chips
+- (this commit) motion: phase 7 - reader

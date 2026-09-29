@@ -1,6 +1,11 @@
 package com.example.feature.article.presentation.detail
 
 import androidx.compose.animation.AnimatedContent
+import kotlin.math.roundToInt
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.tween
@@ -97,15 +102,22 @@ private fun ArticleDetailContent(
 ) {
     val scrollState = rememberScrollState()
     val colors = Brand.colors
+    // Collapsing title: once the big in-page title has scrolled out of view, a one-line
+    // copy fades into the top bar (and out again when it comes back). Derived from the
+    // scroll position, so it costs no recomposition while scrolling.
+    var titleBottomPx by remember { mutableIntStateOf(Int.MAX_VALUE) }
+    val showBarTitle by remember { derivedStateOf { scrollState.value > titleBottomPx } }
+    val barTitle = (uiState as? DetailArticleUiState.Success)?.let { splitTitle(it.article.title).first }.orEmpty()
 
     Scaffold(
         containerColor = colors.background,
         topBar = {
             Column {
-                // No title here: the header below shows it in full. Share lives in the bar
-                // instead of a floating button over the text.
+                // The header below shows the title in full; the bar only gets it once that has
+                // scrolled away. Share lives in the bar instead of a floating button over the text.
                 AppTopBar(
-                    title = "",
+                    title = barTitle,
+                    titleVisible = showBarTitle,
                     onBack = onNavigateBack,
                     actions = {
                         if (uiState is DetailArticleUiState.Success) {
@@ -156,6 +168,7 @@ private fun ArticleDetailContent(
                             readingMinutes = state.readingMinutes,
                             fontSize = FONT_STEPS[fontStep.coerceIn(0, FONT_STEPS.lastIndex)],
                             scrollState = scrollState,
+                            onTitleBottom = { titleBottomPx = it },
                         )
                     }
                 }
@@ -251,8 +264,10 @@ private fun ArticleBody(
     readingMinutes: Int,
     fontSize: TextUnit,
     scrollState: ScrollState,
+    onTitleBottom: (Int) -> Unit,
 ) {
     val colors = Brand.colors
+    val topPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
     // A new text size: the body fades out, re-lays out at the new size, and fades back in
     // (the size itself never animates). Instant under reduced motion.
     val reduced = reducedMotion
@@ -267,15 +282,7 @@ private fun ArticleBody(
         if (reduced) bodyAlpha.snapTo(1f)
         else bodyAlpha.animateTo(1f, tween(Motion.CONTENT_SWAP / 2, easing = Motion.EmphasizedDecelerate))
     }
-    // The cleaner turned the first " - " of the title into ": ", so split there.
-    val (title, subtitle) = remember(article.title) {
-        val i = article.title.indexOf(':')
-        if (i in 1 until article.title.lastIndex) {
-            article.title.substring(0, i).trim() to article.title.substring(i + 1).trim()
-        } else {
-            article.title to null
-        }
-    }
+    val (title, subtitle) = remember(article.title) { splitTitle(article.title) }
     val meta = listOf(
         stringResource(R.string.sheikh_name),
         ArabicDates.calendarDate(article.publishDate.time),
@@ -293,6 +300,11 @@ private fun ArticleBody(
             text = title,
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, lineHeight = 1.5.em),
             color = colors.textPrimary,
+            // Where the title ends in the scrolled content (its position is unscrolled, inside
+            // the column's top padding).
+            modifier = Modifier.onGloballyPositioned {
+                onTitleBottom(it.positionInParent().y.roundToInt() + it.size.height + topPaddingPx)
+            },
         )
         if (subtitle != null) {
             Spacer(Modifier.height(4.dp))
@@ -412,5 +424,15 @@ private fun ArticleDetailLightPreview() {
 private fun ArticleDetailDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) {
         ArticleDetailContent(previewState, fontStep = 1, onFontStepChange = {}, onNavigateBack = {}, onShare = {})
+    }
+}
+
+/** The cleaner turned the first " - " of the title into ": ", so split there: title, subtitle. */
+private fun splitTitle(raw: String): Pair<String, String?> {
+    val i = raw.indexOf(':')
+    return if (i in 1 until raw.lastIndex) {
+        raw.substring(0, i).trim() to raw.substring(i + 1).trim()
+    } else {
+        raw to null
     }
 }
