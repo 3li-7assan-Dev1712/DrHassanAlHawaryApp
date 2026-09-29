@@ -7,9 +7,9 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 ## Phases
 
 - [x] Phase 0: Setup and inventory
-- [ ] Phase 1: Foundations
-- [ ] Phase 2: Screen transitions
-- [ ] Phase 3: Loading / empty / error states; lists
+- [x] Phase 1: Foundations
+- [x] Phase 2: Screen transitions
+- [x] Phase 3: Loading / empty / error states; lists
 - [ ] Phase 4: Player
 - [ ] Phase 5: Profile and theme
 - [ ] Phase 6: Search and chips
@@ -32,6 +32,27 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - Existing animations to reuse: `Modifier.shimmer()` (`core-ui/components/CustomShimmer.kt`, infinite transition); home carousel indicator width (`ImageCarousel.kt`, `animateDpAsState`); share generation progress; study dashboard indicator/pulse; `LessonDetailScreen` AnimatedContent; video player controls `AnimatedVisibility`.
 - Existing `BackHandler`s: only `VideoPlayerScreen` (exits fullscreen). Image viewer / share preview use no BackHandler.
 - Unit tests: `core-ui` has `src/test` + `testImplementation(junit)` → Motion helpers and tests go there.
+
+## Phase 1: Foundations (done)
+
+- `core-ui/theme/Motion.kt`: durations (`SHORT` 150, `MEDIUM` 300, `LONG` 400, content swap 200), the three M3 easings, `stateChange()`, `fadeThroughEnter/Exit`, `sharedAxisEnter/Exit/PopEnter/PopExit`, `contentSwap`, `countSlide`.
+- `SharedAxis.enterSign/exitSign` (pure; `core-ui/src/test/.../SharedAxisTest.kt`, 4 tests).
+- `LocalReducedMotion` (+ `reducedMotion` shorthand, `stateChangeSpec()` which snaps when reduced), provided inside `HassanAlHawaryTheme` from `rememberSystemReducedMotion()` (reads `ANIMATOR_DURATION_SCALE` and follows changes with a `ContentObserver`). Being in the theme, it covers onboarding and sign-in too, not just the NavHost.
+- Already-existing motion made to respect it: `Modifier.shimmer()` draws a still placeholder; the home carousel stops autoplaying; its indicator uses `stateChangeSpec()`.
+
+## Phase 2: Screen transitions (done)
+
+- `MainActivity.MainAppContent`: enter/exit/popEnter/popExit set once on the `NavHost`. Fade through when both initial and target routes are in `routesWithBottomNav` (the same set that decides whether the bar shows), otherwise shared axis X with a 30dp offset, direction from `LocalLayoutDirection` (RTL: forward enters from the left).
+- `android:enableOnBackInvokedCallback="true"` on `<application>`. Navigation 2.9.2 ≥ 2.8, so the back gesture scrubs the pop transition.
+- `BackHandler`s: only `VideoPlayerScreen` has one (pops back); it keeps working (callbacks still fire under the new back dispatch). Dialogs and the dropdowns handle back themselves. The image viewer and share preview have none.
+
+## Phase 3: Loading / empty / error; lists (done)
+
+- New helpers in `core-ui/theme/MotionModifiers.kt`: `LazyItemScope.animateListItem()`, `LazyGridItemScope.animateGridItem()`, `LazyStaggeredGridItemScope.animateStaggeredGridItem()` (tween specs, nothing when reduced), `ContentPhase` enum, `rememberFirstEntrance()` + `Modifier.staggeredEntrance(index, play)`.
+- `AnimatedContent` + `Motion.contentSwap` (crossfade 200ms, size on the same tween): home latest-audio row (error ↔ row) and both home rows (row ↔ empty message), articles list, audio list, videos list, designs grid, notifications, search (keyed on state kind; `Success` split into "empty"/"results"), reader, category screens (shared `CategoryScreenContent`), player details (loading ↔ details).
+- `animateItem` on keyed items: home rows, articles, audios, videos, designs, notifications, search rows and group headers.
+- Home first-visit stagger: header, carousel, category grid, latest articles, latest audio; 40ms apart, 8dp rise, `medium` decelerate, drawn with `graphicsLayer` (no layout movement). `rememberSaveable` flag so going back to Home doesn't replay; the window closes after ~620ms so items composed later don't animate.
+- Skipped (no stable keys, would need data changes): legal sections, study lists (levels, playlists, lessons, quiz), top students.
 
 ## Decisions
 

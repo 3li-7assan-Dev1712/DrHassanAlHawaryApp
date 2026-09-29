@@ -1,5 +1,6 @@
 package com.example.feature.article.presentation.detail
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,8 @@ import com.example.core.ui.components.AppTopBarAction
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import com.example.domain.module.Article
 import com.example.domain.text.ArabicDates
 import com.example.domain.text.ArabicNumerals
@@ -115,35 +118,42 @@ private fun ArticleDetailContent(
             }
         },
     ) { innerPadding ->
-        Box(
+        val reduced = reducedMotion
+        AnimatedContent(
+            targetState = uiState,
+            transitionSpec = { Motion.contentSwap(reduced) },
+            contentKey = { it::class },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-        ) {
-            when (uiState) {
-                is DetailArticleUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = colors.accentStrong)
-                }
+            label = "readerContent",
+        ) { state ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (state) {
+                    is DetailArticleUiState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = colors.accentStrong)
+                    }
 
-                is DetailArticleUiState.Error -> {
-                    Text(
-                        text = uiState.message,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp),
-                    )
-                }
+                    is DetailArticleUiState.Error -> {
+                        Text(
+                            text = state.message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(16.dp),
+                        )
+                    }
 
-                is DetailArticleUiState.Success -> {
-                    ArticleBody(
-                        article = uiState.article,
-                        paragraphs = uiState.paragraphs,
-                        readingMinutes = uiState.readingMinutes,
-                        fontSize = FONT_STEPS[fontStep.coerceIn(0, FONT_STEPS.lastIndex)],
-                        scrollState = scrollState,
-                    )
+                    is DetailArticleUiState.Success -> {
+                        ArticleBody(
+                            article = state.article,
+                            paragraphs = state.paragraphs,
+                            readingMinutes = state.readingMinutes,
+                            fontSize = FONT_STEPS[fontStep.coerceIn(0, FONT_STEPS.lastIndex)],
+                            scrollState = scrollState,
+                        )
+                    }
                 }
             }
         }

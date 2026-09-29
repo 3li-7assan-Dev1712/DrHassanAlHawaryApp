@@ -1,5 +1,6 @@
 package com.example.feature.home.presentation.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateListItem
+import com.example.core.ui.theme.reducedMotion
 import com.example.core.ui.components.shimmer
 import com.example.feature.home.R
 
@@ -49,21 +53,33 @@ fun <T> LatestArticleAudioLazyRow(
 
     Column(modifier = modifier.fillMaxWidth()) {
         SectionHeader(title = title, onSeeAll = onSeeAll, isLoading = showLoading)
-        if (items.isNotEmpty() || showLoading) {
-            LazyRow(
-                contentPadding = contentPadding,
-                horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            ) {
-                items(items = items, key = itemKey) { item -> itemContent(item) }
+        // The row stays in place while loading (the header shimmers); when the cards arrive
+        // they fade in, and an empty message crossfades in instead of popping.
+        val showEmpty = items.isEmpty() && !showLoading && emptyMessage != null
+        val reduced = reducedMotion
+        AnimatedContent(
+            targetState = showEmpty,
+            transitionSpec = { Motion.contentSwap(reduced) },
+            label = "sectionContent",
+        ) { empty ->
+            if (!empty) {
+                LazyRow(
+                    contentPadding = contentPadding,
+                    horizontalArrangement = Arrangement.spacedBy(itemSpacing),
+                ) {
+                    items(items = items, key = itemKey) { item ->
+                        Box(animateListItem()) { itemContent(item) }
+                    }
+                }
+            } else {
+                Text(
+                    text = emptyMessage.orEmpty(),
+                    color = Brand.colors.textMuted,
+                    fontFamily = Cairo,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
             }
-        } else if (emptyMessage != null) {
-            Text(
-                text = emptyMessage,
-                color = Brand.colors.textMuted,
-                fontFamily = Cairo,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
         }
     }
 }

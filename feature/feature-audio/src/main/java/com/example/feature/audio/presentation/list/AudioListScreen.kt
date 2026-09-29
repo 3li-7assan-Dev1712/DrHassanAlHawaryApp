@@ -1,7 +1,12 @@
 package com.example.feature.audio.presentation.list
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
+import com.example.core.ui.theme.ContentPhase
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateListItem
+import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -123,82 +128,94 @@ fun AudioListComposable(
         ) {
 
             val isMediatorRefreshing = audios.loadState.mediator?.refresh is LoadState.Loading
+            val phase = when {
+                isMediatorRefreshing -> ContentPhase.Loading
+                audios.itemCount == 0 && audios.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
+                else -> ContentPhase.Content
+            }
+            val reduced = reducedMotion
 
-            if (isMediatorRefreshing) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = Brand.colors.accentStrong,
-                        strokeWidth = 3.dp
-                    )
-                }
-            } else if (audios.itemCount == 0 && audios.loadState.refresh is LoadState.NotLoading) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Headset,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Brand.colors.textMuted.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.no_audios_available),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Brand.colors.textMuted
-                    )
-                }
-            } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(
-                        count = audios.itemCount,
-                        key = audios.itemKey { it.id }
-
-                    ) { audioIndex ->
-                        val audio = audios[audioIndex]
-                        if (audio != null) {
-                            AudioListItem(
-                                audio = audio,
-                                onClick = {
-                                    onNavigateToAudioDetail(
-                                        audio.title,
-                                        audio.audioUrl
-                                    )
-                                }
-                            )
-                        }
+            AnimatedContent(
+                targetState = phase,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                label = "audiosContent",
+            ) { shown ->
+                when (shown) {
+                    ContentPhase.Loading -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = Brand.colors.accentStrong,
+                            strokeWidth = 3.dp
+                        )
                     }
 
-                    // Handle loading state for the next page (APPEND)
-                    item {
-                        if (audios.loadState.append is LoadState.Loading) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    strokeWidth = 2.dp,
-                                    color = Brand.colors.accentStrong
-                                )
+                    ContentPhase.Empty, ContentPhase.Error -> Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Headset,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = Brand.colors.textMuted.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.no_audios_available),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Brand.colors.textMuted
+                        )
+                    }
+
+                    ContentPhase.Content -> LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            count = audios.itemCount,
+                            key = audios.itemKey { it.id }
+
+                        ) { audioIndex ->
+                            val audio = audios[audioIndex]
+                            if (audio != null) {
+                                Box(animateListItem()) {
+                                    AudioListItem(
+                                        audio = audio,
+                                        onClick = {
+                                            onNavigateToAudioDetail(
+                                                audio.title,
+                                                audio.audioUrl
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Handle loading state for the next page (APPEND)
+                        item {
+                            if (audios.loadState.append is LoadState.Loading) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Brand.colors.accentStrong
+                                    )
+                                }
                             }
                         }
                     }
                 }
-
-
             }
 
         }

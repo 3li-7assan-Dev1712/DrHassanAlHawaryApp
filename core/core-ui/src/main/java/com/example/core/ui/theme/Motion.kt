@@ -7,6 +7,7 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
@@ -20,7 +21,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.ReadOnlyComposable
@@ -112,23 +112,32 @@ object Motion {
 
     // --- In-screen content --------------------------------------------------------------
 
-    /** Loading / error / empty / content switches: a ~200ms crossfade; instant when reduced. */
+    /**
+     * Loading / error / empty / content switches: a ~200ms crossfade, the container's size
+     * following on the same curve; instant when reduced.
+     */
     fun contentSwap(reduced: Boolean): ContentTransform =
-        if (reduced) EnterTransition.None togetherWith ExitTransition.None
-        else fadeIn(tween(CONTENT_SWAP, easing = Standard)) togetherWith
-            fadeOut(tween(CONTENT_SWAP, easing = Standard))
+        if (reduced) ContentTransform(EnterTransition.None, ExitTransition.None, sizeTransform = null)
+        else ContentTransform(
+            targetContentEnter = fadeIn(tween(CONTENT_SWAP, easing = Standard)),
+            initialContentExit = fadeOut(tween(CONTENT_SWAP, easing = Standard)),
+            sizeTransform = SizeTransform(clip = false) { _, _ -> tween(CONTENT_SWAP, easing = Standard) },
+        )
 
     /**
      * A changing number or short label ("صوتيات ٩", the speed): the new value rises from
      * below while the old one leaves upward. A plain swap when reduced.
      */
     fun countSlide(reduced: Boolean, up: Boolean = true): ContentTransform {
-        if (reduced) return EnterTransition.None togetherWith ExitTransition.None
+        if (reduced) return ContentTransform(EnterTransition.None, ExitTransition.None, sizeTransform = null)
         val sign = if (up) 1 else -1
-        return (slideInVertically(tween(SHORT, easing = EmphasizedDecelerate)) { h -> sign * h / 2 } +
-            fadeIn(tween(SHORT, easing = EmphasizedDecelerate))) togetherWith
-            (slideOutVertically(tween(SHORT, easing = EmphasizedAccelerate)) { h -> -sign * h / 2 } +
-                fadeOut(tween(SHORT, easing = EmphasizedAccelerate)))
+        return ContentTransform(
+            targetContentEnter = slideInVertically(tween(SHORT, easing = EmphasizedDecelerate)) { h -> sign * h / 2 } +
+                fadeIn(tween(SHORT, easing = EmphasizedDecelerate)),
+            initialContentExit = slideOutVertically(tween(SHORT, easing = EmphasizedAccelerate)) { h -> -sign * h / 2 } +
+                fadeOut(tween(SHORT, easing = EmphasizedAccelerate)),
+            sizeTransform = SizeTransform(clip = false) { _, _ -> tween(SHORT, easing = Standard) },
+        )
     }
 }
 

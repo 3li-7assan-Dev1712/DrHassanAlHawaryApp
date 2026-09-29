@@ -1,5 +1,6 @@
 package com.example.search.presentation
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,6 +48,9 @@ import com.example.core.ui.components.EmptyState
 import com.example.core.ui.components.Illustration
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateListItem
+import com.example.core.ui.theme.reducedMotion
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.SearchResultMetaData
 import com.example.domain.text.ArabicNumerals
@@ -142,47 +146,63 @@ fun SearchScreenContent(
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (state) {
-                is SearchUiState.Idle -> SearchIdleContent(
-                    recentSearches = recentSearches,
-                    onSuggestionClicked = onSuggestionClicked,
-                    onClearRecent = onClearRecent,
-                )
-
-                is SearchUiState.TooShort -> CenteredMessage(stringResource(R.string.search_too_short))
-
-                is SearchUiState.Loading -> CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = colors.accentStrong,
-                )
-
-                is SearchUiState.Success -> {
-                    val hits = remember(state.results) { state.results.hits.map(::parseHit) }
-                    if (hits.isEmpty()) {
-                        EmptyState(
-                            illustration = Illustration.Document,
-                            title = stringResource(R.string.empty_no_results),
-                            body = stringResource(R.string.empty_try_another_word),
-                            modifier = Modifier.align(Alignment.Center),
-                        )
-                    } else {
-                        SearchResults(
-                            hits = hits,
-                            query = searchQuery,
-                            grouped = selectedFilter == SearchFilter.ALL,
-                            typeCounts = typeCounts,
-                            onFilterSelected = onFilterSelected,
-                            onNavigateToDetail = onNavigateToDetail,
-                        )
-                    }
+        val reduced = reducedMotion
+        AnimatedContent(
+            targetState = state,
+            transitionSpec = { Motion.contentSwap(reduced) },
+            // Crossfade only when the kind of content changes; new results for the same kind
+            // rearrange through the list items instead.
+            contentKey = { s ->
+                when (s) {
+                    is SearchUiState.Success -> if (s.results.hits.isEmpty()) "empty" else "results"
+                    else -> s::class
                 }
-
-                is SearchUiState.Error -> EmptyState(
-                    illustration = Illustration.ComputerAndServer,
-                    title = stringResource(R.string.empty_no_connection),
-                    modifier = Modifier.align(Alignment.Center),
-                )
+            },
+            modifier = Modifier.fillMaxSize(),
+            label = "searchContent",
+        ) { state ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (state) {
+                    is SearchUiState.Idle -> SearchIdleContent(
+                        recentSearches = recentSearches,
+                        onSuggestionClicked = onSuggestionClicked,
+                        onClearRecent = onClearRecent,
+                    )
+    
+                    is SearchUiState.TooShort -> CenteredMessage(stringResource(R.string.search_too_short))
+    
+                    is SearchUiState.Loading -> CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = colors.accentStrong,
+                    )
+    
+                    is SearchUiState.Success -> {
+                        val hits = remember(state.results) { state.results.hits.map(::parseHit) }
+                        if (hits.isEmpty()) {
+                            EmptyState(
+                                illustration = Illustration.Document,
+                                title = stringResource(R.string.empty_no_results),
+                                body = stringResource(R.string.empty_try_another_word),
+                                modifier = Modifier.align(Alignment.Center),
+                            )
+                        } else {
+                            SearchResults(
+                                hits = hits,
+                                query = searchQuery,
+                                grouped = selectedFilter == SearchFilter.ALL,
+                                typeCounts = typeCounts,
+                                onFilterSelected = onFilterSelected,
+                                onNavigateToDetail = onNavigateToDetail,
+                            )
+                        }
+                    }
+    
+                    is SearchUiState.Error -> EmptyState(
+                        illustration = Illustration.ComputerAndServer,
+                        title = stringResource(R.string.empty_no_connection),
+                        modifier = Modifier.align(Alignment.Center),
+                    )
+                }
             }
         }
     }
@@ -209,19 +229,30 @@ private fun SearchResults(
     ) {
         if (!grouped) {
             items(hits, key = { it.objectID }) { hit ->
-                SearchResultRow(hit = hit, query = query, onClick = { onNavigateToDetail(hit.toMetaData()) })
+                SearchResultRow(
+                        hit = hit,
+                        query = query,
+                        onClick = { onNavigateToDetail(hit.toMetaData()) },
+                        modifier = animateListItem(),
+                    )
             }
         } else {
             groups.forEach { (filter, groupHits) ->
                 item(key = "header-${filter.type}") {
                     GroupHeader(
+                        modifier = animateListItem(),
                         label = filter.label,
                         count = typeCounts[filter.type] ?: groupHits.size,
                         onViewAll = { onFilterSelected(filter) },
                     )
                 }
                 items(groupHits.take(GROUP_PREVIEW), key = { it.objectID }) { hit ->
-                    SearchResultRow(hit = hit, query = query, onClick = { onNavigateToDetail(hit.toMetaData()) })
+                    SearchResultRow(
+                        hit = hit,
+                        query = query,
+                        onClick = { onNavigateToDetail(hit.toMetaData()) },
+                        modifier = animateListItem(),
+                    )
                 }
             }
         }
@@ -230,10 +261,15 @@ private fun SearchResults(
 
 /** "صوتيات · ٩" with "عرض الكل" at the end, which selects that type's chip. */
 @Composable
-private fun GroupHeader(label: String, count: Int, onViewAll: () -> Unit) {
+private fun GroupHeader(
+    label: String,
+    count: Int,
+    onViewAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = Brand.colors
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

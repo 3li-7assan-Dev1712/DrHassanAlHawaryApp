@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Intent
 import android.util.Log
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +66,8 @@ import com.example.core.ui.components.SheikhPhoto
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import com.example.domain.module.FixedCategories
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.AudioTitleCleaner
@@ -149,41 +152,48 @@ fun AudioDetailScreen(
         topBar = { AppTopBar(title = "", onBack = onNavigateUp) },
         containerColor = colors.background,
     ) { paddingValues ->
-        if (uiState.isLoadingDetails) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(strokeWidth = 3.dp, color = colors.accentStrong)
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(Modifier.height(8.dp))
-                SheikhPhoto(size = 200.dp, ringWidth = 2.dp, ringColor = colors.accent)
-                Spacer(Modifier.height(20.dp))
-                TitleBlock(uiState)
-
-                if (uiState.isDownloading) {
-                    Spacer(Modifier.height(16.dp))
-                    DownloadCard(progress = uiState.downloadProgress, onCancel = onCancelDownload)
+        val reduced = reducedMotion
+        AnimatedContent(
+            targetState = uiState.isLoadingDetails,
+            transitionSpec = { Motion.contentSwap(reduced) },
+            label = "playerDetails",
+        ) { loading ->
+            if (loading) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(strokeWidth = 3.dp, color = colors.accentStrong)
                 }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(Modifier.height(8.dp))
+                    SheikhPhoto(size = 200.dp, ringWidth = 2.dp, ringColor = colors.accent)
+                    Spacer(Modifier.height(20.dp))
+                    TitleBlock(uiState)
 
-                Spacer(Modifier.height(24.dp))
-                SeekBar(uiState = uiState, onSeek = onSeek)
-                Spacer(Modifier.height(16.dp))
-                TransportRow(uiState, onRewind, onPlayPauseToggle, onForward)
-                Spacer(Modifier.height(24.dp))
-                ActionRow(uiState, onCycleSpeed, onDownload, onShare)
-                Spacer(Modifier.height(32.dp))
+                    if (uiState.isDownloading) {
+                        Spacer(Modifier.height(16.dp))
+                        DownloadCard(progress = uiState.downloadProgress, onCancel = onCancelDownload)
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                    SeekBar(uiState = uiState, onSeek = onSeek)
+                    Spacer(Modifier.height(16.dp))
+                    TransportRow(uiState, onRewind, onPlayPauseToggle, onForward)
+                    Spacer(Modifier.height(24.dp))
+                    ActionRow(uiState, onCycleSpeed, onDownload, onShare)
+                    Spacer(Modifier.height(32.dp))
+                }
             }
         }
     }

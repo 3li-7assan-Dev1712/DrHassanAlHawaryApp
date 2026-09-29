@@ -35,6 +35,11 @@ import com.example.core.ui.navigation.Routes
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.rememberFirstEntrance
+import com.example.core.ui.theme.staggeredEntrance
+import androidx.compose.animation.AnimatedContent
 import com.example.core.ui.util.LightSystemBarIcons
 import com.example.domain.module.NetworkMessageEvent
 import com.example.domain.text.HijriDate
@@ -102,12 +107,16 @@ fun HomeScreenContent(
     // Home follows the app's light/dark setting through Brand.colors; on the dark
     // palette the bars need light icons whatever the phone's own mode is.
     if (Brand.colors.isDark) LightSystemBarIcons()
+    // First visit only: header, carousel, grid and the two rows fade in and rise, 40ms apart.
+    val entrance = rememberFirstEntrance()
+    val reduced = reducedMotion
     Scaffold(
         containerColor = Brand.colors.background,
         // The host (MainActivity) already pads for the system bars; don't add them twice.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             HomeHeader(
+                modifier = Modifier.staggeredEntrance(0, entrance),
                 hasUnreadNotifications = uiState.unreadNotifications > 0,
                 onNotificationsClick = onNotificationsClick,
             )
@@ -155,16 +164,26 @@ fun HomeScreenContent(
 
             LazyColumn {
                 item {
-                    ImageCarousel(imageList = uiState.latestImages, isLoadingImages = uiState.loadingImages)
+                    ImageCarousel(
+                        modifier = Modifier.staggeredEntrance(1, entrance),
+                        imageList = uiState.latestImages,
+                        isLoadingImages = uiState.loadingImages,
+                    )
                 }
                 item {
-                    LessonsByCategory(categories, modifier = Modifier.padding(top = 12.dp)) { route ->
+                    LessonsByCategory(
+                        categories,
+                        modifier = Modifier
+                            .staggeredEntrance(2, entrance)
+                            .padding(top = 12.dp),
+                    ) { route ->
                         onCategoryClick(route)
                     }
                 }
                 item {
                     Spacer(modifier = Modifier.height(SECTION_GAP))
                     LatestArticleAudioLazyRow(
+                        modifier = Modifier.staggeredEntrance(3, entrance),
                         title = stringResource(R.string.latest_articles),
                         showLoading = uiState.loadingLatestArticles,
                         items = uiState.latestArticles,
@@ -186,30 +205,38 @@ fun HomeScreenContent(
                 item {
                     Spacer(modifier = Modifier.height(SECTION_GAP))
 
-                    if (uiState.errorMessage != null) {
-                        Text(
-                            text = uiState.errorMessage,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    } else {
-                        LatestArticleAudioLazyRow(
-                            title = stringResource(R.string.latest_audios),
-                            onSeeAll = { onCategoryClick(Routes.AUDIO_LIST_SCREEN) },
-                            showLoading = uiState.loadingLatestAudios,
-                            items = uiState.latestAudios,
-                            emptyMessage = stringResource(R.string.no_audios_available),
-                            itemKey = { audio -> audio.audioUrl },
-                            itemContent = { audio ->
-                                AudioCard(
-                                    modifier = Modifier.fillParentMaxWidth(0.75f),
-                                    audio = audio,
-                                    onClick = {
-                                        onNavigateToDetailAudio(audio.title, audio.audioUrl)
-                                    }
-                                )
-                            }
-                        )
+                    AnimatedContent(
+                        targetState = uiState.errorMessage,
+                        transitionSpec = { Motion.contentSwap(reduced) },
+                        contentKey = { it != null },
+                        modifier = Modifier.staggeredEntrance(4, entrance),
+                        label = "latestAudios",
+                    ) { errorMessage ->
+                        if (errorMessage != null) {
+                            Text(
+                                text = errorMessage,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        } else {
+                            LatestArticleAudioLazyRow(
+                                title = stringResource(R.string.latest_audios),
+                                onSeeAll = { onCategoryClick(Routes.AUDIO_LIST_SCREEN) },
+                                showLoading = uiState.loadingLatestAudios,
+                                items = uiState.latestAudios,
+                                emptyMessage = stringResource(R.string.no_audios_available),
+                                itemKey = { audio -> audio.audioUrl },
+                                itemContent = { audio ->
+                                    AudioCard(
+                                        modifier = Modifier.fillParentMaxWidth(0.75f),
+                                        audio = audio,
+                                        onClick = {
+                                            onNavigateToDetailAudio(audio.title, audio.audioUrl)
+                                        }
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
                 item {

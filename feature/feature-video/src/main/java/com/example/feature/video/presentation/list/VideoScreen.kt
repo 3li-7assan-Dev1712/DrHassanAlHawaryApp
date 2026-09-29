@@ -1,7 +1,12 @@
 package com.example.feature.video.presentation.list
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
+import com.example.core.ui.theme.ContentPhase
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateListItem
+import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -92,69 +97,84 @@ fun VideosScreenContent(
         ) {
             val isMediatorRefreshing = videos.loadState.mediator?.refresh is LoadState.Loading
 
-            if (isMediatorRefreshing) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        strokeWidth = 3.dp,
-                        color = Brand.colors.accentStrong
-                    )
-                }
-            } else if (videos.itemCount == 0 && videos.loadState.refresh is LoadState.NotLoading) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.VideoLibrary,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = Brand.colors.textMuted.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = stringResource(R.string.no_videos_available),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Brand.colors.textMuted
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(
-                        count = videos.itemCount,
-                        key = videos.itemKey { it.id }
-                    ) { index ->
-                        val video = videos[index]
-                        if (video != null) {
-                            VideoCard(
-                                video = video,
-                                onVideoClick = {
-                                    onNavigateToVideo(video.videoUrl, video.title)
-                                }
-                            )
-                        }
+            val phase = when {
+                isMediatorRefreshing -> ContentPhase.Loading
+                videos.itemCount == 0 && videos.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
+                else -> ContentPhase.Content
+            }
+            val reduced = reducedMotion
+
+            AnimatedContent(
+                targetState = phase,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                label = "videosContent",
+            ) { shown ->
+                when (shown) {
+                    ContentPhase.Loading -> Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            strokeWidth = 3.dp,
+                            color = Brand.colors.accentStrong
+                        )
                     }
 
-                    item {
-                        if (videos.loadState.append is LoadState.Loading) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    strokeWidth = 2.dp,
-                                    color = Brand.colors.accentStrong
-                                )
+                    ContentPhase.Empty, ContentPhase.Error -> Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.VideoLibrary,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = Brand.colors.textMuted.copy(alpha = 0.5f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.no_videos_available),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Brand.colors.textMuted
+                        )
+                    }
+
+                    ContentPhase.Content -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            count = videos.itemCount,
+                            key = videos.itemKey { it.id }
+                        ) { index ->
+                            val video = videos[index]
+                            if (video != null) {
+                                Box(animateListItem()) {
+                                    VideoCard(
+                                        video = video,
+                                        onVideoClick = {
+                                            onNavigateToVideo(video.videoUrl, video.title)
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        item {
+                            if (videos.loadState.append is LoadState.Loading) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Brand.colors.accentStrong
+                                    )
+                                }
                             }
                         }
                     }

@@ -1,6 +1,7 @@
 package com.example.core.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.ContentPhase
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 
 /** One entry of the shared audio/video category list. */
 data class CategoryDef(val id: String, val name: String, @DrawableRes val icon: Int, val order: Int)
@@ -149,25 +153,35 @@ fun CategoryScreenContent(
                 .fillMaxWidth()
                 .padding(padding),
         ) {
-            when {
-                isLoading -> androidx.compose.material3.CircularProgressIndicator(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(32.dp),
-                    color = colors.accentStrong,
-                )
-                error != null -> Text(
-                    text = error,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(16.dp),
-                )
-                else -> CategoryList(
-                    categories = categories,
-                    onClick = onClick,
-                    modifier = Modifier.padding(16.dp),
-                )
+            val phase = when {
+                isLoading -> ContentPhase.Loading
+                error != null -> ContentPhase.Error
+                else -> ContentPhase.Content
+            }
+            val reduced = reducedMotion
+            AnimatedContent(
+                targetState = phase,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth(),
+                label = "categoriesContent",
+            ) { shown ->
+                when (shown) {
+                    ContentPhase.Loading -> androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.padding(32.dp),
+                        color = colors.accentStrong,
+                    )
+                    ContentPhase.Error, ContentPhase.Empty -> Text(
+                        text = error.orEmpty(),
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                    ContentPhase.Content -> CategoryList(
+                        categories = categories,
+                        onClick = onClick,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
             }
         }
     }

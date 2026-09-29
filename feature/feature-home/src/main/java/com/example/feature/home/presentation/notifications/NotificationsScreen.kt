@@ -1,6 +1,7 @@
 package com.example.feature.home.presentation.notifications
 
 import android.text.format.DateUtils
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Cairo
+import com.example.core.ui.theme.ContentPhase
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateListItem
+import com.example.core.ui.theme.reducedMotion
 import com.example.data_local.model.NotificationEntity
 import com.example.feature.home.R
 
@@ -115,22 +120,36 @@ private fun NotificationsContent(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            when {
-                notifications == null -> CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                )
+            val phase = when {
+                notifications == null -> ContentPhase.Loading
+                notifications.isEmpty() -> ContentPhase.Empty
+                else -> ContentPhase.Content
+            }
+            val reduced = reducedMotion
+            AnimatedContent(
+                targetState = phase,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
+                label = "notificationsContent",
+            ) { shown ->
+                when (shown) {
+                    ContentPhase.Loading -> CircularProgressIndicator()
 
-                notifications.isEmpty() -> EmptyNotifications(Modifier.align(Alignment.Center))
+                    ContentPhase.Empty, ContentPhase.Error -> EmptyNotifications()
 
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    items(notifications, key = { it.id }) { notification ->
-                        NotificationItem(
-                            notification = notification,
-                            onDelete = { onDelete(notification.id) },
-                        )
+                    ContentPhase.Content -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        items(notifications.orEmpty(), key = { it.id }) { notification ->
+                            NotificationItem(
+                                notification = notification,
+                                onDelete = { onDelete(notification.id) },
+                                modifier = animateListItem(),
+                            )
+                        }
                     }
                 }
             }
@@ -142,9 +161,10 @@ private fun NotificationsContent(
 private fun NotificationItem(
     notification: NotificationEntity,
     onDelete: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)

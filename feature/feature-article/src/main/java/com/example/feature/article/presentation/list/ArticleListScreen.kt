@@ -1,7 +1,11 @@
 package com.example.feature.article.presentation.list
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateListItem
+import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -106,51 +110,60 @@ private fun ArticlesScreenContent(
 
             val isInitialLoad = articles.loadState.refresh is LoadState.Loading
 
-            if (isInitialLoad) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = Brand.colors.accentStrong,
-                        strokeWidth = 3.dp
-                    )
-                }
-            } else {
-
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(
-                        count = articles.itemCount,
-                        key = articles.itemKey { it.id }
-                    ) { index ->
-                        val art = articles[index]
-                        if (art != null) {
-                            ArticleItem(
-                                article = art,
-                                onClick = { onNavigateToArticleDetail(art.id) },
-                            )
-                        }
+            val reduced = reducedMotion
+            AnimatedContent(
+                targetState = isInitialLoad,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                label = "articlesContent",
+            ) { loading ->
+                if (loading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = Brand.colors.accentStrong,
+                            strokeWidth = 3.dp
+                        )
                     }
-
-                    // when scroll down show loading will append new arts
-                    if (articles.loadState.append is LoadState.Loading) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    strokeWidth = 2.dp,
-                                    color = Brand.colors.accentStrong
-                                )
+                } else {
+    
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(
+                            count = articles.itemCount,
+                            key = articles.itemKey { it.id }
+                        ) { index ->
+                            val art = articles[index]
+                            if (art != null) {
+                                Box(animateListItem()) {
+                                    ArticleItem(
+                                        article = art,
+                                        onClick = { onNavigateToArticleDetail(art.id) },
+                                    )
+                                }
+                            }
+                        }
+    
+                        // when scroll down show loading will append new arts
+                        if (articles.loadState.append is LoadState.Loading) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Brand.colors.accentStrong
+                                    )
+                                }
                             }
                         }
                     }
