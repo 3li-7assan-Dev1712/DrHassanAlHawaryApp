@@ -29,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import coil.compose.SubcomposeAsyncImage
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedContainer
 import com.example.core.ui.components.shimmer
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
@@ -77,7 +79,9 @@ fun DesignTile(
                             Icon(painterResource(TablerIcons.Photo), null, tint = colors.textMuted)
                         }
                     },
+                    // Grows from the tile to the full-screen viewer.
                     modifier = Modifier
+                        .sharedContainer(SharedKeys.design(group.id), RoundedCornerShape(10.dp))
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp)),
                 )

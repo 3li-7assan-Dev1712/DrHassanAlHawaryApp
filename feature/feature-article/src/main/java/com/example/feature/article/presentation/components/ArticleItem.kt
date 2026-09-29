@@ -24,6 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import com.example.core.ui.theme.ArticleSource
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedContainer
+import com.example.core.ui.theme.sharedPart
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
@@ -57,7 +61,10 @@ fun ArticleItem(
 
     Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        // Grows into the reader (container transform); the title morphs into its title.
+        modifier = modifier
+            .sharedContainer(SharedKeys.article(article.id, ArticleSource.List), RoundedCornerShape(14.dp))
+            .fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         color = colors.surface,
         border = BorderStroke(0.5.dp, colors.divider),
@@ -69,6 +76,7 @@ fun ArticleItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = colors.textPrimary,
+                modifier = Modifier.sharedPart(SharedKeys.articleTitle(article.id, ArticleSource.List)),
             )
             if (excerpt.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(6.dp))

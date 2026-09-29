@@ -28,6 +28,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedContainer
+import com.example.core.ui.theme.sharedPart
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
@@ -54,6 +57,8 @@ fun AudioCard(
     }
     Row(
         modifier = modifier
+            // Grows into the player; the gold circle morphs into its play button.
+            .sharedContainer(SharedKeys.audio(audio.audioUrl))
             .clip(RoundedCornerShape(12.dp))
             .background(Brand.colors.surface)
             .clickable(onClick = onClick)
@@ -63,6 +68,7 @@ fun AudioCard(
     ) {
         Box(
             modifier = Modifier
+                .sharedPart(SharedKeys.audioPlay(audio.audioUrl), CircleShape, scaleContent = false)
                 .size(36.dp)
                 .background(Brand.colors.goldSoft, CircleShape),
             contentAlignment = Alignment.Center,

@@ -61,6 +61,7 @@ import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.sharedArticleTitle
 import com.example.core.ui.theme.reducedMotion
 import com.example.domain.module.Article
 import com.example.domain.text.ArabicDates
@@ -79,6 +80,7 @@ fun ArticleDetailScreen(
     viewModel: DetailArticleViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToShareSelection: (articleId: String) -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val fontStep by viewModel.fontStep.collectAsState()
@@ -89,6 +91,7 @@ fun ArticleDetailScreen(
         onFontStepChange = viewModel::setFontStep,
         onNavigateBack = onNavigateBack,
         onShare = onNavigateToShareSelection,
+        modifier = modifier,
     )
 }
 
@@ -99,6 +102,7 @@ private fun ArticleDetailContent(
     onFontStepChange: (Int) -> Unit,
     onNavigateBack: () -> Unit,
     onShare: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     val colors = Brand.colors
@@ -110,6 +114,7 @@ private fun ArticleDetailContent(
     val barTitle = (uiState as? DetailArticleUiState.Success)?.let { splitTitle(it.article.title).first }.orEmpty()
 
     Scaffold(
+        modifier = modifier,
         containerColor = colors.background,
         topBar = {
             Column {
@@ -302,7 +307,9 @@ private fun ArticleBody(
             color = colors.textPrimary,
             // Where the title ends in the scrolled content (its position is unscrolled, inside
             // the column's top padding).
-            modifier = Modifier.onGloballyPositioned {
+            modifier = Modifier
+                .sharedArticleTitle(article.id)
+                .onGloballyPositioned {
                 onTitleBottom(it.positionInParent().y.roundToInt() + it.size.height + topPaddingPx)
             },
         )

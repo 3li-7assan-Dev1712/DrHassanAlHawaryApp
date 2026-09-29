@@ -14,7 +14,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 5: Profile and theme
 - [x] Phase 6: Search and chips
 - [x] Phase 7: Reader
-- [ ] Phase 8: Container transform (next session)
+- [x] Phase 8: Container transform
 - [ ] Phase 9: Onboarding, splash, sign-in (next session)
 - [ ] Phase 10: Share preview, quote selection, image viewer (next session)
 - [ ] Phase 11: Haptics and polish check (next session)
@@ -85,6 +85,15 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - `AppTopBar` got an optional `titleVisible: Boolean = true`; the title fades with `stateChangeSpec()` via `graphicsLayer` alpha and always keeps its space, so nothing shifts. All other callers are unchanged.
 - Reader: the big title reports where it ends in the scroll content (`onGloballyPositioned`, + the 16dp top padding); `derivedStateOf { scrollState.value > titleBottom }` drives the bar title (the part before the ":", one line with ellipsis). No recomposition while scrolling except when the flag flips.
 - Reading-progress line: already driven directly by the scroll (`derivedStateOf` + the lambda `progress` overload of `LinearProgressIndicator`, which does not animate). Verified, left as is.
+
+## Phase 8: Container transform (done, not yet seen on a device)
+
+- `core-ui/theme/SharedElements.kt`: `LocalSharedTransitionScope`, `LocalNavAnimatedVisibilityScope`, `ProvideNavAnimatedScope`, `SharedKeys`, `Modifier.sharedContainer(key, shape)` (`sharedBounds`, `scaleToBounds`, clipped overlay) and `Modifier.sharedPart(key, shape, scaleContent)`. Bounds use `tween(LONG = 400ms, emphasized decelerate)`. Both are no-ops under reduced motion or when no scope is provided (previews, other destinations), so the normal shared-axis transition plays.
+- `MainActivity`: `SharedTransitionLayout` wraps the `NavHost` (it took over the `padding(innerPadding)` modifier); home, articles list, reader, player, designs and viewer destinations provide their `AnimatedContentScope`. The detail screens got only an optional `modifier` parameter (reader, player, viewer), which `MainActivity` fills with the container key built from the route argument, so the key exists from the first frame.
+- Flows: Home article card and articles-list card → reader (container + title); Home audio card → player (container + gold circle → play button, re-measured, circle clip); design tile image → viewer.
+- Keys: article keys include the source (`ArticleSource.Home` / `List`), because the same article can be on Home and in the list and Home → list would otherwise morph between the two. The reader registers both (`sharedArticleContainer` / `sharedArticleTitle`). Audio keys use the URL (the route argument decodes to the same string); designs use the group id.
+- Back to a card that has scrolled away or isn't composed: no match, so the shared-axis pop plays (built into `sharedBounds`).
+- Known limits: the reader title and the player's play button live behind the loading crossfade (Phase 3), so on the way IN they appear a few frames into the transition (Room load) and join the morph late; on the way BACK they always match. The containers themselves always match.
 
 ## Device checklist (phases 0–7)
 

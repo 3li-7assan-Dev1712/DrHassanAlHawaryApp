@@ -88,7 +88,8 @@ private const val DOUBLE_TAP_ZOOM = 2.5f
 @Composable
 fun ImageScreen(
     onNavigateBack: () -> Unit,
-    viewModel: ImageDetailViewModel = hiltViewModel()
+    viewModel: ImageDetailViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val group = uiState.imageGroup?.group
@@ -106,7 +107,7 @@ fun ImageScreen(
     var sharing by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color.Black),
     ) {

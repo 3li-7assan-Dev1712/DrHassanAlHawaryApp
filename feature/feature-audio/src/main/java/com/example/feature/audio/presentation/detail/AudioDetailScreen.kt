@@ -84,6 +84,8 @@ import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedPart
 import com.example.core.ui.theme.reducedMotion
 import com.example.core.ui.theme.stateChangeSpec
 import com.example.domain.module.FixedCategories
@@ -96,7 +98,8 @@ import com.google.common.util.concurrent.ListenableFuture
 fun AudioDetailScreen(
     onNavigateUp: () -> Unit,
     onNavigateToShare: (audioUrl: String, title: String, category: String?, localFilePath: String?, startMs: Long, totalDurationMs: Long) -> Unit = { _, _, _, _, _, _ -> },
-    viewModel: AudioDetailViewModel = hiltViewModel()
+    viewModel: AudioDetailViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -122,6 +125,7 @@ fun AudioDetailScreen(
 
     AudioDetailScreen(
         uiState = uiState,
+        modifier = modifier,
         onNavigateUp = onNavigateUp,
         onPlayPauseToggle = viewModel::onPlayPauseToggle,
         onSeek = viewModel::onSeek,
@@ -162,10 +166,12 @@ fun AudioDetailScreen(
     onCycleSpeed: () -> Unit,
     onDownload: () -> Unit,
     onCancelDownload: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = Brand.colors
     Scaffold(
+        modifier = modifier,
         // Back arrow only: the title is shown once, under the photo.
         topBar = { AppTopBar(title = "", onBack = onNavigateUp) },
         containerColor = colors.background,
@@ -437,7 +443,13 @@ private fun TransportRow(
                     },
                     shape = CircleShape,
                     color = colors.accentStrong,
-                    modifier = Modifier.size(76.dp),
+                    // The home audio card's gold circle morphs into this button.
+                    modifier = Modifier
+                        .then(
+                            uiState.audioUrl?.let { Modifier.sharedPart(SharedKeys.audioPlay(it), CircleShape, scaleContent = false) }
+                                ?: Modifier
+                        )
+                        .size(76.dp),
                 ) {
                     AnimatedContent(
                         targetState = uiState.isPlaying,
