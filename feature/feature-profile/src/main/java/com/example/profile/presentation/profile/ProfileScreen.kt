@@ -4,6 +4,12 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -42,8 +48,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +64,9 @@ import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.stateChangeSpec
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.BidiText
 import com.example.profile.presentation.components.ProfileRoute
@@ -374,11 +383,19 @@ private fun ProfileRow(
     }
 }
 
-/** تلقائي / فاتح / داكن on a surfaceMuted track. */
+/**
+ * تلقائي / فاتح / داكن on a surfaceMuted track. One selection pill slides (and resizes)
+ * to the chosen segment instead of each segment toggling its own background.
+ */
 @Composable
 private fun ThemeSegmentedControl(selected: ThemeChoice, onSelect: (ThemeChoice) -> Unit) {
     val colors = Brand.colors
-    Row(
+    val segments = listOf(
+        Triple(ThemeChoice.SYSTEM, R.string.theme_system, TablerIcons.DeviceMobile),
+        Triple(ThemeChoice.LIGHT, R.string.theme_light, TablerIcons.Sun),
+        Triple(ThemeChoice.DARK, R.string.theme_dark, TablerIcons.Moon),
+    )
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .padding(12.dp)
@@ -386,32 +403,48 @@ private fun ThemeSegmentedControl(selected: ThemeChoice, onSelect: (ThemeChoice)
             .background(colors.surfaceMuted)
             .padding(4.dp)
     ) {
-        listOf(
-            Triple(ThemeChoice.SYSTEM, R.string.theme_system, TablerIcons.DeviceMobile),
-            Triple(ThemeChoice.LIGHT, R.string.theme_light, TablerIcons.Sun),
-            Triple(ThemeChoice.DARK, R.string.theme_dark, TablerIcons.Moon),
-        ).forEach { (choice, label, icon) ->
-            val isSelected = choice == selected
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(9.dp))
-                    .background(if (isSelected) colors.surface else Color.Transparent)
-                    .then(if (isSelected) Modifier.border(0.5.dp, colors.divider, RoundedCornerShape(9.dp)) else Modifier)
-                    .clickable { onSelect(choice) }
-                    .padding(vertical = 9.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val contentColor = if (isSelected) colors.textPrimary else colors.textMuted
-                Icon(painterResource(icon), contentDescription = null, tint = if (isSelected) colors.accent else contentColor, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = stringResource(label),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        // Segments share the track equally; offset is from the START edge (RTL-aware).
+        val segmentWidth = maxWidth / segments.size
+        val selectedIndex = segments.indexOfFirst { it.first == selected }.coerceAtLeast(0)
+        val pillOffset by animateDpAsState(segmentWidth * selectedIndex, stateChangeSpec(), label = "pillOffset")
+        val pillWidth by animateDpAsState(segmentWidth, stateChangeSpec(), label = "pillWidth")
+        Box(
+            Modifier
+                .matchParentSize()
+                .wrapContentWidth(Alignment.Start)
+                .offset(x = pillOffset)
+                .width(pillWidth)
+                .clip(RoundedCornerShape(9.dp))
+                .background(colors.surface)
+                .border(0.5.dp, colors.divider, RoundedCornerShape(9.dp))
+        )
+        Row(Modifier.fillMaxWidth()) {
+            segments.forEach { (choice, label, icon) ->
+                val isSelected = choice == selected
+                val contentColor by animateColorAsState(
+                    if (isSelected) colors.textPrimary else colors.textMuted, stateChangeSpec(), label = "segmentText",
                 )
+                val iconColor by animateColorAsState(
+                    if (isSelected) colors.accent else colors.textMuted, stateChangeSpec(), label = "segmentIcon",
+                )
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(9.dp))
+                        .clickable { onSelect(choice) }
+                        .padding(vertical = 9.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(painterResource(icon), contentDescription = null, tint = iconColor, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(label),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
             }
         }
     }
@@ -441,11 +474,15 @@ private fun FontSizeRow(step: Int, onStepChange: (Int) -> Unit) {
             contentPadding = PaddingValues(horizontal = 10.dp),
             border = BorderStroke(0.5.dp, colors.divider),
         ) { Text("A−", color = colors.textPrimary) }
-        Text(
-            text = ArabicNumerals.digits(step + 1),
-            color = colors.textMuted,
+        val reduced = reducedMotion
+        AnimatedContent(
+            targetState = step,
+            transitionSpec = { Motion.contentSwap(reduced) },
             modifier = Modifier.padding(horizontal = 10.dp),
-        )
+            label = "fontStep",
+        ) { shownStep ->
+            Text(text = ArabicNumerals.digits(shownStep + 1), color = colors.textMuted)
+        }
         OutlinedButton(
             onClick = { onStepChange(step + 1) },
             enabled = step < ProfileScreenViewModel.MAX_READER_FONT_STEP,

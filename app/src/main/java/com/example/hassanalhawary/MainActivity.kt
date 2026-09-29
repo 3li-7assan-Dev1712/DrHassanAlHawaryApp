@@ -40,6 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.navigation.NavBackStackEntry
 import com.example.core.ui.theme.Motion
+import backgroundDark
+import backgroundLight
+import kotlinx.coroutines.delay
 import com.example.core.ui.theme.reducedMotion
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.media3.common.util.UnstableApi
@@ -132,8 +135,14 @@ class MainActivity : ComponentActivity() {
                 // theme is Material.Light) is repainted too, so nothing flashes white in
                 // dark mode. Declared before the screens so their own overrides (home and
                 // sign-in force light icons) apply on top.
-                val windowBackground = MaterialTheme.colorScheme.background
-                DisposableEffect(isDarkTheme) {
+                // The colours animate over `medium` on a theme switch; the bar icons (and the
+                // window background behind everything) flip once that has finished, so they
+                // never contrast wrongly with the half-way colours.
+                val reducedMotionOn = reducedMotion
+                var isFirstBarStyle by remember { mutableStateOf(true) }
+                LaunchedEffect(isDarkTheme) {
+                    if (!isFirstBarStyle && !reducedMotionOn) delay(Motion.MEDIUM.toLong())
+                    isFirstBarStyle = false
                     val transparent = android.graphics.Color.TRANSPARENT
                     val barStyle = if (isDarkTheme) {
                         SystemBarStyle.dark(transparent)
@@ -141,8 +150,8 @@ class MainActivity : ComponentActivity() {
                         SystemBarStyle.light(transparent, transparent)
                     }
                     enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+                    val windowBackground = if (isDarkTheme) backgroundDark else backgroundLight
                     window.decorView.setBackgroundColor(windowBackground.toArgb())
-                    onDispose {}
                 }
 
                 var flexibleUpdateDismissed by remember { mutableStateOf(false) }

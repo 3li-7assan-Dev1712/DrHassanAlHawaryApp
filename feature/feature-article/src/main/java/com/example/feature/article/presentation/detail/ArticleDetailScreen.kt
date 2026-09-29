@@ -1,6 +1,10 @@
 package com.example.feature.article.presentation.detail
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -184,6 +188,7 @@ private fun ReadingProgress(scrollState: ScrollState) {
 private fun FontSizeAction(fontStep: Int, onFontStepChange: (Int) -> Unit) {
     var open by remember { mutableStateOf(false) }
     val colors = Brand.colors
+    val reduced = reducedMotion
     Box {
         AppTopBarAction(
             icon = TablerIcons.TextSize,
@@ -205,22 +210,35 @@ private fun FontSizeAction(fontStep: Int, onFontStepChange: (Int) -> Unit) {
                         onClick = { onFontStepChange(fontStep - 1) },
                         enabled = fontStep > 0,
                     ) { Text("A−", color = colors.textPrimary) }
-                    Text(
-                        text = ArabicNumerals.digits(fontStep + 1),
-                        color = colors.textMuted,
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    AnimatedContent(
+                        targetState = fontStep,
+                        transitionSpec = { Motion.contentSwap(reduced) },
+                        label = "fontStep",
+                    ) { step ->
+                        Text(
+                            text = ArabicNumerals.digits(step + 1),
+                            color = colors.textMuted,
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
                     OutlinedButton(
                         onClick = { onFontStepChange(fontStep + 1) },
                         enabled = fontStep < DetailArticleViewModel.MAX_FONT_STEP,
                     ) { Text("A+", color = colors.textPrimary) }
                 }
                 Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.reader_font_preview),
-                    fontSize = FONT_STEPS[fontStep.coerceIn(0, FONT_STEPS.lastIndex)],
-                    color = colors.textSecondary,
-                )
+                // Text size never animates; the preview crossfades to the new size.
+                AnimatedContent(
+                    targetState = fontStep,
+                    transitionSpec = { Motion.contentSwap(reduced) },
+                    label = "fontPreview",
+                ) { step ->
+                    Text(
+                        text = stringResource(R.string.reader_font_preview),
+                        fontSize = FONT_STEPS[step.coerceIn(0, FONT_STEPS.lastIndex)],
+                        color = colors.textSecondary,
+                    )
+                }
             }
         }
     }
@@ -235,6 +253,20 @@ private fun ArticleBody(
     scrollState: ScrollState,
 ) {
     val colors = Brand.colors
+    // A new text size: the body fades out, re-lays out at the new size, and fades back in
+    // (the size itself never animates). Instant under reduced motion.
+    val reduced = reducedMotion
+    var shownFontSize by remember { mutableStateOf(fontSize) }
+    val bodyAlpha = remember { Animatable(1f) }
+    LaunchedEffect(fontSize) {
+        if (fontSize != shownFontSize) {
+            if (!reduced) bodyAlpha.animateTo(0f, tween(Motion.CONTENT_SWAP / 2, easing = Motion.EmphasizedAccelerate))
+            shownFontSize = fontSize
+        }
+        // Also brings the body back if an earlier change was interrupted half-way.
+        if (reduced) bodyAlpha.snapTo(1f)
+        else bodyAlpha.animateTo(1f, tween(Motion.CONTENT_SWAP / 2, easing = Motion.EmphasizedDecelerate))
+    }
     // The cleaner turned the first " - " of the title into ": ", so split there.
     val (title, subtitle) = remember(article.title) {
         val i = article.title.indexOf(':')
@@ -274,8 +306,10 @@ private fun ArticleBody(
         Text(text = meta, style = MaterialTheme.typography.labelMedium, color = colors.textMuted)
         Spacer(Modifier.height(20.dp))
 
-        paragraphs.forEachIndexed { index, paragraph ->
-            ReaderParagraph(paragraph = paragraph, isFirst = index == 0, fontSize = fontSize)
+        Column(Modifier.graphicsLayer { alpha = bodyAlpha.value }) {
+            paragraphs.forEachIndexed { index, paragraph ->
+                ReaderParagraph(paragraph = paragraph, isFirst = index == 0, fontSize = shownFontSize)
+            }
         }
     }
 }

@@ -163,12 +163,15 @@ fun HassanAlHawaryTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) brownDarkScheme else brownLightScheme
+    val reduced = rememberSystemReducedMotion()
+    // Switching light/dark animates every colour (see AnimatedTheme.kt).
+    val colorScheme = animateColorScheme(if (darkTheme) brownDarkScheme else brownLightScheme, reduced)
+    val brandPalette = animateBrandPalette(if (darkTheme) DarkBrandPalette else LightBrandPalette, reduced)
 
     CompositionLocalProvider(
-        LocalReducedMotion provides rememberSystemReducedMotion(),
+        LocalReducedMotion provides reduced,
         LocalBrandTheme provides brandTheme,
-        LocalBrandPalette provides if (darkTheme) DarkBrandPalette else LightBrandPalette,
+        LocalBrandPalette provides brandPalette,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

@@ -11,7 +11,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 2: Screen transitions
 - [x] Phase 3: Loading / empty / error states; lists
 - [x] Phase 4: Player
-- [ ] Phase 5: Profile and theme
+- [x] Phase 5: Profile and theme
 - [ ] Phase 6: Search and chips
 - [ ] Phase 7: Reader
 - [ ] Phase 8: Container transform (next session)
@@ -64,6 +64,13 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - Speed label: `AnimatedContent` + `Motion.countSlide` (new value from below).
 - Inline download card: `AnimatedVisibility` with expandVertically + fade (`medium`) instead of `animateContentSize` on the parent: the parent is a `fillMaxSize` scroll column, so its size never changes and `animateContentSize` would do nothing. Same visible result: nothing below jumps.
 - Reduced motion: icon/label swaps and the card are instant; the progress ring and buffering ring stay (functional).
+
+## Phase 5: Profile and theme (done)
+
+- Segmented control (`ProfileScreen.ThemeSegmentedControl`): one pill behind the three segments, `animateDpAsState` for offset (from START, so RTL-correct) and width with `stateChangeSpec()`; segment text/icon colours via `animateColorAsState`. The segments are equal width, so the width animation is a no-op today; it is there so the pill follows if the segments ever become content-sized.
+- Theme change: `core-ui/theme/AnimatedTheme.kt` animates every `BrandPalette` colour AND every Material `ColorScheme` colour (`tween(medium, standard)`, `snap()` under reduced motion) inside `HassanAlHawaryTheme`. Material colours were included because many screens still read `MaterialTheme.colorScheme` (error text, notification cards); animating only the brand palette would have left those flashing.
+- Status/navigation bar icons and the window background: `MainActivity` now sets them in a `LaunchedEffect(isDarkTheme)` that waits `Motion.MEDIUM` on a change (not on first launch, not under reduced motion), i.e. at the end of the colour animation.
+- Reader font size: Profile's step number and the reader dropdown's number and preview line crossfade (`contentSwap`); the article body fades out (100ms), re-lays out at the new size, and fades back in (100ms). A true crossfade of the body would need two copies of a long scrollable column sharing one `ScrollState`, which Compose doesn't allow; fade-through looks the same at this speed.
 
 ## Decisions
 
