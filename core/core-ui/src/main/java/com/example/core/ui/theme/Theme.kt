@@ -166,6 +166,7 @@ fun HassanAlHawaryTheme(
     val colorScheme = if (darkTheme) brownDarkScheme else brownLightScheme
 
     CompositionLocalProvider(
+        LocalReducedMotion provides rememberSystemReducedMotion(),
         LocalBrandTheme provides brandTheme,
         LocalBrandPalette provides if (darkTheme) DarkBrandPalette else LightBrandPalette,
     ) {

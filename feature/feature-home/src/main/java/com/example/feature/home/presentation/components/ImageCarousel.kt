@@ -2,7 +2,6 @@ package com.example.feature.home.presentation.components
 
 import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,6 +39,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.core.ui.components.shimmer
 import com.example.feature.home.R
 import com.example.feature.home.domain.model.ImageFeed
+import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.stateChangeSpec
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -57,9 +58,11 @@ fun ImageCarousel(
 
     Log.d(TAG, "ImageCarousel: count: ${imageList.size}")
 
-    // Auto-scroll (paused while the user is actively dragging the pager)
-    LaunchedEffect(imageList.size) {
-        if (imageList.isNotEmpty()) {
+    // Auto-scroll (paused while the user is actively dragging the pager; off when the
+    // system says "Remove animations").
+    val reduced = reducedMotion
+    LaunchedEffect(imageList.size, reduced) {
+        if (imageList.isNotEmpty() && !reduced) {
             while (true) {
                 delay(4000)
 
@@ -122,7 +125,7 @@ fun ImageCarousel(
 
                     val width by animateDpAsState(
                         targetValue = if (selected) 24.dp else 8.dp,
-                        animationSpec = tween(300),
+                        animationSpec = stateChangeSpec(),
                         label = "indicator"
                     )
 

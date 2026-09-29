@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.core.ui.theme.reducedMotion
 
 @Composable
 fun Modifier.shimmer(cornerRadius: Dp = 0.dp, isLoading: Boolean): Modifier {
@@ -38,6 +39,17 @@ fun Modifier.shimmer(cornerRadius: Dp = 0.dp): Modifier {
             Color.White.copy(alpha = 0.6f),
             Color.LightGray.copy(alpha = 0.3f)
         )
+    }
+
+    // "Remove animations": a still placeholder, no sweeping highlight.
+    if (reducedMotion) {
+        val still = shimmerColors.first()
+        return this.drawWithCache {
+            val cornerPx = cornerRadius.toPx()
+            onDrawWithContent {
+                drawRoundRect(color = still, cornerRadius = CornerRadius(cornerPx, cornerPx), size = size)
+            }
+        }
     }
 
     val transition = rememberInfiniteTransition(label = "Shimmer")
