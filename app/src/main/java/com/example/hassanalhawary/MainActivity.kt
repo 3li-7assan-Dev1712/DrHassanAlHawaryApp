@@ -33,6 +33,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.navigation.NavBackStackEntry
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
@@ -294,10 +302,35 @@ class MainActivity : ComponentActivity() {
                 }
             }) { innerPadding ->
 
+            // Screen transitions, set once here: fade through between bottom-nav tabs,
+            // shared axis X (END → START going deeper, mirrored on back) for everything else.
+            val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+            val axisOffsetPx = with(LocalDensity.current) { Motion.SHARED_AXIS_OFFSET_DP.dp.roundToPx() }
+            val reduced = reducedMotion
+            fun AnimatedContentTransitionScope<NavBackStackEntry>.betweenTabs() =
+                initialState.destination.route in routesWithBottomNav &&
+                    targetState.destination.route in routesWithBottomNav
+
             NavHost(
                 navController,
                 startDestination = "home_screen",
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                enterTransition = {
+                    if (betweenTabs()) Motion.fadeThroughEnter(reduced)
+                    else Motion.sharedAxisEnter(axisOffsetPx, isRtl, reduced)
+                },
+                exitTransition = {
+                    if (betweenTabs()) Motion.fadeThroughExit(reduced)
+                    else Motion.sharedAxisExit(axisOffsetPx, isRtl, reduced)
+                },
+                popEnterTransition = {
+                    if (betweenTabs()) Motion.fadeThroughEnter(reduced)
+                    else Motion.sharedAxisPopEnter(axisOffsetPx, isRtl, reduced)
+                },
+                popExitTransition = {
+                    if (betweenTabs()) Motion.fadeThroughExit(reduced)
+                    else Motion.sharedAxisPopExit(axisOffsetPx, isRtl, reduced)
+                },
             ) {
 
                 composable("splash_screen") {
