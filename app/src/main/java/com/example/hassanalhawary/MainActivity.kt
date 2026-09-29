@@ -46,7 +46,6 @@ import com.example.core.ui.theme.ReducedMotionOverride
 import com.example.core.ui.theme.animationsRemoved
 import com.example.core.ui.theme.ProvideNavAnimatedScope
 import com.example.core.ui.theme.SharedKeys
-import com.example.core.ui.theme.sharedArticleContainer
 import com.example.core.ui.theme.sharedContainer
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.CompositionLocalProvider
@@ -444,13 +443,11 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("articles_screen") {
 
-                            ProvideNavAnimatedScope(this) {
                             ArticleListScreen(onNavigateToArticleDetail = { articleId ->
                                 navController.navigate("detail_article_screen/$articleId")
                             }, onNavigateBack = {
                                 navController.popBackStack()
                             })
-                            }
                         }
                         composable(
                             // Update the route to include an optional parameter
@@ -466,7 +463,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToShareSelection = { articleId ->
                                     navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
                                 },
-                                modifier = Modifier.sharedArticleContainer(articleId),
+                                modifier = Modifier.sharedContainer(SharedKeys.article(articleId)),
                             )
                             }
                         }

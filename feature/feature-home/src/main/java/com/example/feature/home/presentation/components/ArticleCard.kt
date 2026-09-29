@@ -20,7 +20,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.core.ui.theme.ArticleSource
 import com.example.core.ui.theme.SharedKeys
 import com.example.core.ui.theme.sharedContainer
 import com.example.core.ui.theme.sharedPart
@@ -51,7 +50,7 @@ fun ArticleCard(
     Column(
         modifier = modifier
             // Grows into the reader (container transform); the title morphs into its title.
-            .sharedContainer(SharedKeys.article(article.id, ArticleSource.Home))
+            .sharedContainer(SharedKeys.article(article.id))
             .clip(RoundedCornerShape(12.dp))
             .background(Brand.colors.surface)
             .clickable { onClick(article.id) }
@@ -65,7 +64,7 @@ fun ArticleCard(
             fontSize = 14.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.sharedPart(SharedKeys.articleTitle(article.id, ArticleSource.Home)),
+            modifier = Modifier.sharedPart(SharedKeys.articleTitle(article.id)),
         )
         if (article.excerpt.isNotBlank()) {
             Spacer(Modifier.height(8.dp))

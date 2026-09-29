@@ -61,7 +61,8 @@ import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.theme.Motion
-import com.example.core.ui.theme.sharedArticleTitle
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedPart
 import com.example.core.ui.theme.reducedMotion
 import com.example.domain.module.Article
 import com.example.domain.text.ArabicDates
@@ -308,7 +309,7 @@ private fun ArticleBody(
             // Where the title ends in the scrolled content (its position is unscrolled, inside
             // the column's top padding).
             modifier = Modifier
-                .sharedArticleTitle(article.id)
+                .sharedPart(SharedKeys.articleTitle(article.id))
                 .onGloballyPositioned {
                 onTitleBottom(it.positionInParent().y.roundToInt() + it.size.height + topPaddingPx)
             },

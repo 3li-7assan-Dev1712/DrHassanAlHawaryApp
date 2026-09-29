@@ -38,19 +38,16 @@ fun ProvideNavAnimatedScope(scope: AnimatedVisibilityScope, content: @Composable
 
 /**
  * Keys: unique per item (its id or URL) and per role, so two elements never collide.
- * Article cards also carry where they are ([ArticleSource]): the same article can be on
- * Home and in the articles list, and with one key Home → list would morph one card into
- * the other. The reader registers both sources.
+ * Only cards on Home and design tiles carry them: long paging lists (articles, audios)
+ * don't, because registering a shared element per row costs work on every scroll.
  */
 object SharedKeys {
-    fun article(id: String, source: ArticleSource) = "article-card-${source.name}-$id"
-    fun articleTitle(id: String, source: ArticleSource) = "article-title-${source.name}-$id"
+    fun article(id: String) = "article-card-$id"
+    fun articleTitle(id: String) = "article-title-$id"
     fun audio(url: String) = "audio-card-$url"
     fun audioPlay(url: String) = "audio-play-$url"
     fun design(groupId: String) = "design-$groupId"
 }
-
-enum class ArticleSource { Home, List }
 
 private val containerTransform = BoundsTransform { _, _ ->
     tween(Motion.LONG, easing = Motion.EmphasizedDecelerate)
@@ -90,15 +87,3 @@ private fun Modifier.sharedBoundsOrSelf(key: String, shape: Shape, scaleContent:
         )
     }
 }
-
-/** The reader's side of the article transform: matches a card from either source. */
-@Composable
-fun Modifier.sharedArticleContainer(id: String): Modifier = this
-    .sharedContainer(SharedKeys.article(id, ArticleSource.Home))
-    .sharedContainer(SharedKeys.article(id, ArticleSource.List), RoundedCornerShape(14.dp))
-
-/** The reader's title: matches the title of a card from either source. */
-@Composable
-fun Modifier.sharedArticleTitle(id: String): Modifier = this
-    .sharedPart(SharedKeys.articleTitle(id, ArticleSource.Home))
-    .sharedPart(SharedKeys.articleTitle(id, ArticleSource.List))

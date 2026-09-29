@@ -7,7 +7,6 @@ import android.graphics.drawable.BitmapDrawable
 import kotlin.math.abs
 import com.example.core.ui.theme.reducedMotion
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.Orientation
@@ -91,9 +90,11 @@ private const val MAX_ZOOM = 4f
 private const val DOUBLE_TAP_ZOOM = 2.5f
 /** How far (of the viewer's height) a swipe must go before letting go closes it. */
 private const val DISMISS_FRACTION = 0.25f
+/** How small the image gets at a full-height swipe (it tracks the distance linearly). */
+private const val DISMISS_MIN_SCALE = 0.85f
 
 /**
- * Full-screen design viewer: black background, one image per page, pinch zoom (1×–4×),
+ * Full-screen design viewer on the app background, one image per page, pinch zoom (1×–4×),
  * double-tap zoom, bounded pan, a counter "١ من ٩", a thumbnail strip for multi-image
  * posts, and a share button that sends the current image as a PNG.
  */
@@ -118,8 +119,8 @@ fun ImageScreen(
     var zoomed by remember { mutableStateOf(false) }
     var sharing by remember { mutableStateOf(false) }
 
-    // Swipe down (or up) to dismiss, only at 1×: the image follows the finger, the black
-    // background fades with the distance, and letting go past ~25% of the height closes the
+    // Swipe down (or up) to dismiss, only at 1×: the image follows the finger and shrinks a
+    // little with the distance (to 0.85), the bars fade, and letting go past ~25% of the height closes the
     // viewer (the pop / container transform takes it from where the finger left it);
     // otherwise it springs back. Everything is read in the draw phase: no recomposition.
     val reduced = reducedMotion
@@ -134,14 +135,16 @@ fun ImageScreen(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { viewerHeight = it.height.coerceAtLeast(1) }
-            .drawBehind { drawRect(Color.Black.copy(alpha = 1f - dismissProgress())) },
+            // The same background as the designs grid (light or dark with the theme), so the
+            // transform from a tile and back never flashes a different colour.
+            .background(Brand.colors.background),
     ) {
         when {
             uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center), color = Brand.colors.accentStrong)
 
             uiState.error != null -> Text(
                 text = uiState.error.orEmpty(),
-                color = Color.White,
+                color = Brand.colors.textPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -196,7 +199,12 @@ fun ImageScreen(
                                 }
                             },
                         )
-                        .graphicsLayer { translationY = dismissOffset.value },
+                        .graphicsLayer {
+                            translationY = dismissOffset.value
+                            val scale = 1f - dismissProgress() * (1f - DISMISS_MIN_SCALE)
+                            scaleX = scale
+                            scaleY = scale
+                        },
                 ) { page ->
                     ZoomableImage(
                         url = images[page].imageUrl,
@@ -234,11 +242,11 @@ private fun ViewerTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onClose) {
-            Icon(painterResource(TablerIcons.X), contentDescription = stringResource(R.string.back), tint = Color.White)
+            Icon(painterResource(TablerIcons.X), contentDescription = stringResource(R.string.back), tint = Brand.colors.textPrimary)
         }
         Text(
             text = title,
-            color = Color.White,
+            color = Brand.colors.textPrimary,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -247,16 +255,16 @@ private fun ViewerTopBar(
         if (counter != null) {
             Text(
                 text = counter,
-                color = Color.White.copy(alpha = 0.8f),
+                color = Brand.colors.textSecondary,
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(horizontal = 8.dp),
             )
         }
         IconButton(onClick = onShare, enabled = !sharing) {
             if (sharing) {
-                CircularProgressIndicator(Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                CircularProgressIndicator(Modifier.size(20.dp), color = Brand.colors.accentStrong, strokeWidth = 2.dp)
             } else {
-                Icon(painterResource(TablerIcons.Share), contentDescription = stringResource(R.string.share), tint = Color.White)
+                Icon(painterResource(TablerIcons.Share), contentDescription = stringResource(R.string.share), tint = Brand.colors.textPrimary)
             }
         }
     }

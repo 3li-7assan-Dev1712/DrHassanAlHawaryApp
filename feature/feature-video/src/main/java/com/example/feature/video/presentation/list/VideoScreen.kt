@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import com.example.core.ui.theme.ContentPhase
 import com.example.core.ui.theme.Motion
-import com.example.core.ui.theme.animateListItem
 import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -150,14 +149,12 @@ fun VideosScreenContent(
                         ) { index ->
                             val video = videos[index]
                             if (video != null) {
-                                Box(animateListItem()) {
-                                    VideoCard(
-                                        video = video,
-                                        onVideoClick = {
-                                            onNavigateToVideo(video.videoUrl, video.title)
-                                        }
-                                    )
-                                }
+                                VideoCard(
+                                    video = video,
+                                    onVideoClick = {
+                                        onNavigateToVideo(video.videoUrl, video.title)
+                                    }
+                                )
                             }
                         }
 

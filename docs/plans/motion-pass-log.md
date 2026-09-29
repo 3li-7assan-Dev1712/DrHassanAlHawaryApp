@@ -220,3 +220,11 @@ In Arabic, on a real phone:
 - Quote counter animates on every character while a handle is dragged.
 - `AnimatedContent` around paging lists keeps the hoisted `LazyListState`; if a list ever jumps to the top after a refresh, look there first.
 - Recurring Windows file lock on `core-ui/.../classes.jar` while Android Studio is open; `./gradlew --stop` clears it.
+
+## Follow-up after device testing (2026-09-29)
+
+Ali reported janky scrolling in the articles and audios lists, and that the image viewer's background didn't match the designs grid.
+
+- **Lists:** removed `animateItem` from the long paging lists (articles, audios, videos). The designs grid, which Ali reported as smooth, keeps it, as do the small lists (Home rows, search, notifications). Articles-list rows no longer register shared elements either: each row added a `sharedBounds` node and registered and unregistered with the `SharedTransitionLayout` as it scrolled in and out. The article → reader transform now only runs from the Home cards, so keys went back to one per article (`ArticleSource` and the reader's double registration are gone), and the articles-list destination no longer provides a nav scope.
+- **Still in place and the next suspect if lists remain slow:** `SharedTransitionLayout` makes the whole NavHost a lookahead scope, so every screen, lists included, is measured in a lookahead pass as well. If a **release** build (minified; debug Compose is much slower) still stutters, the next step is removing the container transforms (Phase 8) altogether.
+- **Image viewer:** background is `Brand.colors.background` (cream / dark brown with the theme) instead of black, and the title, counter, icons and error text use the brand text colours. With the same colour under and over it, a background fade would show nothing, so the swipe-to-dismiss feedback is now a slight shrink (1 → 0.85 with the distance) as the image follows the finger; the bars still fade.

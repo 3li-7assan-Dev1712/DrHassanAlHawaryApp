@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import com.example.core.ui.theme.ContentPhase
 import com.example.core.ui.theme.Motion
-import com.example.core.ui.theme.animateListItem
 import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -183,17 +182,15 @@ fun AudioListComposable(
                         ) { audioIndex ->
                             val audio = audios[audioIndex]
                             if (audio != null) {
-                                Box(animateListItem()) {
-                                    AudioListItem(
-                                        audio = audio,
-                                        onClick = {
-                                            onNavigateToAudioDetail(
-                                                audio.title,
-                                                audio.audioUrl
-                                            )
-                                        }
-                                    )
-                                }
+                                AudioListItem(
+                                    audio = audio,
+                                    onClick = {
+                                        onNavigateToAudioDetail(
+                                            audio.title,
+                                            audio.audioUrl
+                                        )
+                                    }
+                                )
                             }
                         }
 

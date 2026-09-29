@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import com.example.core.ui.theme.Motion
-import com.example.core.ui.theme.animateListItem
 import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -140,12 +139,10 @@ private fun ArticlesScreenContent(
                         ) { index ->
                             val art = articles[index]
                             if (art != null) {
-                                Box(animateListItem()) {
-                                    ArticleItem(
-                                        article = art,
-                                        onClick = { onNavigateToArticleDetail(art.id) },
-                                    )
-                                }
+                                ArticleItem(
+                                    article = art,
+                                    onClick = { onNavigateToArticleDetail(art.id) },
+                                )
                             }
                         }
     
