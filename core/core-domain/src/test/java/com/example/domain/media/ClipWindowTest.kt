@@ -68,4 +68,17 @@ class ClipWindowTest {
         assertEquals(ClipView(0, 20_000), ClipView.around(ClipWindow(0, 15_000), 20_000))
         assertTrue(ClipView(0, 20_000).fits(ClipWindow(0, 15_000), 20_000))
     }
+
+    @Test
+    fun `crossesStep ticks when an edge passes a 5 s mark`() {
+        // 1:00-2:00 → 1:04-2:04: no mark passed (1:00 and 2:00 are the marks they started on).
+        assertFalse(w.crossesStep(ClipWindow(64_000, 124_000)))
+        // Start 1:04 → 1:06 passes 1:05.
+        assertTrue(ClipWindow(64_000, 124_000).crossesStep(ClipWindow(66_000, 124_000)))
+        // Only the end moves, across 2:05.
+        assertTrue(w.crossesStep(ClipWindow(60_000, 126_000)))
+        // Backwards across 0:55.
+        assertTrue(w.crossesStep(ClipWindow(54_000, 120_000)))
+        assertFalse(w.crossesStep(w))
+    }
 }

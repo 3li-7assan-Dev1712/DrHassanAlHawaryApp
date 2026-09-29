@@ -16,7 +16,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 7: Reader
 - [x] Phase 8: Container transform
 - [x] Phase 9: Onboarding, splash, sign-in
-- [ ] Phase 10: Share preview, quote selection, image viewer (next session)
+- [x] Phase 10: Share preview, quote selection, image viewer
 - [ ] Phase 11: Haptics and polish check (next session)
 - [ ] Phase 12: Reduced-motion pass and final report (next session)
 
@@ -100,6 +100,14 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - Onboarding (`OnboardingScreen.kt`): each illustration is translated by 40% of its page offset against the swipe (`graphicsLayer`, read in the draw phase, RTL-aware sign), so it travels at ~60% of the finger; off under reduced motion. The dots are driven directly by the pager position (width 8→18dp and colour lerp), so the pill stretches from one dot to the next during the swipe; no animation of its own, so nothing to switch off. The button label crossfades التالي → لنبدأ (`contentSwap`).
 - Splash: `core-splashscreen` is a dependency, so `setOnExitAnimationListener`: the icon fades and scales to 0.9 while the splash view fades, `medium`, emphasized accelerate (`PathInterpolator` with the same control points as `Motion.EmphasizedAccelerate`), then `remove()`. `iconView` access is wrapped in `runCatching` (it can be missing on some launch paths). Under reduced motion the splash is removed at once. `Context.animationsRemoved()` in `Motion.kt` is now public for this.
 - Sign-in (`LoginWithGoogleComp`): a full-width box keeps the caller's layout; the pill inside animates its size (`animateContentSize`, `medium` standard, snap when reduced) from full width to a 48dp circle while signing in, and the logo + label crossfade to the spinner. On failure `isLoading` goes false and it grows back with the label.
+
+## Phase 10: Share preview, quote selection, image viewer (done)
+
+- Clip selector (`ClipSelector.kt`): dragging in either strip ticks `HapticFeedbackType.SegmentTick` each time the start or end crosses a 5 s mark (`ClipWindow.crossesStep`, pure, in core-domain with a unit test). Compared with the last window the drag produced (the VM's copy lags a frame, which would double-tick). Choosing a length chip ticks too. Taps, nudges and the stepper don't tick (not asked for).
+- Preview waveform: the VM polls the player every 200ms, so the fill stepped 5×/s. `SharePreviewScreen.smoothPlaybackPosition` now moves linearly between polls while playing and snaps on jumps (pause, seek back, new clip). Cost: the preview column recomposes every frame while previewing (it did 5×/s before).
+- Quote selection: the highlight and both handles fade in when a selection appears and out when it's cleared (`stateChangeSpec`; the last range is drawn while fading out). Resizing a selection stays immediate. The bottom panel's thumbnail is a `Crossfade` (200ms, snap when reduced) keyed on the first page.
+- Image viewer: vertical `draggable` on the pager (outside its moving layer), disabled while zoomed; the image follows the finger, the black background fades with the distance, the top bar and thumbnails fade 3× faster. Past 25% of the height, letting go pops the screen immediately, so the Phase 8 container transform shrinks it from where the finger left it into its tile (or the shared-axis pop if the tile isn't on screen); otherwise it springs back (`spring(0.85, MediumLow)`, snap when reduced). Decision: no separate "fling off-screen" animation before the pop, because the container would then shrink an empty black box.
+- Pinch zoom, double tap and the horizontal pager keep their own gestures; the vertical drag only claims vertical movement past the touch slop.
 
 ## Device checklist (phases 0–7)
 

@@ -2,6 +2,10 @@ package com.example.feature.share.presentation
 
 import android.content.ClipData
 import android.content.Intent
+import androidx.compose.runtime.remember
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -135,11 +139,12 @@ private fun SharePreviewScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val content = uiState.content
+                val playbackPositionMs = smoothPlaybackPosition(uiState.playbackPositionMs, uiState.isPlaying)
                 if (content != null) {
                     ShareCardPreview(
                         content = content,
                         envelope = uiState.clipEnvelope,
-                        playbackPositionMs = uiState.playbackPositionMs,
+                        playbackPositionMs = playbackPositionMs,
                         clipDurationMs = uiState.clipDurationMs,
                         modifier = Modifier
                             .height(previewHeight)
@@ -168,7 +173,7 @@ private fun SharePreviewScreen(
                     totalMs = uiState.totalTrackDurationMs,
                     startMs = uiState.startMs,
                     clipMs = uiState.clipDurationMs,
-                    playbackPositionMs = uiState.playbackPositionMs,
+                    playbackPositionMs = playbackPositionMs,
                     isPlaying = uiState.isPlaying,
                     isBuffering = uiState.isBuffering,
                     enabled = !isGenerating,
@@ -269,4 +274,26 @@ private fun ShareExportState.toProgressFraction(): Float? = when (this) {
     is ShareExportState.Ready -> 1f
     ShareExportState.Preparing -> 0f
     ShareExportState.Idle, is ShareExportState.Failed -> null
+}
+
+/** How often the view model reads the player position (its POSITION_POLL_MS). */
+private const val POSITION_POLL_MS = 200
+
+/**
+ * The preview position moves linearly between the view model's 200ms polls while playing,
+ * so the waveform fill and the playhead glide instead of stepping 5 times a second.
+ * Jumps (a new clip, a seek back, pause) are applied at once.
+ */
+@Composable
+private fun smoothPlaybackPosition(targetMs: Long, isPlaying: Boolean): Long {
+    val position = remember { Animatable(targetMs.toFloat()) }
+    LaunchedEffect(targetMs, isPlaying) {
+        val target = targetMs.toFloat()
+        if (!isPlaying || target < position.value || target - position.value > POSITION_POLL_MS * 3) {
+            position.snapTo(target)
+        } else {
+            position.animateTo(target, tween(POSITION_POLL_MS, easing = LinearEasing))
+        }
+    }
+    return position.value.toLong()
 }

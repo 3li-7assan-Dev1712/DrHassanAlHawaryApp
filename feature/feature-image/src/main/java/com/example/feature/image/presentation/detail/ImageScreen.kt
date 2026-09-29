@@ -4,6 +4,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
+import kotlin.math.abs
+import com.example.core.ui.theme.reducedMotion
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -79,6 +89,8 @@ import java.io.File
 
 private const val MAX_ZOOM = 4f
 private const val DOUBLE_TAP_ZOOM = 2.5f
+/** How far (of the viewer's height) a swipe must go before letting go closes it. */
+private const val DISMISS_FRACTION = 0.25f
 
 /**
  * Full-screen design viewer: black background, one image per page, pinch zoom (1×–4×),
@@ -106,10 +118,23 @@ fun ImageScreen(
     var zoomed by remember { mutableStateOf(false) }
     var sharing by remember { mutableStateOf(false) }
 
+    // Swipe down (or up) to dismiss, only at 1×: the image follows the finger, the black
+    // background fades with the distance, and letting go past ~25% of the height closes the
+    // viewer (the pop / container transform takes it from where the finger left it);
+    // otherwise it springs back. Everything is read in the draw phase: no recomposition.
+    val reduced = reducedMotion
+    val dismissOffset = remember { Animatable(0f) }
+    var viewerHeight by remember { mutableIntStateOf(1) }
+    val dismissProgress = { (abs(dismissOffset.value) / viewerHeight).coerceIn(0f, 1f) }
+    val dismissState = rememberDraggableState { delta ->
+        scope.launch { dismissOffset.snapTo(dismissOffset.value + delta) }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .onSizeChanged { viewerHeight = it.height.coerceAtLeast(1) }
+            .drawBehind { drawRect(Color.Black.copy(alpha = 1f - dismissProgress())) },
     ) {
         when {
             uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center), color = Brand.colors.accentStrong)
@@ -126,6 +151,7 @@ fun ImageScreen(
 
             group != null && images.isNotEmpty() -> Column(Modifier.fillMaxSize()) {
                 ViewerTopBar(
+                    modifier = Modifier.graphicsLayer { alpha = 1f - (dismissProgress() * 3f).coerceAtMost(1f) },
                     title = DesignTitle.clean(group.title),
                     counter = if (images.size > 1) stringResource(
                         R.string.page_counter,
@@ -150,7 +176,27 @@ fun ImageScreen(
                     userScrollEnabled = !zoomed,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        // The drag is detected outside the moving layer, so the finger's deltas
+                        // aren't cancelled by the image moving under it.
+                        .draggable(
+                            state = dismissState,
+                            orientation = Orientation.Vertical,
+                            enabled = !zoomed,
+                            onDragStopped = {
+                                if (abs(dismissOffset.value) > viewerHeight * DISMISS_FRACTION) {
+                                    onNavigateBack()
+                                } else if (reduced) {
+                                    dismissOffset.snapTo(0f)
+                                } else {
+                                    dismissOffset.animateTo(
+                                        0f,
+                                        spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
+                                    )
+                                }
+                            },
+                        )
+                        .graphicsLayer { translationY = dismissOffset.value },
                 ) { page ->
                     ZoomableImage(
                         url = images[page].imageUrl,
@@ -160,6 +206,7 @@ fun ImageScreen(
                 }
                 if (images.size > 1) {
                     ThumbnailStrip(
+                        modifier = Modifier.graphicsLayer { alpha = 1f - (dismissProgress() * 3f).coerceAtMost(1f) },
                         urls = images.map { it.imageUrl },
                         current = pagerState.currentPage,
                         onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
@@ -172,6 +219,7 @@ fun ImageScreen(
 
 @Composable
 private fun ViewerTopBar(
+    modifier: Modifier = Modifier,
     title: String,
     counter: String?,
     sharing: Boolean,
@@ -179,7 +227,7 @@ private fun ViewerTopBar(
     onShare: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
             .padding(horizontal = 4.dp),
@@ -298,14 +346,19 @@ private fun ZoomableImage(url: String, isCurrent: Boolean, onZoomChange: (Boolea
 }
 
 @Composable
-private fun ThumbnailStrip(urls: List<String>, current: Int, onSelect: (Int) -> Unit) {
+private fun ThumbnailStrip(
+    urls: List<String>,
+    current: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val listState = rememberLazyListState()
     LaunchedEffect(current) { listState.animateScrollToItem(current) }
     LazyRow(
         state = listState,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         itemsIndexed(urls) { index, url ->
             val selected = index == current

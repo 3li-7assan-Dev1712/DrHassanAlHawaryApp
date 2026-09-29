@@ -36,8 +36,18 @@ data class ClipWindow(val startMs: Long, val endMs: Long) {
     /** A new length, keeping the start unless the longer clip would run past the end. */
     fun withLength(lengthMs: Long, totalMs: Long): ClipWindow = startingAt(startMs, lengthMs, totalMs)
 
+    /**
+     * True when going from this window to [next] moves either edge across a [stepMs] mark
+     * (0:05, 0:10, ...): the share screen ticks a haptic then while a finger drags.
+     */
+    fun crossesStep(next: ClipWindow, stepMs: Long = TICK_STEP_MS): Boolean =
+        Math.floorDiv(startMs, stepMs) != Math.floorDiv(next.startMs, stepMs) ||
+            Math.floorDiv(endMs, stepMs) != Math.floorDiv(next.endMs, stepMs)
+
     companion object {
         const val MIN_LENGTH_MS = 5_000L
+        /** Haptic ticks while dragging: every 5 s an edge passes. */
+        const val TICK_STEP_MS = 5_000L
 
         /** A window of [lengthMs] (clamped to 5 s..the track) starting as near [startMs] as fits. */
         fun startingAt(startMs: Long, lengthMs: Long, totalMs: Long): ClipWindow {

@@ -1,5 +1,8 @@
 package com.example.feature.article.presentation.share.components
 
+import com.example.core.ui.theme.stateChangeSpec
+import androidx.compose.runtime.SideEffect
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -84,6 +87,18 @@ fun SelectableArticleText(
     var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val drag = remember { SelectionDrag() }
     val length = article.text.length
+
+    // The highlight and handles fade in when a selection appears and out when it is cleared
+    // (`short`); resizing it is immediate. While fading out, the last range is drawn.
+    val hasSelection = selectionEnd > selectionStart
+    val highlightAlpha by animateFloatAsState(if (hasSelection) 1f else 0f, stateChangeSpec(), label = "highlight")
+    val lastRange = remember { IntArray(2) }
+    SideEffect {
+        if (hasSelection) {
+            lastRange[0] = selectionStart
+            lastRange[1] = selectionEnd
+        }
+    }
 
     val current by rememberUpdatedState(selectionStart to selectionEnd)
     val onChange by rememberUpdatedState(onSelectionChanged)
@@ -238,17 +253,20 @@ fun SelectableArticleText(
                             cornerRadius = CornerRadius(2.dp.toPx()),
                         )
                     }
-                    if (selectionEnd > selectionStart) {
+                    val (drawStart, drawEnd) =
+                        if (selectionEnd > selectionStart) selectionStart to selectionEnd else lastRange[0] to lastRange[1]
+                    if (highlightAlpha > 0f && drawEnd > drawStart) {
+                        val accent = colors.accentStrong.copy(alpha = colors.accentStrong.alpha * highlightAlpha)
                         // The highlight hugs each line of the selection.
                         drawPath(
-                            lr.getPathForRange(selectionStart.coerceIn(0, length), selectionEnd.coerceIn(0, length)),
-                            color = colors.accentStrong.copy(alpha = 0.32f),
+                            lr.getPathForRange(drawStart.coerceIn(0, length), drawEnd.coerceIn(0, length)),
+                            color = colors.accentStrong.copy(alpha = 0.32f * highlightAlpha),
                         )
                         // Each end: a cursor stem and a round knob under it.
-                        listOf(selectionStart, selectionEnd).forEach { edge ->
+                        listOf(drawStart, drawEnd).forEach { edge ->
                             val r = lr.getCursorRect(edge.coerceIn(0, length))
-                            drawLine(colors.accentStrong, Offset(r.left, r.top), Offset(r.left, r.bottom + knobGap), strokeWidth = 2.dp.toPx())
-                            drawCircle(colors.accentStrong, radius = knobRadius, center = knobCenter(lr, edge))
+                            drawLine(accent, Offset(r.left, r.top), Offset(r.left, r.bottom + knobGap), strokeWidth = 2.dp.toPx())
+                            drawCircle(accent, radius = knobRadius, center = knobCenter(lr, edge))
                         }
                     }
                 },

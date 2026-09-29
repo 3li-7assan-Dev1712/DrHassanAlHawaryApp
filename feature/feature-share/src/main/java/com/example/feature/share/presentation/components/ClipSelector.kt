@@ -1,6 +1,8 @@
 package com.example.feature.share.presentation.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -92,7 +94,22 @@ fun ClipSelector(
 ) {
     val colors = Brand.colors
     val window = ClipWindow(startMs, startMs + clipMs)
-    val apply: (ClipWindow) -> Unit = { onRangeChanged(it.startMs, it.endMs) }
+    // Dragging ticks a light haptic each time an edge crosses a 5 s mark; compared with the
+    // last dragged window (the VM's copy lags a frame), or the current one for a new drag.
+    val haptics = LocalHapticFeedback.current
+    val latestWindow by rememberUpdatedState(window)
+    val dragTicks = remember { DragTicks() }
+    val apply: (ClipWindow) -> Unit = {
+        dragTicks.last = null
+        onRangeChanged(it.startMs, it.endMs)
+    }
+    val drag: (ClipWindow) -> Unit = { next ->
+        if ((dragTicks.last ?: latestWindow).crossesStep(next)) {
+            haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+        }
+        dragTicks.last = next
+        onRangeChanged(next.startMs, next.endMs)
+    }
     // Absolute preview position, shown as a playhead in both strips while previewing.
     val playhead = if (isPlaying || playbackPositionMs > 0) startMs + playbackPositionMs else null
 
@@ -103,7 +120,10 @@ fun ClipSelector(
                 val selected = abs(clipMs - length) < 500
                 val style = animatedPillStyle(selected)
                 Surface(
-                    onClick = { apply(window.withLength(length, totalMs)) },
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                        apply(window.withLength(length, totalMs))
+                    },
                     enabled = enabled,
                     shape = RoundedCornerShape(50),
                     color = style.fill,
@@ -128,11 +148,11 @@ fun ClipSelector(
                     start = stringResource(R.string.share_step_place),
                     end = ArabicNumerals.formatMediaTime(totalMs),
                 )
-                OverviewStrip(overviewEnvelope, totalMs, window, playhead, enabled, apply)
+                OverviewStrip(overviewEnvelope, totalMs, window, playhead, enabled, apply, drag)
 
                 Spacer(Modifier.height(10.dp))
                 Caption(start = stringResource(R.string.share_step_edges), end = null)
-                DetailStrip(overviewEnvelope, totalMs, window, playhead, enabled, apply)
+                DetailStrip(overviewEnvelope, totalMs, window, playhead, enabled, apply, drag)
 
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -254,6 +274,7 @@ private fun OverviewStrip(
     playhead: Long?,
     enabled: Boolean,
     apply: (ClipWindow) -> Unit,
+    drag: (ClipWindow) -> Unit,
 ) {
     val colors = Brand.colors
     val bars = remember(envelope, totalMs) { sample(envelope, totalMs, 0L, totalMs, OVERVIEW_BARS) }
@@ -272,10 +293,10 @@ private fun OverviewStrip(
             .pointerInput(enabled, totalMs) {
                 if (!enabled || totalMs <= 0) return@pointerInput
                 detectHorizontalDragGestures(
-                    onDragStart = { apply(currentWindow.centeredAt(msAt(it.x, size.width), totalMs)) },
+                    onDragStart = { drag(currentWindow.centeredAt(msAt(it.x, size.width), totalMs)) },
                 ) { change, _ ->
                     change.consume()
-                    apply(currentWindow.centeredAt(msAt(change.position.x, size.width), totalMs))
+                    drag(currentWindow.centeredAt(msAt(change.position.x, size.width), totalMs))
                 }
             },
     ) {
@@ -314,6 +335,7 @@ private fun DetailStrip(
     playhead: Long?,
     enabled: Boolean,
     apply: (ClipWindow) -> Unit,
+    drag: (ClipWindow) -> Unit,
 ) {
     val colors = Brand.colors
     var view by remember { mutableStateOf(ClipView.around(window, totalMs)) }
@@ -380,7 +402,7 @@ private fun DetailStrip(
                         Drag.Move -> from.movedBy(deltaMs, totalMs)
                     }
                     dragWindow = next
-                    apply(next)
+                    drag(next)
                 }
             },
     ) {
@@ -486,4 +508,9 @@ private fun ClipSelectorLightPreview() {
 @Composable
 private fun ClipSelectorDarkPreview() {
     com.example.core.ui.theme.HassanAlHawaryTheme(darkTheme = true) { ClipSelectorPreviewContent() }
+}
+
+/** The last window a drag produced, for the 5 s haptic ticks (see [ClipSelector]). */
+private class DragTicks {
+    var last: ClipWindow? = null
 }

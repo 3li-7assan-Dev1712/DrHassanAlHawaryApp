@@ -1,6 +1,9 @@
 package com.example.feature.article.presentation.share
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -243,18 +246,25 @@ private fun SelectionPanel(
 @Composable
 private fun Thumbnail(uiState: ArticleShareSelectionUiState) {
     val shape = RoundedCornerShape(6.dp)
-    val page = uiState.firstPage
-    if (page != null && uiState.hasSelection) {
-        QuoteCardPreview(page = page, modifier = Modifier.height(64.dp).clip(shape))
-    } else {
-        // The images are always the dark brand card with a gold quote mark.
-        Box(
-            modifier = Modifier
-                .size(width = 36.dp, height = 64.dp)
-                .background(BrandTokens.background, shape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("❝", color = BrandTokens.gold, fontSize = 18.sp)
+    val reduced = reducedMotion
+    // Each new first image crossfades over the previous one instead of popping.
+    Crossfade(
+        targetState = uiState.firstPage.takeIf { uiState.hasSelection },
+        animationSpec = if (reduced) snap() else tween(Motion.CONTENT_SWAP, easing = Motion.Standard),
+        label = "quoteThumbnail",
+    ) { page ->
+        if (page != null) {
+            QuoteCardPreview(page = page, modifier = Modifier.height(64.dp).clip(shape))
+        } else {
+            // The images are always the dark brand card with a gold quote mark.
+            Box(
+                modifier = Modifier
+                    .size(width = 36.dp, height = 64.dp)
+                    .background(BrandTokens.background, shape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("❝", color = BrandTokens.gold, fontSize = 18.sp)
+            }
         }
     }
 }
