@@ -12,7 +12,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 3: Loading / empty / error states; lists
 - [x] Phase 4: Player
 - [x] Phase 5: Profile and theme
-- [ ] Phase 6: Search and chips
+- [x] Phase 6: Search and chips
 - [ ] Phase 7: Reader
 - [ ] Phase 8: Container transform (next session)
 - [ ] Phase 9: Onboarding, splash, sign-in (next session)
@@ -71,6 +71,14 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - Theme change: `core-ui/theme/AnimatedTheme.kt` animates every `BrandPalette` colour AND every Material `ColorScheme` colour (`tween(medium, standard)`, `snap()` under reduced motion) inside `HassanAlHawaryTheme`. Material colours were included because many screens still read `MaterialTheme.colorScheme` (error text, notification cards); animating only the brand palette would have left those flashing.
 - Status/navigation bar icons and the window background: `MainActivity` now sets them in a `LaunchedEffect(isDarkTheme)` that waits `Motion.MEDIUM` on a change (not on first launch, not under reduced motion), i.e. at the end of the colour animation.
 - Reader font size: Profile's step number and the reader dropdown's number and preview line crossfade (`contentSwap`); the article body fades out (100ms), re-lays out at the new size, and fades back in (100ms). A true crossfade of the body would need two copies of a long scrollable column sharing one `ScrollState`, which Compose doesn't allow; fade-through looks the same at this speed.
+
+## Phase 6: Search and chips (done)
+
+- `core-ui/components/PillStyle.kt`: `animatedPillStyle(selected)` animates fill, border colour, border width (0.5→1dp) and text colour with `stateChangeSpec()`. Used by the search filter pills (and the suggestion pills, which share `FilterPill`) and the share preview clip-length chips (`ClipSelector`).
+- Search pill counts: label and count are separate texts now; the count is an `AnimatedContent` with `Motion.countSlide` (up when the number grows, down when it shrinks). Same visual text as before ("صوتيات ٩").
+- Quote selection counter ("٩٨ حرفًا · صورة واحدة"): `AnimatedContent` + `countSlide`, direction from the character count. It changes continuously while a handle is dragged; each change is a 150ms slide, so it reads as a rolling counter. If that feels busy on device, the simplest fix is to key it on the page count only.
+- "الكل" ↔ a single type: handled by Phase 3's `animateItem` on the result rows and headers; search's `AnimatedContent` keeps the same content key for any non-empty result, so it doesn't crossfade over it.
+- Reduced motion: colours snap, counts swap.
 
 ## Decisions
 

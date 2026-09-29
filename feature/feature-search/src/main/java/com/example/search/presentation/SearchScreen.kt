@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.animatedPillStyle
 import com.example.core.ui.components.EmptyState
 import com.example.core.ui.components.Illustration
 import com.example.core.ui.icons.TablerIcons
@@ -137,9 +138,9 @@ fun SearchScreenContent(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(SearchFilter.entries) { filter ->
-                val count = typeCounts[filter.type]
                 FilterPill(
-                    label = if (count != null) "${filter.label} ${ArabicNumerals.digits(count)}" else filter.label,
+                    label = filter.label,
+                    count = typeCounts[filter.type],
                     selected = selectedFilter == filter,
                     onClick = { onFilterSelected(filter) },
                 )
@@ -287,20 +288,33 @@ private fun GroupHeader(
 }
 
 @Composable
-private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit) {
-    val colors = Brand.colors
+private fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit, count: Int? = null) {
+    val style = animatedPillStyle(selected)
+    val reduced = reducedMotion
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(50),
-        color = if (selected) colors.accentContainer else colors.surface,
-        border = BorderStroke(if (selected) 1.dp else 0.5.dp, if (selected) colors.accentStrong else colors.divider),
+        color = style.fill,
+        border = style.border,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = if (selected) colors.onAccentContainer else colors.textSecondary,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-        )
+        Row(modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+            Text(text = label, style = MaterialTheme.typography.labelLarge, color = style.content)
+            if (count != null) {
+                Spacer(Modifier.width(4.dp))
+                // The count slides up to its new value when a search changes it.
+                AnimatedContent(
+                    targetState = count,
+                    transitionSpec = { Motion.countSlide(reduced, up = targetState > initialState) },
+                    label = "pillCount",
+                ) { shown ->
+                    Text(
+                        text = ArabicNumerals.digits(shown),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = style.content,
+                    )
+                }
+            }
+        }
     }
 }
 

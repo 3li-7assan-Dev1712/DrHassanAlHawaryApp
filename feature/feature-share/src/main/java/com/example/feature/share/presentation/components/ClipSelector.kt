@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.R
 import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.components.animatedPillStyle
 import com.example.core.ui.theme.Brand
 import com.example.domain.media.ClipView
 import com.example.domain.media.ClipWindow
@@ -100,17 +101,18 @@ fun ClipSelector(
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             CLIP_LENGTHS.filter { it <= totalMs }.forEach { length ->
                 val selected = abs(clipMs - length) < 500
+                val style = animatedPillStyle(selected)
                 Surface(
                     onClick = { apply(window.withLength(length, totalMs)) },
                     enabled = enabled,
                     shape = RoundedCornerShape(50),
-                    color = if (selected) colors.accentContainer else colors.surface,
-                    border = BorderStroke(if (selected) 1.dp else 0.5.dp, if (selected) colors.accentStrong else colors.divider),
+                    color = style.fill,
+                    border = style.border,
                 ) {
                     Text(
                         text = "${ArabicNumerals.digits((length / 1000).toInt())} ث",
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (selected) colors.onAccentContainer else colors.textSecondary,
+                        color = style.content,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                     )
                 }

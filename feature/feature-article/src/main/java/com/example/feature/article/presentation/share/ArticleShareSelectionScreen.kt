@@ -1,5 +1,6 @@
 package com.example.feature.article.presentation.share
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,8 @@ import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.BrandTokens
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import com.example.domain.text.SelectableArticle
 import com.example.domain.text.quoteCounter
 import com.example.feature.article.presentation.share.components.SelectableArticleText
@@ -184,15 +187,28 @@ private fun SelectionPanel(
                 Thumbnail(uiState)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(
-                        text = when {
-                            !uiState.hasSelection -> stringResource(R.string.share_text_no_selection)
-                            uiState.pageCount == 0 -> "…"
-                            else -> quoteCounter(uiState.characterCount, uiState.pageCount)
+                    val counter = when {
+                        !uiState.hasSelection -> stringResource(R.string.share_text_no_selection)
+                        uiState.pageCount == 0 -> "…"
+                        else -> quoteCounter(uiState.characterCount, uiState.pageCount)
+                    }
+                    val reduced = reducedMotion
+                    // The counter slides to its new value: up as the selection grows, down as
+                    // it shrinks.
+                    AnimatedContent(
+                        targetState = counter to uiState.characterCount,
+                        transitionSpec = {
+                            Motion.countSlide(reduced, up = targetState.second >= initialState.second)
                         },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (uiState.hasSelection) colors.textPrimary else colors.textMuted,
-                    )
+                        contentAlignment = Alignment.CenterStart,
+                        label = "quoteCounter",
+                    ) { (text, _) ->
+                        Text(
+                            text = text,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (uiState.hasSelection) colors.textPrimary else colors.textMuted,
+                        )
+                    }
                     if (uiState.isTooLong) {
                         Text(
                             text = stringResource(R.string.share_text_too_long),
