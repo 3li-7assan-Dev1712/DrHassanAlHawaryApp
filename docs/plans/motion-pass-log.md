@@ -15,7 +15,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 6: Search and chips
 - [x] Phase 7: Reader
 - [x] Phase 8: Container transform
-- [ ] Phase 9: Onboarding, splash, sign-in (next session)
+- [x] Phase 9: Onboarding, splash, sign-in
 - [ ] Phase 10: Share preview, quote selection, image viewer (next session)
 - [ ] Phase 11: Haptics and polish check (next session)
 - [ ] Phase 12: Reduced-motion pass and final report (next session)
@@ -94,6 +94,12 @@ All in `feature-audio/.../detail/AudioDetailScreen.kt`.
 - Keys: article keys include the source (`ArticleSource.Home` / `List`), because the same article can be on Home and in the list and Home → list would otherwise morph between the two. The reader registers both (`sharedArticleContainer` / `sharedArticleTitle`). Audio keys use the URL (the route argument decodes to the same string); designs use the group id.
 - Back to a card that has scrolled away or isn't composed: no match, so the shared-axis pop plays (built into `sharedBounds`).
 - Known limits: the reader title and the player's play button live behind the loading crossfade (Phase 3), so on the way IN they appear a few frames into the transition (Room load) and join the morph late; on the way BACK they always match. The containers themselves always match.
+
+## Phase 9: Onboarding, splash, sign-in (done)
+
+- Onboarding (`OnboardingScreen.kt`): each illustration is translated by 40% of its page offset against the swipe (`graphicsLayer`, read in the draw phase, RTL-aware sign), so it travels at ~60% of the finger; off under reduced motion. The dots are driven directly by the pager position (width 8→18dp and colour lerp), so the pill stretches from one dot to the next during the swipe; no animation of its own, so nothing to switch off. The button label crossfades التالي → لنبدأ (`contentSwap`).
+- Splash: `core-splashscreen` is a dependency, so `setOnExitAnimationListener`: the icon fades and scales to 0.9 while the splash view fades, `medium`, emphasized accelerate (`PathInterpolator` with the same control points as `Motion.EmphasizedAccelerate`), then `remove()`. `iconView` access is wrapped in `runCatching` (it can be missing on some launch paths). Under reduced motion the splash is removed at once. `Context.animationsRemoved()` in `Motion.kt` is now public for this.
+- Sign-in (`LoginWithGoogleComp`): a full-width box keeps the caller's layout; the pill inside animates its size (`animateContentSize`, `medium` standard, snap when reduced) from full width to a 48dp circle while signing in, and the logo + label crossfade to the spinner. On failure `isLoading` goes false and it grows back with the label.
 
 ## Device checklist (phases 0–7)
 

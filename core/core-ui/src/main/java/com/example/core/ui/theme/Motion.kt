@@ -200,5 +200,6 @@ fun rememberSystemReducedMotion(): Boolean {
     return reduced
 }
 
-private fun Context.animationsRemoved(): Boolean =
+/** True when the system "Remove animations" setting is on (for code outside Compose). */
+fun Context.animationsRemoved(): Boolean =
     Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f

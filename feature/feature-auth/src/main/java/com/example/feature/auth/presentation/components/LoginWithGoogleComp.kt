@@ -1,6 +1,10 @@
 package com.example.feature.auth.presentation.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import com.example.feature.auth.R
 
 /**
@@ -62,7 +68,8 @@ private val GoogleLight = GoogleButtonStyle(
  * "Continue with Google" in Google's pill style, dark or light with the app theme: 48dp
  * tall, 1dp stroke, the official
  * "G" (cropped from Google's signin-assets kit, never redrawn) at 20dp on the start side.
- * While [isLoading] a spinner takes the logo's place and taps are ignored.
+ * While [isLoading] the button shrinks to a 48dp circle with a spinner (the label
+ * crossfades out) and taps are ignored; on failure it grows back with the label.
  */
 @Composable
 fun LoginWithGoogleComp(
@@ -72,47 +79,60 @@ fun LoginWithGoogleComp(
 ) {
     val loadingDescription = stringResource(R.string.auth_signing_in)
     val google = if (Brand.colors.isDark) GoogleDark else GoogleLight
-    Surface(
-        onClick = onElementClick,
-        enabled = !isLoading,
-        shape = CircleShape,
-        color = google.fill,
-        contentColor = google.text,
-        border = BorderStroke(1.dp, google.stroke),
-        modifier = modifier
-            .heightIn(min = 48.dp)
-            .semantics {
-                if (isLoading) stateDescription = loadingDescription
-            },
-    ) {
-        Row(
-            modifier = Modifier.padding(ButtonPadding),
-            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
+    val reduced = reducedMotion
+    // The caller's width (full width) is kept by this box; the pill inside animates its own.
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Surface(
+            onClick = onElementClick,
+            enabled = !isLoading,
+            shape = CircleShape,
+            color = google.fill,
+            contentColor = google.text,
+            border = BorderStroke(1.dp, google.stroke),
+            modifier = Modifier
+                .animateContentSize(if (reduced) snap() else tween(Motion.MEDIUM, easing = Motion.Standard))
+                .then(if (isLoading) Modifier.size(48.dp) else Modifier.fillMaxWidth())
+                .heightIn(min = 48.dp)
+                .semantics {
+                    if (isLoading) stateDescription = loadingDescription
+                },
         ) {
-            Box(modifier = Modifier.size(20.dp), contentAlignment = Alignment.Center) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                        color = google.text,
-                        modifier = Modifier.size(18.dp),
-                    )
+            AnimatedContent(
+                targetState = isLoading,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                contentAlignment = Alignment.Center,
+                label = "signIn",
+            ) { loading ->
+                if (loading) {
+                    Box(contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            strokeWidth = 2.dp,
+                            color = google.text,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
                 } else {
-                    Image(
-                        painter = painterResource(google.logo),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                    )
+                    Row(
+                        modifier = Modifier.padding(ButtonPadding),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Image(
+                            painter = painterResource(google.logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.auth_continue_with_google),
+                            fontFamily = Cairo,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
-            Text(
-                text = stringResource(R.string.auth_continue_with_google),
-                fontFamily = Cairo,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-            )
         }
     }
 }

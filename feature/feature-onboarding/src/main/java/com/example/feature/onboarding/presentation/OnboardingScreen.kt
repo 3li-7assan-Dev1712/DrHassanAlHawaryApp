@@ -1,6 +1,17 @@
 package com.example.feature.onboarding.presentation
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.lerp
+import kotlin.math.abs
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,6 +46,8 @@ import com.example.core.ui.components.Illustration
 import com.example.core.ui.components.IllustrationBox
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
 import com.example.feature.onboarding.R
 import kotlinx.coroutines.launch
 
@@ -75,11 +87,21 @@ fun OnboardingScreen(
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val reduced = reducedMotion
+        val rtlSign = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
         HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { index ->
-            OnboardingPageContent(PAGES[index])
+            OnboardingPageContent(
+                page = PAGES[index],
+                // Parallax: the illustration travels at ~60% of the swipe. Read in the draw
+                // phase, so swiping doesn't recompose. Off under reduced motion.
+                illustrationModifier = if (reduced) Modifier else Modifier.graphicsLayer {
+                    val pageOffset = (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
+                    translationX = rtlSign * pageOffset * size.width * PARALLAX_LAG
+                },
+            )
         }
 
-        PagerDots(pageCount = PAGES.size, currentPage = pagerState.currentPage)
+        PagerDots(pageCount = PAGES.size, position = { pagerState.currentPage + pagerState.currentPageOffsetFraction })
         Spacer(Modifier.height(16.dp))
 
         Row(
@@ -99,24 +121,33 @@ fun OnboardingScreen(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = colors.accentStrong, contentColor = colors.onGold),
             ) {
-                Text(
-                    stringResource(id = if (isLast) R.string.onboarding_get_started else R.string.onboarding_next),
-                    fontWeight = FontWeight.SemiBold,
-                )
+                // التالي → لنبدأ crossfades on the last page.
+                AnimatedContent(
+                    targetState = isLast,
+                    transitionSpec = { Motion.contentSwap(reduced) },
+                    label = "onboardingButton",
+                ) { last ->
+                    Text(
+                        stringResource(id = if (last) R.string.onboarding_get_started else R.string.onboarding_next),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun OnboardingPageContent(page: OnboardingPage) {
+private fun OnboardingPageContent(page: OnboardingPage, illustrationModifier: Modifier = Modifier) {
     val colors = Brand.colors
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        IllustrationBox(page.illustration, height = 240.dp)
+        Box(illustrationModifier) {
+            IllustrationBox(page.illustration, height = 240.dp)
+        }
         Spacer(Modifier.height(32.dp))
         Text(
             text = stringResource(id = page.titleRes),
@@ -134,22 +165,32 @@ private fun OnboardingPageContent(page: OnboardingPage) {
     }
 }
 
+/**
+ * The active pill follows the finger: each dot's width and colour come straight from the
+ * pager position ([position], e.g. 1.4 between the 2nd and 3rd page), so the pill
+ * stretches from one dot to the next while swiping. No animation of its own.
+ */
 @Composable
-private fun PagerDots(pageCount: Int, currentPage: Int) {
+private fun PagerDots(pageCount: Int, position: () -> Float) {
     val colors = Brand.colors
     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
         repeat(pageCount) { index ->
-            val selected = index == currentPage
-            Surface(
+            // 1 when this dot is the current page, 0 once the pager is a full page away.
+            val selectedness by remember(index) {
+                derivedStateOf { (1f - abs(position() - index)).coerceIn(0f, 1f) }
+            }
+            Box(
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
-                    .size(width = if (selected) 18.dp else 8.dp, height = 8.dp),
-                shape = RoundedCornerShape(50),
-                color = if (selected) colors.accentStrong else colors.divider,
-            ) {}
+                    .size(width = lerp(8.dp, 18.dp, selectedness), height = 8.dp)
+                    .background(lerp(colors.divider, colors.accentStrong, selectedness), RoundedCornerShape(50)),
+            )
         }
     }
 }
+
+/** How far the illustration lags behind its page: it moves at 1 − 0.4 = 60% of the swipe. */
+private const val PARALLAX_LAG = 0.4f
 
 @Preview(name = "Onboarding - light", locale = "ar", widthDp = 360, heightDp = 720)
 @Composable

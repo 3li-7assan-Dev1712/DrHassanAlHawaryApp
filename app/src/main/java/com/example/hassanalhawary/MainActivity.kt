@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.animation.PathInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,6 +42,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.navigation.NavBackStackEntry
 import com.example.core.ui.theme.LocalSharedTransitionScope
 import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animationsRemoved
 import com.example.core.ui.theme.ProvideNavAnimatedScope
 import com.example.core.ui.theme.SharedKeys
 import com.example.core.ui.theme.sharedArticleContainer
@@ -118,6 +120,29 @@ class MainActivity : ComponentActivity() {
 
         splashScreen.setKeepOnScreenCondition {
             !mainActivityViewModel.appReady.value
+        }
+
+        // Exit: the logo fades and shrinks to 0.9 while the splash fades over `medium`,
+        // revealing the first screen underneath. Removed at once under reduced motion.
+        splashScreen.setOnExitAnimationListener { provider ->
+            if (animationsRemoved()) {
+                provider.remove()
+                return@setOnExitAnimationListener
+            }
+            val leaving = PathInterpolator(0.3f, 0f, 0.8f, 0.15f) // Motion.EmphasizedAccelerate
+            runCatching {
+                provider.iconView.animate()
+                    .alpha(0f).scaleX(0.9f).scaleY(0.9f)
+                    .setDuration(Motion.MEDIUM.toLong())
+                    .setInterpolator(leaving)
+                    .start()
+            }
+            provider.view.animate()
+                .alpha(0f)
+                .setDuration(Motion.MEDIUM.toLong())
+                .setInterpolator(leaving)
+                .withEndAction { provider.remove() }
+                .start()
         }
 
         super.onCreate(savedInstanceState)
