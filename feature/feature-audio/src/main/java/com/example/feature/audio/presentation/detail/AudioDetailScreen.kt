@@ -5,6 +5,19 @@ import android.content.Intent
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +56,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -68,6 +85,7 @@ import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.theme.Motion
 import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.stateChangeSpec
 import com.example.domain.module.FixedCategories
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.AudioTitleCleaner
@@ -181,9 +199,21 @@ fun AudioDetailScreen(
                     Spacer(Modifier.height(20.dp))
                     TitleBlock(uiState)
 
-                    if (uiState.isDownloading) {
-                        Spacer(Modifier.height(16.dp))
-                        DownloadCard(progress = uiState.downloadProgress, onCancel = onCancelDownload)
+                    // Grows open and fades in (and back), so the controls below slide
+                    // instead of jumping.
+                    AnimatedVisibility(
+                        visible = uiState.isDownloading,
+                        enter = if (reduced) EnterTransition.None else
+                            expandVertically(tween(Motion.MEDIUM, easing = Motion.EmphasizedDecelerate)) +
+                                fadeIn(tween(Motion.MEDIUM, easing = Motion.EmphasizedDecelerate)),
+                        exit = if (reduced) ExitTransition.None else
+                            shrinkVertically(tween(Motion.MEDIUM, easing = Motion.EmphasizedAccelerate)) +
+                                fadeOut(tween(Motion.SHORT, easing = Motion.EmphasizedAccelerate)),
+                    ) {
+                        Column {
+                            Spacer(Modifier.height(16.dp))
+                            DownloadCard(progress = uiState.downloadProgress, onCancel = onCancelDownload)
+                        }
                     }
 
                     Spacer(Modifier.height(24.dp))
@@ -337,9 +367,20 @@ private fun SeekBar(uiState: AudioDetailUiState, onSeek: (Long) -> Unit) {
                 enabled = uiState.totalDurationMillis > 0,
                 colors = sliderColors,
                 thumb = {
+                    // Grows while the finger is on it, so it's clear what is being dragged.
+                    // Scaled (16dp → 22dp) rather than resized, so the track layout never moves.
+                    val thumbScale by animateFloatAsState(
+                        targetValue = if (isUserSeeking) 22f / 16f else 1f,
+                        animationSpec = stateChangeSpec(),
+                        label = "seekThumb",
+                    )
                     Box(
                         Modifier
                             .size(16.dp)
+                            .graphicsLayer {
+                                scaleX = thumbScale
+                                scaleY = thumbScale
+                            }
                             .background(colors.accentStrong, CircleShape),
                     )
                 },
@@ -386,25 +427,50 @@ private fun TransportRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SkipButton(TablerIcons.Rotate, stringResource(R.string.audio_rewind_10), onRewind)
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
-                if (uiState.isBuffering && uiState.totalDurationMillis == 0L) {
-                    CircularProgressIndicator(Modifier.size(64.dp), strokeWidth = 3.dp, color = colors.accentStrong)
-                } else {
-                    Surface(
-                        onClick = onPlayPauseToggle,
-                        shape = CircleShape,
-                        color = colors.accentStrong,
-                        modifier = Modifier.size(76.dp),
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                painter = painterResource(if (uiState.isPlaying) TablerIcons.PlayerPause else TablerIcons.PlayerPlay),
-                                contentDescription = stringResource(if (uiState.isPlaying) R.string.share_pause else R.string.share_play),
-                                tint = colors.onGold,
-                                modifier = Modifier.size(34.dp),
-                            )
-                        }
+            val haptics = LocalHapticFeedback.current
+            val reduced = reducedMotion
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(84.dp)) {
+                Surface(
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onPlayPauseToggle()
+                    },
+                    shape = CircleShape,
+                    color = colors.accentStrong,
+                    modifier = Modifier.size(76.dp),
+                ) {
+                    AnimatedContent(
+                        targetState = uiState.isPlaying,
+                        transitionSpec = {
+                            if (reduced) {
+                                ContentTransform(EnterTransition.None, ExitTransition.None, sizeTransform = null)
+                            } else {
+                                ContentTransform(
+                                    targetContentEnter = scaleIn(Motion.stateChange(), initialScale = 0.8f) + fadeIn(Motion.stateChange()),
+                                    initialContentExit = fadeOut(Motion.stateChange()),
+                                    sizeTransform = null,
+                                )
+                            }
+                        },
+                        contentAlignment = Alignment.Center,
+                        label = "playPause",
+                    ) { playing ->
+                        Icon(
+                            painter = painterResource(if (playing) TablerIcons.PlayerPause else TablerIcons.PlayerPlay),
+                            contentDescription = stringResource(if (playing) R.string.share_pause else R.string.share_play),
+                            tint = colors.onGold,
+                            modifier = Modifier.size(34.dp),
+                        )
                     }
+                }
+                // Buffering: a thin ring around the button; the button itself stays usable.
+                if (uiState.isBuffering) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(84.dp),
+                        strokeWidth = 2.dp,
+                        color = colors.accentStrong,
+                        trackColor = Color.Transparent,
+                    )
                 }
             }
             SkipButton(TablerIcons.RotateClockwise, stringResource(R.string.audio_forward_10), onForward)
@@ -437,36 +503,82 @@ private fun ActionRow(
 ) {
     val colors = Brand.colors
     val canShare = !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L
+    val reduced = reducedMotion
+    val haptics = LocalHapticFeedback.current
+    // Confirm only for a download that finished while the screen was open, not for an
+    // item that was already saved.
+    var sawDownloading by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.isDownloading, uiState.isDownloaded) {
+        if (uiState.isDownloading) sawDownloading = true
+        if (uiState.isDownloaded && sawDownloading) {
+            sawDownloading = false
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+        }
+    }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
         ActionCircle(label = stringResource(R.string.audio_speed), onClick = onCycleSpeed) {
-            Text(
-                text = speedLabel(uiState.playbackSpeed),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = colors.accentText,
-            )
+            // The new speed rises in from below.
+            AnimatedContent(
+                targetState = speedLabel(uiState.playbackSpeed),
+                transitionSpec = { Motion.countSlide(reduced) },
+                contentAlignment = Alignment.Center,
+                label = "speed",
+            ) { label ->
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = colors.accentText,
+                )
+            }
+        }
+        val downloadPhase = when {
+            uiState.isDownloaded -> DownloadPhase.Saved
+            uiState.isDownloading -> DownloadPhase.Downloading
+            else -> DownloadPhase.Idle
         }
         ActionCircle(
             label = stringResource(if (uiState.isDownloaded) R.string.audio_saved else R.string.audio_download),
             onClick = onDownload,
             enabled = !uiState.isDownloaded && !uiState.isDownloading,
         ) {
-            when {
-                uiState.isDownloaded -> Icon(painterResource(TablerIcons.Check), null, tint = colors.success, modifier = Modifier.size(22.dp))
-                uiState.isDownloading -> Box(contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(
-                        progress = { (uiState.downloadProgress / 100f).coerceIn(0f, 1f) },
-                        modifier = Modifier.size(40.dp),
-                        strokeWidth = 2.dp,
-                        color = colors.accentStrong,
-                        trackColor = colors.divider,
-                    )
-                    Text(
-                        "${ArabicNumerals.digits(uiState.downloadProgress.toInt())}٪",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.textPrimary,
-                    )
+            AnimatedContent(
+                targetState = downloadPhase,
+                transitionSpec = {
+                    when {
+                        reduced -> ContentTransform(EnterTransition.None, ExitTransition.None, sizeTransform = null)
+                        // Finished: the check pops in (0.6 → 1) with a small, well-damped spring.
+                        targetState == DownloadPhase.Saved -> ContentTransform(
+                            targetContentEnter = scaleIn(
+                                spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow),
+                                initialScale = 0.6f,
+                            ) + fadeIn(Motion.stateChange()),
+                            initialContentExit = fadeOut(Motion.stateChange()),
+                            sizeTransform = null,
+                        )
+                        else -> Motion.contentSwap(reduced = false)
+                    }
+                },
+                contentAlignment = Alignment.Center,
+                label = "download",
+            ) { phase ->
+                when (phase) {
+                    DownloadPhase.Saved -> Icon(painterResource(TablerIcons.Check), null, tint = colors.success, modifier = Modifier.size(22.dp))
+                    DownloadPhase.Downloading -> Box(contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            progress = { (uiState.downloadProgress / 100f).coerceIn(0f, 1f) },
+                            modifier = Modifier.size(40.dp),
+                            strokeWidth = 2.dp,
+                            color = colors.accentStrong,
+                            trackColor = colors.divider,
+                        )
+                        Text(
+                            "${ArabicNumerals.digits(uiState.downloadProgress.toInt())}٪",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = colors.textPrimary,
+                        )
+                    }
+                    DownloadPhase.Idle -> Icon(painterResource(TablerIcons.Download), null, tint = colors.accent, modifier = Modifier.size(22.dp))
                 }
-                else -> Icon(painterResource(TablerIcons.Download), null, tint = colors.accent, modifier = Modifier.size(22.dp))
             }
         }
         ActionCircle(label = stringResource(R.string.share), onClick = onShare, enabled = canShare) {
@@ -543,3 +655,5 @@ private fun AudioDetailDarkPreview() {
         )
     }
 }
+
+private enum class DownloadPhase { Idle, Downloading, Saved }

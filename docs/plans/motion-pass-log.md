@@ -10,7 +10,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - [x] Phase 1: Foundations
 - [x] Phase 2: Screen transitions
 - [x] Phase 3: Loading / empty / error states; lists
-- [ ] Phase 4: Player
+- [x] Phase 4: Player
 - [ ] Phase 5: Profile and theme
 - [ ] Phase 6: Search and chips
 - [ ] Phase 7: Reader
@@ -22,7 +22,7 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 
 ## Phase 0: inventory
 
-- Versions (`gradle/libs.versions.toml`): Compose BOM `2025.07.00` → compose foundation / animation / ui **1.8.x**; material3 `1.4.0` (explicit `material3Android`); Navigation Compose **2.9.2**; `androidx.core:core-splashscreen` **1.2.0 is a dependency** (used in `MainActivity`: `installSplashScreen()`).
+- Versions (`gradle/libs.versions.toml`): Compose BOM `2025.07.00`, but other dependencies pull the resolved compose foundation / animation / ui up to **1.10.1** (checked with `:app:dependencies`); material3 `1.4.0` (explicit `material3Android`); Navigation Compose **2.9.2**; `androidx.core:core-splashscreen` **1.2.0 is a dependency** (used in `MainActivity`: `installSplashScreen()`).
   - Every **Needs** item is satisfied: `Modifier.animateItem()` (foundation 1.7+), `SharedTransitionLayout` / `sharedBounds` (animation 1.7+), predictive back scrubbing pop transitions (nav 2.8+).
   - `HapticFeedbackType.Confirm` / `SegmentTick` etc. exist from compose ui 1.8 → available.
 - `NavHost`: `app/src/main/java/com/example/hassanalhawary/MainActivity.kt` → `MainAppContent()` (string routes, start `home_screen`). Admin app has its own, out of scope.
@@ -53,6 +53,17 @@ This session: Ali asked for phases 0–7 in one go; phases 8–12 follow in a la
 - `animateItem` on keyed items: home rows, articles, audios, videos, designs, notifications, search rows and group headers.
 - Home first-visit stagger: header, carousel, category grid, latest articles, latest audio; 40ms apart, 8dp rise, `medium` decelerate, drawn with `graphicsLayer` (no layout movement). `rememberSaveable` flag so going back to Home doesn't replay; the window closes after ~620ms so items composed later don't animate.
 - Skipped (no stable keys, would need data changes): legal sections, study lists (levels, playlists, lessons, quiz), top students.
+
+## Phase 4: Player (done)
+
+All in `feature-audio/.../detail/AudioDetailScreen.kt`.
+- Play ↔ pause: `AnimatedContent` on `isPlaying`, new icon scales 0.8→1 and fades in (`short`); `HapticFeedbackType.ContextClick` on tap.
+- Seek thumb: 16dp → 22dp while dragging, done as a `graphicsLayer` scale so the slider track never re-lays out.
+- Buffering: the button always stays; a 2dp indeterminate `accentStrong` ring (84dp, transparent track) is drawn around it whenever `isBuffering` (it used to replace the button only before the duration was known).
+- Download: `AnimatedContent` idle → progress ring → check; the check pops in 0.6→1 with `spring(dampingRatio 0.8, StiffnessMediumLow)` and `HapticFeedbackType.Confirm`, only for a download that finished while the screen was open.
+- Speed label: `AnimatedContent` + `Motion.countSlide` (new value from below).
+- Inline download card: `AnimatedVisibility` with expandVertically + fade (`medium`) instead of `animateContentSize` on the parent: the parent is a `fillMaxSize` scroll column, so its size never changes and `animateContentSize` would do nothing. Same visible result: nothing below jumps.
+- Reduced motion: icon/label swaps and the card are instant; the progress ring and buffering ring stay (functional).
 
 ## Decisions
 
