@@ -24,6 +24,9 @@ data class AudioUploadUiState(
     val categoryId: String = "",
     val selectedUri: Uri? = null,
     val existingUrl: String? = null,
+    /** Duration of the stored file; kept when only the title/category change. */
+    val existingDurationInMillis: Long = 0L,
+    val isLoading: Boolean = false,
     val isUploading: Boolean = false,
     val progress: Int = 0,
     val isSuccess: Boolean = false,
@@ -52,7 +55,7 @@ class AudioUploadViewModel @Inject constructor(
 
     private fun loadAudio(id: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isUploading = true) }
+            _uiState.update { it.copy(isLoading = true) }
             val audio = getAudioByIdUseCase(id)
             if (audio != null) {
                 _uiState.update {
@@ -61,11 +64,12 @@ class AudioUploadViewModel @Inject constructor(
                         title = audio.title,
                         categoryId = audio.categoryId ?: "",
                         existingUrl = audio.audioUrl,
-                        isUploading = false
+                        existingDurationInMillis = audio.durationInMillis,
+                        isLoading = false
                     )
                 }
             } else {
-                _uiState.update { it.copy(isUploading = false, error = "Failed to load audio data") }
+                _uiState.update { it.copy(isLoading = false, error = "Failed to load audio data") }
             }
         }
     }
@@ -80,6 +84,11 @@ class AudioUploadViewModel @Inject constructor(
 
     fun onAudioSelected(uri: Uri) {
         _uiState.update { it.copy(selectedUri = uri) }
+    }
+
+    /** Drops the picked replacement so an edit keeps the current file. */
+    fun onClearSelectedAudio() {
+        _uiState.update { it.copy(selectedUri = null) }
     }
 
     fun saveAudio() {
@@ -100,8 +109,11 @@ class AudioUploadViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val duration = currentState.selectedUri?.let { getAudioDuration(it) } ?: 0L
-            
+            _uiState.update { it.copy(error = null) }
+            // A new file brings its own duration; otherwise the stored one stays.
+            val duration = currentState.selectedUri?.let { getAudioDuration(it) }
+                ?: if (currentState.selectedUri == null) currentState.existingDurationInMillis else 0L
+
             val flow = if (currentState.audioId == null) {
                 uploadAudioUseCase(
                     title = currentState.title,

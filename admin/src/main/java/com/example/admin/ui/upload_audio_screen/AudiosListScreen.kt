@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,9 @@ fun AudiosListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var audioToDelete by remember { mutableStateOf<Audio?>(null) }
+
+    // Reload on every visit so an edit or upload made on the next screen shows up on return.
+    LaunchedEffect(Unit) { viewModel.loadAudios() }
 
     Scaffold(
         floatingActionButton = {

@@ -121,6 +121,9 @@ class AudioFirestoreSource @Inject constructor(
             dto?.let {
                 Audio(
                     id = doc.id,
+                    // Older docs only carry the category in "type".
+                    categoryId = it.categoryId?.takeIf { id -> id.isNotBlank() }
+                        ?: it.type.takeIf { type -> type.isNotBlank() },
                     title = it.title,
                     audioUrl = it.audioUrl,
                     publishDate = it.publishDate?.toDate() ?: Date(),
@@ -211,10 +214,9 @@ class AudioFirestoreSource @Inject constructor(
             // Only update metadata
             launch {
                 try {
-                    val updates = hashMapOf<String, Any>(
-                        "title" to title,
-                        "durationInMillis" to durationInMillis
-                    )
+                    val updates = hashMapOf<String, Any>("title" to title)
+                    // The file is unchanged, so only a known duration may overwrite the stored one.
+                    if (durationInMillis > 0) updates["durationInMillis"] = durationInMillis
                     type?.let { updates["categoryId"] = it }
 
                     val payload = hashMapOf(
@@ -253,8 +255,8 @@ class AudioFirestoreSource @Inject constructor(
                         val updates = hashMapOf<String, Any>(
                             "title" to title,
                             "audioUrl" to downloadUri.toString(),
-                            "durationInMillis" to durationInMillis
                         )
+                        if (durationInMillis > 0) updates["durationInMillis"] = durationInMillis
                         type?.let { updates["categoryId"] = it }
 
                         val payload = hashMapOf(

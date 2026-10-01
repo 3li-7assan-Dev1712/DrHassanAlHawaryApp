@@ -144,6 +144,10 @@
     <string name="upload_audio_button">رفع الملف الصوتي</string>
     <string name="select_audio_file">اختر ملف صوتي (.mp3)</string>
     <string name="selected_file_label">المختار: %1$s</string>
+    <string name="edit_audio">تعديل المادة الصوتية</string>
+    <string name="replace_audio_file">استبدال الملف الصوتي (اختياري)</string>
+    <string name="keep_current_audio_hint">اتركه دون تغيير للإبقاء على الملف الحالي</string>
+    <string name="keep_current_file">الإبقاء على الملف الحالي</string>
     <string name="uploading">جاري الرفع...</string>
     <string name="try_again">إعادة المحاولة</string>
 

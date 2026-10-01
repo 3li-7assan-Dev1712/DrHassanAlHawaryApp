@@ -28,10 +28,6 @@ class AudiosListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AudiosListUiState>(AudiosListUiState.Loading)
     val uiState: StateFlow<AudiosListUiState> = _uiState.asStateFlow()
 
-    init {
-        loadAudios()
-    }
-
     fun loadAudios() {
         viewModelScope.launch {
             _uiState.update { AudiosListUiState.Loading }
