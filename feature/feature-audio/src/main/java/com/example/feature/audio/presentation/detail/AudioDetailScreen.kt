@@ -471,7 +471,7 @@ private fun TransportRow(
                             painter = painterResource(if (playing) TablerIcons.PlayerPause else TablerIcons.PlayerPlay),
                             contentDescription = stringResource(if (playing) R.string.share_pause else R.string.share_play),
                             tint = colors.onGold,
-                            modifier = Modifier.size(34.dp),
+                            modifier = Modifier.size(28.dp),
                         )
                     }
                 }
