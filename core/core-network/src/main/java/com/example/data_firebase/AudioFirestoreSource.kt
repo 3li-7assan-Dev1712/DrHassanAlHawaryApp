@@ -237,6 +237,8 @@ class AudioFirestoreSource @Inject constructor(
                     close()
                 }
             }
+            // Keep the flow open until the launched update closes it; callbackFlow throws without this.
+            awaitClose { }
         } else {
             // Upload new file and update metadata
             trySend(UploadResult.Progress(0))

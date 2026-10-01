@@ -1,7 +1,7 @@
 package app.netlify.devalihassan.admin.ui.upload_video_screen
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.module.Video
 import com.example.domain.use_cases.videos.DeleteVideoUseCase
 import com.example.domain.use_cases.videos.GetAllRemoteVideosUseCase
@@ -23,14 +23,10 @@ sealed interface VideosListUiState {
 class VideosListViewModel @Inject constructor(
     private val getAllRemoteVideosUseCase: GetAllRemoteVideosUseCase,
     private val deleteVideoUseCase: DeleteVideoUseCase
-) : ViewModel() {
+) : AdminActionViewModel() {
 
     private val _uiState = MutableStateFlow<VideosListUiState>(VideosListUiState.Loading)
     val uiState: StateFlow<VideosListUiState> = _uiState.asStateFlow()
-
-    init {
-        loadVideos()
-    }
 
     fun loadVideos() {
         viewModelScope.launch {
@@ -45,10 +41,6 @@ class VideosListViewModel @Inject constructor(
     }
 
     fun deleteVideo(videoId: String) {
-        viewModelScope.launch {
-            deleteVideoUseCase(videoId).onSuccess {
-                loadVideos()
-            }
-        }
+        runAction({ deleteVideoUseCase(videoId) }) { loadVideos() }
     }
 }

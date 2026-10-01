@@ -116,6 +116,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.lifecycle.process)
+    debugImplementation(libs.leakcanary)
     ksp(libs.hilt.compiler)
 
     //room

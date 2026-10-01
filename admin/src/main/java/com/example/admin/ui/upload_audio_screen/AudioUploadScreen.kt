@@ -94,7 +94,9 @@ fun AudioUploadScreen(
             if (state.isLoading) {
                 CircularProgressIndicator()
             } else if (state.isUploading) {
-                LoadingIndicator(progress = state.progress)
+                // Only a file upload reports real progress; a metadata save just spins.
+                if (state.selectedUri != null) LoadingIndicator(progress = state.progress)
+                else CircularProgressIndicator()
             } else if (state.isSuccess) {
                 StatusIndicator(
                     icon = Icons.Default.CheckCircle,

@@ -16,7 +16,9 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.07.00"
+# 2025.12.00 = Compose 1.10.0. The code needs 1.10 APIs (SharedElements.kt); an older BOM
+# only compiled in debug, where ui-tooling dragged the classpath up, and broke release.
+composeBom = "2025.12.00"
 googleGmsGoogleServices = "4.4.3"
 firebaseAuth = "24.0.0"
 firebaseFirestore = "25.1.4"
@@ -57,6 +59,7 @@ roomKtxVersion = "2.8.4"
 squareup-okhttp3 = "4.12.0"
 firebaseMessaging = "25.0.1"
 firebaseFirestoreKtx = "26.1.0"
+leakcanary = "1.0.0"
 
 [libraries]
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
@@ -154,6 +157,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 google-firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 
 firebase-functions = { module = "com.google.firebase:firebase-functions" }
+leakcanary = { group = "com.android.tools.studio.leakcanary", name = "leakcanary", version.ref = "leakcanary" }
 
 
 [plugins]

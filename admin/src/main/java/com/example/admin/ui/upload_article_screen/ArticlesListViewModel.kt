@@ -1,7 +1,7 @@
 package app.netlify.devalihassan.admin.ui.upload_article_screen
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.module.Article
 import com.example.domain.use_cases.articles.DeleteArticleUseCase
 import com.example.domain.use_cases.articles.GetAllRemoteArticlesUseCase
@@ -23,14 +23,10 @@ sealed interface ArticlesListUiState {
 class ArticlesListViewModel @Inject constructor(
     private val getAllRemoteArticlesUseCase: GetAllRemoteArticlesUseCase,
     private val deleteArticleUseCase: DeleteArticleUseCase
-) : ViewModel() {
+) : AdminActionViewModel() {
 
     private val _uiState = MutableStateFlow<ArticlesListUiState>(ArticlesListUiState.Loading)
     val uiState: StateFlow<ArticlesListUiState> = _uiState.asStateFlow()
-
-    init {
-        loadArticles()
-    }
 
     fun loadArticles() {
         viewModelScope.launch {
@@ -45,13 +41,6 @@ class ArticlesListViewModel @Inject constructor(
     }
 
     fun deleteArticle(articleId: String) {
-        viewModelScope.launch {
-            try {
-                deleteArticleUseCase(articleId)
-                loadArticles() // Refresh list
-            } catch (e: Exception) {
-                // Optionally handle error in UI
-            }
-        }
+        runAction({ runCatching { deleteArticleUseCase(articleId) } }) { loadArticles() }
     }
 }

@@ -1,8 +1,8 @@
 package app.netlify.devalihassan.admin.ui.playlist
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.use_cases.study.DeletePlaylistUseCase
 import com.example.domain.use_cases.study.GetRemotePlaylistsForLevelUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +16,7 @@ class AdminPlaylistViewModel @Inject constructor(
     private val getPlaylistsForLevelUseCase: GetRemotePlaylistsForLevelUseCase,
     private val deletePlaylistUseCase: DeletePlaylistUseCase,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : AdminActionViewModel() {
 
     val TAG = "PlaylistViewModel"
 
@@ -24,10 +24,6 @@ class AdminPlaylistViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<AdminPlaylistUiState>(AdminPlaylistUiState.Loading)
     val uiState = _uiState.asStateFlow()
-
-    init {
-        loadPlaylists()
-    }
 
     fun loadPlaylists() {
         viewModelScope.launch {
@@ -48,12 +44,6 @@ class AdminPlaylistViewModel @Inject constructor(
     }
 
     fun deletePlaylist(playlistId: String) {
-        viewModelScope.launch {
-            deletePlaylistUseCase(playlistId).onSuccess {
-                loadPlaylists()
-            }.onFailure {
-                // Handle error
-            }
-        }
+        runAction({ deletePlaylistUseCase(playlistId) }) { loadPlaylists() }
     }
 }

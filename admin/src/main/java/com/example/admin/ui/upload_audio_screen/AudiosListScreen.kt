@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.netlify.devalihassan.admin.R
+import app.netlify.devalihassan.admin.ui.components.AdminActionFeedback
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Audio
 import java.text.SimpleDateFormat
@@ -56,6 +57,7 @@ fun AudiosListScreen(
 
     // Reload on every visit so an edit or upload made on the next screen shows up on return.
     LaunchedEffect(Unit) { viewModel.loadAudios() }
+    AdminActionFeedback(viewModel)
 
     Scaffold(
         floatingActionButton = {

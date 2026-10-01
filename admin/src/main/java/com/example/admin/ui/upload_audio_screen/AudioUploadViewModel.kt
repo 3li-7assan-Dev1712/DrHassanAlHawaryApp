@@ -93,6 +93,7 @@ class AudioUploadViewModel @Inject constructor(
 
     fun saveAudio() {
         val currentState = _uiState.value
+        if (currentState.isUploading) return
         if (currentState.title.isBlank()) {
             _uiState.update { it.copy(error = "Title cannot be empty") }
             return
@@ -109,7 +110,8 @@ class AudioUploadViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(error = null) }
+            // Show the spinner now: a metadata-only update never reports progress.
+            _uiState.update { it.copy(error = null, isUploading = true, progress = 0) }
             // A new file brings its own duration; otherwise the stored one stays.
             val duration = currentState.selectedUri?.let { getAudioDuration(it) }
                 ?: if (currentState.selectedUri == null) currentState.existingDurationInMillis else 0L

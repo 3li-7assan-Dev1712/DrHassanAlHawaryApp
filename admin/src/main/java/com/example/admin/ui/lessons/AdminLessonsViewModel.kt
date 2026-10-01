@@ -1,8 +1,8 @@
 package app.netlify.devalihassan.admin.ui.lessons
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.use_cases.study.DeleteLessonUseCase
 import com.example.domain.use_cases.study.GetRemoteLessonsForPlaylistUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +16,7 @@ class AdminLessonsViewModel @Inject constructor(
     private val getRemoteLessonsForPlaylistUseCase: GetRemoteLessonsForPlaylistUseCase,
     private val deleteLessonUseCase: DeleteLessonUseCase,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : AdminActionViewModel() {
 
     val TAG = "AdminLessonsViewModel"
 
@@ -24,10 +24,6 @@ class AdminLessonsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<AdminLessonsUiState>(AdminLessonsUiState.Loading)
     val uiState = _uiState.asStateFlow()
-
-    init {
-        loadLessons()
-    }
 
     fun loadLessons() {
         viewModelScope.launch {
@@ -48,12 +44,6 @@ class AdminLessonsViewModel @Inject constructor(
     }
 
     fun deleteLesson(lessonId: String) {
-        viewModelScope.launch {
-            deleteLessonUseCase(lessonId).onSuccess {
-                loadLessons()
-            }.onFailure {
-                // Handle error
-            }
-        }
+        runAction({ deleteLessonUseCase(lessonId) }) { loadLessons() }
     }
 }

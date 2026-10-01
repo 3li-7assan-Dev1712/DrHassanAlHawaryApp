@@ -31,6 +31,23 @@ class DatedEntryTest {
     }
 
     @Test
+    fun `hijri date keeps its label and sorts by the approximate gregorian year`() {
+        val entry = DatedEntry.parse("بكالوريوس الشريعة - كلية الشريعة، الجامعة الإسلامية بالمدينة المنورة (1411هـ)")
+        assertEquals("بكالوريوس الشريعة", entry.title)
+        assertEquals("كلية الشريعة، الجامعة الإسلامية بالمدينة المنورة", entry.detail)
+        assertEquals("١٤١١هـ", entry.dateLabel)
+        assertEquals(1990, entry.year)
+        assertEquals(2004, DatedEntry.parse("أحكام الأدوية – رسالة الدكتوراه (1425هـ)").year)
+    }
+
+    @Test
+    fun `two years in one date sort by the later one`() {
+        val entry = DatedEntry.parse("الحجاب – رسالة صغيرة (2010م و2014م)")
+        assertEquals("٢٠١٠م و٢٠١٤م", entry.dateLabel)
+        assertEquals(2014, entry.year)
+    }
+
+    @Test
     fun `unpublished research is flagged, no date gives nulls`() {
         assertTrue(DatedEntry.parse("بحث بعنوان: أثر القواعد الفقهية – حكم ولم ينشر بعد (2020م)").unpublished)
         val plain = DatedEntry.parse("ملتقيات علمية")

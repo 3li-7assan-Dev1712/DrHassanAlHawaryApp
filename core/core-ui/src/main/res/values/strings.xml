@@ -133,7 +133,7 @@
 
     <string name="page_counter">%1$s من %2$s</string>
     <string name="share">مشاركة</string>
-    <string name="sheikh_name">الشيخ د. حسن الهواري</string>
+    <string name="sheikh_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="reader_font_size">حجم الخط</string>
     <string name="reader_font_smaller">تصغير الخط</string>
     <string name="reader_font_larger">تكبير الخط</string>
@@ -169,6 +169,10 @@
     <string name="about_fasaloo">فاسألوا على تيليجرام</string>
     <string name="about_media_contributions">المساهمات الإعلامية</string>
     <string name="about_teaching_contributions">المساهمات التعليمية</string>
+    <string name="about_teachers">أبرز مشايخه</string>
+    <string name="about_positions">الحياة العملية (المناصب)</string>
+    <string name="about_research_published">الأبحاث</string>
+    <string name="about_research_papers">أوراق علمية في ملتقيات ومؤتمرات</string>
     <string name="audio_downloading_lesson">جارٍ تحميل الدرس</string>
     <string name="audio_cancel_download">إلغاء التحميل</string>
     <string name="audio_rewind_10">رجوع ١٠ ثوانٍ</string>

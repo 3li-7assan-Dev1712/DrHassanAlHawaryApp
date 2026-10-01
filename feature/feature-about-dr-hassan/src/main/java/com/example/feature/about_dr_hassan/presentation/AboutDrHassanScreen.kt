@@ -86,6 +86,7 @@ private fun AboutContent(doctor: DoctorProfile, onNavigateBack: () -> Unit) {
     val education = remember(doctor) { doctor.education.map(DatedEntry::parse) }
     // Newest first; undated entries last.
     val research = remember(doctor) { doctor.researches.map(DatedEntry::parse).sortedByDescending { it.year ?: Int.MIN_VALUE } }
+    val papers = remember(doctor) { doctor.papers.map(DatedEntry::parse).sortedByDescending { it.year ?: Int.MIN_VALUE } }
 
     Scaffold(
         containerColor = colors.background,
@@ -133,17 +134,15 @@ private fun AboutContent(doctor: DoctorProfile, onNavigateBack: () -> Unit) {
             }
 
             when (tab) {
-                0 -> item { SectionCard { BodyText(doctor.bio) } }
+                0 -> {
+                    item { SectionCard { BodyText(doctor.bio) } }
+                    item { BulletSection(stringResource(R.string.about_teachers), doctor.teachers) }
+                    item { BulletSection(stringResource(R.string.about_positions), doctor.positions) }
+                }
                 1 -> item { SectionCard { Timeline(education) } }
-                2 -> item {
-                    SectionCard {
-                        research.forEachIndexed { index, entry ->
-                            ResearchItem(entry)
-                            if (index < research.lastIndex) {
-                                HorizontalDivider(Modifier.padding(vertical = 10.dp), thickness = 0.5.dp, color = colors.divider)
-                            }
-                        }
-                    }
+                2 -> {
+                    item { ResearchSection(stringResource(R.string.about_research_published), research) }
+                    item { ResearchSection(stringResource(R.string.about_research_papers), papers) }
                 }
                 else -> {
                     item { BulletSection(stringResource(R.string.about_media_contributions), doctor.mediaResponsibilities) }
@@ -274,6 +273,19 @@ private fun Timeline(entries: List<DatedEntry>) {
     }
 }
 
+@Composable
+private fun ResearchSection(title: String, entries: List<DatedEntry>) {
+    SectionCard {
+        SectionTitle(title)
+        entries.forEachIndexed { index, entry ->
+            ResearchItem(entry)
+            if (index < entries.lastIndex) {
+                HorizontalDivider(Modifier.padding(vertical = 10.dp), thickness = 0.5.dp, color = Brand.colors.divider)
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ResearchItem(entry: DatedEntry) {
@@ -297,12 +309,7 @@ private fun ResearchItem(entry: DatedEntry) {
 private fun BulletSection(title: String, items: List<String>) {
     val colors = Brand.colors
     SectionCard {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-            color = colors.textPrimary,
-        )
-        Spacer(Modifier.height(10.dp))
+        SectionTitle(title)
         items.forEach { item ->
             Row(Modifier.padding(bottom = 8.dp)) {
                 Box(
@@ -316,6 +323,16 @@ private fun BulletSection(title: String, items: List<String>) {
             }
         }
     }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+        color = Brand.colors.textPrimary,
+    )
+    Spacer(Modifier.height(10.dp))
 }
 
 @Composable
