@@ -127,6 +127,9 @@ fun AdminsTabContent() {
     var adminToDeleteUid by remember { mutableStateOf("") }
     var adminToDeleteEmail by remember { mutableStateOf("") }
 
+    // (email, target role) awaiting confirmation
+    var roleChange by remember { mutableStateOf<Pair<String, String>?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -173,9 +176,18 @@ fun AdminsTabContent() {
         ) {
             items(state.admins) { admin ->
                 val email = admin["email"] as? String ?: ""
-                val uid = admin["uid"] as? String ?: ""
+                // getAdmins returns the doc id too; older docs may lack the uid field.
+                val uid = (admin["uid"] as? String)?.takeIf { it.isNotEmpty() } ?: admin["id"] as? String ?: ""
+                val role = admin["role"] as? String ?: SuperAdminViewModel.ROLE_ADMIN
+                val isSuper = role == SuperAdminViewModel.ROLE_SUPER_ADMIN
                 AdminItem(
                     email = email,
+                    isSuperAdmin = isSuper,
+                    isSelf = uid.isNotEmpty() && uid == state.currentUid,
+                    onToggleRole = {
+                        roleChange = email to
+                            if (isSuper) SuperAdminViewModel.ROLE_ADMIN else SuperAdminViewModel.ROLE_SUPER_ADMIN
+                    },
                     onRemove = {
                         adminToDeleteUid = uid
                         adminToDeleteEmail = email
@@ -239,6 +251,38 @@ fun AdminsTabContent() {
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    roleChange?.let { (email, targetRole) ->
+        val promoting = targetRole == SuperAdminViewModel.ROLE_SUPER_ADMIN
+        AlertDialog(
+            onDismissRequest = { roleChange = null },
+            title = {
+                Text(stringResource(if (promoting) R.string.promote_to_super_admin else R.string.demote_to_admin))
+            },
+            text = {
+                Text(
+                    text = stringResource(
+                        if (promoting) R.string.promote_confirmation_msg else R.string.demote_confirmation_msg,
+                        email
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.changeRole(email, targetRole)
+                    roleChange = null
+                }) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { roleChange = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -395,24 +439,51 @@ fun ChannelsTabContent() {
 }
 
 @Composable
-fun AdminItem(email: String, onRemove: () -> Unit) {
+fun AdminItem(
+    email: String,
+    isSuperAdmin: Boolean,
+    isSelf: Boolean,
+    onToggleRole: () -> Unit,
+    onRemove: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = email, style = MaterialTheme.typography.bodyLarge)
-            IconButton(onClick = onRemove) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = stringResource(R.string.remove_admin),
-                    tint = Color.Red
-                )
+        Column(modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 4.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (isSelf) "$email ${stringResource(R.string.you_label)}" else email,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = stringResource(if (isSuperAdmin) R.string.super_admin else R.string.role_admin),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isSuperAdmin) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                // Your own row has no actions, so a super admin can't lock themselves out.
+                if (!isSelf) {
+                    IconButton(onClick = onRemove) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.remove_admin),
+                            tint = Color.Red
+                        )
+                    }
+                }
+            }
+            if (!isSelf) {
+                TextButton(onClick = onToggleRole) {
+                    Text(stringResource(if (isSuperAdmin) R.string.demote_to_admin else R.string.promote_to_super_admin))
+                }
+            } else {
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
