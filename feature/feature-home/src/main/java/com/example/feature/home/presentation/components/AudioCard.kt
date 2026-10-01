@@ -82,7 +82,7 @@ fun AudioCard(
         }
         Column {
             Text(
-                text = ArabicNumerals.digits(audio.displayTitle),
+                text = audio.displayTitle,
                 color = Brand.colors.textPrimary,
                 fontFamily = Cairo,
                 fontWeight = FontWeight.SemiBold,

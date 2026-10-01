@@ -9,8 +9,8 @@ data class AudioFeed(
     val title: String,
     val duration: Long,
     val audioUrl: String,
-    /** The topic parsed out of [title]; falls back to the kind, then to "محاضرة". */
+    /** [title] cleaned the same way the audio list cleans it (AudioTitleCleaner). */
     val displayTitle: String = title,
-    /** The date announced in the title, else computed (Umm al-Qura) from the publish date. */
+    /** Computed (Umm al-Qura) from the publish date; null when the title already names a date. */
     val hijriDate: HijriDate? = null,
 )

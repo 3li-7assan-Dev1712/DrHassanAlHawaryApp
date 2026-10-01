@@ -1,5 +1,6 @@
 package com.example.feature.home.data
 
+import com.example.domain.text.AudioTitleCleaner
 import com.example.domain.text.ShareTitleParser
 import com.example.core.ui.util.HijriCalendar
 import java.util.Date
@@ -59,15 +60,18 @@ class HomeRepositoryImpl @Inject constructor(
     override fun getLatestAudios(): Flow<List<AudioFeed>> {
         return audioDao.getLatestAudios().map { list ->
             list.map { audio ->
-                val fields = ShareTitleParser.toCardFields(audio.title, audio.categoryId)
+                // Same cleaning as the audio list, so a title reads the same on both screens.
+                val displayTitle = AudioTitleCleaner.clean(audio.title)
+                // A date written in the title is already visible; only add the publish date otherwise.
+                val titleHasDate = ShareTitleParser.parse(audio.title).hijriDate != null
                 AudioFeed(
                     id = audio.id,
                     title = audio.title,
                     duration = audio.durationInMillis,
                     audioUrl = audio.audioUrl,
-                    displayTitle = fields.title.ifBlank { DEFAULT_AUDIO_TITLE },
-                    hijriDate = fields.hijriDate
-                        ?: audio.publishDate.takeIf { it > 0L }?.let { HijriCalendar.hijriDate(Date(it)) },
+                    displayTitle = displayTitle.ifBlank { DEFAULT_AUDIO_TITLE },
+                    hijriDate = if (titleHasDate) null
+                    else audio.publishDate.takeIf { it > 0L }?.let { HijriCalendar.hijriDate(Date(it)) },
                 )
             }
         }
