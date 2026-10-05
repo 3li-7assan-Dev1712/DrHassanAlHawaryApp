@@ -166,7 +166,10 @@
     <string name="about_unpublished">لم يُنشر بعد</string>
     <string name="about_official_channels">القنوات الرسمية</string>
     <string name="about_website">الموقع الرسمي</string>
-    <string name="about_fasaloo">فاسألوا على تيليجرام</string>
+    <string name="about_telegram_channel">القناة الرسمية للشيخ على تيليجرام</string>
+    <string name="about_telegram_qr">رمز QR للقناة</string>
+    <string name="about_telegram_qr_title">امسح الرمز للانضمام إلى القناة</string>
+    <string name="about_telegram_qr_hint">اعرضه على من حولك ليتابعوا القناة</string>
     <string name="about_media_contributions">المساهمات الإعلامية</string>
     <string name="about_teaching_contributions">المساهمات التعليمية</string>
     <string name="about_teachers">أبرز مشايخه</string>

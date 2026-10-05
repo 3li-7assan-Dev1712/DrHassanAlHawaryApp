@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,9 +28,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
@@ -36,18 +41,22 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -64,7 +73,7 @@ import com.example.domain.text.DatedEntry
 
 /** Official links. Only ones that already existed in the codebase or were given by the spec. */
 private const val WEBSITE_URL = "https://www.dr-alhawary.com"
-private const val FASALOO_URL = "https://t.me/Fasalu1447"
+private const val TELEGRAM_URL = "https://t.me/Dr_alhawary"
 
 @Composable
 fun AboutDrHassanScreen(
@@ -339,6 +348,7 @@ private fun SectionTitle(title: String) {
 private fun OfficialChannels() {
     val colors = Brand.colors
     val context = LocalContext.current
+    var showQr by rememberSaveable { mutableStateOf(false) }
     fun open(url: String) {
         try {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -362,29 +372,99 @@ private fun OfficialChannels() {
             Column {
                 ChannelRow(TablerIcons.World, stringResource(R.string.about_website), "dr-alhawary.com") { open(WEBSITE_URL) }
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = colors.divider)
-                ChannelRow(TablerIcons.BrandTelegram, stringResource(R.string.about_fasaloo), "t.me/Fasalu1447") { open(FASALOO_URL) }
+                ChannelRow(
+                    TablerIcons.BrandTelegram,
+                    stringResource(R.string.about_telegram_channel),
+                    "t.me/Dr_alhawary",
+                    onQrClick = { showQr = true },
+                ) { open(TELEGRAM_URL) }
+            }
+        }
+    }
+
+    if (showQr) TelegramQrSheet(onDismiss = { showQr = false })
+}
+
+/** The row opens [url]; when [onQrClick] is set, a divided QR button sits at the end. */
+@Composable
+private fun ChannelRow(
+    @DrawableRes icon: Int,
+    title: String,
+    url: String,
+    onQrClick: (() -> Unit)? = null,
+    onClick: () -> Unit,
+) {
+    val colors = Brand.colors
+    Row(Modifier.height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(painterResource(icon), contentDescription = null, tint = colors.accent, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = colors.textPrimary)
+                Text(BidiText.ltr(url), style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
+            }
+            Icon(painterResource(TablerIcons.ExternalLink), contentDescription = null, tint = colors.textMuted, modifier = Modifier.size(18.dp))
+        }
+        if (onQrClick != null) {
+            VerticalDivider(Modifier.padding(vertical = 12.dp), thickness = 0.5.dp, color = colors.divider)
+            IconButton(onClick = onQrClick, modifier = Modifier.padding(horizontal = 4.dp)) {
+                Icon(
+                    painterResource(TablerIcons.QrCode),
+                    contentDescription = stringResource(R.string.about_telegram_qr),
+                    tint = colors.accent,
+                    modifier = Modifier.size(22.dp),
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ChannelRow(@DrawableRes icon: Int, title: String, url: String, onClick: () -> Unit) {
+private fun TelegramQrSheet(onDismiss: () -> Unit) {
     val colors = Brand.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(painterResource(icon), contentDescription = null, tint = colors.accent, modifier = Modifier.size(22.dp))
-        Spacer(Modifier.width(14.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = colors.textPrimary)
-            Text(BidiText.ltr(url), style = MaterialTheme.typography.labelSmall, color = colors.textMuted)
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = colors.surface) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                stringResource(R.string.about_telegram_qr_title),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = colors.textPrimary,
+            )
+            Spacer(Modifier.height(16.dp))
+            // White behind the code in both themes, so any scanner reads it.
+            Box(
+                Modifier
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .padding(8.dp),
+            ) {
+                Image(
+                    painterResource(R.drawable.qr_telegram_channel),
+                    contentDescription = TELEGRAM_URL,
+                    modifier = Modifier
+                        .width(240.dp)
+                        .aspectRatio(863f / 1000f),
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Text(
+                stringResource(R.string.about_telegram_qr_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.textSecondary,
+                textAlign = TextAlign.Center,
+            )
         }
-        Icon(painterResource(TablerIcons.ExternalLink), contentDescription = null, tint = colors.textMuted, modifier = Modifier.size(18.dp))
     }
 }
 
