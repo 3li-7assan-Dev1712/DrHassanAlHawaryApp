@@ -1,22 +1,28 @@
 package app.netlify.devalihassan
 
+import com.example.core.ui.theme.Brand
 import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.animation.PathInterpolator
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +34,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.navigation.NavBackStackEntry
+import com.example.core.ui.theme.LocalSharedTransitionScope
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.ReducedMotionOverride
+import com.example.core.ui.theme.animationsRemoved
+import com.example.core.ui.theme.ProvideNavAnimatedScope
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedContainer
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.RectangleShape
+import backgroundDark
+import backgroundLight
+import kotlinx.coroutines.delay
+import com.example.core.ui.theme.reducedMotion
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,19 +66,24 @@ import app.netlify.devalihassan.core.util.LocaleForce
 import app.netlify.devalihassan.ui.navigation.BottomNavigationBar
 import app.netlify.devalihassan.ui.navigation.Routes
 import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
+import com.example.core.ui.components.ContentCategories
 import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
 import com.example.feature.article.presentation.list.ArticleListScreen
+import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
+import com.example.feature.home.presentation.notifications.NotificationsScreen
 import com.example.feature.image.presentation.detail.ImageScreen
 import com.example.feature.image.presentation.list.ImagesGroupsScreen
 import com.example.feature.onboarding.presentation.OnboardingScreen
+import com.example.feature.share.presentation.SharePreviewScreen
+import com.example.feature.share.presentation.TextCardPreviewScreen
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
@@ -61,7 +93,6 @@ import com.example.profile.presentation.components.LegalTextScreen
 import com.example.profile.presentation.components.ProfileRoute
 import com.example.profile.presentation.navigation.ProfileDestinations
 import com.example.profile.presentation.profile.ProfileScreen
-import com.example.profile.presentation.rate_app.RateAppScreen
 import com.example.profile.presentation.share_app.ShareAppScreen
 import com.example.profile.presentation.support.SupportScreen
 import com.example.search.presentation.SearchScreen
@@ -82,12 +113,42 @@ class MainActivity : ComponentActivity() {
 
     private val mainActivityViewModel: MainActivityViewModel by viewModels()
     val TAG = "MainActivity"
+    @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Debug builds only: launch with
+        //   adb shell am start -n app.netlify.devalihassan/.MainActivity --ez force_reduced_motion true
+        // to test the "Remove animations" behaviour without changing the phone's settings.
+        if (BuildConfig.DEBUG && intent?.getBooleanExtra(EXTRA_FORCE_REDUCED_MOTION, false) == true) {
+            ReducedMotionOverride.forced = true
+        }
         val splashScreen = installSplashScreen()
 
 
         splashScreen.setKeepOnScreenCondition {
             !mainActivityViewModel.appReady.value
+        }
+
+        // Exit: the logo fades and shrinks to 0.9 while the splash fades over `medium`,
+        // revealing the first screen underneath. Removed at once under reduced motion.
+        splashScreen.setOnExitAnimationListener { provider ->
+            if (animationsRemoved()) {
+                provider.remove()
+                return@setOnExitAnimationListener
+            }
+            val leaving = PathInterpolator(0.3f, 0f, 0.8f, 0.15f) // Motion.EmphasizedAccelerate
+            runCatching {
+                provider.iconView.animate()
+                    .alpha(0f).scaleX(0.9f).scaleY(0.9f)
+                    .setDuration(Motion.MEDIUM.toLong())
+                    .setInterpolator(leaving)
+                    .start()
+            }
+            provider.view.animate()
+                .alpha(0f)
+                .setDuration(Motion.MEDIUM.toLong())
+                .setInterpolator(leaving)
+                .withEndAction { provider.remove() }
+                .start()
         }
 
         super.onCreate(savedInstanceState)
@@ -101,7 +162,36 @@ class MainActivity : ComponentActivity() {
 
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
-            HassanAlHawaryTheme(darkTheme = themeState.isDarkTheme) {
+            // "تلقائي" follows the phone; otherwise the explicit light/dark choice.
+            val systemDark = isSystemInDarkTheme()
+            val isDarkTheme = if (themeState.followSystem) systemDark else themeState.isDarkTheme
+
+            HassanAlHawaryTheme(darkTheme = isDarkTheme, brandTheme = themeState.brandTheme) {
+
+                // Follow the app's own light/dark setting, not the phone's: the plain
+                // enableEdgeToEdge() above picks bar icon colours from the system mode, so
+                // they vanished whenever the two differed. The window background (the XML
+                // theme is Material.Light) is repainted too, so nothing flashes white in
+                // dark mode. Declared before the screens so their own overrides (home and
+                // sign-in force light icons) apply on top.
+                // The colours animate over `medium` on a theme switch; the bar icons (and the
+                // window background behind everything) flip once that has finished, so they
+                // never contrast wrongly with the half-way colours.
+                val reducedMotionOn = reducedMotion
+                var isFirstBarStyle by remember { mutableStateOf(true) }
+                LaunchedEffect(isDarkTheme) {
+                    if (!isFirstBarStyle && !reducedMotionOn) delay(Motion.MEDIUM.toLong())
+                    isFirstBarStyle = false
+                    val transparent = android.graphics.Color.TRANSPARENT
+                    val barStyle = if (isDarkTheme) {
+                        SystemBarStyle.dark(transparent)
+                    } else {
+                        SystemBarStyle.light(transparent, transparent)
+                    }
+                    enableEdgeToEdge(statusBarStyle = barStyle, navigationBarStyle = barStyle)
+                    val windowBackground = if (isDarkTheme) backgroundDark else backgroundLight
+                    window.decorView.setBackgroundColor(windowBackground.toArgb())
+                }
 
                 var flexibleUpdateDismissed by remember { mutableStateOf(false) }
 
@@ -152,7 +242,8 @@ class MainActivity : ComponentActivity() {
                                     val deepLinkUri = intent?.data
                                     MainAppContent(
                                         onLogout = { mainActivityViewModel.logoutSuccess() },
-                                        isDarkThemeEnabled = themeState.isDarkTheme,
+                                        isDarkThemeEnabled = isDarkTheme,
+                                        followSystemTheme = themeState.followSystem,
                                         userEmail = mainActivityState.currentUserDate?.email ?: "",
                                         idToken = mainActivityState.idToken ?: "",
                                         deepLinkUri = deepLinkUri
@@ -188,10 +279,11 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-
+    @UnstableApi
     fun MainAppContent(
         onLogout: () -> Unit,
         isDarkThemeEnabled: Boolean = false,
+        followSystemTheme: Boolean = false,
         userEmail: String,
         idToken: String,
         deepLinkUri: Uri?
@@ -247,7 +339,9 @@ class MainActivity : ComponentActivity() {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            // This colour fills the status-bar padding above every screen: the brand
+            // background (light or dark with the theme), never the old gray surfaceVariant strip.
+            containerColor = Brand.colors.background,
             bottomBar = {
                 if (shouldShowBottomNav) {
                     BottomNavigationBar(
@@ -256,390 +350,523 @@ class MainActivity : ComponentActivity() {
                 }
             }) { innerPadding ->
 
-            NavHost(
-                navController,
-                startDestination = "home_screen",
-                modifier = Modifier.padding(innerPadding)
-            ) {
+            // Screen transitions, set once here: fade through between bottom-nav tabs,
+            // shared axis X (END → START going deeper, mirrored on back) for everything else.
+            val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+            val axisOffsetPx = with(LocalDensity.current) { Motion.SHARED_AXIS_OFFSET_DP.dp.roundToPx() }
+            val reduced = reducedMotion
+            fun AnimatedContentTransitionScope<NavBackStackEntry>.betweenTabs() =
+                initialState.destination.route in routesWithBottomNav &&
+                    targetState.destination.route in routesWithBottomNav
 
-                composable("splash_screen") {
-                    SplashScreen(
-                        onShowSplashScreenTimeEnd = {
-                            navController.navigate("home_screen") {
-                                popUpTo("splash_screen") {
-                                    inclusive = true
+            // Container transforms (card → screen) for three flows; see core-ui SharedElements.kt.
+            SharedTransitionLayout(modifier = Modifier.padding(innerPadding)) {
+                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                    NavHost(
+                        navController,
+                        startDestination = "home_screen",
+                        enterTransition = {
+                            if (betweenTabs()) Motion.fadeThroughEnter(reduced)
+                            else Motion.sharedAxisEnter(axisOffsetPx, isRtl, reduced)
+                        },
+                        exitTransition = {
+                            if (betweenTabs()) Motion.fadeThroughExit(reduced)
+                            else Motion.sharedAxisExit(axisOffsetPx, isRtl, reduced)
+                        },
+                        popEnterTransition = {
+                            if (betweenTabs()) Motion.fadeThroughEnter(reduced)
+                            else Motion.sharedAxisPopEnter(axisOffsetPx, isRtl, reduced)
+                        },
+                        popExitTransition = {
+                            if (betweenTabs()) Motion.fadeThroughExit(reduced)
+                            else Motion.sharedAxisPopExit(axisOffsetPx, isRtl, reduced)
+                        },
+                    ) {
+
+                        composable("splash_screen") {
+                            SplashScreen(
+                                onShowSplashScreenTimeEnd = {
+                                    navController.navigate("home_screen") {
+                                        popUpTo("splash_screen") {
+                                            inclusive = true
+                                        }
+                                    }
+                                })
+                        }
+
+                        composable("home_screen") {
+                            ProvideNavAnimatedScope(this) {
+                            HomeScreen(onNavigateToDetailArticle = { articleId ->
+                                navController.navigate("detail_article_screen/$articleId")
+
+                            }, onNavigateToDetailAudio = { title, audioUrl ->
+                                val encodedUrl = Uri.encode(audioUrl)
+                                val encodedTitle = Uri.encode(title)
+                                navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
+                            }, onCategoryClick = { route ->
+                                when (route) {
+                                    Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
+                                    Routes.VIDEOS_SCREEN -> navController.navigate(Routes.VIDEO_CATEGORY_SCREEN)
+                                    else -> navController.navigate(route)
+                                }
+                            }, onNotificationsClick = {
+                                navController.navigate(Routes.NOTIFICATIONS_SCREEN)
+                            }
+
+
+                            )
+                            }
+                        }
+                        composable("search_screen") {
+
+                            SearchScreen { searchResultMetaData ->
+                                val encodedUrl = Uri.encode(searchResultMetaData.url)
+                                val encodedTitle = Uri.encode(searchResultMetaData.title)
+                                when (searchResultMetaData.type) {
+                                    "article" -> {
+
+                                        val objectID = searchResultMetaData.objectID
+
+                                        val route = "detail_article_screen/$objectID"
+                                        Log.d(TAG, "MainAppContent: route")
+                                        navController.navigate(route)
+                                    }
+
+                                    "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
+                                    "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
+                                    "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
+                                    else -> {
+
+                                    }
                                 }
                             }
-                        })
-                }
-
-                composable("home_screen") {
-                    HomeScreen(onNavigateToDetailArticle = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId")
-
-                    }, onNavigateToDetailAudio = { title, audioUrl ->
-                        val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
-                    }, onCategoryClick = { route ->
-                        when (route) {
-                            Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
-                            Routes.VIDEOS_SCREEN -> navController.navigate(Routes.VIDEO_CATEGORY_SCREEN)
-                            else -> navController.navigate(route)
                         }
-                    }
+                        composable("articles_screen") {
 
-
-                    )
-                }
-                composable("search_screen") {
-
-                    SearchScreen { searchResultMetaData ->
-                        val encodedUrl = Uri.encode(searchResultMetaData.url)
-                        when (searchResultMetaData.type) {
-                            "article" -> {
-
-                                val objectID = searchResultMetaData.objectID
-
-                                val route = "detail_article_screen/$objectID"
-                                Log.d(TAG, "MainAppContent: route")
-                                navController.navigate(route)
-                            }
-
-                            "audio" -> navController.navigate("audio_detail_screen/${searchResultMetaData.title}/${encodedUrl}")
-                            "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
-                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${searchResultMetaData.title}")
-                            else -> {
-
-                            }
-                        }
-                    }
-                }
-                composable("articles_screen") {
-
-                    ArticleListScreen(onNavigateToArticleDetail = { articleId ->
-                        navController.navigate("detail_article_screen/$articleId")
-                    }, onNavigateBack = {
-                        navController.popBackStack()
-                    })
-                }
-                composable(
-                    // Update the route to include an optional parameter
-                    route = "detail_article_screen/{articleId}",
-                    arguments = listOf(
-                        navArgument("articleId") { type = NavType.StringType },
-                    )
-                ) {
-
-                    ArticleDetailScreen(
-                        onNavigateBack = { navController.popBackStack() }
-                    )
-                }
-                composable(Routes.AUDIO_CATEGORY_SCREEN) {
-                    AudioCategoryScreen(
-                        onCategoryClick = { categoryId, categoryTitle ->
-                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=$categoryTitle")
-                        },
-                        onNavigateUp = { navController.popBackStack() }
-                    )
-                }
-                composable(
-                    route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
-                    arguments = listOf(
-                        navArgument("categoryId") {
-                            type = NavType.StringType
-                            nullable = true
-                        },
-                        navArgument("categoryTitle") {
-                            type = NavType.StringType
-                            nullable = true
-                        }
-                    )
-                ) {
-                    AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
-                        val encodedUrl = Uri.encode(audioUrl)
-                        navController.navigate("audio_detail_screen/$title/$encodedUrl")
-                    }, onNavigateBack = {
-                        navController.popBackStack()
-                    })
-                }
-
-                composable(
-                    route = "audio_detail_screen/{title}/{audioUrl}",
-                    arguments = listOf(navArgument("title") {
-                        type = NavType.StringType
-                    }, navArgument("audioUrl") {
-                        type = NavType.StringType
-                    })
-                ) {
-                    AudioDetailScreen(
-                        onNavigateUp = {
-                            navController.popBackStack()
-                        })
-                }
-
-                composable(
-                    route = "${Routes.STUDY_SCREEN}?data={data}",
-                    arguments = listOf(
-                        navArgument("data") {
-                            type = NavType.StringType
-                            nullable = true
-                        },
-                        navArgument("t") {
-                            type = NavType.LongType
-                            defaultValue = -1L
-                        }
-                    ),
-                ) {
-
-                    StudyScreen(
-                        userEmail = userEmail,
-                        idToken = idToken,
-                        onLevelClick = { levelId ->
-                            navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
-                        },
-                        onNavigateToLogin = { },
-                        onQuizClick = { quizId ->
-                            navController.navigate("${Routes.QUIZ_SCREEN}/$quizId")
-                        }
-                    )
-                }
-
-                composable(
-
-                    route = "${Routes.PLAYLIST_SCREEN}/{levelId}",
-                    arguments = listOf(navArgument("levelId") {
-                        type = NavType.StringType
-                    })
-
-                ) {
-                    PlaylistScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        onPlaylistClick = { playlistId ->
-                            navController.navigate("${Routes.LESSONS_SCREEN}/$playlistId")
-                        }
-                    )
-                }
-                composable(
-
-                    route = "${Routes.QUIZ_SCREEN}/{quizId}",
-                    arguments = listOf(navArgument("quizId") {
-                        type = NavType.StringType
-                    })
-
-                ) {
-                    AnswerQuizScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-                composable(
-                    route = "${Routes.LESSONS_SCREEN}/{playlistId}",
-                    arguments = listOf(navArgument("playlistId") {
-                        type = NavType.StringType
-                    })
-
-                ) {
-
-                    LessonsListScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        onLessonClick = { lessonId ->
-                            navController.navigate("${Routes.LESSON_DETAIL_SCREEN}/$lessonId")
-                        }
-                    )
-
-                }
-
-                composable(
-                    route = "${Routes.LESSON_DETAIL_SCREEN}/{lessonId}",
-                    arguments = listOf(navArgument("lessonId") {
-                        type = NavType.StringType
-                    })
-
-                ) {
-
-                    LessonDetailScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }
-                    )
-
-                }
-
-                composable(Routes.IMAGES_SCREEN) {
-
-                    ImagesGroupsScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        },
-                        onGroupClick = { groupId ->
-                            navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
-                        }
-                    )
-                }
-                composable(
-                    route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}",
-                    arguments = listOf(
-                        navArgument("groupId") {
-                            type = NavType.StringType
-                        }
-                    )
-                ) {
-                    ImageScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }
-                    )
-
-                }
-                composable(Routes.ABOUT_DR_HASSAN_SCREEN) {
-                    AboutDrHassanScreen {
-                        navController.popBackStack()
-                    }
-                }
-                composable(Routes.VIDEO_CATEGORY_SCREEN) {
-                    VideoCategoryScreen(
-                        onCategoryClick = { categoryId, categoryTitle ->
-                            val actualId = if (categoryId == ALL_VIDEO_CATEGORIES_ID) null else categoryId
-                            navController.navigate("${Routes.VIDEOS_SCREEN}?categoryId=$actualId&categoryTitle=${Uri.encode(categoryTitle)}")
-                        },
-                        onNavigateUp = { navController.popBackStack() }
-                    )
-                }
-                composable(
-                    route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
-                    arguments = listOf(
-                        navArgument("categoryId") {
-                            type = NavType.StringType
-                            nullable = true
-                        },
-                        navArgument("categoryTitle") {
-                            type = NavType.StringType
-                            nullable = true
-                        }
-                    )
-                ) {
-
-                    VideosScreen(
-                        onNavigateBack = {
-                            navController.popBackStack()
-                        }, onNavigateToVideo = { videoUrl, videoTitle ->
-                            val encodedUrl = Uri.encode(videoUrl)
-                            navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$videoTitle")
-                        }
-                    )
-                }
-                composable(
-
-                    route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}/{videoTitle}",
-                    arguments = listOf(
-                        navArgument("videoUrl") {
-                            type = NavType.StringType
-                        },
-                        navArgument("videoTitle") {
-                            type = NavType.StringType
-                        }),
-
-
-                    ) {
-                    val videoUrl = it.arguments?.getString("videoUrl")
-                    val videoTitle = it.arguments?.getString("videoTitle")
-                    if (videoUrl != null) {
-                        VideoPlayerScreen(
-                            videoUrl = videoUrl, onNavigateBack = {
+                            ArticleListScreen(onNavigateToArticleDetail = { articleId ->
+                                navController.navigate("detail_article_screen/$articleId")
+                            }, onNavigateBack = {
                                 navController.popBackStack()
-                            },
-                            videoTitle = videoTitle
-                        )
-                    }
-
-                }
-                composable(Routes.Q_A_SCREEN) {
-                    app.netlify.devalihassan.ui.q_a.QAScreen()
-                }
-
-                // profile screens
-                composable(Routes.PROFILE_SCREEN) {
-                    ProfileScreen(
-                        onNavigate = { route ->
-                            when (route) {
-                                ProfileRoute.About -> navController.navigate(ProfileDestinations.ABOUT)
-                                ProfileRoute.Share -> navController.navigate(ProfileDestinations.SHARE)
-                                ProfileRoute.Rate -> navController.navigate(ProfileDestinations.RATE)
-                                ProfileRoute.Privacy -> navController.navigate(ProfileDestinations.PRIVACY)
-                                ProfileRoute.Terms -> navController.navigate(ProfileDestinations.TERMS)
-                                ProfileRoute.Licenses -> navController.navigate(ProfileDestinations.LICENSES)
-                                ProfileRoute.Support -> navController.navigate(ProfileDestinations.SUPPORT)
-                            }
-                        },
-                        onThemeChanged = { isDarkTheme ->
-                            Log.d(TAG, "MainAppContent: isDarkTheme: $isDarkTheme")
-                            mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
-                        },
-                        isDarkTheme = isDarkThemeEnabled,
-                        onLogout = {
-                            onLogout()
+                            })
                         }
-                    )
+                        composable(
+                            // Update the route to include an optional parameter
+                            route = "detail_article_screen/{articleId}",
+                            arguments = listOf(
+                                navArgument("articleId") { type = NavType.StringType },
+                            )
+                        ) { entry ->
+                            val articleId = entry.arguments?.getString("articleId").orEmpty()
+                            ProvideNavAnimatedScope(this) {
+                            ArticleDetailScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToShareSelection = { articleId ->
+                                    navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
+                                },
+                                modifier = Modifier.sharedContainer(SharedKeys.article(articleId)),
+                            )
+                            }
+                        }
+
+                        composable(
+                            route = "${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/{articleId}",
+                            arguments = listOf(navArgument("articleId") { type = NavType.StringType })
+                        ) {
+                            ArticleShareSelectionScreen(
+                                onNavigateUp = { navController.popBackStack() },
+                                onContinueToPreview = { articleId, selectionStart, selectionEnd ->
+                                    // Offsets, not the excerpt: any length can be shared, and a whole
+                                    // article URL-encoded into the route would not scale.
+                                    navController.navigate(
+                                        "${Routes.TEXT_CARD_PREVIEW_SCREEN}/${Uri.encode(articleId)}" +
+                                            "?selectionStart=$selectionStart&selectionEnd=$selectionEnd"
+                                    )
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{articleId}?selectionStart={selectionStart}&selectionEnd={selectionEnd}",
+                            arguments = listOf(
+                                navArgument("articleId") { type = NavType.StringType },
+                                navArgument("selectionStart") { type = NavType.IntType; defaultValue = 0 },
+                                navArgument("selectionEnd") { type = NavType.IntType; defaultValue = 0 },
+                            )
+                        ) {
+                            TextCardPreviewScreen(
+                                onNavigateUp = { navController.popBackStack() }
+                            )
+                        }
+                        composable(Routes.AUDIO_CATEGORY_SCREEN) {
+                            AudioCategoryScreen(
+                                onCategoryClick = { categoryId, categoryTitle ->
+                                    if (categoryId == ContentCategories.ALL_ID) {
+                                        // "الكل": the list with no category filter (its args are nullable).
+                                        navController.navigate(Routes.AUDIO_LIST_SCREEN)
+                                    } else {
+                                        navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
+                                    }
+                                },
+                                onNavigateUp = { navController.popBackStack() }
+                            )
+                        }
+                        composable(
+                            route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                            arguments = listOf(
+                                navArgument("categoryId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                },
+                                navArgument("categoryTitle") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) {
+                            AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
+                                val encodedUrl = Uri.encode(audioUrl)
+                                val encodedTitle = Uri.encode(title)
+                                navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
+                            }, onNavigateBack = {
+                                navController.popBackStack()
+                            })
+                        }
+
+                        composable(
+                            route = "audio_detail_screen/{title}/{audioUrl}",
+                            arguments = listOf(navArgument("title") {
+                                type = NavType.StringType
+                            }, navArgument("audioUrl") {
+                                type = NavType.StringType
+                            })
+                        ) { entry ->
+                            val audioUrl = entry.arguments?.getString("audioUrl").orEmpty()
+                            ProvideNavAnimatedScope(this) {
+                            AudioDetailScreen(
+                                onNavigateUp = {
+                                    navController.popBackStack()
+                                },
+                                onNavigateToShare = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
+                                    val encodedUrl = Uri.encode(audioUrl)
+                                    val encodedTitle = Uri.encode(title)
+                                    val encodedCategory = Uri.encode(category ?: "")
+                                    val encodedLocalFilePath = Uri.encode(localFilePath ?: "")
+                                    navController.navigate(
+                                        "${Routes.SHARE_PREVIEW_SCREEN}/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
+                                    )
+                                },
+                                modifier = Modifier.sharedContainer(SharedKeys.audio(audioUrl)),
+                            )
+                            }
+                        }
+
+                        composable(
+                            route = "${Routes.SHARE_PREVIEW_SCREEN}/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
+                            arguments = listOf(
+                                navArgument("audioUrl") { type = NavType.StringType },
+                                navArgument("title") { type = NavType.StringType; nullable = true },
+                                navArgument("category") { type = NavType.StringType; nullable = true },
+                                navArgument("localFilePath") { type = NavType.StringType; nullable = true },
+                                navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
+                                navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
+                            )
+                        ) {
+                            SharePreviewScreen(
+                                onNavigateUp = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable(
+                            route = "${Routes.STUDY_SCREEN}?data={data}",
+                            arguments = listOf(
+                                navArgument("data") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                },
+                                navArgument("t") {
+                                    type = NavType.LongType
+                                    defaultValue = -1L
+                                }
+                            ),
+                        ) {
+
+                            StudyScreen(
+                                userEmail = userEmail,
+                                idToken = idToken,
+                                onLevelClick = { levelId ->
+                                    navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
+                                },
+                                onNavigateToLogin = { },
+                                onQuizClick = { quizId ->
+                                    navController.navigate("${Routes.QUIZ_SCREEN}/$quizId")
+                                }
+                            )
+                        }
+
+                        composable(
+
+                            route = "${Routes.PLAYLIST_SCREEN}/{levelId}",
+                            arguments = listOf(navArgument("levelId") {
+                                type = NavType.StringType
+                            })
+
+                        ) {
+                            PlaylistScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onPlaylistClick = { playlistId ->
+                                    navController.navigate("${Routes.LESSONS_SCREEN}/$playlistId")
+                                }
+                            )
+                        }
+                        composable(
+
+                            route = "${Routes.QUIZ_SCREEN}/{quizId}",
+                            arguments = listOf(navArgument("quizId") {
+                                type = NavType.StringType
+                            })
+
+                        ) {
+                            AnswerQuizScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                        composable(
+                            route = "${Routes.LESSONS_SCREEN}/{playlistId}",
+                            arguments = listOf(navArgument("playlistId") {
+                                type = NavType.StringType
+                            })
+
+                        ) {
+
+                            LessonsListScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onLessonClick = { lessonId ->
+                                    navController.navigate("${Routes.LESSON_DETAIL_SCREEN}/$lessonId")
+                                }
+                            )
+
+                        }
+
+                        composable(
+                            route = "${Routes.LESSON_DETAIL_SCREEN}/{lessonId}",
+                            arguments = listOf(navArgument("lessonId") {
+                                type = NavType.StringType
+                            })
+
+                        ) {
+
+                            LessonDetailScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }
+                            )
+
+                        }
+
+                        composable(Routes.IMAGES_SCREEN) {
+                            ProvideNavAnimatedScope(this) {
+                            ImagesGroupsScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                onGroupClick = { groupId ->
+                                    navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                                },
+                                onImageClick = { groupId, index ->
+                                    navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
+                                }
+                            )
+                            }
+                        }
+                        composable(
+                            route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}?startIndex={startIndex}",
+                            arguments = listOf(
+                                navArgument("groupId") {
+                                    type = NavType.StringType
+                                },
+                                navArgument("startIndex") {
+                                    type = NavType.IntType
+                                    defaultValue = 0
+                                }
+                            )
+                        ) { entry ->
+                            val groupId = entry.arguments?.getString("groupId").orEmpty()
+                            ProvideNavAnimatedScope(this) {
+                            ImageScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                },
+                                modifier = Modifier.sharedContainer(SharedKeys.design(groupId), RectangleShape),
+                            )
+                            }
+
+                        }
+                        composable(Routes.ABOUT_DR_HASSAN_SCREEN) {
+                            AboutDrHassanScreen {
+                                navController.popBackStack()
+                            }
+                        }
+                        composable(Routes.VIDEO_CATEGORY_SCREEN) {
+                            VideoCategoryScreen(
+                                onCategoryClick = { categoryId, categoryTitle ->
+                                    val actualId = if (categoryId == ALL_VIDEO_CATEGORIES_ID) null else categoryId
+                                    navController.navigate("${Routes.VIDEOS_SCREEN}?categoryId=$actualId&categoryTitle=${Uri.encode(categoryTitle)}")
+                                },
+                                onNavigateUp = { navController.popBackStack() }
+                            )
+                        }
+                        composable(
+                            route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                            arguments = listOf(
+                                navArgument("categoryId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                },
+                                navArgument("categoryTitle") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                }
+                            )
+                        ) {
+
+                            VideosScreen(
+                                onNavigateBack = {
+                                    navController.popBackStack()
+                                }, onNavigateToVideo = { videoUrl, videoTitle ->
+                                    val encodedUrl = Uri.encode(videoUrl)
+                                    val encodedTitle = Uri.encode(videoTitle)
+                                    navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
+                                }
+                            )
+                        }
+                        composable(
+
+                            route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}/{videoTitle}",
+                            arguments = listOf(
+                                navArgument("videoUrl") {
+                                    type = NavType.StringType
+                                },
+                                navArgument("videoTitle") {
+                                    type = NavType.StringType
+                                }),
+
+
+                            ) {
+                            val videoUrl = it.arguments?.getString("videoUrl")
+                            val videoTitle = it.arguments?.getString("videoTitle")
+                            if (videoUrl != null) {
+                                VideoPlayerScreen(
+                                    videoUrl = videoUrl, onNavigateBack = {
+                                        navController.popBackStack()
+                                    },
+                                    videoTitle = videoTitle
+                                )
+                            }
+
+                        }
+                        composable(Routes.NOTIFICATIONS_SCREEN) {
+                            NotificationsScreen(onBack = { navController.popBackStack() })
+                        }
+                        composable(Routes.Q_A_SCREEN) {
+                            app.netlify.devalihassan.ui.q_a.QAScreen(
+                                onNavigateBack = { navController.popBackStack() },
+                                // The Search route takes no preset filter, so this opens plain Search.
+                                onOpenSearch = { navController.navigate(Routes.SEARCH_SCREEN) },
+                            )
+                        }
+
+                        // profile screens
+                        composable(Routes.PROFILE_SCREEN) {
+                            ProfileScreen(
+                                onNavigate = { route ->
+                                    when (route) {
+                                        ProfileRoute.About -> navController.navigate(ProfileDestinations.ABOUT)
+                                        ProfileRoute.Share -> navController.navigate(ProfileDestinations.SHARE)
+                                        ProfileRoute.Privacy -> navController.navigate(ProfileDestinations.PRIVACY)
+                                        ProfileRoute.Terms -> navController.navigate(ProfileDestinations.TERMS)
+                                        ProfileRoute.Licenses -> navController.navigate(ProfileDestinations.LICENSES)
+                                        ProfileRoute.Support -> navController.navigate(ProfileDestinations.SUPPORT)
+                                    }
+                                },
+                                onThemeChanged = { isDarkTheme ->
+                                    Log.d(TAG, "MainAppContent: isDarkTheme: $isDarkTheme")
+                                    mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
+                                },
+                                isDarkTheme = isDarkThemeEnabled,
+                                followSystemTheme = followSystemTheme,
+                                onFollowSystemThemeChanged = { mainActivityViewModel.updateFollowSystemTheme(it) },
+                                onLogout = {
+                                    onLogout()
+                                }
+                            )
+                        }
+
+                        composable(ProfileDestinations.ABOUT) {
+                            AboutAppScreen(
+                                onBack = { navController.popBackStack() },
+                                onContact = { navController.navigate(ProfileDestinations.SUPPORT) },
+                            )
+                        }
+
+                        composable(ProfileDestinations.SHARE) {
+                            ShareAppScreen(
+                                "app.netlify.devalihassan",
+                                onBack = { navController.popBackStack() },
+
+                                )
+                        }
+
+
+                        composable(ProfileDestinations.PRIVACY) {
+                            LegalTextScreen(
+                                title = "سياسة الخصوصية",
+                                assetFileName = "privacy.md",
+                                contactLabel = "للأسئلة عن خصوصيتك: تواصل معنا",
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(ProfileDestinations.TERMS) {
+                            LegalTextScreen(
+                                title = "الشروط والأحكام",
+                                assetFileName = "terms.md",
+                                contactLabel = "للأسئلة عن الشروط: تواصل معنا",
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(ProfileDestinations.LICENSES) {
+                            LegalTextScreen(
+                                title = "التراخيص والمصادر المفتوحة",
+                                assetFileName = "licenses.md",
+                                contactLabel = "للأسئلة عن التراخيص: تواصل معنا",
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(ProfileDestinations.SUPPORT) {
+                            SupportScreen(
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+
+                    }
                 }
-
-                composable(ProfileDestinations.ABOUT) {
-                    AboutAppScreen(onBack = { navController.popBackStack() })
-                }
-
-                composable(ProfileDestinations.SHARE) {
-                    ShareAppScreen(
-                        "app.netlify.devalihassan",
-                        onBack = { navController.popBackStack() },
-
-                        )
-                }
-
-                composable(ProfileDestinations.RATE) {
-                    RateAppScreen(
-                        packageName = "app.netlify.devalihassan",
-                        onBack = { navController.popBackStack() },
-
-                        )
-                }
-
-                composable(ProfileDestinations.PRIVACY) {
-                    LegalTextScreen(
-                        title = "سياسة الخصوصية",
-                        assetFileName = "privacy.md",
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-                composable(ProfileDestinations.TERMS) {
-                    LegalTextScreen(
-                        title = "الشروط والأحكام",
-                        assetFileName = "terms.md",
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-                composable(ProfileDestinations.LICENSES) {
-                    LegalTextScreen(
-                        title = "التراخيص والمصادر المفتوحة",
-                        assetFileName = "licenses.md",
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-                composable(ProfileDestinations.SUPPORT) {
-                    SupportScreen(
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-
             }
         }
     }
 
+    private companion object {
+        /** Debug builds: forces reduced motion for this run (see onCreate). */
+        const val EXTRA_FORCE_REDUCED_MOTION = "force_reduced_motion"
+    }
 }

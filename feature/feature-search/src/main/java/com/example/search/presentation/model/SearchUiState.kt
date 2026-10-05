@@ -14,6 +14,9 @@ sealed interface SearchUiState {
      */
     data object Idle : SearchUiState
 
+    /** The query has no word of 2+ letters (after a leading "ال"): nothing is searched. */
+    data object TooShort : SearchUiState
+
     /**
      * The state when a search has been triggered but the results have not yet returned.
      * The UI should show a loading indicator.

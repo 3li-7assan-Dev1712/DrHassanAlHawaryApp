@@ -68,12 +68,12 @@ fun UpdateScreen(
 
             Text(
                 text = if (isForceUpdate)
-                    "يوجد إصدار جديد من التطبيق متاح حالياً. يرجى تحديث التطبيق للاستمرار في استخدام المنصة."
+                    "يوجد إصدار جديد من التطبيق متاح حاليًا. يرجى تحديث التطبيق للاستمرار في استخدام المنصة."
                 else
-                    "يوجد إصدار جديد من التطبيق متاح حالياً مع ميزات وتحسينات جديدة. هل ترغب في التحديث الآن؟",
+                    "يوجد إصدار جديد من التطبيق متاح حاليًا مع ميزات وتحسينات جديدة. هل ترغب في التحديث الآن؟",
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(32.dp))

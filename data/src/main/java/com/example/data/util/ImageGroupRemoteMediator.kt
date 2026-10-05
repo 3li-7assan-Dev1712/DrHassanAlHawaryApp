@@ -65,81 +65,81 @@ class ImageGroupRemoteMediator @Inject constructor(
             return MediatorResult.Success(endOfPaginationReached = true)
         }
         return try {
-            // 1. Determine the key for the page to load (the 'loadKey')
-            val loadKey = when (loadType) {
-                // REFRESH always starts from the beginning (null key)
+            val initialLoadKey = when (loadType) {
                 LoadType.REFRESH -> null
 
-                // We don't support paging backwards
                 LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
 
-                // This is the main logic for scrolling down
                 LoadType.APPEND -> {
-                    // --- Start of Refactored APPEND Block ---
                     val lastItem = state.lastItemOrNull()
+                        ?: return MediatorResult.Success(endOfPaginationReached = true)
 
-                    if (lastItem == null) {
-                        return MediatorResult.Success(endOfPaginationReached = true)
-                    }
-
-                    // Step 1: Handle the OFFLINE case first and exit.
                     if (networkRepositoryUseCase().first() == NetworkStatus.Unavailable) {
                         return MediatorResult.Success(endOfPaginationReached = false)
-                    }
-
-                    // Step 2: If we reach here, we are ONLINE. Get the key for the next network page.
-                    Log.d(TAG, "Online, determining next key for network fetch.")
-                    val lastRemoteKey = imageGroupRemoteKeysDao.getLastRemoteKey()
-
-                    if (lastRemoteKey?.nextKey == null) {
-                        Log.d(
-                            TAG,
-                            "End of LOCAL keys reached. Will attempt network fetch to check for new data."
-                        )
                     }
 
                     lastItem.publishDate
                 }
             }
 
-            // If loadKey is null here, it's because it was a REFRESH or the APPEND logic decided there's no more data.
-            // The fetch logic handles a null key correctly (fetches the first page).
-            Log.d(TAG, "Proceeding to fetch from network with key: $loadKey")
+            var currentLoadKey = initialLoadKey
+            var lastResultEndOfPaginationReached = false
+            var isFirstIteration = true
 
-            // 2. Fetch the page of data from Firebase
-            val fetchedImageGroupsPagePair = imageFirestoreSource.fetchImageGroupsPage(
-                startAfterPublishDate = loadKey,
-                limit = state.config.pageSize
-            )
-            val fetchedImageGroupsPage = fetchedImageGroupsPagePair.first
+            // A page can come back entirely soft-deleted. The old code upserted every fetched
+            // group with toEntity()'s default isDeleted=false, so deleted groups resurrected as
+            // visible content instead of disappearing. Fixing that (by partitioning deleted vs
+            // active, like Article/Audio/Video do) means an all-deleted page now upserts nothing
+            // visible - which would leave the local "last item" cursor stuck forever re-fetching
+            // the same dead page. So we also loop, advancing the cursor from the last document
+            // actually fetched from Firestore, until we find active items or truly run out.
+            while (true) {
+                val (fetchedImageGroupsPage, endOfPaginationReached) = imageFirestoreSource.fetchImageGroupsPage(
+                    startAfterPublishDate = currentLoadKey,
+                    limit = state.config.pageSize
+                )
 
-            val endOfPaginationReached = fetchedImageGroupsPagePair.second
+                lastResultEndOfPaginationReached = endOfPaginationReached
 
-            // 3. Save the new data and keys in a single database transaction
-            appDatabase.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    imageDao.clearAll()
-                    imageGroupRemoteKeysDao.clearRemoteKeys()
+                if (fetchedImageGroupsPage.isEmpty()) break
+
+                val (deletedItems, activeItems) = fetchedImageGroupsPage.partition { it.isDeleted }
+
+                appDatabase.withTransaction {
+                    if (loadType == LoadType.REFRESH && isFirstIteration) {
+                        imageDao.clearAll()
+                        imageGroupRemoteKeysDao.clearRemoteKeys()
+                    }
+
+                    deletedItems.forEach {
+                        imageDao.deleteById(it.id)
+                    }
+
+                    if (activeItems.isNotEmpty()) {
+                        val nextKey = if (lastResultEndOfPaginationReached) null else fetchedImageGroupsPage.last().id
+                        val keys = activeItems.map { ImageGroupRemoteKeysEntity(groupId = it.id, nextKey = nextKey) }
+                        imageGroupRemoteKeysDao.insertAll(keys)
+                        imageDao.upsertImageGroups(activeItems.map { it.toEntity() })
+                    }
                 }
 
-                val nextKey = if (endOfPaginationReached) null else fetchedImageGroupsPage.last().id
-                val keys = fetchedImageGroupsPage.map {
-                    ImageGroupRemoteKeysEntity(groupId = it.id, nextKey = nextKey)
-                }
+                isFirstIteration = false
 
-                imageGroupRemoteKeysDao.insertAll(keys)
-                imageDao.upsertImageGroups(fetchedImageGroupsPage.map { it.toEntity() })
+                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                    break
+                }
+                currentLoadKey = fetchedImageGroupsPage.last().publishDate.time
             }
 
-            MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+            MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)
 
         } catch (e: IOException) {
             // This is an expected error when offline during a REFRESH. Treat it as success.
             Log.w(TAG, "IOException, likely offline. Returning Success. Message: ${e.message}")
-            return MediatorResult.Success(endOfPaginationReached = true)
+            MediatorResult.Success(endOfPaginationReached = true)
         } catch (e: Exception) {
             Log.e(TAG, "An unexpected error occurred in RemoteMediator", e)
-            return MediatorResult.Error(e)
+            MediatorResult.Error(e)
         }
     }
 }

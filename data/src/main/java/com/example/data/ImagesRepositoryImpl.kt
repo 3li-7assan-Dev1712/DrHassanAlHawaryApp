@@ -7,6 +7,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map
+import com.example.data.mappers.toEntity
 import com.example.data.util.ImageGroupRemoteMediator
 import com.example.data_firebase.ImageFirestoreSource
 import com.example.data_local.AppDatabase
@@ -48,7 +49,17 @@ class ImagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteImageGroup(groupId: String): Result<Unit> {
-        return imageFirestoreSource.deleteImageGroup(groupId)
+        // The remote call soft-deletes the Firestore doc, but nothing here was ever
+        // subscribed to a sync stream that would pick that change back up locally
+        // (unlike articles/audio's syncXDbWithServer, this feature's equivalent -
+        // ImageFirestoreSource.syncImageGroupsDbWithServer - is never called). So the
+        // local cache never learned about the delete: it kept showing the group on
+        // the home screen and in the group list until a future full resync happened
+        // to overwrite it. Delete locally too so both screens (which observe Room
+        // Flows/PagingSource) update immediately.
+        return imageFirestoreSource.deleteImageGroup(groupId).onSuccess {
+            appDatabase.imageDao().deleteGroupWithImages(groupId)
+        }
     }
 
 
@@ -83,7 +94,16 @@ class ImagesRepositoryImpl @Inject constructor(
 
         return flow {
 
-            val localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
+            var localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
+
+            // Room only holds the groups that were paged in, so a group opened from search
+            // can be missing. Fetch the group itself first; its images are fetched below.
+            if (localData == null) {
+                imageFirestoreSource.fetchImageGroupById(groupId)
+                    ?.takeIf { !it.isDeleted }
+                    ?.let { appDatabase.imageDao().upsertImageGroups(listOf(it.toEntity())) }
+                localData = appDatabase.imageDao().getImageGroupWithImages(groupId)
+            }
 
             Log.d(
                 "ImageRepositoryImpl",

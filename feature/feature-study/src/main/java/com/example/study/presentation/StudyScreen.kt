@@ -24,10 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.theme.Brand
 import com.example.study.presentation.dashboard.GuestContent
+import com.example.study.presentation.dashboard.InstituteComingSoonContent
 import com.example.study.presentation.dashboard.NotChannelMemberContent
-import com.example.study.presentation.dashboard.StudentDashboardContent
-import com.example.study.presentation.dashboard.StudyTopAppBar
 import com.example.study.presentation.model.StudyScreenUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,20 +47,10 @@ fun StudyScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
+        containerColor = Brand.colors.background,
         contentWindowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
-        topBar = {
-
-            if (uiState is StudyScreenUiState.StudentDashboard) {
-                StudyTopAppBar()
-            } else
-                CenterAlignedTopAppBar(title = {
-                    Text(
-                        text = stringResource(R.string.dr_hassan_institute)
-                    )
-                })
-        }
-
+        // Tab root: start-aligned title, no back arrow.
+        topBar = { AppTopBar(title = stringResource(R.string.dr_hassan_institute)) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -71,20 +62,16 @@ fun StudyScreen(
             contentAlignment = Alignment.Center
         ) {
             when (val state = uiState) {
-                is StudyScreenUiState.Loading -> CircularProgressIndicator()
+                is StudyScreenUiState.Loading -> CircularProgressIndicator(color = Brand.colors.accentStrong)
                 is StudyScreenUiState.Error -> Text(
                     text = state.message,
                     color = MaterialTheme.colorScheme.error
                 )
 
                 is StudyScreenUiState.StudentDashboard -> {
-                    // Show the rich dashboard for students
-                    StudentDashboardContent(
-                        studentData = state.studentData,
-                        onDisconnect = { /* viewModel.onDisconnectTelegram() */ },
-                        onLevelClick = onLevelClick,
-                        onQuizClick = onQuizClick
-                    )
+                    // Student interaction is temporarily paused; show a "coming soon"
+                    // placeholder instead of the full dashboard.
+                    InstituteComingSoonContent(studentData = state.studentData)
                 }
 
                 is StudyScreenUiState.Guest -> {

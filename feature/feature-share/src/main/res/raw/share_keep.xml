@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Brand assets burned into the share video frame. They're all referenced from code
+    through R.*, so resource shrinking keeps them today; this is a guard in case a
+    reference ever becomes indirect (e.g. strict shrinking, or lookup by name), since
+    a stripped logo or font would silently render a broken frame in release only.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/admin_logo_app,@font/cairo_bold,@font/cairo_semi_bold,@font/cairo_medium,@font/cairo_regular" />

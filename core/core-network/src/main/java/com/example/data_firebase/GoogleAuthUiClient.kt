@@ -5,11 +5,18 @@ import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.GetCredentialInterruptedException
+import androidx.credentials.exceptions.NoCredentialException
+import com.example.domain.module.LoginError
 import com.example.domain.module.LoginResult
 import com.example.domain.module.SignOutResult
 import com.example.domain.module.UserData
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.Dispatchers
@@ -28,20 +35,35 @@ class GoogleAuthUiClient
     private val auth: FirebaseAuth,
 ) {
 
-    val googleIdOption =
-        GetGoogleIdOption.Builder().setServerClientId(BuildConfig.GOOGLE_WEB_CLIENT)
-            .setFilterByAuthorizedAccounts(false).build()
-    val request = GetCredentialRequest.Builder().addCredentialOption(googleIdOption).build()
+    // The button flow: always shows Google's account chooser (including "add account").
+    private val request = GetCredentialRequest.Builder()
+        .addCredentialOption(GetSignInWithGoogleOption.Builder(BuildConfig.GOOGLE_WEB_CLIENT).build())
+        .build()
 
 
-    suspend fun login(): LoginResult {
+    suspend fun login(activityContext: Context): LoginResult {
+        val googleIdToken = try {
+            val credential = credentialManager.getCredential(activityContext, request).credential
+            if (credential !is CustomCredential ||
+                credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+            ) {
+                return failure(LoginError.Unknown, "Unexpected credential type: ${credential.type}")
+            }
+            GoogleIdTokenCredential.createFrom(credential.data).idToken
+        } catch (e: GetCredentialCancellationException) {
+            return failure(LoginError.Cancelled, e.message)
+        } catch (e: NoCredentialException) {
+            return failure(LoginError.NoAccount, e.message)
+        } catch (e: GetCredentialInterruptedException) {
+            return failure(LoginError.Network, e.message)
+        } catch (e: GetCredentialException) {
+            Log.d("GoogleAuthClient", "getCredential: ${e.type} ${e.message}")
+            return failure(LoginError.Unknown, e.message)
+        } catch (e: GoogleIdTokenParsingException) {
+            return failure(LoginError.Unknown, e.message)
+        }
 
-        Log.d("CLIENT_ID_CHECK", BuildConfig.GOOGLE_WEB_CLIENT)
-        val result = credentialManager.getCredential(context, request)
-
-        val credential = result.credential as CustomCredential
-        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-        val googleIdToken = googleIdTokenCredential.idToken
+        // Unchanged: exchange the Google ID token for a Firebase session.
         val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
         return try {
             val user = auth.signInWithCredential(googleCredentials).await().user
@@ -54,17 +76,19 @@ class GoogleAuthUiClient
                         idToken = googleIdToken,
                         userProfilePictureUrl = photoUrl?.toString()
                     )
-                }, errorMessage = null
+                },
+                errorMessage = null,
+                error = if (user == null) LoginError.Unknown else null,
             )
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.d("GoogleAuthClient", "login: ${e.message}")
             if (e is CancellationException) throw e
-            LoginResult(
-                data = null, errorMessage = e.message
-            )
+            Log.d("GoogleAuthClient", "login: ${e.message}")
+            failure(if (e is FirebaseNetworkException) LoginError.Network else LoginError.Unknown, e.message)
         }
     }
+
+    private fun failure(error: LoginError, message: String?) =
+        LoginResult(data = null, errorMessage = message, error = error)
 
 
     suspend fun signOut(): SignOutResult {

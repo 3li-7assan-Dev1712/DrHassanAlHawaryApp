@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_sheikh_photo_description">صورة الشيخ د. حسن أحمد الهواري</string>
+    <string name="auth_welcome">مرحبًا بك في تطبيق</string>
+    <string name="auth_sheikh_name">الشيخ د. حسن أحمد الهواري</string>
+    <string name="auth_value_line">خطب ودروس ومقالات وفتاوى في مكان واحد</string>
+    <string name="auth_continue_with_google">المتابعة باستخدام Google</string>
+    <string name="auth_signing_in">جارٍ تسجيل الدخول</string>
+    <string name="auth_error_sign_in">تعذّر تسجيل الدخول، تحقق من الاتصال وحاول مرة أخرى</string>
+    <string name="auth_retry">إعادة المحاولة</string>
+    <string name="auth_no_google_account">لا يوجد حساب Google على هذا الجهاز</string>
+    <string name="auth_add_account">إضافة حساب</string>
+    <string name="auth_dismiss">إغلاق</string>
+    <string name="auth_privacy_agreement">بالمتابعة فإنك توافق على %1$s</string>
+    <string name="auth_privacy_policy">سياسة الخصوصية</string>
+</resources>

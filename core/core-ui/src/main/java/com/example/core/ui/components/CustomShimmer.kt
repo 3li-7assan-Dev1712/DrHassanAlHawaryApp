@@ -12,9 +12,12 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.core.ui.theme.reducedMotion
 
 @Composable
 fun Modifier.shimmer(cornerRadius: Dp = 0.dp, isLoading: Boolean): Modifier {
@@ -24,11 +27,30 @@ fun Modifier.shimmer(cornerRadius: Dp = 0.dp, isLoading: Boolean): Modifier {
 @Composable
 fun Modifier.shimmer(cornerRadius: Dp = 0.dp): Modifier {
 
-    val shimmerColors = listOf(
-        Color.LightGray.copy(alpha = 0.3f),
-        Color.White.copy(alpha = 0.6f),
-        Color.LightGray.copy(alpha = 0.3f)
-    )
+    val shimmerColors = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
+        listOf(
+            Color.White.copy(alpha = 0.06f),
+            Color.White.copy(alpha = 0.16f),
+            Color.White.copy(alpha = 0.06f)
+        )
+    } else {
+        listOf(
+            Color.LightGray.copy(alpha = 0.3f),
+            Color.White.copy(alpha = 0.6f),
+            Color.LightGray.copy(alpha = 0.3f)
+        )
+    }
+
+    // "Remove animations": a still placeholder, no sweeping highlight.
+    if (reducedMotion) {
+        val still = shimmerColors.first()
+        return this.drawWithCache {
+            val cornerPx = cornerRadius.toPx()
+            onDrawWithContent {
+                drawRoundRect(color = still, cornerRadius = CornerRadius(cornerPx, cornerPx), size = size)
+            }
+        }
+    }
 
     val transition = rememberInfiniteTransition(label = "Shimmer")
     val translateAnim by transition.animateFloat(

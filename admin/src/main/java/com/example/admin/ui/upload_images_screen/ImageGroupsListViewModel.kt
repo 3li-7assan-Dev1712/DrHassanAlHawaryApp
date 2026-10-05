@@ -1,7 +1,7 @@
 package app.netlify.devalihassan.admin.ui.upload_images_screen
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.module.ImageGroup
 import com.example.domain.use_cases.images.DeleteImageGroupUseCase
 import com.example.domain.use_cases.images.GetAllRemoteImageGroupsUseCase
@@ -23,14 +23,10 @@ sealed interface ImageGroupsListUiState {
 class ImageGroupsListViewModel @Inject constructor(
     private val getAllRemoteImageGroupsUseCase: GetAllRemoteImageGroupsUseCase,
     private val deleteImageGroupUseCase: DeleteImageGroupUseCase
-) : ViewModel() {
+) : AdminActionViewModel() {
 
     private val _uiState = MutableStateFlow<ImageGroupsListUiState>(ImageGroupsListUiState.Loading)
     val uiState: StateFlow<ImageGroupsListUiState> = _uiState.asStateFlow()
-
-    init {
-        loadGroups()
-    }
 
     fun loadGroups() {
         viewModelScope.launch {
@@ -45,10 +41,6 @@ class ImageGroupsListViewModel @Inject constructor(
     }
 
     fun deleteGroup(groupId: String) {
-        viewModelScope.launch {
-            deleteImageGroupUseCase(groupId).onSuccess {
-                loadGroups()
-            }
-        }
+        runAction({ deleteImageGroupUseCase(groupId) }) { loadGroups() }
     }
 }

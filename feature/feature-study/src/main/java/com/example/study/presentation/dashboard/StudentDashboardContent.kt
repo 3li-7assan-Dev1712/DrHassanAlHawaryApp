@@ -1,6 +1,10 @@
 package com.example.study.presentation.dashboard
 
+import com.example.domain.text.BidiText
 import android.util.Log
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.stateChangeSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -26,7 +30,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -42,7 +45,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -250,20 +252,6 @@ fun QuizReminderSection(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StudyTopAppBar(modifier: Modifier = Modifier) {
-    Image(
-        painter = painterResource(id = R.drawable.top_bar_banner),
-        contentDescription = stringResource(R.string.app_name),
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        contentScale = ContentScale.Crop
-    )
-}
-
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MotivationMessagesSection(
@@ -275,15 +263,16 @@ fun MotivationMessagesSection(
 
     val pagerState = rememberPagerState(pageCount = { messages.size })
 
-    // Auto-scroll logic
-    if (!isLoading && messages.isNotEmpty()) {
+    // Auto-scroll logic (off when the system says "Remove animations")
+    val reduced = reducedMotion
+    if (!isLoading && messages.isNotEmpty() && !reduced) {
         LaunchedEffect(messages) {
             while (true) {
                 delay(3000)
                 val nextPage = (pagerState.currentPage + 1) % messages.size
                 pagerState.animateScrollToPage(
                     nextPage,
-                    animationSpec = tween(600, easing = FastOutSlowInEasing)
+                    animationSpec = tween(Motion.MEDIUM, easing = Motion.EmphasizedDecelerate)
                 )
             }
         }
@@ -449,7 +438,7 @@ fun StudentHeader(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "@$username",
+                        text = BidiText.handle(username),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -601,7 +590,7 @@ fun DashboardChips(
 
         val indicatorOffset by animateDpAsState(
             targetValue = outerPadding + (segmentWidth * selectedIndex),
-            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+            animationSpec = stateChangeSpec(),
             label = "segmented_offset"
         )
 

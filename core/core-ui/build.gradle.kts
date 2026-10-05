@@ -37,6 +37,8 @@ android {
 }
 
 dependencies {
+    // Arabic numerals / calendar names shared with every feature.
+    implementation(project(":core:core-domain"))
 
     //  core Android & Lifecycle
     implementation(libs.androidx.core.ktx)

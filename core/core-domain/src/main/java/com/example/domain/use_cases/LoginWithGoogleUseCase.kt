@@ -8,8 +8,8 @@ class LoginWithGoogleUseCase @Inject constructor(
     private val authRepository: AuthRepository
 ) {
     suspend operator fun invoke(
-
+        activityContext: Any
     ): LoginResult {
-        return authRepository.loginWithGoogle()
+        return authRepository.loginWithGoogle(activityContext)
     }
 }

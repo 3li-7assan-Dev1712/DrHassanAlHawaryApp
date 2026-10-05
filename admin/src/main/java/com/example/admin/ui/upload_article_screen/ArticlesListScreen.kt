@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.netlify.devalihassan.admin.R
+import app.netlify.devalihassan.admin.ui.components.AdminActionFeedback
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Article
 import java.text.SimpleDateFormat
@@ -51,6 +53,10 @@ fun ArticlesListScreen(
     onEditArticle: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Reload on every visit so an add or edit made on the next screen shows up on return.
+    LaunchedEffect(Unit) { viewModel.loadArticles() }
+    AdminActionFeedback(viewModel)
     var articleToDelete by remember { mutableStateOf<Article?>(null) }
 
     Scaffold(

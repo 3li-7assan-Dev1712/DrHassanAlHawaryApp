@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":core:core-network"))
     implementation(project(":core:core-ui"))
     implementation(project(":core:core-player"))
+    implementation(project(":feature:feature-share"))
 
     // exo player and media session && ui
     implementation(libs.media3.exoplayer)

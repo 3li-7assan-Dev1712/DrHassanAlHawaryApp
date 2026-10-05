@@ -1,7 +1,12 @@
 package com.example.feature.image.presentation.list
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
+import com.example.core.ui.theme.ContentPhase
+import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.animateStaggeredGridItem
+import com.example.core.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,8 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ImageNotSupported
@@ -27,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -36,11 +41,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.core.ui.R
-import com.example.feature.image.presentation.components.ImageGroupCard
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.EmptyState
+import com.example.core.ui.components.Illustration
+import com.example.core.ui.theme.Brand
+import com.example.feature.image.presentation.components.DesignTile
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,123 +61,103 @@ import com.example.feature.image.presentation.components.ImageGroupCard
 fun ImagesGroupsScreen(
     viewModel: ImagesGroupsViewModel = hiltViewModel(),
     onGroupClick: (groupId: String) -> Unit,
+    onImageClick: (groupId: String, index: Int) -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val lazyPagingItems = viewModel.imageGroups.collectAsLazyPagingItems()
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-                    Text(
-                        text = stringResource(R.string.images),
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface
+        topBar = { AppTopBar(title = stringResource(R.string.images), onBack = onNavigateBack) },
+        containerColor = Brand.colors.background
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
                 .padding(paddingValues)
         ) {
-            when (val refreshState = lazyPagingItems.loadState.refresh) {
-                is LoadState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            strokeWidth = 3.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-
-                is LoadState.Error -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ImageNotSupported,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "فشل في تحميل المجموعات.\nيرجى المحاولة مرة أخرى.",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                is LoadState.NotLoading -> {
-                    if (lazyPagingItems.itemCount == 0) {
+            val phase = when (lazyPagingItems.loadState.refresh) {
+                is LoadState.Loading -> ContentPhase.Loading
+                is LoadState.Error -> ContentPhase.Error
+                is LoadState.NotLoading ->
+                    if (lazyPagingItems.itemCount == 0) ContentPhase.Empty else ContentPhase.Content
+            }
+            val reduced = reducedMotion
+            AnimatedContent(
+                targetState = phase,
+                transitionSpec = { Motion.contentSwap(reduced) },
+                label = "designsContent",
+            ) { shown ->
+                when (shown) {
+                    ContentPhase.Loading -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "لا توجد مجموعات تصاميم حالياً.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            CircularProgressIndicator(
+                                strokeWidth = 3.dp,
+                                color = Brand.colors.accentStrong
                             )
                         }
-                    } else {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2), // Fixed columns often look cleaner for image grids
+                    }
+    
+                    ContentPhase.Error -> {
+                        Column(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            items(
-                                count = lazyPagingItems.itemCount,
-                                key = lazyPagingItems.itemKey { it.id }
-                            ) { index ->
-                                val group = lazyPagingItems[index]
-                                if (group != null) {
-                                    ImageGroupCard(
-                                        group = group,
-                                        onClick = { onGroupClick(group.id) }
-                                    )
-                                }
+                            EmptyState(
+                                illustration = Illustration.ComputerAndServer,
+                                title = stringResource(R.string.empty_no_connection),
+                            )
+                        }
+                    }
+    
+                    ContentPhase.Empty, ContentPhase.Content -> {
+                        if (shown == ContentPhase.Empty) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "لا توجد مجموعات تصاميم حاليًا.",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Brand.colors.textMuted
+                                )
                             }
-
-                            if (lazyPagingItems.loadState.append is LoadState.Loading) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        } else {
+                            // Designs come in many shapes: a staggered grid keeps each image's
+                            // own proportions instead of cropping them all to one ratio.
+                            LazyVerticalStaggeredGrid(
+                                columns = StaggeredGridCells.Fixed(2),
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalItemSpacing = 16.dp,
+                            ) {
+                                items(
+                                    count = lazyPagingItems.itemCount,
+                                    key = lazyPagingItems.itemKey { it.id }
+                                ) { index ->
+                                    val group = lazyPagingItems[index]
+                                    if (group != null) {
+                                        // Only for the count badge; loaded lazily per visible tile.
+                                        val images by viewModel.imagesForGroup(group.id)
+                                            .collectAsStateWithLifecycle()
+                                        Box(animateStaggeredGridItem()) {
+                                            DesignTile(
+                                                group = group,
+                                                imageCount = images.size,
+                                                onClick = { onGroupClick(group.id) },
+                                            )
+                                        }
+                                    }
+                                }
+    
+                                if (lazyPagingItems.loadState.append is LoadState.Loading) {
+                                    item(span = StaggeredGridItemSpan.FullLine) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Brand.colors.accentStrong)
+                                        }
                                     }
                                 }
                             }

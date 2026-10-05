@@ -1,136 +1,145 @@
 package com.example.feature.home.presentation.components
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.core.ui.theme.CairoTypography
-import com.example.core.ui.theme.HassanAlHawaryTheme
+import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.SharedKeys
+import com.example.core.ui.theme.sharedContainer
+import com.example.core.ui.theme.sharedPart
+import com.example.core.ui.icons.TablerIcons
+import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.Cairo
+import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.HijriDate
 import com.example.feature.home.R
 import com.example.feature.home.domain.model.AudioFeed
-import java.util.Locale
 
+/**
+ * Gold play circle -> topic title over "٦ ربيع الآخر ١٤٤٨هـ · ٢٤:٥٩".
+ * Tapping anywhere opens the audio, as before.
+ */
 @Composable
 fun AudioCard(
     audio: AudioFeed,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
-
+    modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    Card(
-        onClick = onClick,
-        modifier = modifier.border(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
-            shape = shape
-        ),
-        shape = shape,
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+    val meta = remember(audio) {
+        listOfNotNull(
+            audio.hijriDate?.let(ArabicNumerals::formatHijri),
+            ArabicNumerals.formatDuration(audio.duration),
+        ).joinToString(ArabicNumerals.DATE_SEPARATOR)
+    }
+    Row(
+        modifier = modifier
+            // Grows into the player; the gold circle morphs into its play button.
+            .sharedContainer(SharedKeys.audio(audio.audioUrl))
+            .clip(RoundedCornerShape(12.dp))
+            .background(Brand.colors.surface)
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .sharedPart(SharedKeys.audioPlay(audio.audioUrl), CircleShape, scaleContent = false)
+                .size(36.dp)
+                .background(Brand.colors.goldSoft, CircleShape),
+            contentAlignment = Alignment.Center,
         ) {
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = stringResource(R.string.audio_icon_description),
-                        modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+            Icon(
+                painter = painterResource(TablerIcons.PlayerPlay),
+                contentDescription = stringResource(R.string.audio_icon_description),
+                tint = Brand.colors.onGold,
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        Column {
             Text(
-                text = audio.title,
-                style = CairoTypography.titleSmall,
+                text = audio.displayTitle,
+                color = Brand.colors.textPrimary,
+                fontFamily = Cairo,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 3,
+                fontSize = 14.sp,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
             )
+            Spacer(Modifier.height(2.dp))
             Text(
-                text = formatDuration(
-                    audio.duration
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = meta,
+                color = Brand.colors.textMuted,
+                fontFamily = Cairo,
+                fontSize = 11.sp,
+                maxLines = 1,
             )
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 320, heightDp = 500)
+@Preview(name = "Audio card - with topic", widthDp = 360)
 @Composable
-fun PreviewAudioCard() {
-    val sampleAudio =
-        AudioFeed(
-            id = "aud1",
-            title = "Understanding the Essence of Patience in Islam",
-            duration = 2722000, // Example: 45 minutes 22 seconds
-            audioUrl = "https://example.com/audio.mp3",
-
+private fun AudioCardPreview() {
+    LazyRow(Modifier.background(Brand.colors.background).padding(12.dp)) {
+        item {
+            AudioCard(
+                audio = AudioFeed(
+                    id = "1",
+                    title = "خطبة بعنوان: فضل العشر، والأضحية - الجمعة: ( ٢٧ ذو القعدة ١٤٤٧هـ، 2026/5/15م",
+                    duration = 1_499_000,
+                    audioUrl = "",
+                    displayTitle = "فضل العشر، والأضحية",
+                    hijriDate = HijriDate(27, "ذو القعدة", 1447),
+                ),
+                onClick = {},
+                modifier = Modifier.width(280.dp),
             )
-    HassanAlHawaryTheme {
-        Surface(
-            modifier = Modifier
-                .padding(16.dp)
-                .width(180.dp)
-                .height(160.dp) // Adjusted height for better preview
-        ) {
-            AudioCard(audio = sampleAudio, onClick = {})
         }
     }
 }
 
-fun formatDuration(durationInMillis: Long): String {
-    val totalSeconds = durationInMillis / 1000
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-
-    return if (hours > 0) {
-        // Format as H:MM:SS
-        String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        // Format as M:SS
-        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+@Preview(name = "Audio card - no topic", widthDp = 360)
+@Composable
+private fun AudioCardNoTopicPreview() {
+    LazyRow(Modifier.background(Brand.colors.background).padding(12.dp)) {
+        item {
+            AudioCard(
+                audio = AudioFeed(
+                    id = "2",
+                    title = "محاضرة - 6 ربيع الآخر 1448هـ",
+                    duration = 1_499_000,
+                    audioUrl = "",
+                    displayTitle = "محاضرة",
+                    hijriDate = HijriDate(6, "ربيع الآخر", 1448),
+                ),
+                onClick = {},
+                modifier = Modifier.width(280.dp),
+            )
+        }
     }
 }

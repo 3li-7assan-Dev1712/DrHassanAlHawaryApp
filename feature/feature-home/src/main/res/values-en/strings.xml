@@ -24,5 +24,9 @@
     <string name="carousel_image_description">Image</string>
     <string name="audio_icon_description">Audio icon</string>
     <string name="no_images_available">No Available Images</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifications_empty">No notifications yet</string>
+    <string name="notifications_clear_all">Clear all</string>
+    <string name="notifications_delete">Delete notification</string>
 
 </resources>

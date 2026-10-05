@@ -1,41 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">الشيــخ د. حســن الهــواري</string>
+    <string name="app_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="login">تسجيل الدخول</string>
     <string name="enter_email">الإيميل</string>
-    <string name="articles">المـــقالات</string>
-    <string name="read_more">قراءة المــزيد…</string>
-    <string name="enter_password">كلمـــة المــرور</string>
-    <string name="register">إنشـــاء حســـاب</string>
-    <string name="login_question">لديــك حســـاب قديـــم؟</string>
-    <string name="register_question">ليس لديـــك حســـاب</string>
-    <string name="register_using">تسجيـــل الدخول عن طريـــق قوقـــل</string>
-    <string name="login_using">تسجيــــل الدخول عن طريـــق</string>
-    <string name="videos">الفيديوهــــات</string>
-    <string name="audios">الصـــوتيات</string>
-    <string name="enter_name">الإســم</string>
-    <string name="profile">الملـــف الشخصـــي</string>
+    <string name="articles">المقالات</string>
+    <string name="read_more">قراءة المزيد…</string>
+    <string name="enter_password">كلمة المرور</string>
+    <string name="register">إنشاء حساب</string>
+    <string name="login_question">لديك حساب قديم؟</string>
+    <string name="register_question">ليس لديك حساب</string>
+    <string name="register_using">تسجيل الدخول عن طريق قوقل</string>
+    <string name="login_using">تسجيل الدخول عن طريق</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="audios">الصوتيات</string>
+    <string name="enter_name">الإسم</string>
+    <string name="profile">الملف الشخصي</string>
+    <!-- Bottom-nav tab labels ("profile"/"search_hint" stay the screen title / search placeholder). -->
+    <string name="nav_account">حسابي</string>
+    <string name="nav_search">بحث</string>
     <string name="home">الرئيسية</string>
-    <string name="search_hint">بحـــث…</string>
+    <string name="search_hint">بحث…</string>
     <string name="loading">يتم التحميل…</string>
-    <string name="no_audios_available">لا تــوجــــد صــــوتــيات متاحــــة الآن</string>
-    <string name="audio_detail_description_title">مقــــطع بعنــــوان</string>
+    <string name="no_audios_available">لا توجد صوتيات متاحة الآن</string>
+    <string name="audio_detail_description_title">مقطع بعنوان</string>
 
-    <string name="error_msg">حـــدث خــــطأ</string>
+    <string name="error_msg">حدث خطأ</string>
 
-    <string name="study_zone">المعهـــد</string>
-    <string name="latest_articles">أحدث المــــقالات</string>
-    <string name="latest_audios">أحدث الصــــوتيات</string>
-    <string name="images">الصـــور</string>
+    <string name="study_zone">المعهد</string>
+    <string name="latest_articles">أحدث المقالات</string>
+    <string name="latest_audios">أحدث الصوتيات</string>
+    <string name="images">الصور</string>
     <string name="fasalo">فاسألوا</string>
-    <string name="war">نـــوازل الحـــرب</string>
-    <string name="most_important">أهـــم المســـائل</string>
-    <string name="lessons">الــمـحـــتويات</string>
+    <string name="war">نوازل الحرب</string>
+    <string name="most_important">أهم المسائل</string>
+    <string name="lessons">المحتويات</string>
     <string name="search_illustration_description">اكتب كلمة للعثور على الدرس أو الخطبة</string>
 
     <string name="q_a_title">فاسألوا</string>
     <string name="q_a_description">فاسألوا هي المنصة الموحدة لجميع أسئلة الفتاوى. يمكنك الضغط على الزر أدناه لفتح فاسألوا في تيليجرام وإرسال سؤالك مباشرة.</string>
     <string name="q_a_open_telegram">افتح في تيليجرام</string>
     <string name="fasalo_telegram_url" translatable="false">https://t.me/Fasalu1447</string>
+    <string name="q_a_cannot_open">تعذّر فتح تيليجرام، تأكد من وجود متصفح أو تطبيق تيليجرام.</string>
 </resources>

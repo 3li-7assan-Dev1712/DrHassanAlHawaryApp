@@ -16,18 +16,18 @@
     <string name="share_icon">أيقونة المشاركة</string>
     <string name="rating_illustration">صورة تقييم التطبيق</string>
 
-    <string name="app_name">الشيــخ د. حســن الهــواري</string>
+    <string name="app_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="continue_with_google">المتابعة عبر Google</string>
     <string name="admin_badge">الإدارة</string>
-    <string name="articles">المـــقالات</string>
-    <string name="videos">الفيديوهــــات</string>
-    <string name="audios">الصـــوتيات</string>
-    <string name="profile">الملـــف الشخصـــي</string>
+    <string name="articles">المقالات</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="audios">الصوتيات</string>
+    <string name="profile">الملف الشخصي</string>
     <string name="loading">يتم التحميل…</string>
     <string name="study">الدراسة</string>
     <string name="competition">قائمة التميز</string>
     <string name="images">التصاميم</string>
-    <string name="lessons">الــمـحـــتويات</string>
+    <string name="lessons">المحتويات</string>
 
     <!-- Onboarding -->
 
@@ -60,9 +60,40 @@
     <string name="feature_coming_soon">"تتاح هذه الميزة قريبا ان شاء الله "</string>
     <string name="about_dr_hassan">عن الشيخ</string>
     <string name="no_audios_available">لا توجد صوتيات متاحة الآن</string>
-    <string name="no_videos_available">لا توجد فيديوهات متاحة حالياً</string>
+    <string name="no_videos_available">لا توجد فيديوهات متاحة حاليًا</string>
     <string name="search_illustration_description">ابحث عن كل المحتويات المسموعة والمرئية والمكتوبة بضغطة زر واحدة فقط</string>
     <string name="onboarding_skip">تخطي</string>
     <string name="onboarding_next">التالي</string>
     <string name="onboarding_get_started">"لنبدأ "</string>
+
+    <!-- Share Audio as Video -->
+    <string name="share_preview_title">معاينة المشاركة</string>
+    <string name="share_preview_close">إغلاق</string>
+    <string name="share_brand_line">تم الإنشاء بواسطة تطبيق الشيخ د. حسن الهواري</string>
+    <string name="share_generating_video">جاري إنشاء الفيديو</string>
+    <string name="share_button_label">مشاركة</string>
+    <string name="share_trim_range">من %1$s إلى %2$s</string>
+    <string name="share_video_chooser">مشاركة الفيديو</string>
+    <string name="share_error_generic">تعذّر تجهيز الفيديو، حاول مرة أخرى</string>
+    <string name="share_error_low_space">لا توجد مساحة تخزين كافية على الجهاز</string>
+    <string name="share_retry">إعادة المحاولة</string>
+    <string name="share_link_instead">شارك الرابط بدلًا من ذلك</string>
+    <string name="share_play">تشغيل</string>
+    <string name="share_pause">إيقاف مؤقت</string>
+
+    <!-- Share Article Excerpt as Image -->
+    <string name="share_generating_image">جاري إنشاء الصورة</string>
+    <string name="share_image_chooser">مشاركة الصورة</string>
+    <string name="share_text_attribution">من مقال: %1$s</string>
+    <string name="share_text_selection_title">اختر نصًا للمشاركة</string>
+    <string name="share_text_selection_hint">اضغط مطولًا على النص ثم اسحب لتحديد الجزء الذي تريده، واسحب المقبضين لتعديله</string>
+    <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
+    <string name="share_text_too_long">النص طويل، اختر جزءًا أقصر</string>
+    <string name="share_text_clear_selection">مسح التحديد</string>
+    <string name="share_text_continue">متابعة</string>
+    <string name="share_text_selected_count">%1$d حرف</string>
+    <string name="share_quote_page_of">صورة %1$d من %2$d</string>
+    <string name="share_quote_multi_hint">ستتم مشاركة %1$d صور بالترتيب</string>
+    <string name="page_counter">%1$s من %2$s</string>
+    <string name="share">مشاركة</string>
 </resources>

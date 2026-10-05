@@ -49,6 +49,8 @@ dependencies {
     implementation(project(":core:core-database"))
     implementation(project(":core:core-network"))
     implementation(project(":core:core-ui"))
+    // ArticleText: the selection screen must build the same display text the share screen rebuilds.
+    implementation(project(":feature:feature-share"))
 
 
     // ViewModel

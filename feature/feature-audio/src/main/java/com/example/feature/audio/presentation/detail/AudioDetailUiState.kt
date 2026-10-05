@@ -3,6 +3,8 @@ package com.example.feature.audio.presentation.detail
 data class AudioDetailUiState(
     val audioUrl: String? = null,
     val title: String = "Loading...",
+    val category: String? = null,
+    val localFilePath: String? = null,
     val description: String? = null,
 
     val isPlaying: Boolean = false,
@@ -19,6 +21,8 @@ data class AudioDetailUiState(
     val isFavorite: Boolean = false,
     val isDownloaded: Boolean = false,
     val downloadProgress: Float = 0f,
+    /** True from the download tap until it finishes, fails or is cancelled. */
+    val isDownloading: Boolean = false,
 
     val isLoadingDetails: Boolean = true // Loading metadata for the screen itself
 )

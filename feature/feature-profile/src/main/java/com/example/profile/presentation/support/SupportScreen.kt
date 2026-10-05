@@ -118,7 +118,9 @@ fun SupportScreen(
             verticalArrangement = Arrangement.Top
         ) {
             Image(
-                painter = painterResource(id = R.drawable.contact_illu),
+                painter = painterResource(
+                    id = R.drawable.contact_illu
+                ),
                 contentDescription = null,
                 modifier = Modifier
                     .height(220.dp)

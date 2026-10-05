@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -29,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -72,8 +74,8 @@ fun AudioUploadScreen(
                     Text(
                         if (state.audioId == null) 
                             stringResource(R.string.upload_new_audio) 
-                        else 
-                            stringResource(R.string.edit_lesson)
+                        else
+                            stringResource(R.string.edit_audio)
                     ) 
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -89,8 +91,12 @@ fun AudioUploadScreen(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isUploading) {
-                LoadingIndicator(progress = state.progress)
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            } else if (state.isUploading) {
+                // Only a file upload reports real progress; a metadata save just spins.
+                if (state.selectedUri != null) LoadingIndicator(progress = state.progress)
+                else CircularProgressIndicator()
             } else if (state.isSuccess) {
                 StatusIndicator(
                     icon = Icons.Default.CheckCircle,
@@ -105,6 +111,7 @@ fun AudioUploadScreen(
                     onCategoryChange = viewModel::onCategoryChange,
                     selectedUri = state.selectedUri,
                     onAudioSelected = viewModel::onAudioSelected,
+                    onClearSelectedAudio = viewModel::onClearSelectedAudio,
                     onUploadClick = viewModel::saveAudio,
                     isEditing = state.audioId != null,
                     errorMessage = state.error
@@ -123,6 +130,7 @@ private fun UploadForm(
     onCategoryChange: (String) -> Unit,
     selectedUri: Uri?,
     onAudioSelected: (Uri) -> Unit,
+    onClearSelectedAudio: () -> Unit,
     onUploadClick: () -> Unit,
     isEditing: Boolean,
     errorMessage: String?
@@ -156,12 +164,33 @@ private fun UploadForm(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // When editing, the file is optional: nothing picked keeps the current one.
+        if (isEditing) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = stringResource(R.string.replace_audio_file),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(
+                    text = stringResource(R.string.keep_current_audio_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
         FilePicker(
             selectedUri = selectedUri,
             onClick = {
                 audioPickerLauncher.launch("audio/*")
             }
         )
+
+        if (isEditing && selectedUri != null) {
+            TextButton(onClick = onClearSelectedAudio) {
+                Text(stringResource(R.string.keep_current_file))
+            }
+        }
 
         if (errorMessage != null) {
             Text(text = errorMessage, color = MaterialTheme.colorScheme.error)

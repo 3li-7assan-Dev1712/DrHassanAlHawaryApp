@@ -7,10 +7,30 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.example.data_local.NotificationDao
+import com.example.data_local.model.NotificationEntity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class NotificationService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var notificationDao: NotificationDao
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
+    }
 
     override fun onNewToken(token: String) {
         // Token changes sometimes. Later we can send it to Firestore if you want.
@@ -29,6 +49,13 @@ class NotificationService : FirebaseMessagingService() {
         val body = message.notification?.body
             ?: message.data["body"]
             ?: ""
+
+        // Keep a copy for the in-app notifications screen.
+        serviceScope.launch {
+            notificationDao.insert(
+                NotificationEntity(title = title, body = body, receivedAt = System.currentTimeMillis())
+            )
+        }
 
         showNotification(title, body)
     }
@@ -53,7 +80,7 @@ class NotificationService : FirebaseMessagingService() {
         }
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(app.netlify.devalihassan.R.drawable.audios_icon)
+            .setSmallIcon(com.example.core.ui.R.drawable.audios_icon)
             .setLargeIcon(large)
             .setContentTitle(title)
             .setContentText(body)

@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.netlify.devalihassan.admin.R
+import app.netlify.devalihassan.admin.ui.components.AdminActionFeedback
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.components.shimmer
@@ -62,6 +64,10 @@ fun ImageGroupsListScreen(
     onAddGroup: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Reload on every visit so an add or edit made on the next screen shows up on return.
+    LaunchedEffect(Unit) { viewModel.loadGroups() }
+    AdminActionFeedback(viewModel)
     var groupToDelete by remember { mutableStateOf<ImageGroup?>(null) }
 
     Scaffold(

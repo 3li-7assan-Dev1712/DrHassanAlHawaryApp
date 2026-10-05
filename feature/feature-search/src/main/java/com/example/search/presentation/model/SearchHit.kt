@@ -1,11 +1,6 @@
 package com.example.search.presentation.model
 
-import androidx.compose.ui.text.AnnotatedString
-
-/**
- * A robust data class representing a parsed search hit.
- * It includes fields for common attributes and highlighted versions.
- */
+/** One Algolia hit, as stored. Display cleaning happens in the row, never here. */
 data class SearchHit(
     val objectID: String,
     val type: String?,
@@ -15,6 +10,4 @@ data class SearchHit(
     val videoUrl: String?,
     val audioUrl: String?,
     val youtubeVideoId: String?,
-    val highlightedTitle: AnnotatedString?,
-    val highlightedContent: AnnotatedString?
 )

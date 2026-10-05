@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import app.netlify.devalihassan.admin.R
+import app.netlify.devalihassan.admin.ui.components.AdminActionFeedback
 import app.netlify.devalihassan.admin.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.animation.LoadingScreen
 import com.example.domain.module.Lesson
@@ -52,6 +54,10 @@ fun LessonsScreen(
     onEditLesson: (String) -> Unit
 ) {
     val state by lessonsViewModel.uiState.collectAsState()
+
+    // Reload on every visit so an add or edit made on the next screen shows up on return.
+    LaunchedEffect(Unit) { lessonsViewModel.loadLessons() }
+    AdminActionFeedback(lessonsViewModel)
     var lessonToDelete by remember { mutableStateOf<Lesson?>(null) }
 
     Scaffold(

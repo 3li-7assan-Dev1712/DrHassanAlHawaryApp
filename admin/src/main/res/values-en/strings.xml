@@ -26,6 +26,13 @@
     <string name="current_admins">Current Admins</string>
     <string name="add_admin">Add Admin</string>
     <string name="remove_admin">Remove Admin</string>
+    <string name="role_admin">Admin</string>
+    <string name="promote_to_super_admin">Promote to super admin</string>
+    <string name="demote_to_admin">Demote to admin</string>
+    <string name="promote_confirmation_msg">Promote %1$s to super admin? They will be able to manage admins and channels.</string>
+    <string name="demote_confirmation_msg">Demote %1$s to admin? They will lose super admin access.</string>
+    <string name="you_label">(You)</string>
+    <string name="confirm">Confirm</string>
     <string name="add_new_admin_title">Add New Admin</string>
     <string name="email_address">Email Address</string>
     <string name="add">Add</string>

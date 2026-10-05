@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.core.ui.theme.Brand
 import com.example.domain.module.Student
 
 @Composable
@@ -47,7 +48,7 @@ fun NotChannelMemberContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(Brand.colors.background),
         horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.Top
@@ -65,14 +66,9 @@ fun NotChannelMemberContent(
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                ),
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                )
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Brand.colors.surface),
+                border = androidx.compose.foundation.BorderStroke(0.5.dp, Brand.colors.divider)
             ) {
                 Column(
                     modifier = Modifier
@@ -111,7 +107,7 @@ fun NotChannelMemberContent(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "للوصول إلى الدروس والمحتوى التعليمي والمشاركة في الاختبارات، يجب أن تكون عضواً في قناة المعهد الرسمية على تيليجرام.",
+                        text = "للوصول إلى الدروس والمحتوى التعليمي والمشاركة في الاختبارات، يجب أن تكون عضوًا في قناة المعهد الرسمية على تيليجرام.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         lineHeight = 26.sp,

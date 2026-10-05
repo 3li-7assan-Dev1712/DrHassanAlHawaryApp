@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import backgroundDark
 import backgroundLight
 import errorContainerDark
@@ -77,7 +78,7 @@ import tertiaryContainerLight
 import tertiaryDark
 import tertiaryLight
 
-private val lightScheme: ColorScheme
+private val brownLightScheme: ColorScheme
     get() = lightColorScheme(
         primary = primaryLight,
         onPrimary = onPrimaryLight,
@@ -116,7 +117,7 @@ private val lightScheme: ColorScheme
         surfaceContainerHighest = surfaceContainerHighestLight,
     )
 
-private val darkScheme = darkColorScheme(
+private val brownDarkScheme = darkColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
     primaryContainer = primaryContainerDark,
@@ -157,23 +158,25 @@ private val darkScheme = darkColorScheme(
 @Composable
 fun HassanAlHawaryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    brandTheme: BrandTheme = BrandTheme.BROWN,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        /*    dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                val context = LocalContext.current
-                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-            }*/
+    val reduced = rememberSystemReducedMotion()
+    // Switching light/dark animates every colour (see AnimatedTheme.kt).
+    val colorScheme = animateColorScheme(if (darkTheme) brownDarkScheme else brownLightScheme, reduced)
+    val brandPalette = animateBrandPalette(if (darkTheme) DarkBrandPalette else LightBrandPalette, reduced)
 
-        darkTheme -> darkScheme
-        else -> lightScheme
+    CompositionLocalProvider(
+        LocalReducedMotion provides reduced,
+        LocalBrandTheme provides brandTheme,
+        LocalBrandPalette provides brandPalette,
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = CairoTypography,
+            content = content
+        )
     }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = CairoTypography,
-        content = content
-    )
 }

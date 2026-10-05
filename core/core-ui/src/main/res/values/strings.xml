@@ -17,7 +17,7 @@
     <string name="rating_illustration">صورة تقييم التطبيق</string>
 
     <!-- Onboarding -->
-    <string name="share_app">مشاركة التطبيق مع الإخــوة</string>
+    <string name="share_app">مشاركة التطبيق مع الإخوة</string>
 
     <!-- Guest Content -->
     <string name="telegram_connect_title">اربط حسابك بتيليجرام</string>
@@ -50,23 +50,23 @@
 
     <!-- Article -->
 
-    <string name="app_name">الشيــخ د. حســن الهــواري</string>
+    <string name="app_name">الشيخ د. حسن الهواري</string>
     <string name="continue_with_google">المتابعة عبر Google</string>
     <string name="admin_badge">الإدارة</string>
-    <string name="articles">المـــقالات</string>
-    <string name="videos">الفيديوهــــات</string>
-    <string name="audios">الصـــوتيات</string>
-    <string name="profile">الملـــف الشخصـــي</string>
+    <string name="articles">المقالات</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="audios">الصوتيات</string>
+    <string name="profile">الملف الشخصي</string>
     <string name="loading">يتم التحميل…</string>
     <string name="study">الدراسة</string>
     <string name="competition">قائمة التميز</string>
 
 
     <string name="images">التصاميم</string>
-    <string name="lessons">الــمـحـــتويات</string>
+    <string name="lessons">المحتويات</string>
     <string name="dr_hassan_institute">معهد الشيخ حسن الهواري الفقهي</string>
     <string name="downloading_msg">جاري التحميل</string>
-    <string name="welcome_to_app">مرحباً بك في تطبيق</string>
+    <string name="welcome_to_app">مرحبًا بك في تطبيق</string>
     <string name="search_hint">بحث</string>
     <string name="error_msg">لم يتم العثور على نتائج</string>
 
@@ -85,10 +85,127 @@
     <string name="feature_coming_soon">"تتاح هذه الميزة قريبا ان شاء الله "</string>
     <string name="about_dr_hassan">عن الشيخ</string>
     <string name="no_audios_available">لا توجد صوتيات متاحة الآن</string>
-    <string name="no_videos_available">لا توجد فيديوهات متاحة حالياً</string>
+    <string name="no_videos_available">لا توجد فيديوهات متاحة حاليًا</string>
     <string name="search_illustration_description">ابحث عن كل المحتويات المسموعة والمرئية والمكتوبة بضغطة زر واحدة فقط</string>
     <string name="onboarding_skip">تخطي</string>
     <string name="onboarding_next">التالي</string>
     <string name="onboarding_get_started">"لنبدأ "</string>
 
+    <!-- Share Audio as Video -->
+    <string name="share_preview_title">معاينة المشاركة</string>
+    <string name="share_preview_close">إغلاق</string>
+    <!-- Burned into the exported video's pixels - always Arabic. Deliberately
+         has no values-en override so an English locale still falls back to this. -->
+    <string name="share_brand_line">تم الإنشاء بواسطة تطبيق الشيخ د. حسن الهواري</string>
+    <!-- Burned into the share video frame: always Arabic, regardless of app locale. -->
+    <string name="share_frame_name" translatable="false">الشيخ د. حسن أحمد الهواري</string>
+    <string name="share_frame_subtitle" translatable="false">خطب ودروس</string>
+    <string name="share_frame_app_name" translatable="false">تطبيق الشيخ د. حسن أحمد الهواري</string>
+    <string name="share_cta_label" translatable="false">حمّل التطبيق</string>
+    <!-- Store link sent with the shared video (Telegram shows it as the caption). -->
+    <string name="share_cta_url" translatable="false">https://play.google.com/store/apps/details?id=app.netlify.devalihassan</string>
+    <string name="share_quote_subtitle" translatable="false">من مقالات الشيخ</string>
+    <string name="share_quote_source_label" translatable="false">من مقال</string>
+    <string name="share_generating_video">جاري إنشاء الفيديو</string>
+    <string name="share_button_label">مشاركة</string>
+    <string name="share_trim_range">من %1$s إلى %2$s</string>
+    <string name="share_video_chooser">مشاركة الفيديو</string>
+    <string name="share_error_generic">تعذّر تجهيز الفيديو، حاول مرة أخرى</string>
+    <string name="share_error_low_space">لا توجد مساحة تخزين كافية على الجهاز</string>
+    <string name="share_retry">إعادة المحاولة</string>
+    <string name="share_link_instead">شارك الرابط بدلًا من ذلك</string>
+    <string name="share_play">تشغيل</string>
+    <string name="share_pause">إيقاف مؤقت</string>
+
+    <!-- Share Article Excerpt as Image -->
+    <string name="share_generating_image">جاري إنشاء الصورة</string>
+    <string name="share_image_chooser">مشاركة الصورة</string>
+    <string name="share_text_attribution">من مقال: %1$s</string>
+    <string name="share_text_selection_title">اختر نصًا للمشاركة</string>
+    <string name="share_text_selection_hint">اضغط مطولًا على النص ثم اسحب لتحديد الجزء الذي تريده، واسحب المقبضين لتعديله</string>
+    <string name="share_text_no_selection">لم يتم تحديد أي نص بعد</string>
+    <string name="share_text_too_long">النص طويل، اختر جزءًا أقصر</string>
+    <string name="share_text_clear_selection">مسح التحديد</string>
+    <string name="share_text_continue">متابعة</string>
+    <string name="share_text_selected_count">%1$d حرف</string>
+    <string name="share_quote_page_of">صورة %1$d من %2$d</string>
+    <string name="share_quote_multi_hint">ستتم مشاركة %1$d صور بالترتيب</string>
+
+    <string name="page_counter">%1$s من %2$s</string>
+    <string name="share">مشاركة</string>
+    <string name="sheikh_name">الشيخ د. حسن أحمد الهواري</string>
+    <string name="reader_font_size">حجم الخط</string>
+    <string name="reader_font_smaller">تصغير الخط</string>
+    <string name="reader_font_larger">تكبير الخط</string>
+    <string name="reader_font_preview">الحمد لله رب العالمين</string>
+    <string name="search_title">البحث</string>
+    <string name="search_placeholder">ابحث في المقالات والصوتيات والفيديوهات</string>
+    <string name="search_too_short">اكتب كلمة أطول قليلًا</string>
+    <string name="search_suggested">مواضيع مقترحة</string>
+    <string name="search_recent">عمليات البحث الأخيرة</string>
+    <string name="search_clear_recent">مسح</string>
+    <string name="search_view_all">عرض الكل</string>
+    <string name="search_clear_query">مسح البحث</string>
+    <string name="search_type_article">مقال</string>
+    <string name="search_type_audio">صوتية</string>
+    <string name="search_type_video">فيديو</string>
+    <string name="search_type_image">تصميم</string>
+    <string name="search_error">حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.</string>
+    <string name="audio_saved">محفوظ</string>
+    <string name="my_account">حسابي</string>
+    <string name="theme_system">تلقائي</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="appearance">المظهر</string>
+    <string name="settings">الإعدادات</string>
+    <string name="reader_font_setting">حجم خط القراءة</string>
+    <string name="about_tab_bio">نبذة</string>
+    <string name="about_tab_qualifications">المؤهلات</string>
+    <string name="about_tab_research">البحوث</string>
+    <string name="about_tab_contributions">المساهمات</string>
+    <string name="about_unpublished">لم يُنشر بعد</string>
+    <string name="about_official_channels">القنوات الرسمية</string>
+    <string name="about_website">الموقع الرسمي</string>
+    <string name="about_telegram_channel">القناة الرسمية للشيخ على تيليجرام</string>
+    <string name="about_telegram_qr">رمز QR للقناة</string>
+    <string name="about_telegram_qr_title">امسح الرمز للانضمام إلى القناة</string>
+    <string name="about_telegram_qr_hint">اعرضه على من حولك ليتابعوا القناة</string>
+    <string name="about_media_contributions">المساهمات الإعلامية</string>
+    <string name="about_teaching_contributions">المساهمات التعليمية</string>
+    <string name="about_teachers">أبرز مشايخه</string>
+    <string name="about_positions">الحياة العملية (المناصب)</string>
+    <string name="about_research_published">الأبحاث</string>
+    <string name="about_research_papers">أوراق علمية في ملتقيات ومؤتمرات</string>
+    <string name="audio_downloading_lesson">جارٍ تحميل الدرس</string>
+    <string name="audio_cancel_download">إلغاء التحميل</string>
+    <string name="audio_rewind_10">رجوع ١٠ ثوانٍ</string>
+    <string name="audio_forward_10">تقديم ١٠ ثوانٍ</string>
+    <string name="audio_speed">السرعة</string>
+    <string name="audio_download">تحميل</string>
+    <string name="share_video_speaker_name">الشيخ د. حسن الهواري</string>
+    <string name="share_video_link">dr-alhawary.com</string>
+    <string name="share_video_button">مشاركة الفيديو</string>
+    <string name="share_listen_clip">استمع للمقطع قبل المشاركة</string>
+    <string name="share_nudge_back">−٥ ث</string>
+    <string name="share_nudge_forward">+٥ ث</string>
+    <string name="share_preparing_percent">جارٍ التجهيز %1$s</string>
+    <string name="about_app_name">تطبيق الشيخ د. حسن الهواري</string>
+    <string name="about_app_description">خطب الشيخ ودروسه ومقالاته وفتاواه في مكان واحد، مع الاستماع دون إنترنت ومشاركة المقاطع والاقتباسات.</string>
+    <string name="about_contact_us">تواصل معنا</string>
+    <string name="share_app_heading">شارك التطبيق لينتفع به غيرك</string>
+    <string name="share_app_message_label">نص المشاركة</string>
+    <string name="share_app_message">تطبيق الشيخ د. حسن الهواري: خطب ودروس ومقالات وفتاوى في مكان واحد</string>
+    <string name="share_app_share_link">مشاركة الرابط</string>
+    <string name="share_app_copy_link">نسخ الرابط</string>
+    <string name="share_app_link_copied">تم نسخ الرابط</string>
+    <string name="share_app_qr">رمز QR</string>
+    <string name="share_app_qr_title">امسح الرمز لتحميل التطبيق</string>
+    <string name="share_app_qr_hint">أظهره لمن حولك في المسجد أو الدرس</string>
+    <string name="empty_no_connection">تعذّر الاتصال بالإنترنت</string>
+    <string name="empty_no_results">لا توجد نتائج</string>
+    <string name="empty_try_another_word">جرّب كلمة أخرى</string>
+    <string name="share_step_place">١. اضغط أو اسحب لاختيار الموضع</string>
+    <string name="share_step_edges">٢. اسحب الطرفين لضبط البداية والنهاية</string>
+    <string name="share_text_clear">مسح</string>
+    <string name="share_text_select_all">تحديد النص كله</string>
 </resources>

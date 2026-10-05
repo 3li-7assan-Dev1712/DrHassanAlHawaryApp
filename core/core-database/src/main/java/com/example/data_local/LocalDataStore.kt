@@ -6,7 +6,10 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +32,17 @@ private const val LAST_SYNC_TIME = "last_sync_time"
 
 val KEY_COMPLETED = booleanPreferencesKey("onboarding_completed")
 val KEY_DARK_THEME = booleanPreferencesKey("dark_theme_enabled")
+val KEY_BRAND_THEME = stringPreferencesKey("brand_theme")
+// Added by the overnight UI pass. New keys only: existing keys keep their type and meaning.
+/** Article reader text size, as a step index (1 = the original size). */
+val KEY_READER_FONT_STEP = intPreferencesKey("reader_font_step")
+/** Recent search queries, newest first, newline-separated. */
+val KEY_RECENT_SEARCHES = stringPreferencesKey("recent_searches")
+private const val SEARCH_SEPARATOR = "\n"
+/** "تلقائي": follow the phone's dark mode. Absent = on only if the user never picked a theme. */
+/** Audio player speed (1.0 = normal), applied to later playback too. */
+val KEY_PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
+val KEY_THEME_FOLLOW_SYSTEM = booleanPreferencesKey("theme_follow_system")
 
 
 @Singleton
@@ -131,6 +145,7 @@ class LocalDataStore @Inject constructor(
     // Theme preferences
     val isDarkTheme: Flow<Boolean> =
         dataStore.data.map { prefs ->
+            // Light until the user picks dark in Profile.
             prefs[KEY_DARK_THEME] ?: false
         }
 
@@ -139,6 +154,50 @@ class LocalDataStore @Inject constructor(
         dataStore.edit { prefs ->
             prefs[KEY_DARK_THEME] = enabled
         }
+    }
+
+    val brandTheme: Flow<String> =
+        dataStore.data.map { prefs ->
+            prefs[KEY_BRAND_THEME] ?: "BROWN"
+        }
+
+    suspend fun setBrandTheme(theme: String) {
+        Log.d(TAG, "setBrandTheme: $theme")
+        dataStore.edit { prefs ->
+            prefs[KEY_BRAND_THEME] = theme
+        }
+    }
+
+    val readerFontStep: Flow<Int> = dataStore.data.map { it[KEY_READER_FONT_STEP] ?: 1 }
+
+    suspend fun setReaderFontStep(step: Int) {
+        dataStore.edit { it[KEY_READER_FONT_STEP] = step }
+    }
+
+    val recentSearches: Flow<List<String>> = dataStore.data.map { prefs ->
+        prefs[KEY_RECENT_SEARCHES].orEmpty().split(SEARCH_SEPARATOR).filter { it.isNotBlank() }
+    }
+
+    suspend fun setRecentSearches(queries: List<String>) {
+        dataStore.edit { it[KEY_RECENT_SEARCHES] = queries.joinToString(SEARCH_SEPARATOR) }
+    }
+
+    /**
+     * Existing users who already picked light/dark (the old key has a value) keep their
+     * explicit choice; everyone else starts on "follow the system".
+     */
+    val followSystemTheme: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[KEY_THEME_FOLLOW_SYSTEM] ?: (prefs[KEY_DARK_THEME] == null)
+    }
+
+    suspend fun setFollowSystemTheme(follow: Boolean) {
+        dataStore.edit { it[KEY_THEME_FOLLOW_SYSTEM] = follow }
+    }
+
+    val playbackSpeed: Flow<Float> = dataStore.data.map { it[KEY_PLAYBACK_SPEED] ?: 1f }
+
+    suspend fun setPlaybackSpeed(speed: Float) {
+        dataStore.edit { it[KEY_PLAYBACK_SPEED] = speed }
     }
 
     fun getLastSyncTime(): Flow<Long> {

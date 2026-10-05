@@ -41,6 +41,31 @@ android {
     buildFeatures {
         compose = true
     }
+
+    // Same duplicate-metadata guard as :app — see the comment in app/build.gradle.kts.
+    packaging {
+        resources {
+            excludes += setOf(
+                "/META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/NOTICE.md",
+                "META-INF/ASL2.0",
+                "META-INF/INDEX.LIST",
+                "META-INF/DEPENDENCIES.txt",
+                "META-INF/io.netty.versions.properties",
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            )
+            pickFirsts += setOf(
+                "META-INF/*.kotlin_module"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -118,4 +143,4 @@ dependencies {
     implementation(project(":core:core-ui"))
 
 
-}
+}

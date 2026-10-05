@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import com.example.core_ui.R
-import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(
     onShowSplashScreenTimeEnd: () -> Unit
@@ -32,7 +31,7 @@ fun SplashScreen(
                 }
             )
         )
-        delay(3000L)
+        // No artificial wait: the system splash already covers real loading.
         onShowSplashScreenTimeEnd()
 
     }
@@ -44,7 +43,7 @@ fun SplashScreen(
 
     ) {
         Image(
-            painter = painterResource(id = R.drawable.dr_hassan_logo),
+            painter = painterResource(id = R.drawable.dr_hassan_app_logo),
             contentDescription = "image logo",
             modifier = Modifier.scale(scale.value)
         )

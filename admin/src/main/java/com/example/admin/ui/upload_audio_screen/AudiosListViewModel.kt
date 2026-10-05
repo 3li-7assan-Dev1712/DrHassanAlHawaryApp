@@ -1,7 +1,7 @@
 package app.netlify.devalihassan.admin.ui.upload_audio_screen
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.module.Audio
 import com.example.domain.use_cases.audios.DeleteAudioUseCase
 import com.example.domain.use_cases.audios.GetAllRemoteAudiosUseCase
@@ -23,14 +23,10 @@ sealed interface AudiosListUiState {
 class AudiosListViewModel @Inject constructor(
     private val getAllRemoteAudiosUseCase: GetAllRemoteAudiosUseCase,
     private val deleteAudioUseCase: DeleteAudioUseCase
-) : ViewModel() {
+) : AdminActionViewModel() {
 
     private val _uiState = MutableStateFlow<AudiosListUiState>(AudiosListUiState.Loading)
     val uiState: StateFlow<AudiosListUiState> = _uiState.asStateFlow()
-
-    init {
-        loadAudios()
-    }
 
     fun loadAudios() {
         viewModelScope.launch {
@@ -45,10 +41,6 @@ class AudiosListViewModel @Inject constructor(
     }
 
     fun deleteAudio(audioId: String, audioUrl: String) {
-        viewModelScope.launch {
-            deleteAudioUseCase(audioId, audioUrl).onSuccess {
-                loadAudios()
-            }
-        }
+        runAction({ deleteAudioUseCase(audioId, audioUrl) }) { loadAudios() }
     }
 }

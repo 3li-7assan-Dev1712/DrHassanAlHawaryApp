@@ -9,14 +9,17 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import com.example.domain.module.Audio
+import com.example.domain.repository.DataStoreRepository
 import com.example.domain.use_cases.audios.DownloadAudioUseCase
 import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.GetAudioByUrlUseCase
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.isActive
@@ -28,8 +31,12 @@ import javax.inject.Inject
 class AudioDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getAudioByUrlUseCase: GetAudioByUrlUseCase,
-    private val downloadAudioUseCase: DownloadAudioUseCase
+    private val downloadAudioUseCase: DownloadAudioUseCase,
+    private val dataStoreRepository: DataStoreRepository,
 ) : ViewModel() {
+
+    /** The running "save offline" download, so the inline card's (x) can cancel it. */
+    private var downloadJob: Job? = null
 
 
     private val TAG = "AudioDetailViewModel"
@@ -40,6 +47,20 @@ class AudioDetailViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private var currentAudio: Audio? = null
+
+    /**
+     * The "restart from the beginning" behavior below is only meant for a fresh visit to
+     * this screen, not every controller reconnect. [mediaControllerFuture] gets reassigned
+     * (and [listenToController] re-runs) on every config change too, because the Composable's
+     * `remember { MediaController.Builder(...).buildAsync() }` doesn't survive Activity
+     * recreation - only the ViewModel does. Gating on this flag stops rotation from
+     * resetting in-progress playback to 0.
+     */
+    private var isFirstControllerConnection = true
+
+    /** Cancelled and replaced on every reconnect, so a rotation doesn't leave the
+     * previous connection's progress-polling loop running alongside the new one. */
+    private var controllerJob: Job? = null
 
     var mediaControllerFuture: ListenableFuture<MediaController>? = null
         set(value) {
@@ -52,6 +73,11 @@ class AudioDetailViewModel @Inject constructor(
 
 
     init {
+        viewModelScope.launch {
+            val saved = dataStoreRepository.playbackSpeed().first()
+            _uiState.update { it.copy(playbackSpeed = saved.takeIf { s -> s in SPEEDS } ?: 1f) }
+            mediaControllerFuture?.await()?.setPlaybackSpeed(_uiState.value.playbackSpeed)
+        }
         Log.d("Ali 1712", "audio url is $audioUrl: ")
         if (audioUrl.isNotBlank()) {
             _uiState.update { it.copy(audioUrl = audioUrl, title = audioTitle) }
@@ -70,16 +96,26 @@ class AudioDetailViewModel @Inject constructor(
         viewModelScope.launch {
             getAudioByUrlUseCase(audioUrl).collect { audio ->
                 Log.d(TAG, "loadAudioDetails: $audio")
+                currentAudio = audio
                 if (audio != null) {
                     Log.d(TAG, "loadAudioDetails: local file path ${audio.localFilePath}")
-                    currentAudio = audio
                     _uiState.update {
                         it.copy(
                             isDownloaded = audio.isDownloaded,
                             isFavorite = audio.isFavorite,
+                            // The share card's chip is keyed off the category id ("khotab", ...); `type` is
+                            // just "audio" for every item and used to leak onto the card as a label.
+                            category = audio.categoryId?.takeIf { id -> id.isNotBlank() },
+                            localFilePath = audio.localFilePath.takeIf { audio.isDownloaded },
                             isLoadingDetails = false
                         )
                     }
+                } else {
+                    // Not (yet) cached locally - e.g. opened straight from search results
+                    // without ever browsing the audio list, so Room has no matching row.
+                    // Streaming still works off audioUrl/title from nav args, so stop
+                    // blocking the UI behind the loading spinner.
+                    _uiState.update { it.copy(isLoadingDetails = false) }
                 }
             }
         }
@@ -154,6 +190,24 @@ class AudioDetailViewModel @Inject constructor(
         _uiState.update { it.copy(playbackSpeed = speed) }
     }
 
+    /** "السرعة": 1× → 1.25× → 1.5× → 2× → 0.75× → 1×, saved for later playback. */
+    fun onCycleSpeed() {
+        val current = SPEEDS.indexOf(_uiState.value.playbackSpeed).coerceAtLeast(0)
+        val next = SPEEDS[(current + 1) % SPEEDS.size]
+        _uiState.update { it.copy(playbackSpeed = next) }
+        viewModelScope.launch {
+            dataStoreRepository.setPlaybackSpeed(next)
+            mediaControllerFuture?.await()?.setPlaybackSpeed(next)
+        }
+    }
+
+    /** The inline download card's (x): stops the running download. Playback is unaffected. */
+    fun onCancelDownload() {
+        downloadJob?.cancel()
+        downloadJob = null
+        _uiState.update { it.copy(isDownloading = false, downloadProgress = 0f) }
+    }
+
     fun onToggleFavorite() {
         _uiState.update { it.copy(isFavorite = !it.isFavorite) }
     }
@@ -161,18 +215,24 @@ class AudioDetailViewModel @Inject constructor(
     fun onDownloadClicked() {
         val audioToDownload = currentAudio ?: return
 
-        if (audioToDownload.isDownloaded) return
+        if (audioToDownload.isDownloaded || downloadJob?.isActive == true) return
 
-        viewModelScope.launch {
-            downloadAudioUseCase(audioToDownload).collect { result ->
+        startDownload(audioToDownload)
+    }
+
+    private fun startDownload(audio: Audio) {
+        _uiState.update { it.copy(isDownloading = true, downloadProgress = 0f) }
+        downloadJob = viewModelScope.launch {
+            downloadAudioUseCase(audio).collect { result ->
                 when (result) {
                     is DownloadResult.Progress -> {
                         _uiState.update { it.copy(downloadProgress = result.percentage.toFloat()) }
                     }
 
                     is DownloadResult.Success -> {
-                        _uiState.update { it.copy(isDownloaded = true, downloadProgress = 100f) }
-                        loadAudioDetails()
+                        _uiState.update { it.copy(isDownloaded = true, isDownloading = false, downloadProgress = 100f) }
+                        // Room's getAudioByUrl flow (already collected in loadAudioDetails())
+                        // picks up this upsert on its own - no need to re-subscribe here.
 
                         // Switch the player to the newly downloaded file
                         switchToLocalPlayback(result.localPath)
@@ -180,6 +240,7 @@ class AudioDetailViewModel @Inject constructor(
 
                     is DownloadResult.Error -> {
                         Log.e("AudioDetailVM", "Download error: ${result.message}")
+                        _uiState.update { it.copy(isDownloading = false, downloadProgress = 0f) }
                         // Optionally set an error state here to show a toast
                     }
                 }
@@ -189,7 +250,8 @@ class AudioDetailViewModel @Inject constructor(
 
 
     private fun listenToController(controllerFuture: ListenableFuture<MediaController>) {
-        viewModelScope.launch {
+        controllerJob?.cancel()
+        controllerJob = viewModelScope.launch {
             val controller = controllerFuture.await()
 
             val uriToPlay =
@@ -210,16 +272,22 @@ class AudioDetailViewModel @Inject constructor(
                     .build()
                 controller.setMediaItem(mediaItem)
                 controller.prepare()
-            } else {
-                Log.d("AudioVM", "Same audio. Restarting from the beginning.")
-                // Reset to the beginning as requested
+            } else if (isFirstControllerConnection) {
+                Log.d("AudioVM", "Same audio, fresh screen visit. Restarting from the beginning.")
+                // Reset to the beginning as requested - but only for a genuinely fresh
+                // visit to this screen, not a reconnect from a rotation (see
+                // isFirstControllerConnection's doc).
                 controller.seekTo(0L)
 
                 // If the audio had previously finished, it needs to be prepared again
                 if (controller.playbackState == Player.STATE_ENDED || controller.playbackState == Player.STATE_IDLE) {
                     controller.prepare()
                 }
+            } else {
+                Log.d("AudioVM", "Same audio, reconnecting (e.g. rotation). Keeping playback position.")
             }
+            isFirstControllerConnection = false
+            controller.setPlaybackSpeed(_uiState.value.playbackSpeed)
 
 
             _uiState.update {
@@ -305,5 +373,10 @@ class AudioDetailViewModel @Inject constructor(
                 controller.play()
             }
         }
+    }
+
+    companion object {
+        /** The speed button's cycle, in order. */
+        val SPEEDS = listOf(1f, 1.25f, 1.5f, 2f, 0.75f)
     }
 }

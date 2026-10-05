@@ -3,13 +3,17 @@ package app.netlify.devalihassan
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.ui.theme.BrandTheme
 import com.example.domain.module.AppConfig
+import com.example.domain.repository.DataStoreRepository
 import com.example.domain.use_cases.GetAppConfigUseCase
 import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
+import com.example.domain.use_cases.datastore.ObserveBrandThemePreference
 import com.example.domain.use_cases.datastore.ObserveDarkThemePreference
 import com.example.domain.use_cases.datastore.ObserveOnboardingCompletedUseCase
+import com.example.domain.use_cases.datastore.UpdateBrandThemePreference
 import com.example.domain.use_cases.datastore.UpdateDarkThemePreference
 import com.example.domain.use_cases.datastore.UpdateOnboardingCompletedUseCase
 import com.example.domain.use_cases.study.DeleteStudentDataUseCase
@@ -32,7 +36,11 @@ import javax.inject.Inject
 
 data class ThemeUiState(
     val isReady: Boolean = false,
-    val isDarkTheme: Boolean = false
+    /** The user's explicit light/dark choice (used when [followSystem] is off). */
+    val isDarkTheme: Boolean = false,
+    val brandTheme: BrandTheme = BrandTheme.BROWN,
+    /** "تلقائي": follow the phone's dark mode instead of [isDarkTheme]. */
+    val followSystem: Boolean = false,
 )
 
 @HiltViewModel
@@ -42,6 +50,8 @@ class MainActivityViewModel @Inject constructor(
     private val updateOnboardingCompletedUseCase: UpdateOnboardingCompletedUseCase,
     private val observeDarkThemePreferenceUseCase: ObserveDarkThemePreference,
     private val updateDarkThemePreferenceUseCase: UpdateDarkThemePreference,
+    private val observeBrandThemePreferenceUseCase: ObserveBrandThemePreference,
+    private val updateBrandThemePreferenceUseCase: UpdateBrandThemePreference,
     private val getCurrentUserDataUseCase: GetUserDataUseCase,
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
@@ -49,6 +59,7 @@ class MainActivityViewModel @Inject constructor(
     private val getAppConfigUseCase: GetAppConfigUseCase,
     private val getStudentDataUseCase: GetStudentDataUseCase,
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
+    private val dataStoreRepository: DataStoreRepository,
 ) : ViewModel() {
 
     private val TAG = "MainActivityViewModel"
@@ -63,20 +74,28 @@ class MainActivityViewModel @Inject constructor(
         .map<Boolean, Boolean?> { it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val themeState = observeDarkThemePreferenceUseCase()
-        .map { isDark ->
-            ThemeUiState(isReady = true, isDarkTheme = isDark)
-        }
+    val themeState = kotlinx.coroutines.flow.combine(
+        observeDarkThemePreferenceUseCase(),
+        observeBrandThemePreferenceUseCase(),
+        dataStoreRepository.followSystemTheme(),
+    ) { isDark, brandTheme, followSystem ->
+        ThemeUiState(
+            isReady = true,
+            isDarkTheme = isDark,
+            brandTheme = BrandTheme.fromStorageValue(brandTheme),
+            followSystem = followSystem,
+        )
+    }
         .catch {
-            emit(ThemeUiState(isReady = true, isDarkTheme = false))
+            emit(ThemeUiState(isReady = true, isDarkTheme = false, brandTheme = BrandTheme.BROWN))
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = ThemeUiState(isReady = false, isDarkTheme = false)
+            initialValue = ThemeUiState(isReady = false, isDarkTheme = false, brandTheme = BrandTheme.BROWN)
         )
 
-    // ✅ 2) single "app ready" flag for splash
+    //  2) single "app ready" flag for splash
     val appReady = kotlinx.coroutines.flow.combine(
         themeState,
         onboardingCompleted,
@@ -131,8 +150,17 @@ class MainActivityViewModel @Inject constructor(
             storeUserDataSuspend()
         }
     }
+
     fun updateDarkThemePreference(isDarkTheme: Boolean) {
         viewModelScope.launch { updateDarkThemePreferenceUseCase(isDarkTheme) }
+    }
+
+    fun updateFollowSystemTheme(follow: Boolean) {
+        viewModelScope.launch { dataStoreRepository.setFollowSystemTheme(follow) }
+    }
+
+    fun updateBrandThemePreference(brandTheme: BrandTheme) {
+        viewModelScope.launch { updateBrandThemePreferenceUseCase(brandTheme.name) }
     }
 
     fun checkUserAuthState() {

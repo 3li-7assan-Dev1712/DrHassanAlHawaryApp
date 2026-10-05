@@ -30,13 +30,9 @@ class ArticleRemoteMediator @Inject constructor(
         }
         return try {
 
-            val lastPublishDate = when (loadType) {
-                LoadType.REFRESH -> {
-                    null
-                }
-                LoadType.PREPEND -> {
-                    return MediatorResult.Success(endOfPaginationReached = true)
-                }
+            val initialPublishDate = when (loadType) {
+                LoadType.REFRESH -> null
+                LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
                 LoadType.APPEND -> {
                     val lastItem = state.lastItemOrNull()
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
@@ -45,26 +41,43 @@ class ArticleRemoteMediator @Inject constructor(
                 }
             }
 
-            val (articlesFromFirebase, endOfPaginationReached) = firebaseArticlesSource.getArticlesPage(
-                lastPublishDate = lastPublishDate,
-                limit = state.config.pageSize.toLong()
-            )
+            var currentLastPublishDate = initialPublishDate
+            var lastResultEndOfPaginationReached = false
 
-            appDatabase.withTransaction {
-                // Partition results: delete items marked as isDeleted on server, upsert the rest
+            // A page can come back entirely soft-deleted (isDeleted=true), which upserts
+            // nothing into Room. Deriving the next cursor from the local table's last row
+            // (as before) would then never advance past that page, re-fetching the same
+            // dead page forever. Instead, loop and advance the cursor from the last document
+            // actually fetched from Firestore until we find active items or truly run out.
+            while (true) {
+                val (articlesFromFirebase, endOfPaginationReached) = firebaseArticlesSource.getArticlesPage(
+                    lastPublishDate = currentLastPublishDate,
+                    limit = state.config.pageSize.toLong()
+                )
+
+                lastResultEndOfPaginationReached = endOfPaginationReached
+
+                if (articlesFromFirebase.isEmpty()) break
+
                 val (deletedItems, activeItems) = articlesFromFirebase.partition { it.isDeleted }
 
-                deletedItems.forEach { 
-                    appDatabase.articleDao().deleteById(it.id)
+                appDatabase.withTransaction {
+                    deletedItems.forEach {
+                        appDatabase.articleDao().deleteById(it.id)
+                    }
+
+                    if (activeItems.isNotEmpty()) {
+                        appDatabase.articleDao().upsertAll(activeItems.map { it.toEntity() })
+                    }
                 }
 
-                val articleEntities = activeItems.map { it.toEntity() }
-                appDatabase.articleDao().upsertAll(articleEntities)
+                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                    break
+                }
+                currentLastPublishDate = articlesFromFirebase.last().publishDate?.toDate()?.time
             }
 
-            MediatorResult.Success(
-                endOfPaginationReached = endOfPaginationReached
-            )
+            MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)
 
         } catch(e: IOException) {
             MediatorResult.Error(e)

@@ -1,5 +1,6 @@
 package com.example.data
 
+import android.content.Context
 import android.util.Log
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.domain.module.LoginResult
@@ -20,8 +21,8 @@ class AuthRepositoryImpl @Inject constructor(
 )
 
     : AuthRepository {
-    override suspend fun loginWithGoogle(): LoginResult {
-        return googleAuthUiClient.login()
+    override suspend fun loginWithGoogle(activityContext: Any): LoginResult {
+        return googleAuthUiClient.login(activityContext as Context)
     }
 
     private val TAG = "AuthRepositoryImpl"

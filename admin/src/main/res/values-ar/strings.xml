@@ -26,6 +26,13 @@
     <string name="current_admins">المسؤولون الحاليون</string>
     <string name="add_admin">إضافة مسؤول</string>
     <string name="remove_admin">حذف مسؤول</string>
+    <string name="role_admin">مسؤول</string>
+    <string name="promote_to_super_admin">ترقية إلى مشرف عام</string>
+    <string name="demote_to_admin">تخفيض إلى مسؤول</string>
+    <string name="promote_confirmation_msg">ترقية %1$s إلى مشرف عام؟ سيتمكن من إدارة المسؤولين والقنوات.</string>
+    <string name="demote_confirmation_msg">تخفيض %1$s إلى مسؤول؟ سيفقد صلاحيات المشرف العام.</string>
+    <string name="you_label">(أنت)</string>
+    <string name="confirm">تأكيد</string>
     <string name="add_new_admin_title">إضافة مسؤول جديد</string>
     <string name="email_address">البريد الإلكتروني</string>
     <string name="add">إضافة</string>

@@ -1,57 +1,21 @@
 package app.netlify.devalihassan.admin.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import com.example.core.ui.theme.BrandTheme
 
-private val DarkColorScheme = darkColorScheme(
-  /*  primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80*/
-)
-
-private val LightColorScheme = lightColorScheme(
-    /*primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40*/
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
-)
-
+/**
+ * The admin app's theme is core-ui's [com.example.core.ui.theme.HassanAlHawaryTheme]; this
+ * only forwards to it. It used to be a full copy, which silently missed anything added
+ * there later (the light/dark brand palette the shared sign-in screen reads).
+ */
 @Composable
 fun HassanAlHawaryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    brandTheme: BrandTheme = BrandTheme.BROWN,
     content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
-}
+) = com.example.core.ui.theme.HassanAlHawaryTheme(
+    darkTheme = darkTheme,
+    brandTheme = brandTheme,
+    content = content,
+)

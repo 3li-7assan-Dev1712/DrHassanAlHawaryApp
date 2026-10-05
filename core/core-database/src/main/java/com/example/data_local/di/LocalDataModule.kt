@@ -60,6 +60,19 @@ object LocalDataModule {
         }
     }
 
+    private val MIGRATION_38_39 = object : Migration(38, 39) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS notifications (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "title TEXT NOT NULL, " +
+                    "body TEXT NOT NULL, " +
+                    "receivedAt INTEGER NOT NULL, " +
+                    "isRead INTEGER NOT NULL)"
+            )
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -74,7 +87,8 @@ object LocalDataModule {
             MIGRATION_32_33,
             MIGRATION_33_34,
             MIGRATION_34_35,
-            MIGRATION_37_38
+            MIGRATION_37_38,
+            MIGRATION_38_39
         )
         .fallbackToDestructiveMigration(true)
         .build()
@@ -114,6 +128,10 @@ object LocalDataModule {
     @Provides
     @Singleton
     fun provideLevelDao(appDatabase: AppDatabase) = appDatabase.levelDao()
+
+    @Provides
+    @Singleton
+    fun provideNotificationDao(appDatabase: AppDatabase) = appDatabase.notificationDao()
 
 
     @Provides
