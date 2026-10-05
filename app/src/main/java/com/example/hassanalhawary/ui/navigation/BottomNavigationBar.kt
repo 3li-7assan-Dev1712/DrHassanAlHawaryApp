@@ -46,12 +46,21 @@ fun BottomNavigationBar(
             }
         },
         onSelect = { item ->
+            val startId = navController.graph.findStartDestination().id
+            // Keep the tab being left only when it is a tab of its own: Home itself, or a tab
+            // opened from the bar (sitting directly on Home). A deeper stack, such as Search
+            // opened from Q&A, is part of Home's flow: no tab restores it, so drop it rather
+            // than hold its ViewModels.
+            val leavingTab = navController.currentBackStackEntry?.destination?.id == startId ||
+                navController.previousBackStackEntry?.destination?.id == startId
             navController.navigate(item.route) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+                popUpTo(startId) {
+                    saveState = leavingTab
                 }
                 launchSingleTop = true
-                restoreState = true
+                // Home is always at the bottom of the stack, so it means its own screen;
+                // restoring would bring back whatever was stacked on it (Q&A -> Search), not Home.
+                restoreState = item != BottomNavItem.Home
             }
         },
     )
