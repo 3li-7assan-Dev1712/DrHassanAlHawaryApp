@@ -72,3 +72,15 @@ Figma: Expanded `56:192`, `56:414`; Medium `63:2756`, `63:2969`.
 - Compact: the same LazyColumn as before (sections extracted to functions, same parameters).
 - Tests: `HomeTabletTest` (tiles 180 / 218.67, cards 266 / 324, positions); not run yet.
 - Deviations: the carousel keeps the phone composable's height (240 tall, image 184) where the tablet frame draws 224 (image 188); its indicator keeps the phone's colours and centring.
+
+### Audio categories + Fatwas + Player (code done; instrumented run pending the emulator)
+
+Figma: categories Expanded `57:498`, `57:870`, Medium `63:3174`, `63:3310`; Fatwas Medium `63:3447`, `63:3556`; Player Expanded `57:646`, `57:1015`, Medium `63:3658`, `63:3719`.
+
+- Categories, Expanded: `AudioCategoriesAdaptiveContent` = the phone screen in the list pane, `EmptyDetail` (Audio: «اختر قسمًا للاستماع» / «ستظهر هنا الدروس والخطب والفتاوى») in the detail pane. A category opens its list (the next screen).
+- Fatwas (audio list), Expanded: `AudioListAdaptiveContent` = the phone list in the list pane, the player (`AudioPlayerPane`) in the detail pane; before anything is chosen, `EmptyDetail` with the component's own text («اختر عنصرًا للعرض» / «سيظهر هنا محتواه»; Figma draws no frame for this state). The row open in the player uses the selected style, and the existing Playing look while it plays (`AudioListItem(selected =, playing =)`).
+- Player pane: the player's top bar without the back arrow, the content at the controls' designed 312, centred. Medium player: the phone screen, controls fill the width (624, as Figma 63:3658).
+- The player route on Expanded shows the (all) audio list beside the player with that audio selected.
+- Playback continuity: `AudioDetailViewModel.showAudio(title, url)` switches the audio in place (loads it into the controller, doesn't start it, like opening the player). One player ViewModel per back-stack entry for both layouts, so rotation never re-creates it (a new one would restart the audio from 0). On the list route a selection kept after narrowing to one pane stays open in the player inside that destination (back returns to the list) instead of navigating to the player route.
+- Also fixed in passing: the ViewModel added a new `Player.Listener` on every controller (re)connection without removing the old one.
+- Tests: `AudioTabletTest` (category rows 366 at 16 inset; fatwa rows 366; pane seek bar 312 centred; Medium seek bar 624; Compact 312); not run yet.

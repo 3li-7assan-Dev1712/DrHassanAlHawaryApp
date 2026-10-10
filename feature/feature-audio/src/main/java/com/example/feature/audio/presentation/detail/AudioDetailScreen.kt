@@ -31,6 +31,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -78,6 +80,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.core.player.PlaybackService
 import com.example.core.ui.R
+import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.components.SheikhPhoto
 import com.example.core.ui.icons.TablerIcons
@@ -94,15 +97,85 @@ import com.example.domain.text.AudioTitleCleaner
 import com.example.domain.text.ShareTitleParser
 import com.google.common.util.concurrent.ListenableFuture
 
+/** Opens the share preview for the current audio and position. */
+typealias AudioShareAction = (audioUrl: String, title: String, category: String?, localFilePath: String?, startMs: Long, totalDurationMs: Long) -> Unit
+
+/** An audio chosen in the list beside the player (tablet). */
+data class AudioSelection(val title: String, val audioUrl: String)
+
+/**
+ * The player. [audio]: the audio to show instead of the route's (the selection made beside
+ * the list on a tablet, carried over when the window narrows to one pane).
+ */
 @Composable
 fun AudioDetailScreen(
     onNavigateUp: () -> Unit,
-    onNavigateToShare: (audioUrl: String, title: String, category: String?, localFilePath: String?, startMs: Long, totalDurationMs: Long) -> Unit = { _, _, _, _, _, _ -> },
+    onNavigateToShare: AudioShareAction = { _, _, _, _, _, _ -> },
     viewModel: AudioDetailViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
+    audio: AudioSelection? = null,
 ) {
+    LaunchedEffect(audio) { audio?.let { viewModel.showAudio(it.title, it.audioUrl) } }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ConnectMediaController(viewModel)
+    AudioDetailScreen(
+        uiState = uiState,
+        modifier = modifier,
+        onNavigateUp = onNavigateUp,
+        onPlayPauseToggle = viewModel::onPlayPauseToggle,
+        onSeek = viewModel::onSeek,
+        onRewind = { viewModel.onRewind(SKIP_SECONDS) },
+        onForward = { viewModel.onForward(SKIP_SECONDS) },
+        onCycleSpeed = viewModel::onCycleSpeed,
+        onDownload = viewModel::onDownloadClicked,
+        onCancelDownload = viewModel::onCancelDownload,
+        onShare = { shareCurrent(uiState, onNavigateToShare) },
+    )
+}
 
+/** The ViewModel key of the player pane beside the audio list (one per back-stack entry). */
+const val AUDIO_PLAYER_PANE_KEY = "audioPlayerPane"
+
+/**
+ * The player in the detail pane beside the audio list (Expanded): the player's top bar
+ * without the back arrow (the list pane has it), then the player with its controls at
+ * their designed 312dp, centred. Follows the selection: [title], [audioUrl].
+ * With [onNavigateUp] it is the whole screen instead (the selection kept after the window
+ * narrowed to one pane): the phone player, back arrow included.
+ */
+@Composable
+fun AudioPlayerPane(
+    title: String,
+    audioUrl: String,
+    onNavigateToShare: AudioShareAction,
+    modifier: Modifier = Modifier,
+    onNavigateUp: (() -> Unit)? = null,
+    viewModel: AudioDetailViewModel = hiltViewModel(key = AUDIO_PLAYER_PANE_KEY),
+) {
+    ConnectMediaController(viewModel)
+    LaunchedEffect(audioUrl) { viewModel.showAudio(title, audioUrl) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Until the new selection reaches the ViewModel, its state is still the previous audio's.
+    val shown = if (uiState.audioUrl == audioUrl) uiState else AudioDetailUiState()
+    AudioDetailScreen(
+        uiState = shown,
+        modifier = modifier,
+        onNavigateUp = onNavigateUp ?: {},
+        onPlayPauseToggle = viewModel::onPlayPauseToggle,
+        onSeek = viewModel::onSeek,
+        onRewind = { viewModel.onRewind(SKIP_SECONDS) },
+        onForward = { viewModel.onForward(SKIP_SECONDS) },
+        onCycleSpeed = viewModel::onCycleSpeed,
+        onDownload = viewModel::onDownloadClicked,
+        onCancelDownload = viewModel::onCancelDownload,
+        onShare = { shareCurrent(shown, onNavigateToShare) },
+        inPane = onNavigateUp == null,
+    )
+}
+
+/** Connects [viewModel] to the playback service for as long as this is composed. */
+@Composable
+private fun ConnectMediaController(viewModel: AudioDetailViewModel) {
     val context = LocalContext.current
     val sessionToken = remember {
         SessionToken(context, ComponentName(context, PlaybackService::class.java))
@@ -122,38 +195,29 @@ fun AudioDetailScreen(
         context.startService(serviceIntent)
         Log.d("TAG", "AudioDetailRoute: Start intent")
     }
+}
 
-    AudioDetailScreen(
-        uiState = uiState,
-        modifier = modifier,
-        onNavigateUp = onNavigateUp,
-        onPlayPauseToggle = viewModel::onPlayPauseToggle,
-        onSeek = viewModel::onSeek,
-        onRewind = { viewModel.onRewind(SKIP_SECONDS) },
-        onForward = { viewModel.onForward(SKIP_SECONDS) },
-        onCycleSpeed = viewModel::onCycleSpeed,
-        onDownload = viewModel::onDownloadClicked,
-        onCancelDownload = viewModel::onCancelDownload,
-        onShare = {
-            val audioUrl = uiState.audioUrl
-            // §1: audio metadata/duration may still be loading right after the screen
-            // opens - sharing before totalDurationMillis is known breaks the share
-            // screen's trim-window math (it'd receive a 0ms track duration).
-            if (audioUrl != null && !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L) {
-                onNavigateToShare(
-                    audioUrl,
-                    uiState.title,
-                    uiState.category,
-                    uiState.localFilePath,
-                    uiState.currentPositionMillis,
-                    uiState.totalDurationMillis
-                )
-            }
-        }
-    )
+private fun shareCurrent(uiState: AudioDetailUiState, onNavigateToShare: AudioShareAction) {
+    val audioUrl = uiState.audioUrl
+    // §1: audio metadata/duration may still be loading right after the screen
+    // opens - sharing before totalDurationMillis is known breaks the share
+    // screen's trim-window math (it'd receive a 0ms track duration).
+    if (audioUrl != null && !uiState.isLoadingDetails && uiState.totalDurationMillis > 0L) {
+        onNavigateToShare(
+            audioUrl,
+            uiState.title,
+            uiState.category,
+            uiState.localFilePath,
+            uiState.currentPositionMillis,
+            uiState.totalDurationMillis
+        )
+    }
 }
 
 private const val SKIP_SECONDS = 10
+
+/** The player controls' designed width (Figma SeekBar, TransportRow, ActionRow): kept in the tablet pane. */
+private val PlayerControlsWidth = 312.dp
 
 @Composable
 fun AudioDetailScreen(
@@ -168,12 +232,14 @@ fun AudioDetailScreen(
     onCancelDownload: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
+    inPane: Boolean = false,
 ) {
     val colors = Brand.colors
     Scaffold(
         modifier = modifier,
-        // Back arrow only: the title is shown once, under the photo.
-        topBar = { AppTopBar(title = "", onBack = onNavigateUp) },
+        // Back arrow only: the title is shown once, under the photo. None in the tablet's
+        // pane: the list beside it has the back arrow.
+        topBar = { AppTopBar(title = "", onBack = if (inPane) null else onNavigateUp) },
         containerColor = colors.background,
     ) { paddingValues ->
         val reduced = reducedMotion
@@ -197,7 +263,10 @@ fun AudioDetailScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp),
+                        .padding(horizontal = 24.dp)
+                        // The tablet pane: the controls keep their designed width, centred (the
+                        // seek bar and transport row are drawn for it).
+                        .then(if (inPane) Modifier.wrapContentWidth().widthIn(max = PlayerControlsWidth) else Modifier),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Spacer(Modifier.height(8.dp))
@@ -667,5 +736,39 @@ private fun AudioDetailDarkPreview() {
         )
     }
 }
+
+/** The Figma player frames' state (Medium `63:3658`, Expanded pane `57:646`): previews and UI tests. */
+val PlayerPreviewState = AudioDetailUiState(
+    audioUrl = "audio-3",
+    title = "مقطع بعنوان: حكم تبديل العملة بمقابل",
+    category = "fatawah",
+    totalDurationMillis = 1_330_000L,
+    currentPositionMillis = 189_000L,
+    isLoadingDetails = false,
+    isDownloading = true,
+    downloadProgress = 45f,
+    playbackSpeed = 1.25f,
+)
+
+// Medium: the player is its own screen beside the rail, the phone's layout (controls fill
+// the width). Expanded shows it in the detail pane: see AudioListScreen's previews.
+@Composable
+private fun PlayerMediumPreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme) {
+        AudioDetailScreen(
+            uiState = PlayerPreviewState,
+            onNavigateUp = {}, onPlayPauseToggle = {}, onSeek = {}, onRewind = {}, onForward = {},
+            onCycleSpeed = {}, onDownload = {}, onCancelDownload = {}, onShare = {},
+        )
+    }
+}
+
+@Preview(name = "Player - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun PlayerMediumLightPreview() = PlayerMediumPreview(darkTheme = false)
+
+@Preview(name = "Player - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun PlayerMediumDarkPreview() = PlayerMediumPreview(darkTheme = true)
 
 private enum class DownloadPhase { Idle, Downloading, Saved }

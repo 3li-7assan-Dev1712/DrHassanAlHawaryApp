@@ -40,8 +40,13 @@ class AudioDetailViewModel @Inject constructor(
 
 
     private val TAG = "AudioDetailViewModel"
-    private val audioUrl: String = savedStateHandle.get<String>("audioUrl") ?: ""
-    private val audioTitle: String = savedStateHandle.get<String>("title") ?: ""
+    // The route's audio; the player pane beside the list on a tablet changes it (showAudio).
+    private var audioUrl: String = savedStateHandle.get<String>("audioUrl") ?: ""
+    private var audioTitle: String = savedStateHandle.get<String>("title") ?: ""
+
+    private var detailsJob: Job? = null
+    /** The listener added to the connected controller, removed before another is added. */
+    private var playerListener: Pair<MediaController, Player.Listener>? = null
 
     private val _uiState = MutableStateFlow(AudioDetailUiState())
     val uiState = _uiState.asStateFlow()
@@ -92,8 +97,27 @@ class AudioDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Shows another audio (nothing if it is already shown): the player pane beside the audio
+     * list on a tablet follows the selection. Like opening the player screen for it, the new
+     * item is loaded into the controller, not started.
+     */
+    fun showAudio(title: String, url: String) {
+        if (url == audioUrl) return
+        audioUrl = url
+        audioTitle = title
+        downloadJob?.cancel()
+        downloadJob = null
+        currentAudio = null
+        _uiState.update { AudioDetailUiState(audioUrl = url, title = title, playbackSpeed = it.playbackSpeed) }
+        loadAudioDetails()
+        isFirstControllerConnection = true
+        mediaControllerFuture?.let(::listenToController)
+    }
+
     private fun loadAudioDetails() {
-        viewModelScope.launch {
+        detailsJob?.cancel()
+        detailsJob = viewModelScope.launch {
             getAudioByUrlUseCase(audioUrl).collect { audio ->
                 Log.d(TAG, "loadAudioDetails: $audio")
                 currentAudio = audio
@@ -300,8 +324,10 @@ class AudioDetailViewModel @Inject constructor(
                 )
             }
 
-            // 3. Add Listener for future changes
-            controller.addListener(object : Player.Listener {
+            // 3. Add Listener for future changes (replacing the one a previous connection, or
+            // the previous audio in the tablet's player pane, added)
+            playerListener?.let { (previous, listener) -> previous.removeListener(listener) }
+            val listener = object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     _uiState.update { it.copy(isPlaying = isPlaying) }
                 }
@@ -320,7 +346,9 @@ class AudioDetailViewModel @Inject constructor(
                         }
                     }
                 }
-            })
+            }
+            controller.addListener(listener)
+            playerListener = controller to listener
 
             // 4. Progress updater loop
             while (isActive) {

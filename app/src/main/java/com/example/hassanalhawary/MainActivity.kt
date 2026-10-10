@@ -86,6 +86,8 @@ import com.example.feature.article.presentation.list.ArticleListScreen
 import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
+import com.example.feature.audio.presentation.detail.AudioSelection
+import com.example.feature.audio.presentation.detail.AudioShareAction
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
@@ -348,6 +350,17 @@ class MainActivity : ComponentActivity() {
 
 
 
+        // The player's share action (the player screen and the player beside the audio list).
+        val shareAudio: AudioShareAction = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
+            val encodedUrl = Uri.encode(audioUrl)
+            val encodedTitle = Uri.encode(title)
+            val encodedCategory = Uri.encode(category ?: "")
+            val encodedLocalFilePath = Uri.encode(localFilePath ?: "")
+            navController.navigate(
+                "${Routes.SHARE_PREVIEW_SCREEN}/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
+            )
+        }
+
         // Medium and Expanded windows: a navigation rail instead of the bottom bar, on every
         // main-app screen (secondary ones too) except the immersive designs viewer.
         val tokens = layoutTokens
@@ -597,14 +610,28 @@ class MainActivity : ComponentActivity() {
                                     nullable = true
                                 }
                             )
-                        ) {
-                            AudioListScreen(onNavigateToAudioDetail = { title, audioUrl ->
-                                val encodedUrl = Uri.encode(audioUrl)
-                                val encodedTitle = Uri.encode(title)
-                                navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
-                            }, onNavigateBack = {
-                                navController.popBackStack()
-                            })
+                        ) { entry ->
+                            // Expanded: the audio chosen beside the list, kept in the entry so it
+                            // survives rotation and resizing (narrowed to one pane, it stays open
+                            // in the player here, see AudioListScreen).
+                            val handle = entry.savedStateHandle
+                            val selectedUrl by handle.getStateFlow<String?>(SELECTED_AUDIO_URL, null).collectAsState()
+                            val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, "").collectAsState()
+                            AudioListScreen(
+                                onNavigateToAudioDetail = { title, audioUrl ->
+                                    val encodedUrl = Uri.encode(audioUrl)
+                                    val encodedTitle = Uri.encode(title)
+                                    navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
+                                },
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToShare = shareAudio,
+                                selectedAudio = selectedUrl?.let { AudioSelection(selectedTitle, it) },
+                                onSelectAudio = {
+                                    handle[SELECTED_AUDIO_TITLE] = it.title
+                                    handle[SELECTED_AUDIO_URL] = it.audioUrl
+                                },
+                                onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
+                            )
                         }
 
                         screen(
@@ -616,22 +643,38 @@ class MainActivity : ComponentActivity() {
                             })
                         ) { entry ->
                             val audioUrl = entry.arguments?.getString("audioUrl").orEmpty()
+                            val title = entry.arguments?.getString("title").orEmpty()
+                            // Expanded: the player sits beside the audio list (Figma has no player
+                            // of its own there), with this audio selected. Another one chosen there
+                            // is still the one shown when the window narrows to the player. Both
+                            // layouts use this entry's own player ViewModel, so playback carries on.
+                            val handle = entry.savedStateHandle
+                            val selectedUrl by handle.getStateFlow(SELECTED_AUDIO_URL, audioUrl).collectAsState()
+                            val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, title).collectAsState()
+                            val selection = AudioSelection(selectedTitle, selectedUrl)
                             ProvideNavAnimatedScope(this) {
-                            AudioDetailScreen(
-                                onNavigateUp = {
-                                    navController.popBackStack()
-                                },
-                                onNavigateToShare = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
-                                    val encodedUrl = Uri.encode(audioUrl)
-                                    val encodedTitle = Uri.encode(title)
-                                    val encodedCategory = Uri.encode(category ?: "")
-                                    val encodedLocalFilePath = Uri.encode(localFilePath ?: "")
-                                    navController.navigate(
-                                        "${Routes.SHARE_PREVIEW_SCREEN}/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
-                                    )
-                                },
-                                modifier = Modifier.sharedContainer(SharedKeys.audio(audioUrl)),
-                            )
+                            if (layoutTokens.isExpanded) {
+                                AudioListScreen(
+                                    onNavigateToAudioDetail = { _, _ -> },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShare = shareAudio,
+                                    selectedAudio = selection,
+                                    onSelectAudio = {
+                                        handle[SELECTED_AUDIO_TITLE] = it.title
+                                        handle[SELECTED_AUDIO_URL] = it.audioUrl
+                                    },
+                                    playerViewModelKey = null,
+                                )
+                            } else {
+                                AudioDetailScreen(
+                                    onNavigateUp = {
+                                        navController.popBackStack()
+                                    },
+                                    onNavigateToShare = shareAudio,
+                                    modifier = Modifier.sharedContainer(SharedKeys.audio(audioUrl)),
+                                    audio = selection,
+                                )
+                            }
                             }
                         }
 
@@ -947,6 +990,10 @@ class MainActivity : ComponentActivity() {
 
         /** The article chosen beside the list on a tablet (an entry's saved state). */
         const val SELECTED_ARTICLE = "selectedArticleId"
+
+        /** The audio chosen beside the list on a tablet (an entry's saved state). */
+        const val SELECTED_AUDIO_URL = "selectedAudioUrl"
+        const val SELECTED_AUDIO_TITLE = "selectedAudioTitle"
     }
 }
 
