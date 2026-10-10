@@ -409,12 +409,11 @@ class MainActivity : ComponentActivity() {
                 initialState.destination.route in routesWithBottomNav &&
                     targetState.destination.route in routesWithBottomNav
 
-            // The rail runs the full window height on the start edge (right in RTL) and pads
-            // itself for the system bars; the screens keep the Scaffold's insets.
+            // Medium and Expanded: the rail runs the full window height on the start edge
+            // (right in RTL) and pads itself for the system bars. Each destination pads for the
+            // status and navigation bars itself too (WindowMargin; the immersive viewer draws
+            // under them), so the container keeps the same bounds through every transition.
             val layoutDirection = LocalLayoutDirection.current
-            // On Medium and Expanded each destination pads for the status and navigation bars
-            // itself (WindowMargin; the immersive viewer draws under them), so the container
-            // keeps the same bounds through every transition. The rail takes the start side.
             val contentPadding = if (tokens.isCompact) {
                 innerPadding
             } else {
@@ -424,641 +423,641 @@ class MainActivity : ComponentActivity() {
                 )
             }
             Row(modifier = Modifier.fillMaxSize()) {
-            if (showRail) {
-                AppRail(
-                    navController = navController,
-                    modifier = Modifier.padding(start = innerPadding.calculateStartPadding(layoutDirection)),
-                )
-            }
-            // Container transforms (card → screen) for three flows; see core-ui SharedElements.kt.
-            SharedTransitionLayout(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(contentPadding)
-            ) {
-                CompositionLocalProvider(LocalSharedTransitionScope provides this) {
-                    NavHost(
-                        navController,
-                        startDestination = "home_screen",
-                        enterTransition = {
-                            if (betweenTabs()) Motion.fadeThroughEnter(reduced)
-                            else Motion.sharedAxisEnter(axisOffsetPx, isRtl, reduced)
-                        },
-                        exitTransition = {
-                            if (betweenTabs()) Motion.fadeThroughExit(reduced)
-                            else Motion.sharedAxisExit(axisOffsetPx, isRtl, reduced)
-                        },
-                        popEnterTransition = {
-                            if (betweenTabs()) Motion.fadeThroughEnter(reduced)
-                            else Motion.sharedAxisPopEnter(axisOffsetPx, isRtl, reduced)
-                        },
-                        popExitTransition = {
-                            if (betweenTabs()) Motion.fadeThroughExit(reduced)
-                            else Motion.sharedAxisPopExit(axisOffsetPx, isRtl, reduced)
-                        },
-                    ) {
+                if (showRail) {
+                    AppRail(
+                        navController = navController,
+                        modifier = Modifier.padding(start = innerPadding.calculateStartPadding(layoutDirection)),
+                    )
+                }
+                // Container transforms (card → screen) for three flows; see core-ui SharedElements.kt.
+                SharedTransitionLayout(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(contentPadding)
+                ) {
+                    CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+                        NavHost(
+                            navController,
+                            startDestination = "home_screen",
+                            enterTransition = {
+                                if (betweenTabs()) Motion.fadeThroughEnter(reduced)
+                                else Motion.sharedAxisEnter(axisOffsetPx, isRtl, reduced)
+                            },
+                            exitTransition = {
+                                if (betweenTabs()) Motion.fadeThroughExit(reduced)
+                                else Motion.sharedAxisExit(axisOffsetPx, isRtl, reduced)
+                            },
+                            popEnterTransition = {
+                                if (betweenTabs()) Motion.fadeThroughEnter(reduced)
+                                else Motion.sharedAxisPopEnter(axisOffsetPx, isRtl, reduced)
+                            },
+                            popExitTransition = {
+                                if (betweenTabs()) Motion.fadeThroughExit(reduced)
+                                else Motion.sharedAxisPopExit(axisOffsetPx, isRtl, reduced)
+                            },
+                        ) {
 
-                        screen("splash_screen") {
-                            SplashScreen(
-                                onShowSplashScreenTimeEnd = {
-                                    navController.navigate("home_screen") {
-                                        popUpTo("splash_screen") {
-                                            inclusive = true
-                                        }
-                                    }
-                                })
-                        }
-
-                        screen("home_screen") {
-                            val homeTokens = layoutTokens
-                            ProvideNavAnimatedScope(this) {
-                            HomeScreen(onNavigateToDetailArticle = { articleId ->
-                                navController.navigate("detail_article_screen/$articleId")
-
-                            }, onNavigateToDetailAudio = { title, audioUrl ->
-                                val encodedUrl = Uri.encode(audioUrl)
-                                val encodedTitle = Uri.encode(title)
-                                navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
-                            }, onCategoryClick = { route ->
-                                when (route) {
-                                    Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
-                                    // A tablet has no video categories screen: the categories are pills
-                                    // above the videos grid (Figma Videos).
-                                    Routes.VIDEOS_SCREEN -> navController.navigate(
-                                        if (homeTokens.isCompact) Routes.VIDEO_CATEGORY_SCREEN else Routes.VIDEOS_SCREEN
-                                    )
-                                    else -> navController.navigate(route)
-                                }
-                            }, onNotificationsClick = {
-                                navController.navigate(Routes.NOTIFICATIONS_SCREEN)
-                            }
-
-
-                            )
-                            }
-                        }
-                        screen("search_screen") { entry ->
-                            // Expanded: an article or an audio opens beside the results (Figma
-                            // 59:939); videos and designs open their own screens, as on the phone.
-                            // The chosen result is kept in the entry (rotation, resizing).
-                            val handle = entry.savedStateHandle
-                            val selectedId by handle.getStateFlow<String?>(SELECTED_RESULT_ID, null).collectAsState()
-                            val selectedType by handle.getStateFlow<String?>(SELECTED_RESULT_TYPE, null).collectAsState()
-                            val selectedTitle by handle.getStateFlow<String?>(SELECTED_RESULT_TITLE, null).collectAsState()
-                            val selectedUrl by handle.getStateFlow<String?>(SELECTED_RESULT_URL, null).collectAsState()
-                            val selected = selectedId?.let {
-                                SearchResultMetaData(objectID = it, title = selectedTitle, type = selectedType, url = selectedUrl)
-                            }
-                            val clearSelection: () -> Unit = { handle[SELECTED_RESULT_ID] = null }
-                            val expanded = layoutTokens.isExpanded
-                            if (!expanded && selected != null) {
-                                // Narrowed to one pane with a result open: it stays open here, on
-                                // the same reader or player ViewModel (an audio keeps playing);
-                                // back returns to the results.
-                                BackHandler(onBack = clearSelection)
-                                SearchResultDetail(selected, onBack = clearSelection, onShareArticle = shareArticle, onShareAudio = shareAudio)
-                            } else {
-                                SearchScreen(
-                                    selectedResult = selected.takeIf { expanded },
-                                    detailPane = { result ->
-                                        SearchResultDetail(result, onBack = null, onShareArticle = shareArticle, onShareAudio = shareAudio)
-                                    },
-                                ) { searchResultMetaData ->
-                                    if (expanded && searchResultMetaData.type in RESULT_TYPES_IN_PANE) {
-                                        handle[SELECTED_RESULT_TYPE] = searchResultMetaData.type
-                                        handle[SELECTED_RESULT_TITLE] = searchResultMetaData.title
-                                        handle[SELECTED_RESULT_URL] = searchResultMetaData.url
-                                        handle[SELECTED_RESULT_ID] = searchResultMetaData.objectID
-                                    } else {
-                                        val encodedUrl = Uri.encode(searchResultMetaData.url)
-                                        val encodedTitle = Uri.encode(searchResultMetaData.title)
-                                        when (searchResultMetaData.type) {
-                                            "article" -> {
-
-                                                val objectID = searchResultMetaData.objectID
-
-                                                val route = "detail_article_screen/$objectID"
-                                                Log.d(TAG, "MainAppContent: route")
-                                                navController.navigate(route)
-                                            }
-
-                                            "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
-                                            "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
-                                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
-                                            else -> {
-
+                            screen("splash_screen") {
+                                SplashScreen(
+                                    onShowSplashScreenTimeEnd = {
+                                        navController.navigate("home_screen") {
+                                            popUpTo("splash_screen") {
+                                                inclusive = true
                                             }
                                         }
-                                    }
-                                }
+                                    })
                             }
-                        }
-                        screen("articles_screen") { entry ->
-                            // Expanded: the article chosen beside the list, kept in the entry so
-                            // it survives rotation and resizing. Once the window narrows to one
-                            // pane, a chosen article opens in the reader.
-                            val selected by entry.savedStateHandle
-                                .getStateFlow<String?>(SELECTED_ARTICLE, null).collectAsState()
-                            val expanded = layoutTokens.isExpanded
-                            LaunchedEffect(expanded) {
-                                val chosen = selected
-                                if (!expanded && chosen != null) {
-                                    entry.savedStateHandle[SELECTED_ARTICLE] = null
-                                    navController.navigate("detail_article_screen/$chosen")
-                                }
-                            }
-                            ArticleListScreen(
-                                onNavigateToArticleDetail = { articleId ->
+
+                            screen("home_screen") {
+                                val homeTokens = layoutTokens
+                                ProvideNavAnimatedScope(this) {
+                                HomeScreen(onNavigateToDetailArticle = { articleId ->
                                     navController.navigate("detail_article_screen/$articleId")
-                                },
-                                onNavigateBack = { navController.popBackStack() },
-                                onNavigateToShareSelection = { articleId ->
-                                    navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
-                                },
-                                selectedArticleId = selected,
-                                onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
-                            )
-                        }
-                        screen(
-                            // Update the route to include an optional parameter
-                            route = "detail_article_screen/{articleId}",
-                            arguments = listOf(
-                                navArgument("articleId") { type = NavType.StringType },
-                            )
-                        ) { entry ->
-                            val articleId = entry.arguments?.getString("articleId").orEmpty()
-                            // Expanded: the reader sits beside the articles (Figma has no reader
-                            // of its own there), with this article selected. Another one chosen
-                            // there is still the one shown when the window narrows to the reader.
-                            val selected by entry.savedStateHandle
-                                .getStateFlow(SELECTED_ARTICLE, articleId).collectAsState()
-                            val onShare: (String) -> Unit = { id ->
-                                navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(id)}")
-                            }
-                            ProvideNavAnimatedScope(this) {
-                            if (layoutTokens.isExpanded) {
-                                ArticleListScreen(
-                                    onNavigateToArticleDetail = { id -> navController.navigate("detail_article_screen/$id") },
-                                    onNavigateBack = { navController.popBackStack() },
-                                    onNavigateToShareSelection = onShare,
-                                    selectedArticleId = selected,
-                                    onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
-                                )
-                            } else {
-                                ArticleDetailScreen(
-                                    onNavigateBack = { navController.popBackStack() },
-                                    onNavigateToShareSelection = onShare,
-                                    modifier = Modifier.sharedContainer(SharedKeys.article(articleId)),
-                                    articleId = selected,
-                                )
-                            }
-                            }
-                        }
 
-                        screen(
-                            route = "${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/{articleId}",
-                            arguments = listOf(navArgument("articleId") { type = NavType.StringType })
-                        ) {
-                            ArticleShareSelectionScreen(
-                                onNavigateUp = { navController.popBackStack() },
-                                onContinueToPreview = { articleId, selectionStart, selectionEnd ->
-                                    // Offsets, not the excerpt: any length can be shared, and a whole
-                                    // article URL-encoded into the route would not scale.
-                                    navController.navigate(
-                                        "${Routes.TEXT_CARD_PREVIEW_SCREEN}/${Uri.encode(articleId)}" +
-                                            "?selectionStart=$selectionStart&selectionEnd=$selectionEnd"
-                                    )
-                                }
-                            )
-                        }
-
-                        screen(
-                            route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{articleId}?selectionStart={selectionStart}&selectionEnd={selectionEnd}",
-                            arguments = listOf(
-                                navArgument("articleId") { type = NavType.StringType },
-                                navArgument("selectionStart") { type = NavType.IntType; defaultValue = 0 },
-                                navArgument("selectionEnd") { type = NavType.IntType; defaultValue = 0 },
-                            )
-                        ) {
-                            TextCardPreviewScreen(
-                                onNavigateUp = { navController.popBackStack() }
-                            )
-                        }
-                        screen(Routes.AUDIO_CATEGORY_SCREEN) {
-                            AudioCategoryScreen(
-                                onCategoryClick = { categoryId, categoryTitle ->
-                                    if (categoryId == ContentCategories.ALL_ID) {
-                                        // "الكل": the list with no category filter (its args are nullable).
-                                        navController.navigate(Routes.AUDIO_LIST_SCREEN)
-                                    } else {
-                                        navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
-                                    }
-                                },
-                                onNavigateUp = { navController.popBackStack() }
-                            )
-                        }
-                        screen(
-                            route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
-                            arguments = listOf(
-                                navArgument("categoryId") {
-                                    type = NavType.StringType
-                                    nullable = true
-                                },
-                                navArgument("categoryTitle") {
-                                    type = NavType.StringType
-                                    nullable = true
-                                }
-                            )
-                        ) { entry ->
-                            // Expanded: the audio chosen beside the list, kept in the entry so it
-                            // survives rotation and resizing (narrowed to one pane, it stays open
-                            // in the player here, see AudioListScreen).
-                            val handle = entry.savedStateHandle
-                            val selectedUrl by handle.getStateFlow<String?>(SELECTED_AUDIO_URL, null).collectAsState()
-                            val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, "").collectAsState()
-                            AudioListScreen(
-                                onNavigateToAudioDetail = { title, audioUrl ->
+                                }, onNavigateToDetailAudio = { title, audioUrl ->
                                     val encodedUrl = Uri.encode(audioUrl)
                                     val encodedTitle = Uri.encode(title)
                                     navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
-                                },
-                                onNavigateBack = { navController.popBackStack() },
-                                onNavigateToShare = shareAudio,
-                                selectedAudio = selectedUrl?.let { AudioSelection(selectedTitle, it) },
-                                onSelectAudio = {
-                                    handle[SELECTED_AUDIO_TITLE] = it.title
-                                    handle[SELECTED_AUDIO_URL] = it.audioUrl
-                                },
-                                onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
-                            )
-                        }
+                                }, onCategoryClick = { route ->
+                                    when (route) {
+                                        Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
+                                        // A tablet has no video categories screen: the categories are pills
+                                        // above the videos grid (Figma Videos).
+                                        Routes.VIDEOS_SCREEN -> navController.navigate(
+                                            if (homeTokens.isCompact) Routes.VIDEO_CATEGORY_SCREEN else Routes.VIDEOS_SCREEN
+                                        )
+                                        else -> navController.navigate(route)
+                                    }
+                                }, onNotificationsClick = {
+                                    navController.navigate(Routes.NOTIFICATIONS_SCREEN)
+                                }
 
-                        screen(
-                            route = "audio_detail_screen/{title}/{audioUrl}",
-                            arguments = listOf(navArgument("title") {
-                                type = NavType.StringType
-                            }, navArgument("audioUrl") {
-                                type = NavType.StringType
-                            })
-                        ) { entry ->
-                            val audioUrl = entry.arguments?.getString("audioUrl").orEmpty()
-                            val title = entry.arguments?.getString("title").orEmpty()
-                            // Expanded: the player sits beside the audio list (Figma has no player
-                            // of its own there), with this audio selected. Another one chosen there
-                            // is still the one shown when the window narrows to the player. Both
-                            // layouts use this entry's own player ViewModel, so playback carries on.
-                            val handle = entry.savedStateHandle
-                            val selectedUrl by handle.getStateFlow(SELECTED_AUDIO_URL, audioUrl).collectAsState()
-                            val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, title).collectAsState()
-                            val selection = AudioSelection(selectedTitle, selectedUrl)
-                            ProvideNavAnimatedScope(this) {
-                            if (layoutTokens.isExpanded) {
+
+                                )
+                                }
+                            }
+                            screen("search_screen") { entry ->
+                                // Expanded: an article or an audio opens beside the results (Figma
+                                // 59:939); videos and designs open their own screens, as on the phone.
+                                // The chosen result is kept in the entry (rotation, resizing).
+                                val handle = entry.savedStateHandle
+                                val selectedId by handle.getStateFlow<String?>(SELECTED_RESULT_ID, null).collectAsState()
+                                val selectedType by handle.getStateFlow<String?>(SELECTED_RESULT_TYPE, null).collectAsState()
+                                val selectedTitle by handle.getStateFlow<String?>(SELECTED_RESULT_TITLE, null).collectAsState()
+                                val selectedUrl by handle.getStateFlow<String?>(SELECTED_RESULT_URL, null).collectAsState()
+                                val selected = selectedId?.let {
+                                    SearchResultMetaData(objectID = it, title = selectedTitle, type = selectedType, url = selectedUrl)
+                                }
+                                val clearSelection: () -> Unit = { handle[SELECTED_RESULT_ID] = null }
+                                val expanded = layoutTokens.isExpanded
+                                if (!expanded && selected != null) {
+                                    // Narrowed to one pane with a result open: it stays open here, on
+                                    // the same reader or player ViewModel (an audio keeps playing);
+                                    // back returns to the results.
+                                    BackHandler(onBack = clearSelection)
+                                    SearchResultDetail(selected, onBack = clearSelection, onShareArticle = shareArticle, onShareAudio = shareAudio)
+                                } else {
+                                    SearchScreen(
+                                        selectedResult = selected.takeIf { expanded },
+                                        detailPane = { result ->
+                                            SearchResultDetail(result, onBack = null, onShareArticle = shareArticle, onShareAudio = shareAudio)
+                                        },
+                                    ) { searchResultMetaData ->
+                                        if (expanded && searchResultMetaData.type in RESULT_TYPES_IN_PANE) {
+                                            handle[SELECTED_RESULT_TYPE] = searchResultMetaData.type
+                                            handle[SELECTED_RESULT_TITLE] = searchResultMetaData.title
+                                            handle[SELECTED_RESULT_URL] = searchResultMetaData.url
+                                            handle[SELECTED_RESULT_ID] = searchResultMetaData.objectID
+                                        } else {
+                                            val encodedUrl = Uri.encode(searchResultMetaData.url)
+                                            val encodedTitle = Uri.encode(searchResultMetaData.title)
+                                            when (searchResultMetaData.type) {
+                                                "article" -> {
+
+                                                    val objectID = searchResultMetaData.objectID
+
+                                                    val route = "detail_article_screen/$objectID"
+                                                    Log.d(TAG, "MainAppContent: route")
+                                                    navController.navigate(route)
+                                                }
+
+                                                "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
+                                                "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
+                                                "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
+                                                else -> {
+
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            screen("articles_screen") { entry ->
+                                // Expanded: the article chosen beside the list, kept in the entry so
+                                // it survives rotation and resizing. Once the window narrows to one
+                                // pane, a chosen article opens in the reader.
+                                val selected by entry.savedStateHandle
+                                    .getStateFlow<String?>(SELECTED_ARTICLE, null).collectAsState()
+                                val expanded = layoutTokens.isExpanded
+                                LaunchedEffect(expanded) {
+                                    val chosen = selected
+                                    if (!expanded && chosen != null) {
+                                        entry.savedStateHandle[SELECTED_ARTICLE] = null
+                                        navController.navigate("detail_article_screen/$chosen")
+                                    }
+                                }
+                                ArticleListScreen(
+                                    onNavigateToArticleDetail = { articleId ->
+                                        navController.navigate("detail_article_screen/$articleId")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShareSelection = { articleId ->
+                                        navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
+                                    },
+                                    selectedArticleId = selected,
+                                    onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                )
+                            }
+                            screen(
+                                // Update the route to include an optional parameter
+                                route = "detail_article_screen/{articleId}",
+                                arguments = listOf(
+                                    navArgument("articleId") { type = NavType.StringType },
+                                )
+                            ) { entry ->
+                                val articleId = entry.arguments?.getString("articleId").orEmpty()
+                                // Expanded: the reader sits beside the articles (Figma has no reader
+                                // of its own there), with this article selected. Another one chosen
+                                // there is still the one shown when the window narrows to the reader.
+                                val selected by entry.savedStateHandle
+                                    .getStateFlow(SELECTED_ARTICLE, articleId).collectAsState()
+                                val onShare: (String) -> Unit = { id ->
+                                    navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(id)}")
+                                }
+                                ProvideNavAnimatedScope(this) {
+                                if (layoutTokens.isExpanded) {
+                                    ArticleListScreen(
+                                        onNavigateToArticleDetail = { id -> navController.navigate("detail_article_screen/$id") },
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onNavigateToShareSelection = onShare,
+                                        selectedArticleId = selected,
+                                        onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                    )
+                                } else {
+                                    ArticleDetailScreen(
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onNavigateToShareSelection = onShare,
+                                        modifier = Modifier.sharedContainer(SharedKeys.article(articleId)),
+                                        articleId = selected,
+                                    )
+                                }
+                                }
+                            }
+
+                            screen(
+                                route = "${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/{articleId}",
+                                arguments = listOf(navArgument("articleId") { type = NavType.StringType })
+                            ) {
+                                ArticleShareSelectionScreen(
+                                    onNavigateUp = { navController.popBackStack() },
+                                    onContinueToPreview = { articleId, selectionStart, selectionEnd ->
+                                        // Offsets, not the excerpt: any length can be shared, and a whole
+                                        // article URL-encoded into the route would not scale.
+                                        navController.navigate(
+                                            "${Routes.TEXT_CARD_PREVIEW_SCREEN}/${Uri.encode(articleId)}" +
+                                                "?selectionStart=$selectionStart&selectionEnd=$selectionEnd"
+                                        )
+                                    }
+                                )
+                            }
+
+                            screen(
+                                route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{articleId}?selectionStart={selectionStart}&selectionEnd={selectionEnd}",
+                                arguments = listOf(
+                                    navArgument("articleId") { type = NavType.StringType },
+                                    navArgument("selectionStart") { type = NavType.IntType; defaultValue = 0 },
+                                    navArgument("selectionEnd") { type = NavType.IntType; defaultValue = 0 },
+                                )
+                            ) {
+                                TextCardPreviewScreen(
+                                    onNavigateUp = { navController.popBackStack() }
+                                )
+                            }
+                            screen(Routes.AUDIO_CATEGORY_SCREEN) {
+                                AudioCategoryScreen(
+                                    onCategoryClick = { categoryId, categoryTitle ->
+                                        if (categoryId == ContentCategories.ALL_ID) {
+                                            // "الكل": the list with no category filter (its args are nullable).
+                                            navController.navigate(Routes.AUDIO_LIST_SCREEN)
+                                        } else {
+                                            navController.navigate("${Routes.AUDIO_LIST_SCREEN}?categoryId=$categoryId&categoryTitle=${Uri.encode(categoryTitle)}")
+                                        }
+                                    },
+                                    onNavigateUp = { navController.popBackStack() }
+                                )
+                            }
+                            screen(
+                                route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                                arguments = listOf(
+                                    navArgument("categoryId") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                    },
+                                    navArgument("categoryTitle") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                    }
+                                )
+                            ) { entry ->
+                                // Expanded: the audio chosen beside the list, kept in the entry so it
+                                // survives rotation and resizing (narrowed to one pane, it stays open
+                                // in the player here, see AudioListScreen).
+                                val handle = entry.savedStateHandle
+                                val selectedUrl by handle.getStateFlow<String?>(SELECTED_AUDIO_URL, null).collectAsState()
+                                val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, "").collectAsState()
                                 AudioListScreen(
-                                    onNavigateToAudioDetail = { _, _ -> },
+                                    onNavigateToAudioDetail = { title, audioUrl ->
+                                        val encodedUrl = Uri.encode(audioUrl)
+                                        val encodedTitle = Uri.encode(title)
+                                        navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
+                                    },
                                     onNavigateBack = { navController.popBackStack() },
                                     onNavigateToShare = shareAudio,
-                                    selectedAudio = selection,
+                                    selectedAudio = selectedUrl?.let { AudioSelection(selectedTitle, it) },
                                     onSelectAudio = {
                                         handle[SELECTED_AUDIO_TITLE] = it.title
                                         handle[SELECTED_AUDIO_URL] = it.audioUrl
                                     },
-                                    playerViewModelKey = null,
+                                    onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
                                 )
-                            } else {
-                                AudioDetailScreen(
+                            }
+
+                            screen(
+                                route = "audio_detail_screen/{title}/{audioUrl}",
+                                arguments = listOf(navArgument("title") {
+                                    type = NavType.StringType
+                                }, navArgument("audioUrl") {
+                                    type = NavType.StringType
+                                })
+                            ) { entry ->
+                                val audioUrl = entry.arguments?.getString("audioUrl").orEmpty()
+                                val title = entry.arguments?.getString("title").orEmpty()
+                                // Expanded: the player sits beside the audio list (Figma has no player
+                                // of its own there), with this audio selected. Another one chosen there
+                                // is still the one shown when the window narrows to the player. Both
+                                // layouts use this entry's own player ViewModel, so playback carries on.
+                                val handle = entry.savedStateHandle
+                                val selectedUrl by handle.getStateFlow(SELECTED_AUDIO_URL, audioUrl).collectAsState()
+                                val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, title).collectAsState()
+                                val selection = AudioSelection(selectedTitle, selectedUrl)
+                                ProvideNavAnimatedScope(this) {
+                                if (layoutTokens.isExpanded) {
+                                    AudioListScreen(
+                                        onNavigateToAudioDetail = { _, _ -> },
+                                        onNavigateBack = { navController.popBackStack() },
+                                        onNavigateToShare = shareAudio,
+                                        selectedAudio = selection,
+                                        onSelectAudio = {
+                                            handle[SELECTED_AUDIO_TITLE] = it.title
+                                            handle[SELECTED_AUDIO_URL] = it.audioUrl
+                                        },
+                                        playerViewModelKey = null,
+                                    )
+                                } else {
+                                    AudioDetailScreen(
+                                        onNavigateUp = {
+                                            navController.popBackStack()
+                                        },
+                                        onNavigateToShare = shareAudio,
+                                        modifier = Modifier.sharedContainer(SharedKeys.audio(audioUrl)),
+                                        audio = selection,
+                                    )
+                                }
+                                }
+                            }
+
+                            screen(
+                                route = "${Routes.SHARE_PREVIEW_SCREEN}/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
+                                arguments = listOf(
+                                    navArgument("audioUrl") { type = NavType.StringType },
+                                    navArgument("title") { type = NavType.StringType; nullable = true },
+                                    navArgument("category") { type = NavType.StringType; nullable = true },
+                                    navArgument("localFilePath") { type = NavType.StringType; nullable = true },
+                                    navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
+                                    navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
+                                )
+                            ) {
+                                SharePreviewScreen(
                                     onNavigateUp = {
                                         navController.popBackStack()
-                                    },
-                                    onNavigateToShare = shareAudio,
-                                    modifier = Modifier.sharedContainer(SharedKeys.audio(audioUrl)),
-                                    audio = selection,
+                                    }
                                 )
                             }
-                            }
-                        }
-
-                        screen(
-                            route = "${Routes.SHARE_PREVIEW_SCREEN}/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
-                            arguments = listOf(
-                                navArgument("audioUrl") { type = NavType.StringType },
-                                navArgument("title") { type = NavType.StringType; nullable = true },
-                                navArgument("category") { type = NavType.StringType; nullable = true },
-                                navArgument("localFilePath") { type = NavType.StringType; nullable = true },
-                                navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
-                                navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
-                            )
-                        ) {
-                            SharePreviewScreen(
-                                onNavigateUp = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-                        // Medium and Expanded: the same preview as a dialog over the player.
-                        dialog(
-                            route = "$SHARE_PREVIEW_DIALOG/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
-                            arguments = listOf(
-                                navArgument("audioUrl") { type = NavType.StringType },
-                                navArgument("title") { type = NavType.StringType; nullable = true },
-                                navArgument("category") { type = NavType.StringType; nullable = true },
-                                navArgument("localFilePath") { type = NavType.StringType; nullable = true },
-                                navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
-                                navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
-                            ),
-                            dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
-                        ) {
-                            SharePreviewScreen(
-                                onNavigateUp = { navController.popBackStack() },
-                                asDialog = true,
-                            )
-                        }
-
-                        screen(
-                            route = "${Routes.STUDY_SCREEN}?data={data}",
-                            arguments = listOf(
-                                navArgument("data") {
-                                    type = NavType.StringType
-                                    nullable = true
-                                },
-                                navArgument("t") {
-                                    type = NavType.LongType
-                                    defaultValue = -1L
-                                }
-                            ),
-                        ) {
-
-                            StudyScreen(
-                                userEmail = userEmail,
-                                idToken = idToken,
-                                onLevelClick = { levelId ->
-                                    navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
-                                },
-                                onNavigateToLogin = { },
-                                onQuizClick = { quizId ->
-                                    navController.navigate("${Routes.QUIZ_SCREEN}/$quizId")
-                                }
-                            )
-                        }
-
-                        screen(
-
-                            route = "${Routes.PLAYLIST_SCREEN}/{levelId}",
-                            arguments = listOf(navArgument("levelId") {
-                                type = NavType.StringType
-                            })
-
-                        ) {
-                            PlaylistScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                onPlaylistClick = { playlistId ->
-                                    navController.navigate("${Routes.LESSONS_SCREEN}/$playlistId")
-                                }
-                            )
-                        }
-                        screen(
-
-                            route = "${Routes.QUIZ_SCREEN}/{quizId}",
-                            arguments = listOf(navArgument("quizId") {
-                                type = NavType.StringType
-                            })
-
-                        ) {
-                            AnswerQuizScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
-                        screen(
-                            route = "${Routes.LESSONS_SCREEN}/{playlistId}",
-                            arguments = listOf(navArgument("playlistId") {
-                                type = NavType.StringType
-                            })
-
-                        ) {
-
-                            LessonsListScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                onLessonClick = { lessonId ->
-                                    navController.navigate("${Routes.LESSON_DETAIL_SCREEN}/$lessonId")
-                                }
-                            )
-
-                        }
-
-                        screen(
-                            route = "${Routes.LESSON_DETAIL_SCREEN}/{lessonId}",
-                            arguments = listOf(navArgument("lessonId") {
-                                type = NavType.StringType
-                            })
-
-                        ) {
-
-                            LessonDetailScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                }
-                            )
-
-                        }
-
-                        screen(Routes.IMAGES_SCREEN, mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin) {
-                            ProvideNavAnimatedScope(this) {
-                            ImagesGroupsScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                onGroupClick = { groupId ->
-                                    navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
-                                },
-                                onImageClick = { groupId, index ->
-                                    navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
-                                }
-                            )
-                            }
-                        }
-                        composable(
-                            route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}?startIndex={startIndex}",
-                            arguments = listOf(
-                                navArgument("groupId") {
-                                    type = NavType.StringType
-                                },
-                                navArgument("startIndex") {
-                                    type = NavType.IntType
-                                    defaultValue = 0
-                                }
-                            )
-                        ) { entry ->
-                            val groupId = entry.arguments?.getString("groupId").orEmpty()
-                            ProvideNavAnimatedScope(this) {
-                            ImageScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                },
-                                modifier = Modifier.sharedContainer(SharedKeys.design(groupId), RectangleShape),
-                            )
+                            // Medium and Expanded: the same preview as a dialog over the player.
+                            dialog(
+                                route = "$SHARE_PREVIEW_DIALOG/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
+                                arguments = listOf(
+                                    navArgument("audioUrl") { type = NavType.StringType },
+                                    navArgument("title") { type = NavType.StringType; nullable = true },
+                                    navArgument("category") { type = NavType.StringType; nullable = true },
+                                    navArgument("localFilePath") { type = NavType.StringType; nullable = true },
+                                    navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
+                                    navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
+                                ),
+                                dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                            ) {
+                                SharePreviewScreen(
+                                    onNavigateUp = { navController.popBackStack() },
+                                    asDialog = true,
+                                )
                             }
 
-                        }
-                        screen(Routes.ABOUT_DR_HASSAN_SCREEN) {
-                            AboutDrHassanScreen {
-                                navController.popBackStack()
+                            screen(
+                                route = "${Routes.STUDY_SCREEN}?data={data}",
+                                arguments = listOf(
+                                    navArgument("data") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                    },
+                                    navArgument("t") {
+                                        type = NavType.LongType
+                                        defaultValue = -1L
+                                    }
+                                ),
+                            ) {
+
+                                StudyScreen(
+                                    userEmail = userEmail,
+                                    idToken = idToken,
+                                    onLevelClick = { levelId ->
+                                        navController.navigate("${Routes.PLAYLIST_SCREEN}/$levelId")
+                                    },
+                                    onNavigateToLogin = { },
+                                    onQuizClick = { quizId ->
+                                        navController.navigate("${Routes.QUIZ_SCREEN}/$quizId")
+                                    }
+                                )
                             }
-                        }
-                        screen(Routes.VIDEO_CATEGORY_SCREEN) {
-                            VideoCategoryScreen(
-                                onCategoryClick = { categoryId, categoryTitle ->
-                                    val actualId = if (categoryId == ALL_VIDEO_CATEGORIES_ID) null else categoryId
-                                    navController.navigate("${Routes.VIDEOS_SCREEN}?categoryId=$actualId&categoryTitle=${Uri.encode(categoryTitle)}")
-                                },
-                                onNavigateUp = { navController.popBackStack() }
-                            )
-                        }
-                        screen(
-                            route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
-                            arguments = listOf(
-                                navArgument("categoryId") {
-                                    type = NavType.StringType
-                                    nullable = true
-                                },
-                                navArgument("categoryTitle") {
-                                    type = NavType.StringType
-                                    nullable = true
-                                }
-                            ),
-                            mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
-                        ) {
 
-                            VideosScreen(
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                }, onNavigateToVideo = { videoUrl, videoTitle ->
-                                    val encodedUrl = Uri.encode(videoUrl)
-                                    val encodedTitle = Uri.encode(videoTitle)
-                                    navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
-                                }
-                            )
-                        }
-                        screen(
+                            screen(
 
-                            route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}/{videoTitle}",
-                            arguments = listOf(
-                                navArgument("videoUrl") {
+                                route = "${Routes.PLAYLIST_SCREEN}/{levelId}",
+                                arguments = listOf(navArgument("levelId") {
                                     type = NavType.StringType
-                                },
-                                navArgument("videoTitle") {
-                                    type = NavType.StringType
-                                }),
-
+                                })
 
                             ) {
-                            val videoUrl = it.arguments?.getString("videoUrl")
-                            val videoTitle = it.arguments?.getString("videoTitle")
-                            if (videoUrl != null) {
-                                VideoPlayerScreen(
-                                    videoUrl = videoUrl, onNavigateBack = {
+                                PlaylistScreen(
+                                    onNavigateBack = {
                                         navController.popBackStack()
                                     },
-                                    videoTitle = videoTitle
+                                    onPlaylistClick = { playlistId ->
+                                        navController.navigate("${Routes.LESSONS_SCREEN}/$playlistId")
+                                    }
+                                )
+                            }
+                            screen(
+
+                                route = "${Routes.QUIZ_SCREEN}/{quizId}",
+                                arguments = listOf(navArgument("quizId") {
+                                    type = NavType.StringType
+                                })
+
+                            ) {
+                                AnswerQuizScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    }
+                                )
+                            }
+                            screen(
+                                route = "${Routes.LESSONS_SCREEN}/{playlistId}",
+                                arguments = listOf(navArgument("playlistId") {
+                                    type = NavType.StringType
+                                })
+
+                            ) {
+
+                                LessonsListScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    },
+                                    onLessonClick = { lessonId ->
+                                        navController.navigate("${Routes.LESSON_DETAIL_SCREEN}/$lessonId")
+                                    }
+                                )
+
+                            }
+
+                            screen(
+                                route = "${Routes.LESSON_DETAIL_SCREEN}/{lessonId}",
+                                arguments = listOf(navArgument("lessonId") {
+                                    type = NavType.StringType
+                                })
+
+                            ) {
+
+                                LessonDetailScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    }
+                                )
+
+                            }
+
+                            screen(Routes.IMAGES_SCREEN, mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin) {
+                                ProvideNavAnimatedScope(this) {
+                                ImagesGroupsScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    },
+                                    onGroupClick = { groupId ->
+                                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                                    },
+                                    onImageClick = { groupId, index ->
+                                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
+                                    }
+                                )
+                                }
+                            }
+                            composable(
+                                route = "${Routes.IMAGE_DETAIL_SCREEN}/{groupId}?startIndex={startIndex}",
+                                arguments = listOf(
+                                    navArgument("groupId") {
+                                        type = NavType.StringType
+                                    },
+                                    navArgument("startIndex") {
+                                        type = NavType.IntType
+                                        defaultValue = 0
+                                    }
+                                )
+                            ) { entry ->
+                                val groupId = entry.arguments?.getString("groupId").orEmpty()
+                                ProvideNavAnimatedScope(this) {
+                                ImageScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    },
+                                    modifier = Modifier.sharedContainer(SharedKeys.design(groupId), RectangleShape),
+                                )
+                                }
+
+                            }
+                            screen(Routes.ABOUT_DR_HASSAN_SCREEN) {
+                                AboutDrHassanScreen {
+                                    navController.popBackStack()
+                                }
+                            }
+                            screen(Routes.VIDEO_CATEGORY_SCREEN) {
+                                VideoCategoryScreen(
+                                    onCategoryClick = { categoryId, categoryTitle ->
+                                        val actualId = if (categoryId == ALL_VIDEO_CATEGORIES_ID) null else categoryId
+                                        navController.navigate("${Routes.VIDEOS_SCREEN}?categoryId=$actualId&categoryTitle=${Uri.encode(categoryTitle)}")
+                                    },
+                                    onNavigateUp = { navController.popBackStack() }
+                                )
+                            }
+                            screen(
+                                route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                                arguments = listOf(
+                                    navArgument("categoryId") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                    },
+                                    navArgument("categoryTitle") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                    }
+                                ),
+                                mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
+                            ) {
+
+                                VideosScreen(
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                    }, onNavigateToVideo = { videoUrl, videoTitle ->
+                                        val encodedUrl = Uri.encode(videoUrl)
+                                        val encodedTitle = Uri.encode(videoTitle)
+                                        navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
+                                    }
+                                )
+                            }
+                            screen(
+
+                                route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}/{videoTitle}",
+                                arguments = listOf(
+                                    navArgument("videoUrl") {
+                                        type = NavType.StringType
+                                    },
+                                    navArgument("videoTitle") {
+                                        type = NavType.StringType
+                                    }),
+
+
+                                ) {
+                                val videoUrl = it.arguments?.getString("videoUrl")
+                                val videoTitle = it.arguments?.getString("videoTitle")
+                                if (videoUrl != null) {
+                                    VideoPlayerScreen(
+                                        videoUrl = videoUrl, onNavigateBack = {
+                                            navController.popBackStack()
+                                        },
+                                        videoTitle = videoTitle
+                                    )
+                                }
+
+                            }
+                            screen(Routes.NOTIFICATIONS_SCREEN) {
+                                NotificationsScreen(onBack = { navController.popBackStack() })
+                            }
+                            screen(Routes.Q_A_SCREEN) {
+                                app.netlify.devalihassan.ui.q_a.QAScreen(
+                                    onNavigateBack = { navController.popBackStack() },
+                                    // The Search route takes no preset filter, so this opens plain Search.
+                                    onOpenSearch = { navController.navigate(Routes.SEARCH_SCREEN) },
                                 )
                             }
 
-                        }
-                        screen(Routes.NOTIFICATIONS_SCREEN) {
-                            NotificationsScreen(onBack = { navController.popBackStack() })
-                        }
-                        screen(Routes.Q_A_SCREEN) {
-                            app.netlify.devalihassan.ui.q_a.QAScreen(
-                                onNavigateBack = { navController.popBackStack() },
-                                // The Search route takes no preset filter, so this opens plain Search.
-                                onOpenSearch = { navController.navigate(Routes.SEARCH_SCREEN) },
-                            )
-                        }
-
-                        // profile screens
-                        screen(Routes.PROFILE_SCREEN) {
-                            ProfileScreen(
-                                onNavigate = { route ->
-                                    when (route) {
-                                        ProfileRoute.About -> navController.navigate(ProfileDestinations.ABOUT)
-                                        ProfileRoute.Share -> navController.navigate(ProfileDestinations.SHARE)
-                                        ProfileRoute.Privacy -> navController.navigate(ProfileDestinations.PRIVACY)
-                                        ProfileRoute.Terms -> navController.navigate(ProfileDestinations.TERMS)
-                                        ProfileRoute.Licenses -> navController.navigate(ProfileDestinations.LICENSES)
-                                        ProfileRoute.Support -> navController.navigate(ProfileDestinations.SUPPORT)
+                            // profile screens
+                            screen(Routes.PROFILE_SCREEN) {
+                                ProfileScreen(
+                                    onNavigate = { route ->
+                                        when (route) {
+                                            ProfileRoute.About -> navController.navigate(ProfileDestinations.ABOUT)
+                                            ProfileRoute.Share -> navController.navigate(ProfileDestinations.SHARE)
+                                            ProfileRoute.Privacy -> navController.navigate(ProfileDestinations.PRIVACY)
+                                            ProfileRoute.Terms -> navController.navigate(ProfileDestinations.TERMS)
+                                            ProfileRoute.Licenses -> navController.navigate(ProfileDestinations.LICENSES)
+                                            ProfileRoute.Support -> navController.navigate(ProfileDestinations.SUPPORT)
+                                        }
+                                    },
+                                    onThemeChanged = { isDarkTheme ->
+                                        Log.d(TAG, "MainAppContent: isDarkTheme: $isDarkTheme")
+                                        mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
+                                    },
+                                    isDarkTheme = isDarkThemeEnabled,
+                                    followSystemTheme = followSystemTheme,
+                                    onFollowSystemThemeChanged = { mainActivityViewModel.updateFollowSystemTheme(it) },
+                                    onLogout = {
+                                        onLogout()
                                     }
-                                },
-                                onThemeChanged = { isDarkTheme ->
-                                    Log.d(TAG, "MainAppContent: isDarkTheme: $isDarkTheme")
-                                    mainActivityViewModel.updateDarkThemePreference(isDarkTheme)
-                                },
-                                isDarkTheme = isDarkThemeEnabled,
-                                followSystemTheme = followSystemTheme,
-                                onFollowSystemThemeChanged = { mainActivityViewModel.updateFollowSystemTheme(it) },
-                                onLogout = {
-                                    onLogout()
-                                }
-                            )
-                        }
-
-                        screen(ProfileDestinations.ABOUT) {
-                            AboutAppScreen(
-                                onBack = { navController.popBackStack() },
-                                onContact = { navController.navigate(ProfileDestinations.SUPPORT) },
-                            )
-                        }
-
-                        screen(ProfileDestinations.SHARE) {
-                            ShareAppScreen(
-                                "app.netlify.devalihassan",
-                                onBack = { navController.popBackStack() },
-
                                 )
+                            }
+
+                            screen(ProfileDestinations.ABOUT) {
+                                AboutAppScreen(
+                                    onBack = { navController.popBackStack() },
+                                    onContact = { navController.navigate(ProfileDestinations.SUPPORT) },
+                                )
+                            }
+
+                            screen(ProfileDestinations.SHARE) {
+                                ShareAppScreen(
+                                    "app.netlify.devalihassan",
+                                    onBack = { navController.popBackStack() },
+
+                                    )
+                            }
+
+
+                            screen(ProfileDestinations.PRIVACY) {
+                                LegalTextScreen(
+                                    title = "سياسة الخصوصية",
+                                    assetFileName = "privacy.md",
+                                    contactLabel = "للأسئلة عن خصوصيتك: تواصل معنا",
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            screen(ProfileDestinations.TERMS) {
+                                LegalTextScreen(
+                                    title = "الشروط والأحكام",
+                                    assetFileName = "terms.md",
+                                    contactLabel = "للأسئلة عن الشروط: تواصل معنا",
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            screen(ProfileDestinations.LICENSES) {
+                                LegalTextScreen(
+                                    title = "التراخيص والمصادر المفتوحة",
+                                    assetFileName = "licenses.md",
+                                    contactLabel = "للأسئلة عن التراخيص: تواصل معنا",
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
+
+                            screen(ProfileDestinations.SUPPORT) {
+                                SupportScreen(
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
+
+
                         }
-
-
-                        screen(ProfileDestinations.PRIVACY) {
-                            LegalTextScreen(
-                                title = "سياسة الخصوصية",
-                                assetFileName = "privacy.md",
-                                contactLabel = "للأسئلة عن خصوصيتك: تواصل معنا",
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-
-                        screen(ProfileDestinations.TERMS) {
-                            LegalTextScreen(
-                                title = "الشروط والأحكام",
-                                assetFileName = "terms.md",
-                                contactLabel = "للأسئلة عن الشروط: تواصل معنا",
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-
-                        screen(ProfileDestinations.LICENSES) {
-                            LegalTextScreen(
-                                title = "التراخيص والمصادر المفتوحة",
-                                assetFileName = "licenses.md",
-                                contactLabel = "للأسئلة عن التراخيص: تواصل معنا",
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-
-                        screen(ProfileDestinations.SUPPORT) {
-                            SupportScreen(
-                                onBack = { navController.popBackStack() }
-                            )
-                        }
-
-
                     }
                 }
-            }
             }
         }
     }

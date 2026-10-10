@@ -6,8 +6,8 @@ Spec: `docs/plans/tablet-design.md`. Branch: `ui/tablet` (from `16503e9`).
 
 - [x] 1. Explore
 - [x] 2. Foundations
-- [ ] 3. Screens: Articles + Reader, Home, Audio categories + Fatwas + Player, Search, Profile, Videos, Designs, Designs viewer, About, Fasaloo, Institute, Share preview, first-run and system screens
-- [ ] 4. Verification pass
+- [x] 3. Screens: all coded and committed (Articles + Reader, Home, Audio categories + Fatwas + Player, Search, Profile, Videos, Designs, Designs viewer, About, Fasaloo, Institute, Share preview, first-run and system screens)
+- [ ] 4. Verification pass: builds and unit tests done; instrumented tests, screenshots and the device pass wait for the emulator (see the end of this log)
 
 ## 1. Explore (findings)
 
@@ -180,3 +180,26 @@ Figma: Splash `61:3803` / `64:6787`, Welcome `61:3812` / `64:6796`, Onboarding `
 - Maintenance: not in the app. `AppConfig.maintenanceMode` exists but nothing reads it and there is no screen; adding one is a feature (when to show it, its copy), so it is left out.
 - Deviation: the app's update screen predates the Figma phone design (Material icon and buttons instead of the icon circle and the brand buttons); the tablet keeps its content and only takes the tablet layout.
 - Tests: `FirstRunTabletTest` (Welcome Google button 488 centred; Onboarding skip at the column's edge; Update actions 24 above the bottom, 488 wide); not run yet.
+
+## 4. Verification pass
+
+Done:
+
+- `./gradlew --offline assembleDebug testDebugUnitTest :app:assembleDebugAndroidTest` passes (every module, admin included); `:app:assembleRelease` (R8) built as well.
+- Foundations and Articles: instrumented dimension tests ran on the 1280×800dp emulator and pass (`TabletFoundationsTest` 5/5, `ArticlesTabletTest` 8/8); their screenshots were compared with the Figma frames (notes in their sections). The shell was checked on the device at Medium (800×1280) and the phone layout at 1080×2400 (bottom bar, no rail, unchanged).
+
+Waiting for the emulator (it was stopped by Claude Code when the machine ran low on memory, and not restarted without asking):
+
+- Instrumented tests written but not run: `HomeTabletTest`, `AudioTabletTest`, `SearchTabletTest`, `ProfileTabletTest`, `VideosTabletTest`, `DesignsTabletTest`, `ViewerTabletTest`, `AboutTabletTest`, `FasalooTabletTest`, `InstituteTabletTest`, `ShareDialogTabletTest`, `FirstRunTabletTest`. Run each with the commands in section 2 (install, then `am instrument`); screenshots land in `tablet-shots/`.
+- Visual comparison of those screenshots with the Figma frames, light and dark.
+- Device pass on the 1280×800 / 800×1280 emulator: rotation and resizing with a selection open (articles, audio while playing, search), the share dialog, the immersive viewer's insets.
+
+Not added (the spec says to ask first): a screenshot-testing tool (none is in the repo: Paparazzi, Roborazzi or Compose Preview Screenshot Testing would each be a new dependency, and the Gradle cache is offline).
+
+## Open points for Ali
+
+- Phones in landscape: the classes are by width, so a phone turned sideways (usually 700–900dp wide) is Medium or Expanded and gets the rail and the tablet layouts. That follows the spec and Material, but windows under ~480dp tall are not designed (section 10); say if landscape phones should keep the phone layout instead (e.g. treat height < 480 as Compact).
+- Focus, hover and pressed states (Figma has none): Material's defaults are used (ripple state layers, the rail's on its pill). Decide if you want something else.
+- Touch targets: Material's 48dp minimum is kept, so the viewer's 40dp thumbnails sit 14 apart visually instead of Figma's 6.
+- Figma vs app differences kept as the app has them (listed per screen): reader body Bold and title font, About channels card, Fasaloo topic pills, update screen style, institute card, video duration badge, no maintenance screen.
+- The adaptive libraries were not added (offline); swapping the small `WindowClass` / `TwoPaneLayout` helpers for `material3-adaptive` later is mechanical.
