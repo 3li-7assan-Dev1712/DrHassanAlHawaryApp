@@ -45,6 +45,9 @@ import androidx.compose.ui.unit.em
 import com.example.core.ui.components.Illustration
 import com.example.core.ui.components.IllustrationBox
 import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.layoutTokens
+import com.example.core.ui.components.AdaptivePanesDefaults
+import androidx.compose.foundation.layout.widthIn
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.theme.Motion
 import com.example.core.ui.theme.reducedMotion
@@ -77,60 +80,69 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState(pageCount = { PAGES.size })
     val scope = rememberCoroutineScope()
     val isLast = pagerState.currentPage == PAGES.lastIndex
+    // A tablet: the column of Figma's Onboarding (520, 16 padding), centred in the window.
+    val tablet = !layoutTokens.isCompact
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.background)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .background(colors.background),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        val reduced = reducedMotion
-        val rtlSign = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
-        HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { index ->
-            OnboardingPageContent(
-                page = PAGES[index],
-                // Parallax: the illustration travels at ~60% of the swipe. Read in the draw
-                // phase, so swiping doesn't recompose. Off under reduced motion.
-                illustrationModifier = if (reduced) Modifier else Modifier.graphicsLayer {
-                    val pageOffset = (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
-                    translationX = rtlSign * pageOffset * size.width * PARALLAX_LAG
-                },
-            )
-        }
-
-        PagerDots(pageCount = PAGES.size, position = { pagerState.currentPage + pagerState.currentPageOffsetFraction })
-        Spacer(Modifier.height(16.dp))
-
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .then(if (tablet) Modifier.widthIn(max = AdaptivePanesDefaults.FirstRunColumnWidth) else Modifier)
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = if (tablet) AdaptivePanesDefaults.FirstRunPadding else 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            TextButton(onClick = onFinished) {
-                Text(stringResource(id = R.string.onboarding_skip), color = colors.textMuted)
+            val reduced = reducedMotion
+            val rtlSign = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
+            HorizontalPager(state = pagerState, modifier = Modifier.weight(1f)) { index ->
+                OnboardingPageContent(
+                    page = PAGES[index],
+                    // Parallax: the illustration travels at ~60% of the swipe. Read in the draw
+                    // phase, so swiping doesn't recompose. Off under reduced motion.
+                    illustrationModifier = if (reduced) Modifier else Modifier.graphicsLayer {
+                        val pageOffset = (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
+                        translationX = rtlSign * pageOffset * size.width * PARALLAX_LAG
+                    },
+                )
             }
-            Spacer(Modifier.weight(1f))
-            Button(
-                onClick = {
-                    if (isLast) onFinished() else scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
-                },
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.accentStrong, contentColor = colors.onGold),
+
+            PagerDots(pageCount = PAGES.size, position = { pagerState.currentPage + pagerState.currentPageOffsetFraction })
+            Spacer(Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                // التالي → لنبدأ crossfades on the last page.
-                AnimatedContent(
-                    targetState = isLast,
-                    transitionSpec = { Motion.contentSwap(reduced) },
-                    label = "onboardingButton",
-                ) { last ->
-                    Text(
-                        stringResource(id = if (last) R.string.onboarding_get_started else R.string.onboarding_next),
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                TextButton(onClick = onFinished) {
+                    Text(stringResource(id = R.string.onboarding_skip), color = colors.textMuted)
+                }
+                Spacer(Modifier.weight(1f))
+                Button(
+                    onClick = {
+                        if (isLast) onFinished() else scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                    },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.accentStrong, contentColor = colors.onGold),
+                ) {
+                    // التالي → لنبدأ crossfades on the last page.
+                    AnimatedContent(
+                        targetState = isLast,
+                        transitionSpec = { Motion.contentSwap(reduced) },
+                        label = "onboardingButton",
+                    ) { last ->
+                        Text(
+                            stringResource(id = if (last) R.string.onboarding_get_started else R.string.onboarding_next),
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
         }
@@ -201,5 +213,29 @@ private fun OnboardingLightPreview() {
 @Preview(name = "Onboarding - dark", locale = "ar", widthDp = 360, heightDp = 720)
 @Composable
 private fun OnboardingDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) { OnboardingScreen(onFinished = {}) }
+}
+
+@Preview(name = "Onboarding - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun OnboardingMediumLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) { OnboardingScreen(onFinished = {}) }
+}
+
+@Preview(name = "Onboarding - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun OnboardingMediumDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) { OnboardingScreen(onFinished = {}) }
+}
+
+@Preview(name = "Onboarding - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun OnboardingExpandedLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) { OnboardingScreen(onFinished = {}) }
+}
+
+@Preview(name = "Onboarding - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun OnboardingExpandedDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) { OnboardingScreen(onFinished = {}) }
 }

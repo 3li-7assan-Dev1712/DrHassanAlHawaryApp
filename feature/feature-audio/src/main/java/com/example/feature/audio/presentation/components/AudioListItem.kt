@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.example.core.ui.R
+import com.example.core.ui.components.animatedListItemStyle
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
@@ -41,25 +42,31 @@ import java.util.Date
  * A compact fatwa row: 40dp play circle, the cleaned title (display only - the stored
  * title and the one passed to the player are untouched), the duration in Arabic-Indic
  * digits, and "محفوظ" with a download icon when the file is saved on the device.
+ * On a tablet the row open in the player beside the list is [selected], and [playing]
+ * while it plays.
  */
 @Composable
 fun AudioListItem(
     audio: Audio,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    // The phone's list has no access to the player, so audio.isPlaying is always false
+    // there today; the tablet's list beside the player passes its state.
+    playing: Boolean = audio.isPlaying,
 ) {
     val colors = Brand.colors
     val title = remember(audio.id, audio.title) { AudioTitleCleaner.clean(audio.title) }
-    // The list has no access to the player, so isPlaying is always false here today; the
-    // playing look is kept for when it does.
-    val isPlaying = audio.isPlaying
+    val isPlaying = playing
+    // The playing look wins over the selected one.
+    val selection = animatedListItemStyle(selected = selected && !isPlaying)
 
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(0.5.dp, if (isPlaying) colors.accentStrong else colors.divider),
+        color = selection.fill,
+        border = if (isPlaying) BorderStroke(0.5.dp, colors.accentStrong) else selection.border,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),

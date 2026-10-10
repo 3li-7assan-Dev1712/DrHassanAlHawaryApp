@@ -132,6 +132,7 @@
     <string name="share_quote_multi_hint">ستتم مشاركة %1$d صور بالترتيب</string>
 
     <string name="page_counter">%1$s من %2$s</string>
+    <string name="viewer_pinch_hint">قرّب بإصبعين</string>
     <string name="share">مشاركة</string>
     <string name="sheikh_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="reader_font_size">حجم الخط</string>
@@ -208,4 +209,12 @@
     <string name="share_step_edges">٢. اسحب الطرفين لضبط البداية والنهاية</string>
     <string name="share_text_clear">مسح</string>
     <string name="share_text_select_all">تحديد النص كله</string>
+
+    <!-- Tablet: the detail pane before anything is selected -->
+    <string name="empty_detail_title">اختر عنصرًا للعرض</string>
+    <string name="empty_detail_subtitle">سيظهر هنا محتواه</string>
+    <string name="empty_detail_audio_title">اختر قسمًا للاستماع</string>
+    <string name="empty_detail_audio_subtitle">ستظهر هنا الدروس والخطب والفتاوى</string>
+    <string name="empty_detail_search_title">اختر نتيجة لعرضها</string>
+    <string name="empty_detail_search_subtitle">ابحث في المقالات والصوتيات والفتاوى والمرئيات</string>
 </resources>

@@ -43,7 +43,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
+import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.EmptyDetail
+import com.example.core.ui.components.PreviewTab
+import com.example.core.ui.components.TwoPaneLayout
+import com.example.core.ui.theme.layoutTokens
+import com.algolia.search.model.response.ResponseSearch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import com.example.core.ui.components.animatedPillStyle
 import com.example.core.ui.components.EmptyState
 import com.example.core.ui.components.Illustration
@@ -68,10 +76,17 @@ private val SUGGESTED_TOPICS = listOf("الزكاة", "الصيام", "الحج"
 /** How many hits each group shows under "الكل" before "عرض الكل". */
 private const val GROUP_PREVIEW = 3
 
+/**
+ * Search. [onNavigateToDetail]: a result was tapped (the caller opens it, or on a tablet may
+ * show it in the detail pane instead). Expanded windows: the search beside the detail pane,
+ * which shows [selectedResult] through [detailPane], or the empty state.
+ */
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel(),
+    selectedResult: SearchResultMetaData? = null,
+    detailPane: @Composable (SearchResultMetaData) -> Unit = {},
     onNavigateToDetail: (SearchResultMetaData) -> Unit
 ) {
     val query by viewModel.query.collectAsState()
@@ -80,23 +95,58 @@ fun SearchScreen(
     val typeCounts by viewModel.typeCounts.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
 
-    SearchScreenContent(
-        modifier = modifier,
-        searchQuery = query,
-        onQueryChanged = viewModel::onQueryChange,
-        onSearchClicked = { viewModel.submit() },
-        onSuggestionClicked = { viewModel.submit(it) },
-        selectedFilter = selectedFilter,
-        onFilterSelected = viewModel::onFilterSelected,
-        typeCounts = typeCounts,
-        recentSearches = recentSearches,
-        onClearRecent = viewModel::clearRecentSearches,
-        state = state,
-        onNavigateToDetail = {
-            viewModel.onResultOpened()
-            onNavigateToDetail(it)
-        },
-    )
+    SearchAdaptiveLayout(selectedResult = selectedResult, detailPane = detailPane, modifier = modifier) { selectedObjectId ->
+        SearchScreenContent(
+            searchQuery = query,
+            onQueryChanged = viewModel::onQueryChange,
+            onSearchClicked = { viewModel.submit() },
+            onSuggestionClicked = { viewModel.submit(it) },
+            selectedFilter = selectedFilter,
+            onFilterSelected = viewModel::onFilterSelected,
+            typeCounts = typeCounts,
+            recentSearches = recentSearches,
+            onClearRecent = viewModel::clearRecentSearches,
+            state = state,
+            onNavigateToDetail = {
+                viewModel.onResultOpened()
+                onNavigateToDetail(it)
+            },
+            selectedObjectId = selectedObjectId,
+        )
+    }
+}
+
+/**
+ * Expanded: [search] (the phone's search screen) in the list pane, and the detail pane with
+ * [selectedResult] or, before one is chosen, the empty state (Figma `59:939`). Otherwise the
+ * search alone.
+ */
+@Composable
+fun SearchAdaptiveLayout(
+    selectedResult: SearchResultMetaData?,
+    detailPane: @Composable (SearchResultMetaData) -> Unit,
+    modifier: Modifier = Modifier,
+    search: @Composable (selectedObjectId: String?) -> Unit,
+) {
+    if (layoutTokens.isExpanded) {
+        TwoPaneLayout(
+            modifier = modifier,
+            listPane = { search(selectedResult?.objectID) },
+            detailPane = {
+                if (selectedResult != null) {
+                    detailPane(selectedResult)
+                } else {
+                    EmptyDetail(
+                        icon = TablerIcons.Search,
+                        title = stringResource(R.string.empty_detail_search_title),
+                        subtitle = stringResource(R.string.empty_detail_search_subtitle),
+                    )
+                }
+            },
+        )
+    } else {
+        Box(modifier) { search(null) }
+    }
 }
 
 @Composable
@@ -113,6 +163,8 @@ fun SearchScreenContent(
     state: SearchUiState,
     onNavigateToDetail: (SearchResultMetaData) -> Unit,
     modifier: Modifier = Modifier,
+    // Tablet: the result open in the detail pane beside the list.
+    selectedObjectId: String? = null,
 ) {
     val colors = Brand.colors
     Column(
@@ -194,6 +246,7 @@ fun SearchScreenContent(
                                 typeCounts = typeCounts,
                                 onFilterSelected = onFilterSelected,
                                 onNavigateToDetail = onNavigateToDetail,
+                                selectedObjectId = selectedObjectId,
                             )
                         }
                     }
@@ -217,6 +270,7 @@ private fun SearchResults(
     typeCounts: Map<String, Int>,
     onFilterSelected: (SearchFilter) -> Unit,
     onNavigateToDetail: (SearchResultMetaData) -> Unit,
+    selectedObjectId: String?,
 ) {
     val groups = remember(hits, grouped) {
         if (!grouped) emptyList()
@@ -234,6 +288,7 @@ private fun SearchResults(
                         hit = hit,
                         query = query,
                         onClick = { onNavigateToDetail(hit.toMetaData()) },
+                        selected = hit.objectID == selectedObjectId,
                         modifier = animateListItem(),
                     )
             }
@@ -252,6 +307,7 @@ private fun SearchResults(
                         hit = hit,
                         query = query,
                         onClick = { onNavigateToDetail(hit.toMetaData()) },
+                        selected = hit.objectID == selectedObjectId,
                         modifier = animateListItem(),
                     )
                 }
@@ -428,3 +484,80 @@ private fun SearchIdleLightPreview() {
 private fun SearchShortDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) { SearchPreviewContent("ال", SearchUiState.TooShort) }
 }
+
+/** The Figma search frames' query, results and counts: previews and UI tests. */
+const val SearchPreviewQuery = "احكام الصيام"
+
+val SearchPreviewState: SearchUiState = SearchUiState.Success(
+    ResponseSearch(
+        hitsOrNull = listOf(
+            previewHit("a1", "audio", "أحكام صيام المرأة"),
+            previewHit("a2", "audio", "مسائل في الصيام"),
+            previewHit("r1", "article", "أحكام الصيام للمسافر والمريض", content = "الحمد لله، أما بعد: فهذه أحكام الصيام للمسافر والمريض."),
+        ),
+    ),
+)
+
+val SearchPreviewCounts = mapOf("all" to 18, "article" to 5, "audio" to 9, "video" to 3, "image_group" to 1)
+
+private fun previewHit(id: String, type: String, title: String, content: String? = null) = ResponseSearch.Hit(
+    buildJsonObject {
+        put("objectID", id)
+        put("type", type)
+        put("title", title)
+        if (content != null) put("content", content)
+        if (type == "audio") put("audioUrl", "audio-$id")
+    },
+)
+
+/** The search screen with the sample results (no result open): previews and UI tests. */
+@Composable
+fun SearchPreviewList(selectedObjectId: String? = null) {
+    SearchScreenContent(
+        searchQuery = SearchPreviewQuery,
+        onQueryChanged = {},
+        onSearchClicked = {},
+        onSuggestionClicked = {},
+        selectedFilter = SearchFilter.ALL,
+        onFilterSelected = {},
+        typeCounts = SearchPreviewCounts,
+        recentSearches = emptyList(),
+        onClearRecent = {},
+        state = SearchPreviewState,
+        onNavigateToDetail = {},
+        selectedObjectId = selectedObjectId,
+    )
+}
+
+@Composable
+private fun SearchAdaptivePreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme, selectedTab = PreviewTab.Search) {
+        SearchAdaptiveLayout(selectedResult = null, detailPane = {}) { selectedObjectId ->
+            SearchPreviewList(selectedObjectId)
+        }
+    }
+}
+
+@Preview(name = "Search - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun SearchCompactLightPreview() = SearchAdaptivePreview(darkTheme = false)
+
+@Preview(name = "Search - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun SearchCompactDarkPreview() = SearchAdaptivePreview(darkTheme = true)
+
+@Preview(name = "Search - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun SearchMediumLightPreview() = SearchAdaptivePreview(darkTheme = false)
+
+@Preview(name = "Search - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun SearchMediumDarkPreview() = SearchAdaptivePreview(darkTheme = true)
+
+@Preview(name = "Search - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun SearchExpandedLightPreview() = SearchAdaptivePreview(darkTheme = false)
+
+@Preview(name = "Search - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun SearchExpandedDarkPreview() = SearchAdaptivePreview(darkTheme = true)

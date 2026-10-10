@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,6 +51,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -57,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.components.AppTopBarAction
+import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
@@ -64,6 +68,7 @@ import com.example.core.ui.theme.Motion
 import com.example.core.ui.theme.SharedKeys
 import com.example.core.ui.theme.sharedPart
 import com.example.core.ui.theme.reducedMotion
+import com.example.core.ui.theme.layoutTokens
 import com.example.domain.module.Article
 import com.example.domain.text.ArabicDates
 import com.example.domain.text.ArabicNumerals
@@ -76,13 +81,19 @@ private val FONT_STEPS = listOf(14.sp, 16.sp, 18.sp, 21.sp)
 
 private val paragraphCleaner = ArticleTextCleaner()
 
+/**
+ * The reader. [articleId]: the article to show instead of the route's (the selection made
+ * beside the list on a tablet, carried over when the window narrows to one pane).
+ */
 @Composable
 fun ArticleDetailScreen(
     viewModel: DetailArticleViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToShareSelection: (articleId: String) -> Unit = {},
     modifier: Modifier = Modifier,
+    articleId: String? = null,
 ) {
+    LaunchedEffect(articleId) { articleId?.let(viewModel::showArticle) }
     val uiState by viewModel.uiState.collectAsState()
     val fontStep by viewModel.fontStep.collectAsState()
 
@@ -96,17 +107,73 @@ fun ArticleDetailScreen(
     )
 }
 
+/** The ViewModel key of the reader pane (one per back-stack entry). */
+const val ARTICLE_READER_PANE_KEY = "articleReaderPane"
+
+/**
+ * The reader in the detail pane beside the article list (Expanded): the reader's top bar
+ * without the back arrow (the list pane has it) and without the reading progress, then the
+ * article with 32dp side padding. Follows the selection: [articleId].
+ */
 @Composable
-private fun ArticleDetailContent(
+fun ArticleReaderPane(
+    articleId: String,
+    onShare: (articleId: String) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: DetailArticleViewModel = hiltViewModel(key = ARTICLE_READER_PANE_KEY),
+) {
+    LaunchedEffect(articleId) { viewModel.showArticle(articleId) }
+    val uiState by viewModel.uiState.collectAsState()
+    val fontStep by viewModel.fontStep.collectAsState()
+    // Until the new selection's load starts, the state still holds the previous article.
+    val shown = uiState.takeUnless { it is DetailArticleUiState.Success && it.article.id != articleId }
+        ?: DetailArticleUiState.Loading
+    // A new article starts at its top.
+    key(articleId) {
+        ArticleReaderPaneContent(shown, fontStep, viewModel::setFontStep, onShare, modifier)
+    }
+}
+
+/** [ArticleReaderPane] without its ViewModel: previews and UI tests. */
+@Composable
+fun ArticleReaderPaneContent(
     uiState: DetailArticleUiState,
     fontStep: Int,
     onFontStepChange: (Int) -> Unit,
-    onNavigateBack: () -> Unit,
+    onShare: (articleId: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ArticleDetailContent(
+        uiState = uiState,
+        fontStep = fontStep,
+        onFontStepChange = onFontStepChange,
+        onNavigateBack = null,
+        onShare = onShare,
+        modifier = modifier,
+        inPane = true,
+    )
+}
+
+/** Side padding of the article text: the phone's 16, 32 in the tablet's detail pane. */
+private val ReaderPadding = 16.dp
+private val ReaderPanePadding = 32.dp
+
+/** The reader without its ViewModel (public for previews and UI tests). */
+@Composable
+fun ArticleDetailContent(
+    uiState: DetailArticleUiState,
+    fontStep: Int,
+    onFontStepChange: (Int) -> Unit,
+    onNavigateBack: (() -> Unit)?,
     onShare: (String) -> Unit,
     modifier: Modifier = Modifier,
+    inPane: Boolean = false,
 ) {
     val scrollState = rememberScrollState()
     val colors = Brand.colors
+    // Medium and Expanded: the text is no wider than reading/maxWidth, centred.
+    val tokens = layoutTokens
+    val readingMaxWidth = if (tokens.isCompact) null else tokens.readingMaxWidth
     // Collapsing title: once the big in-page title has scrolled out of view, a one-line
     // copy fades into the top bar (and out again when it comes back). Derived from the
     // scroll position, so it costs no recomposition while scrolling.
@@ -136,7 +203,7 @@ private fun ArticleDetailContent(
                         }
                     },
                 )
-                ReadingProgress(scrollState)
+                if (!inPane) ReadingProgress(scrollState)
             }
         },
     ) { innerPadding ->
@@ -175,6 +242,8 @@ private fun ArticleDetailContent(
                             fontSize = FONT_STEPS[fontStep.coerceIn(0, FONT_STEPS.lastIndex)],
                             scrollState = scrollState,
                             onTitleBottom = { titleBottomPx = it },
+                            horizontalPadding = if (inPane) ReaderPanePadding else ReaderPadding,
+                            maxWidth = readingMaxWidth,
                         )
                     }
                 }
@@ -271,6 +340,8 @@ private fun ArticleBody(
     fontSize: TextUnit,
     scrollState: ScrollState,
     onTitleBottom: (Int) -> Unit,
+    horizontalPadding: Dp = ReaderPadding,
+    maxWidth: Dp? = null,
 ) {
     val colors = Brand.colors
     val topPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
@@ -295,40 +366,49 @@ private fun ArticleBody(
         ArabicDates.readingTime(readingMinutes),
     ).joinToString(ArabicNumerals.DATE_SEPARATOR)
 
+    // The whole width scrolls; the text column is at most [maxWidth] wide (padding included,
+    // as Figma's ArticleBody), centred.
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp, bottom = 32.dp),
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, lineHeight = 1.5.em),
-            color = colors.textPrimary,
-            // Where the title ends in the scrolled content (its position is unscrolled, inside
-            // the column's top padding).
+        Column(
             modifier = Modifier
-                .sharedPart(SharedKeys.articleTitle(article.id))
-                .onGloballyPositioned {
-                onTitleBottom(it.positionInParent().y.roundToInt() + it.size.height + topPaddingPx)
-            },
-        )
-        if (subtitle != null) {
-            Spacer(Modifier.height(4.dp))
+                .then(if (maxWidth != null) Modifier.widthIn(max = maxWidth) else Modifier)
+                .fillMaxWidth()
+                .padding(horizontal = horizontalPadding)
+                .padding(top = 16.dp, bottom = 32.dp),
+        ) {
             Text(
-                text = subtitle,
-                style = MaterialTheme.typography.titleMedium.copy(lineHeight = 1.5.em),
-                color = colors.accentText,
+                text = title,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, lineHeight = 1.5.em),
+                color = colors.textPrimary,
+                // Where the title ends in the scrolled content (its position is unscrolled, inside
+                // the column's top padding).
+                modifier = Modifier
+                    .sharedPart(SharedKeys.articleTitle(article.id))
+                    .onGloballyPositioned {
+                    onTitleBottom(it.positionInParent().y.roundToInt() + it.size.height + topPaddingPx)
+                },
             )
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(text = meta, style = MaterialTheme.typography.labelMedium, color = colors.textMuted)
-        Spacer(Modifier.height(20.dp))
+            if (subtitle != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.titleMedium.copy(lineHeight = 1.5.em),
+                    color = colors.accentText,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(text = meta, style = MaterialTheme.typography.labelMedium, color = colors.textMuted)
+            Spacer(Modifier.height(20.dp))
 
-        Column(Modifier.graphicsLayer { alpha = bodyAlpha.value }) {
-            paragraphs.forEachIndexed { index, paragraph ->
-                ReaderParagraph(paragraph = paragraph, isFirst = index == 0, fontSize = shownFontSize)
+            Column(Modifier.graphicsLayer { alpha = bodyAlpha.value }) {
+                paragraphs.forEachIndexed { index, paragraph ->
+                    ReaderParagraph(paragraph = paragraph, isFirst = index == 0, fontSize = shownFontSize)
+                }
             }
         }
     }
@@ -401,9 +481,10 @@ private fun boldAnnotated(text: String): AnnotatedString {
     }
 }
 
+// The Figma reader frames' text.
 private val previewState = DetailArticleUiState.Success(
     article = Article(
-        id = "preview",
+        id = "1",
         title = "الأزمة الاقتصادية الطاحنة: مظاهر، أسباب، وتدابير",
         publishDate = Date(),
         content = "",
@@ -411,12 +492,12 @@ private val previewState = DetailArticleUiState.Success(
     paragraphs = listOf(
         "بسم الله الرحمن الرحيم",
         "الحمد لله، وصلى الله وسلم على رسول الله، وبعد:",
-        "فإن بلادنا تعيش أزمة *اقتصادية* طاحنة، وأسبابها جلية واضحة.",
+        "فإن بلادنا تعيش أزمة *اقتصادية* طاحنة، وأسبابها جلية واضحة، فإلى الله المشتكى وإليه الملاذ والملتجى.",
         ArticleTextCleaner.ORNAMENT,
-        "▪ أولًا: المظاهر",
-        "غلاء الأسعار وتدهور العملة.",
+        "▪ أولًا: مظاهر الأزمة",
+        "١. هبوط فظيع في قيمة سعر الصرف مقابل العملات الأخرى، حتى وصلت أرقامًا فلكية يصعب حسابها، فهل تعلم عزيزي القارئ أن سعر الجنيه السوداني كان يومًا من الأيام يعادل عشرين ريالًا سعوديًا…",
     ),
-    readingMinutes = 5,
+    readingMinutes = 7,
 )
 
 @Preview(name = "Reader - light", locale = "ar", widthDp = 360, heightDp = 640)
@@ -434,6 +515,27 @@ private fun ArticleDetailDarkPreview() {
         ArticleDetailContent(previewState, fontStep = 1, onFontStepChange = {}, onNavigateBack = {}, onShare = {})
     }
 }
+
+// Medium: the reader is its own screen beside the rail, the text 640 wide. (Expanded shows
+// it in the articles' detail pane: see ArticleListScreen's previews.)
+@Preview(name = "Reader - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ArticleDetailMediumLightPreview() {
+    AdaptiveShellPreview(darkTheme = false) {
+        ArticleDetailContent(previewState, fontStep = 1, onFontStepChange = {}, onNavigateBack = {}, onShare = {})
+    }
+}
+
+@Preview(name = "Reader - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ArticleDetailMediumDarkPreview() {
+    AdaptiveShellPreview(darkTheme = true) {
+        ArticleDetailContent(previewState, fontStep = 1, onFontStepChange = {}, onNavigateBack = {}, onShare = {})
+    }
+}
+
+/** Sample reader content for previews and UI tests. */
+val ReaderPreviewState: DetailArticleUiState = previewState
 
 /** The cleaner turned the first " - " of the title into ": ", so split there: title, subtitle. */
 private fun splitTitle(raw: String): Pair<String, String?> {

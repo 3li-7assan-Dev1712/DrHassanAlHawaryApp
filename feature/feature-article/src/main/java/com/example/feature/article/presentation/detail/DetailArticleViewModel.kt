@@ -9,6 +9,8 @@ import com.example.domain.repository.DataStoreRepository
 import com.example.domain.text.ArticleTextCleaner
 import com.example.feature.article.domain.use_case.GetArticleByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,16 +42,31 @@ class DetailArticleViewModel @Inject constructor(
     val uiState: StateFlow<DetailArticleUiState> = _uiState.asStateFlow()
 
 
+    private var shownArticleId: String? = null
+    private var loadJob: Job? = null
+
     init {
         val articleId = savedStateHandle.get<String>("articleId")
         Log.d(TAG, "articleId = : $articleId ")
         if (articleId != null) {
-            fetchArticleDetailsById(articleId)
+            showArticle(articleId)
         }
     }
 
-    private fun fetchArticleDetailsById(articleId: String) {
-        viewModelScope.launch {
+    /**
+     * Shows [articleId] (nothing if it is already shown). The reader beside the article list
+     * on tablets has no route argument and changes article with the selection.
+     */
+    fun showArticle(articleId: String) {
+        if (articleId == shownArticleId) return
+        shownArticleId = articleId
+        loadJob?.cancel()
+        _uiState.value = DetailArticleUiState.Loading
+        loadJob = fetchArticleDetailsById(articleId)
+    }
+
+    private fun fetchArticleDetailsById(articleId: String): Job {
+        return viewModelScope.launch {
 
             try {
                 getArticleByIdUseCase(articleId).collect { art ->
@@ -66,6 +83,9 @@ class DetailArticleViewModel @Inject constructor(
                     }
                 }
 
+            } catch (e: CancellationException) {
+                // Another article was chosen: its load owns the state now.
+                throw e
             } catch (e: Exception) {
                 _uiState.value = DetailArticleUiState.Error(
                     message = e.message ?: "Unknown error"

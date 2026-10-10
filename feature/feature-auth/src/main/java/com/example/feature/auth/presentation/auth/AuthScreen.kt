@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.layoutTokens
+import com.example.core.ui.components.AdaptivePanesDefaults
 import com.example.core.ui.theme.Cairo
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.util.LightSystemBarIcons
@@ -94,6 +96,8 @@ fun AuthScreenContent(
     // The brand palette follows the light/dark setting, like home. The background also
     // fills the status/navigation bar areas (edge-to-edge): on dark they need light icons.
     if (Brand.colors.isDark) LightSystemBarIcons()
+    // A tablet: the column of Figma's Welcome (520, 16 padding), centred; the phone's otherwise.
+    val tablet = !layoutTokens.isCompact
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
@@ -105,11 +109,11 @@ fun AuthScreenContent(
         // bottom-anchored button; scrolls when it can't fit (landscape, large fonts).
         Column(
             modifier = Modifier
-                .widthIn(max = 480.dp)
+                .widthIn(max = if (tablet) AdaptivePanesDefaults.FirstRunColumnWidth else 480.dp)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .heightIn(min = maxHeight)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = if (tablet) AdaptivePanesDefaults.FirstRunPadding else 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
@@ -243,3 +247,26 @@ private fun AuthLandscapePreview() = AuthPreview(AuthUiState.Idle)
 @Preview(device = Devices.PIXEL_7, name = "Admin")
 @Composable
 private fun AuthAdminPreview() = AuthPreview(AuthUiState.Idle, isAdmin = true)
+
+@Composable
+private fun AuthTabletPreview(darkTheme: Boolean) {
+    HassanAlHawaryTheme(darkTheme = darkTheme) {
+        AuthScreenContent(state = AuthUiState.Idle, onGoogleClick = {})
+    }
+}
+
+@Preview(name = "Welcome - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun AuthMediumLightPreview() = AuthTabletPreview(darkTheme = false)
+
+@Preview(name = "Welcome - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun AuthMediumDarkPreview() = AuthTabletPreview(darkTheme = true)
+
+@Preview(name = "Welcome - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun AuthExpandedLightPreview() = AuthTabletPreview(darkTheme = false)
+
+@Preview(name = "Welcome - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun AuthExpandedDarkPreview() = AuthTabletPreview(darkTheme = true)

@@ -3,6 +3,12 @@ package com.example.core.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -34,4 +40,28 @@ fun animatedPillStyle(selected: Boolean): PillStyle {
         if (selected) colors.onAccentContainer else colors.textSecondary, stateChangeSpec(), label = "pillText",
     )
     return PillStyle(fill, BorderStroke(borderWidth, borderColor), content)
+}
+
+/**
+ * A selectable pill (Figma FilterPill: labelLarge, 14 × 6 padding): the tablet's video
+ * category filters. Search keeps its own, which also shows a count.
+ */
+@Composable
+fun FilterPill(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val style = animatedPillStyle(selected)
+    Surface(
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(50),
+        color = style.fill,
+        border = style.border,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = style.content,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+        )
+    }
 }

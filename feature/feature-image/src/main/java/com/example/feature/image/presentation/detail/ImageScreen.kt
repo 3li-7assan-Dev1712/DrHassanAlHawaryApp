@@ -79,6 +79,20 @@ import coil.request.SuccessResult
 import com.example.core.ui.R
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
+import com.example.core.ui.components.AdaptiveShellPreview
+import com.example.domain.module.Image
+import com.example.domain.module.ImageGroup
+import com.example.domain.module.ImageGroupWithImages
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.core.ui.theme.layoutTokens
+import com.example.core.ui.util.LightSystemBarIcons
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.testTag
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.DesignTitle
 import kotlinx.coroutines.Dispatchers
@@ -105,6 +119,16 @@ fun ImageScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    ImageViewerContent(uiState = uiState, onNavigateBack = onNavigateBack, modifier = modifier)
+}
+
+/** [ImageScreen] without its ViewModel (previews and UI tests use it too). */
+@Composable
+fun ImageViewerContent(
+    uiState: ImageDetailUiState,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val group = uiState.imageGroup?.group
     val images = uiState.imageGroup?.images ?: emptyList()
     val context = LocalContext.current
@@ -131,20 +155,25 @@ fun ImageScreen(
         scope.launch { dismissOffset.snapTo(dismissOffset.value + delta) }
     }
 
+    // Tablet (Medium and Expanded): the immersive viewer of Figma `60:1782` / `64:4976`, on the
+    // dark viewer background in both themes, drawn to the window edges (no rail).
+    val tablet = !layoutTokens.isCompact
     Box(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { viewerHeight = it.height.coerceAtLeast(1) }
-            // The same background as the designs grid (light or dark with the theme), so the
-            // transform from a tile and back never flashes a different colour.
-            .background(Brand.colors.background),
+            // The phone: the same background as the designs grid (light or dark with the
+            // theme), so the transform from a tile and back never flashes a different colour.
+            .background(if (tablet) Brand.colors.viewerBackground else Brand.colors.background),
     ) {
+        if (tablet) LightSystemBarIcons()
+        val onBackground = if (tablet) Brand.colors.onViewerBackground else Brand.colors.textPrimary
         when {
             uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center), color = Brand.colors.accentStrong)
 
             uiState.error != null -> Text(
                 text = uiState.error.orEmpty(),
-                color = Brand.colors.textPrimary,
+                color = onBackground,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
@@ -152,34 +181,29 @@ fun ImageScreen(
                     .padding(24.dp),
             )
 
-            group != null && images.isNotEmpty() -> Column(Modifier.fillMaxSize()) {
-                ViewerTopBar(
-                    modifier = Modifier.graphicsLayer { alpha = 1f - (dismissProgress() * 3f).coerceAtMost(1f) },
-                    title = DesignTitle.clean(group.title),
-                    counter = if (images.size > 1) stringResource(
-                        R.string.page_counter,
-                        ArabicNumerals.digits(pagerState.currentPage + 1),
-                        ArabicNumerals.digits(images.size),
-                    ) else null,
-                    sharing = sharing,
-                    onClose = onNavigateBack,
-                    onShare = {
-                        val url = images.getOrNull(pagerState.currentPage)?.imageUrl
-                        if (url != null) {
-                            sharing = true
-                            scope.launch {
-                                shareImage(context, url, "design_${group.id}_${pagerState.currentPage}")
-                                sharing = false
-                            }
+            group != null && images.isNotEmpty() -> {
+                val title = DesignTitle.clean(group.title)
+                val counter = if (images.size > 1) stringResource(
+                    R.string.page_counter,
+                    ArabicNumerals.digits(pagerState.currentPage + 1),
+                    ArabicNumerals.digits(images.size),
+                ) else null
+                val onShare = {
+                    val url = images.getOrNull(pagerState.currentPage)?.imageUrl
+                    if (url != null) {
+                        sharing = true
+                        scope.launch {
+                            shareImage(context, url, "design_${group.id}_${pagerState.currentPage}")
+                            sharing = false
                         }
-                    },
-                )
+                    }
+                }
+                val barsAlpha = { 1f - (dismissProgress() * 3f).coerceAtMost(1f) }
+                val pager = @Composable { pagerModifier: Modifier ->
                 HorizontalPager(
                     state = pagerState,
                     userScrollEnabled = !zoomed,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                    modifier = pagerModifier
                         // The drag is detected outside the moving layer, so the finger's deltas
                         // aren't cancelled by the image moving under it.
                         .draggable(
@@ -212,15 +236,178 @@ fun ImageScreen(
                         onZoomChange = { if (page == pagerState.currentPage) zoomed = it },
                     )
                 }
-                if (images.size > 1) {
-                    ThumbnailStrip(
-                        modifier = Modifier.graphicsLayer { alpha = 1f - (dismissProgress() * 3f).coerceAtMost(1f) },
-                        urls = images.map { it.imageUrl },
+                }
+                val onSelect: (Int) -> Unit = { scope.launch { pagerState.animateScrollToPage(it) } }
+                if (tablet) {
+                    TabletViewer(
+                        title = title,
+                        counter = counter,
+                        sharing = sharing,
+                        onClose = onNavigateBack,
+                        onShare = onShare,
+                        barsAlpha = barsAlpha,
+                        pager = pager,
+                        thumbnails = images.map { it.imageUrl }.takeIf { it.size > 1 },
                         current = pagerState.currentPage,
-                        onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
+                        onSelect = onSelect,
                     )
+                } else {
+                    Column(Modifier.fillMaxSize()) {
+                        ViewerTopBar(
+                            modifier = Modifier.graphicsLayer { alpha = barsAlpha() },
+                            title = title,
+                            counter = counter,
+                            sharing = sharing,
+                            onClose = onNavigateBack,
+                            onShare = onShare,
+                        )
+                        pager(
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                        )
+                        if (images.size > 1) {
+                            ThumbnailStrip(
+                                modifier = Modifier.graphicsLayer { alpha = barsAlpha() },
+                                urls = images.map { it.imageUrl },
+                                current = pagerState.currentPage,
+                                onSelect = onSelect,
+                            )
+                        }
+                    }
                 }
             }
+        }
+    }
+}
+
+/** The tablet viewer's poster (UI tests). */
+const val VIEWER_POSTER_TEST_TAG = "viewerPoster"
+
+/** The tablet viewer, measured in Figma (`60:1782` Expanded, `64:4976` Medium). */
+private object TabletViewerSpec {
+    val Spacing = 16.dp
+    val PosterWidth = 688.dp
+    val PosterHeight = 460.dp
+    val PosterCorner = 8.dp
+    val ThumbnailSize = 40.dp
+    val ThumbnailCorner = 6.dp
+    val ThumbnailGap = 6.dp
+    val ThumbnailsBottom = 20.dp
+}
+
+/**
+ * The tablet viewer: inside the window margin, a centred column 16 apart: the top row
+ * (close, title, counter), the poster at 688 × 460 (fit, pinch zoom, swipe to close), the
+ * pinch hint, the share pill and the thumbnails; text and outlines onViewerBackground.
+ */
+@Composable
+private fun TabletViewer(
+    title: String,
+    counter: String?,
+    sharing: Boolean,
+    onClose: () -> Unit,
+    onShare: () -> Unit,
+    barsAlpha: () -> Float,
+    pager: @Composable (Modifier) -> Unit,
+    thumbnails: List<String>?,
+    current: Int,
+    onSelect: (Int) -> Unit,
+) {
+    val colors = Brand.colors
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .padding(layoutTokens.margin),
+        verticalArrangement = Arrangement.spacedBy(TabletViewerSpec.Spacing, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Figma: 16 padding around a 24 icon; the 48 touch target sits on the same centre.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer { alpha = barsAlpha() }
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onClose) {
+                Icon(
+                    painterResource(TablerIcons.X),
+                    contentDescription = stringResource(R.string.back),
+                    tint = colors.onViewerBackground,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Text(
+                text = title,
+                color = colors.onViewerBackground,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp),
+            )
+            if (counter != null) {
+                Text(
+                    text = counter,
+                    color = colors.onViewerBackground,
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(end = 12.dp),
+                )
+            }
+        }
+        pager(
+            Modifier
+                // Shrinks to fit a short window rather than pushing the rest out.
+                .weight(1f, fill = false)
+                .widthIn(max = TabletViewerSpec.PosterWidth)
+                .heightIn(max = TabletViewerSpec.PosterHeight)
+                .fillMaxSize()
+                .clip(RoundedCornerShape(TabletViewerSpec.PosterCorner))
+                .testTag(VIEWER_POSTER_TEST_TAG)
+        )
+        Text(
+            text = stringResource(R.string.viewer_pinch_hint),
+            color = colors.onViewerBackground,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.graphicsLayer { alpha = barsAlpha() },
+        )
+        Surface(
+            onClick = onShare,
+            enabled = !sharing,
+            shape = RoundedCornerShape(50),
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, colors.onViewerBackground),
+            modifier = Modifier.graphicsLayer { alpha = barsAlpha() },
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (sharing) {
+                    CircularProgressIndicator(Modifier.size(18.dp), color = colors.onViewerBackground, strokeWidth = 2.dp)
+                } else {
+                    Icon(painterResource(TablerIcons.Share), contentDescription = null, tint = colors.onViewerBackground, modifier = Modifier.size(18.dp))
+                }
+                Text(text = stringResource(R.string.share), color = colors.onViewerBackground, style = MaterialTheme.typography.labelLarge)
+            }
+        }
+        if (thumbnails != null) {
+            ThumbnailStrip(
+                modifier = Modifier.graphicsLayer { alpha = barsAlpha() },
+                urls = thumbnails,
+                current = current,
+                onSelect = onSelect,
+                thumbnailSize = TabletViewerSpec.ThumbnailSize,
+                corner = TabletViewerSpec.ThumbnailCorner,
+                gap = TabletViewerSpec.ThumbnailGap,
+                contentPadding = PaddingValues(bottom = TabletViewerSpec.ThumbnailsBottom),
+                dimUnselected = false,
+                centred = true,
+            )
         }
     }
 }
@@ -353,26 +540,36 @@ private fun ZoomableImage(url: String, isCurrent: Boolean, onZoomChange: (Boolea
     }
 }
 
+/**
+ * The thumbnails of a multi-image post. The phone: 52dp, start-aligned, the others dimmed.
+ * The tablet passes Figma's 40dp squares, centred, undimmed.
+ */
 @Composable
 private fun ThumbnailStrip(
     urls: List<String>,
     current: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    thumbnailSize: Dp = 52.dp,
+    corner: Dp = 8.dp,
+    gap: Dp = 8.dp,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+    dimUnselected: Boolean = true,
+    centred: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     LaunchedEffect(current) { listState.animateScrollToItem(current) }
     LazyRow(
         state = listState,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = contentPadding,
+        horizontalArrangement = if (centred) Arrangement.spacedBy(gap, Alignment.CenterHorizontally) else Arrangement.spacedBy(gap),
         modifier = modifier.fillMaxWidth(),
     ) {
         itemsIndexed(urls) { index, url ->
             val selected = index == current
             Surface(
                 onClick = { onSelect(index) },
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(corner),
                 color = Color.Transparent,
                 border = if (selected) BorderStroke(2.dp, Brand.colors.accentStrong) else null,
             ) {
@@ -381,9 +578,9 @@ private fun ThumbnailStrip(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .graphicsLayer { alpha = if (selected) 1f else 0.6f },
+                        .size(thumbnailSize)
+                        .clip(RoundedCornerShape(corner))
+                        .graphicsLayer { alpha = if (selected || !dimUnselected) 1f else 0.6f },
                 )
             }
         }
@@ -411,3 +608,43 @@ private suspend fun shareImage(context: Context, url: String, name: String) {
     }
     context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }
+
+/** A sample multi-image post for previews and UI tests (no image files: the posters stay empty). */
+val ViewerPreviewState = ImageDetailUiState(
+    isLoading = false,
+    imageGroup = ImageGroupWithImages(
+        group = ImageGroup(id = "1", title = "دروس وعبر من مأساة الفاشر", previewImageUrl = ""),
+        images = List(6) { Image(id = "$it", imageUrl = "", orderIndex = it) },
+    ),
+)
+
+@Composable
+private fun ViewerPreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme, showRail = false, margin = false) {
+        ImageViewerContent(uiState = ViewerPreviewState, onNavigateBack = {})
+    }
+}
+
+@Preview(name = "Designs viewer - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun ViewerCompactLightPreview() = ViewerPreview(darkTheme = false)
+
+@Preview(name = "Designs viewer - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun ViewerCompactDarkPreview() = ViewerPreview(darkTheme = true)
+
+@Preview(name = "Designs viewer - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ViewerMediumLightPreview() = ViewerPreview(darkTheme = false)
+
+@Preview(name = "Designs viewer - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ViewerMediumDarkPreview() = ViewerPreview(darkTheme = true)
+
+@Preview(name = "Designs viewer - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ViewerExpandedLightPreview() = ViewerPreview(darkTheme = false)
+
+@Preview(name = "Designs viewer - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ViewerExpandedDarkPreview() = ViewerPreview(darkTheme = true)

@@ -62,6 +62,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.AdaptiveShellPreview
+import com.example.core.ui.components.TwoPaneLayout
+import com.example.core.ui.theme.layoutTokens
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.Dp
 import com.example.core.ui.components.SheikhPhoto
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
@@ -97,6 +103,93 @@ private fun AboutContent(doctor: DoctorProfile, onNavigateBack: () -> Unit) {
     val research = remember(doctor) { doctor.researches.map(DatedEntry::parse).sortedByDescending { it.year ?: Int.MIN_VALUE } }
     val papers = remember(doctor) { doctor.papers.map(DatedEntry::parse).sortedByDescending { it.year ?: Int.MIN_VALUE } }
 
+    val tabRow = @Composable {
+        ScrollableTabRow(
+            selectedTabIndex = tab,
+            edgePadding = 0.dp,
+            containerColor = colors.background,
+            contentColor = colors.textPrimary,
+            indicator = { positions ->
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(positions[tab]),
+                    color = colors.accentStrong,
+                )
+            },
+            divider = { HorizontalDivider(thickness = 0.5.dp, color = colors.divider) },
+        ) {
+            tabs.forEachIndexed { index, label ->
+                Tab(
+                    selected = tab == index,
+                    onClick = { tab = index },
+                    selectedContentColor = colors.textPrimary,
+                    unselectedContentColor = colors.textMuted,
+                    text = {
+                        Text(
+                            stringResource(label),
+                            fontWeight = if (tab == index) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 1,
+                        )
+                    },
+                )
+            }
+        }
+    }
+    // The selected tab's sections, 16 apart.
+    val tabSections: List<@Composable () -> Unit> = when (tab) {
+        0 -> listOf(
+            { SectionCard { BodyText(doctor.bio) } },
+            { BulletSection(stringResource(R.string.about_teachers), doctor.teachers) },
+            { BulletSection(stringResource(R.string.about_positions), doctor.positions) },
+        )
+        1 -> listOf({ SectionCard { Timeline(education) } })
+        2 -> listOf(
+            { ResearchSection(stringResource(R.string.about_research_published), research) },
+            { ResearchSection(stringResource(R.string.about_research_papers), papers) },
+        )
+        else -> listOf(
+            { BulletSection(stringResource(R.string.about_media_contributions), doctor.mediaResponsibilities) },
+            { BulletSection(stringResource(R.string.about_teaching_contributions), doctor.studyingResponsibilities) },
+        )
+    }
+
+    if (layoutTokens.isExpanded) {
+        // Figma `61:1998`: the profile (photo, name, roles, channels) in the start pane with
+        // the top bar, the tabs and the selected tab in the detail pane.
+        TwoPaneLayout(
+            listPane = {
+                Scaffold(
+                    containerColor = colors.background,
+                    topBar = { AppTopBar(title = stringResource(R.string.about_dr_hassan), onBack = onNavigateBack) },
+                ) { padding ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .verticalScroll(rememberScrollState())
+                            .padding(AboutPanePadding),
+                        verticalArrangement = Arrangement.spacedBy(AboutProfileSpacing),
+                    ) {
+                        HeroSection(roleLine = doctor.title, photoSize = AboutPanePhotoSize)
+                        OfficialChannels()
+                    }
+                }
+            },
+            detailPane = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(AboutPanePadding),
+                    verticalArrangement = Arrangement.spacedBy(AboutSectionSpacing),
+                ) {
+                    tabRow()
+                    tabSections.forEach { it() }
+                }
+            },
+        )
+        return
+    }
+
     Scaffold(
         containerColor = colors.background,
         topBar = { AppTopBar(title = stringResource(R.string.about_dr_hassan), onBack = onNavigateBack) },
@@ -106,67 +199,26 @@ private fun AboutContent(doctor: DoctorProfile, onNavigateBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(AboutSectionSpacing),
         ) {
             item { HeroSection(roleLine = doctor.title) }
-
-            item {
-                ScrollableTabRow(
-                    selectedTabIndex = tab,
-                    edgePadding = 0.dp,
-                    containerColor = colors.background,
-                    contentColor = colors.textPrimary,
-                    indicator = { positions ->
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(positions[tab]),
-                            color = colors.accentStrong,
-                        )
-                    },
-                    divider = { HorizontalDivider(thickness = 0.5.dp, color = colors.divider) },
-                ) {
-                    tabs.forEachIndexed { index, label ->
-                        Tab(
-                            selected = tab == index,
-                            onClick = { tab = index },
-                            selectedContentColor = colors.textPrimary,
-                            unselectedContentColor = colors.textMuted,
-                            text = {
-                                Text(
-                                    stringResource(label),
-                                    fontWeight = if (tab == index) FontWeight.Bold else FontWeight.Normal,
-                                    maxLines = 1,
-                                )
-                            },
-                        )
-                    }
-                }
-            }
-
-            when (tab) {
-                0 -> {
-                    item { SectionCard { BodyText(doctor.bio) } }
-                    item { BulletSection(stringResource(R.string.about_teachers), doctor.teachers) }
-                    item { BulletSection(stringResource(R.string.about_positions), doctor.positions) }
-                }
-                1 -> item { SectionCard { Timeline(education) } }
-                2 -> {
-                    item { ResearchSection(stringResource(R.string.about_research_published), research) }
-                    item { ResearchSection(stringResource(R.string.about_research_papers), papers) }
-                }
-                else -> {
-                    item { BulletSection(stringResource(R.string.about_media_contributions), doctor.mediaResponsibilities) }
-                    item { BulletSection(stringResource(R.string.about_teaching_contributions), doctor.studyingResponsibilities) }
-                }
-            }
-
+            item { tabRow() }
+            tabSections.forEach { section -> item { section() } }
             item { OfficialChannels() }
         }
     }
 }
 
+/** Between sections (phone, and the tablet's detail pane: Figma 16). */
+private val AboutSectionSpacing = 16.dp
+/** Expanded (Figma `61:1998`): both panes' padding, the profile pane's spacing and photo. */
+private val AboutPanePadding = 16.dp
+private val AboutProfileSpacing = 12.dp
+private val AboutPanePhotoSize = 96.dp
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HeroSection(roleLine: String) {
+private fun HeroSection(roleLine: String, photoSize: Dp = 112.dp) {
     val colors = Brand.colors
     Column(
         modifier = Modifier
@@ -175,7 +227,7 @@ private fun HeroSection(roleLine: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val name = stringResource(R.string.sheikh_name)
-        SheikhPhoto(size = 112.dp, ringWidth = 2.dp, ringColor = colors.accent, contentDescription = name)
+        SheikhPhoto(size = photoSize, ringWidth = 2.dp, ringColor = colors.accent, contentDescription = name)
         Spacer(Modifier.height(12.dp))
         Text(
             text = name,
@@ -478,4 +530,28 @@ private fun AboutLightPreview() {
 @Composable
 private fun AboutDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) { AboutContent(doctorProfileData, onNavigateBack = {}) }
+}
+
+@Preview(name = "About - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun AboutMediumLightPreview() {
+    AdaptiveShellPreview(darkTheme = false) { AboutDrHassanScreen(onNavigateBack = {}) }
+}
+
+@Preview(name = "About - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun AboutMediumDarkPreview() {
+    AdaptiveShellPreview(darkTheme = true) { AboutDrHassanScreen(onNavigateBack = {}) }
+}
+
+@Preview(name = "About - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun AboutExpandedLightPreview() {
+    AdaptiveShellPreview(darkTheme = false) { AboutDrHassanScreen(onNavigateBack = {}) }
+}
+
+@Preview(name = "About - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun AboutExpandedDarkPreview() {
+    AdaptiveShellPreview(darkTheme = true) { AboutDrHassanScreen(onNavigateBack = {}) }
 }

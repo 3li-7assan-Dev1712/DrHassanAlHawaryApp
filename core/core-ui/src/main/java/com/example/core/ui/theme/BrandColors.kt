@@ -83,6 +83,10 @@ data class BrandPalette(
     val danger: Color = Color(0xFFA32D2D),
     /** The فاسألوا button, under white text. */
     val fasalooTeal: Color = Color(0xFF0F6E56),
+    /** The tablet's immersive designs viewer: dark in both themes (Figma viewerBackground). */
+    val viewerBackground: Color = Color(0xFF0B0B0B),
+    /** Text, icons and outlines on [viewerBackground] (Figma onViewerBackground). */
+    val onViewerBackground: Color = Color(0xFFF1EFE8),
 )
 
 val DarkBrandPalette = BrandPalette(

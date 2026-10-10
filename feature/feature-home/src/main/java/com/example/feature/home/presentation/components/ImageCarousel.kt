@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.example.core.ui.components.shimmer
@@ -50,7 +51,9 @@ import kotlinx.coroutines.delay
 fun ImageCarousel(
     modifier: Modifier = Modifier,
     imageList: List<ImageFeed> = listOf(),
-    isLoadingImages: Boolean
+    isLoadingImages: Boolean,
+    // The phone keeps the image 16 from the screen edges; a tablet column has its own margin.
+    horizontalPadding: Dp = 16.dp,
 ) {
     val TAG = "ImageCarousel"
 
@@ -104,6 +107,7 @@ fun ImageCarousel(
             ) { page ->
 
                 CarouselItem(
+                    horizontalPadding = horizontalPadding,
                     imageUrl = imageList[page].imageUrl
                 )
             }
@@ -149,7 +153,7 @@ fun ImageCarousel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = horizontalPadding)
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
@@ -166,7 +170,8 @@ fun ImageCarousel(
 
 @Composable
 fun CarouselItem(
-    imageUrl: String
+    imageUrl: String,
+    horizontalPadding: Dp = 16.dp,
 ) {
     val painter = rememberAsyncImagePainter(
         model = imageUrl
@@ -175,7 +180,7 @@ fun CarouselItem(
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = horizontalPadding),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
