@@ -131,3 +131,12 @@ Figma: Expanded `60:1782`, `60:2086`; Medium `64:4976`, `64:5003`.
 - `ImageScreen` split: ViewModel wrapper + stateless `ImageViewerContent`. Medium and Expanded (`TabletViewer`): dark viewer background in both themes, light bar icons, drawn to the window edges (no rail, no shell padding: it pads for the system bars and the window margin itself); a centred column 16 apart: top row (close, title, counter), the poster at 688 × 460 (shrinks in a short window; the phone's pager, pinch / double-tap zoom and swipe-to-close), «قرّب بإصبعين», the outlined share pill, the 40dp thumbnails (6 apart, centred, selected with the 2dp accentStrong border). Compact: the phone viewer as before.
 - Shell change: on Medium/Expanded the status/navigation bar padding moved from the NavHost container into `WindowMargin` (and the viewer), so the container keeps the same bounds through the transition into and out of the immersive viewer.
 - Tests: `ViewerTabletTest` (poster 688 × 460 centred, no rail; Compact has no poster frame); not run yet.
+
+### About the Sheikh (code done; instrumented run pending the emulator)
+
+Figma: Expanded `61:1998`, `61:2273`; Medium `64:6378`, `64:6446`.
+
+- Expanded: profile pane (400) = top bar «عن الشيخ» with back, then (16 padding, 12 apart) the hero with a 96dp photo (`HeroSection(photoSize =)`, phone 112) and the official channels; detail pane (16 padding, 16 apart) = the phone's tab row and the selected tab's sections. The tab survives rotation (`rememberSaveable`, shared by both layouts).
+- Medium and Compact: the phone's single column (sections now come from one list for both layouts; same items, same 16 spacing).
+- Deviation: Figma draws the channels as three pills (يوتيوب، تيليجرام، الموقع الرسمي); the app's current channels card (website, Telegram with its QR sheet; no YouTube link exists in the app) is reused instead, so the QR sheet and the real links stay. The hero's name keeps the phone's titleLarge (Figma 18 SemiBold).
+- Tests: `AboutTabletTest` (profile pane 400, channels at 16 padding, tabs at the top of the detail pane; Medium phone column); not run yet.
