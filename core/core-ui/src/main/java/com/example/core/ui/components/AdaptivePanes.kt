@@ -3,8 +3,6 @@ package com.example.core.ui.components
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
@@ -13,12 +11,20 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.layout.AnimatedPane
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldDefaults
+import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.layout.PaneScaffoldDirective
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldPaneScope
+import androidx.compose.material3.adaptive.layout.calculateThreePaneScaffoldValue
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
@@ -98,10 +104,15 @@ fun WindowMargin(
 }
 
 /**
- * List and detail side by side (Expanded): the list pane (pane/listWidth, 400) on the start
- * side (right in RTL), pane/gap (24), then the detail pane filling the rest. Both are
- * [paneSurface]s the full height of the content area.
+ * List and detail side by side (Expanded), on material3-adaptive's [ListDetailPaneScaffold]:
+ * the list pane (pane/listWidth, 400) on the start side (right in RTL), pane/gap (24), then
+ * the detail pane, which the scaffold gives the rest of the width (it has the highest
+ * priority). Both are [paneSurface]s the full height of the content area.
+ *
+ * Both panes are always shown. Selection and back stay with the screens and the
+ * NavController, which give Medium and Compact their own list and detail destinations.
  */
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun TwoPaneLayout(
     listPane: @Composable BoxScope.() -> Unit,
@@ -109,23 +120,42 @@ fun TwoPaneLayout(
     modifier: Modifier = Modifier,
 ) {
     val tokens = layoutTokens
-    Row(modifier = modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .testTag(AdaptivePanesDefaults.ListPaneTestTag)
-                .width(tokens.listPaneWidth)
-                .fillMaxHeight()
-                .paneSurface(),
-            content = listPane,
+    val directive = remember(tokens) {
+        PaneScaffoldDirective(
+            maxHorizontalPartitions = 2,
+            horizontalPartitionSpacerSize = tokens.paneGap,
+            maxVerticalPartitions = 1,
+            verticalPartitionSpacerSize = 0.dp,
+            defaultPanePreferredWidth = tokens.listPaneWidth,
+            excludedBounds = emptyList(),
         )
-        Spacer(Modifier.width(tokens.paneGap))
+    }
+    val value = remember {
+        calculateThreePaneScaffoldValue(
+            maxHorizontalPartitions = 2,
+            adaptStrategies = ListDetailPaneScaffoldDefaults.adaptStrategies(),
+            currentDestination = ThreePaneScaffoldDestinationItem<Nothing>(ListDetailPaneScaffoldRole.Detail),
+        )
+    }
+    ListDetailPaneScaffold(
+        directive = directive,
+        value = value,
+        listPane = { OutlinedPane(AdaptivePanesDefaults.ListPaneTestTag, listPane) },
+        detailPane = { OutlinedPane(AdaptivePanesDefaults.DetailPaneTestTag, detailPane) },
+        modifier = modifier.fillMaxSize(),
+    )
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+private fun ThreePaneScaffoldPaneScope.OutlinedPane(testTag: String, content: @Composable BoxScope.() -> Unit) {
+    AnimatedPane {
         Box(
             modifier = Modifier
-                .testTag(AdaptivePanesDefaults.DetailPaneTestTag)
-                .weight(1f)
-                .fillMaxHeight()
+                .testTag(testTag)
+                .fillMaxSize()
                 .paneSurface(),
-            content = detailPane,
+            content = content,
         )
     }
 }

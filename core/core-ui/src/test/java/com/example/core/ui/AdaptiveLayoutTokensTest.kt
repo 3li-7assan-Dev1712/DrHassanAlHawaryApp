@@ -3,7 +3,11 @@ package com.example.core.ui
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.theme.AdaptiveLayoutTokens
 import com.example.core.ui.theme.WindowClass
+import com.example.core.ui.theme.toWindowClass
 import com.example.core.ui.theme.windowClassForWidth
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXTRA_LARGE_LOWER_BOUND
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_LARGE_LOWER_BOUND
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -20,6 +24,17 @@ class AdaptiveLayoutTokensTest {
         // Google's Large (1200+) and Extra-large (1600+) use the Expanded layout.
         assertEquals(WindowClass.Expanded, windowClassForWidth(1280f))
         assertEquals(WindowClass.Expanded, windowClassForWidth(1920f))
+    }
+
+    @Test
+    fun windowSizeClassesMapToTheDesignClasses() {
+        assertEquals(WindowClass.Compact, WindowSizeClass(411, 891).toWindowClass())
+        assertEquals(WindowClass.Medium, WindowSizeClass(600, 960).toWindowClass())
+        assertEquals(WindowClass.Medium, WindowSizeClass(800, 1280).toWindowClass())
+        assertEquals(WindowClass.Expanded, WindowSizeClass(840, 480).toWindowClass())
+        // Large and Extra-large (if supportLargeAndXLargeWidth is ever enabled) are Expanded.
+        assertEquals(WindowClass.Expanded, WindowSizeClass(WIDTH_DP_LARGE_LOWER_BOUND, 800).toWindowClass())
+        assertEquals(WindowClass.Expanded, WindowSizeClass(WIDTH_DP_EXTRA_LARGE_LOWER_BOUND, 900).toWindowClass())
     }
 
     @Test

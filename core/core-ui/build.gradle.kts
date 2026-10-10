@@ -60,6 +60,9 @@ dependencies {
 
     //  internal UI LIBRARIES (Only used inside this module)
     implementation(libs.androidx.activity.compose)
+    // Window size classes (the theme's layout tokens) and ListDetailPaneScaffold (TwoPaneLayout).
+    implementation(libs.androidx.adaptive)
+    implementation(libs.androidx.adaptive.layout)
 
     // lottie animation
 

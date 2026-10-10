@@ -6,6 +6,9 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 
 /**
  * The window width classes of the tablet design (Figma "Tablet — Foundations"):
@@ -15,19 +18,22 @@ import androidx.compose.ui.unit.dp
 enum class WindowClass { Compact, Medium, Expanded }
 
 /**
- * The same breakpoints as `currentWindowAdaptiveInfo().windowSizeClass` without
- * `supportLargeAndXLargeWidth`: under 600dp Compact, under 840dp Medium, everything wider
- * Expanded (there is no separate design for Google's Large and Extra-large classes).
+ * The design's class for a material3-adaptive [WindowSizeClass]: under 600dp Compact, under
+ * 840dp Medium, everything wider Expanded. Google's Large (1200dp+) and Extra-large (1600dp+)
+ * classes have no design of their own, so they are Expanded too.
  */
-fun windowClassForWidth(widthDp: Float): WindowClass = when {
-    widthDp < 600f -> WindowClass.Compact
-    widthDp < 840f -> WindowClass.Medium
-    else -> WindowClass.Expanded
+fun WindowSizeClass.toWindowClass(): WindowClass = when {
+    isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND) -> WindowClass.Expanded
+    isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND) -> WindowClass.Medium
+    else -> WindowClass.Compact
 }
+
+/** The class of a window [widthDp] wide, by the same breakpoints. */
+fun windowClassForWidth(widthDp: Float): WindowClass = WindowSizeClass(widthDp, 0f).toWindowClass()
 
 /**
  * The Figma `Layout` variable collection, one instance per window class. Screens read
- * [LocalLayoutTokens]; [HassanAlHawaryTheme] provides the instance for the window width.
+ * [LocalLayoutTokens]; [HassanAlHawaryTheme] provides the instance for the window's class.
  * `window/width` and `window/height` are artboard sizes only, so they are not here.
  */
 @Immutable
