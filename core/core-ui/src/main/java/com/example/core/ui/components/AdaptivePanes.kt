@@ -40,6 +40,11 @@ object AdaptivePanesDefaults {
      * window edges, so two 328dp video cards and their 24 gap fit the 680 between.
      */
     val GridScreenMediumMargin = 20.dp
+
+    /** First-run and system screens (welcome, onboarding, update) on a tablet: a centred column. */
+    val FirstRunColumnWidth = 520.dp
+    /** Their side padding there (Figma: 16 around the buttons). */
+    val FirstRunPadding = 16.dp
 }
 
 /**

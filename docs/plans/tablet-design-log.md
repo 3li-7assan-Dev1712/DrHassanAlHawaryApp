@@ -167,3 +167,16 @@ Figma: Expanded `59:1158`, `59:1626`; Medium `64:4477`, `64:4726`.
 - Medium and Expanded: the player's share action opens a navigation `dialog` destination (`share_preview_dialog/...`, same arguments, same ViewModel) instead of the full-screen route, so it sits over the player. The dialog window dims to Figma's 45% black; `SharePreviewDialogContent`: surface, radius 20, shadow (24dp, black 28%), title-only 56 header with 24 padding; Expanded 720 wide: the 9:16 preview (434 tall, ~244 wide: the existing card at 1.4×) and the clip selector (360 frame, controls 328) side by side, 32 apart, centred; Medium 600 wide: the preview over the selector, 24 apart; the full-width share button (16 each side, 12 under). Never wider than the window; scrolls in a short one.
 - Compact: the full-screen route as before. The article quote share (TextCardPreview) has no tablet design: unchanged.
 - Tests: `ShareDialogTabletTest` (720 / 600 wide, centred, button 688); not run yet.
+
+### First-run and system screens (code done; instrumented run pending the emulator)
+
+Figma: Splash `61:3803` / `64:6787`, Welcome `61:3812` / `64:6796`, Onboarding `61:3845` / `64:6832`, Update optional `61:3881` / `64:6873`, required `61:3910` / `64:6902`, Maintenance `61:3935` / `64:6927` (and the dark ones).
+
+- No rail on any of them (they are outside the NavHost).
+- Welcome (`AuthScreenContent`): its column is 520 wide with 16 side padding on a tablet (phone: 480 max, 20); it already kept the header centred above the bottom-anchored button.
+- Onboarding: centred 520 column, 16 side padding on a tablet; the pager, dots and the bottom row as on the phone.
+- Update (optional and required): on a tablet a centred 520 column with flexible space above and below the message, the actions at the bottom (24 under), inside the system bars. The phone layout is unchanged.
+- Splash: the in-app `SplashScreen` composable is already a centred logo on the full window (the real launch splash is the system one); nothing to change.
+- Maintenance: not in the app. `AppConfig.maintenanceMode` exists but nothing reads it and there is no screen; adding one is a feature (when to show it, its copy), so it is left out.
+- Deviation: the app's update screen predates the Figma phone design (Material icon and buttons instead of the icon circle and the brand buttons); the tablet keeps its content and only takes the tablet layout.
+- Tests: `FirstRunTabletTest` (Welcome Google button 488 centred; Onboarding skip at the column's edge; Update actions 24 above the bottom, 488 wide); not run yet.
