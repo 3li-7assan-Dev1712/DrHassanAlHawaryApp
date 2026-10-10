@@ -1,7 +1,6 @@
 package com.example.search.presentation.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.example.core.ui.R
+import com.example.core.ui.components.animatedListItemStyle
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.domain.module.SearchResultMetaData
@@ -88,8 +88,11 @@ fun SearchResultRow(
     query: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    // Tablet: the result open in the detail pane beside the list.
+    selected: Boolean = false,
 ) {
     val colors = Brand.colors
+    val style = animatedListItemStyle(selected)
     val highlight = SpanStyle(color = colors.accentText, fontWeight = FontWeight.Bold)
     val titleText = remember(hit.objectID, hit.title, query, highlight) {
         val title = hit.displayTitle()
@@ -118,8 +121,8 @@ fun SearchResultRow(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = colors.surface,
-        border = BorderStroke(0.5.dp, colors.divider),
+        color = style.fill,
+        border = style.border,
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
             Box(

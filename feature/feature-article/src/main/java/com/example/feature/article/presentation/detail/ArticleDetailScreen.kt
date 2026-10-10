@@ -107,6 +107,9 @@ fun ArticleDetailScreen(
     )
 }
 
+/** The ViewModel key of the reader pane (one per back-stack entry). */
+const val ARTICLE_READER_PANE_KEY = "articleReaderPane"
+
 /**
  * The reader in the detail pane beside the article list (Expanded): the reader's top bar
  * without the back arrow (the list pane has it) and without the reading progress, then the
@@ -117,7 +120,7 @@ fun ArticleReaderPane(
     articleId: String,
     onShare: (articleId: String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: DetailArticleViewModel = hiltViewModel(key = "articleReaderPane"),
+    viewModel: DetailArticleViewModel = hiltViewModel(key = ARTICLE_READER_PANE_KEY),
 ) {
     LaunchedEffect(articleId) { viewModel.showArticle(articleId) }
     val uiState by viewModel.uiState.collectAsState()

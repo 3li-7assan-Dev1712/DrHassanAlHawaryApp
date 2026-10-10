@@ -82,6 +82,12 @@ import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
 import com.example.feature.article.presentation.detail.ArticleDetailScreen
+import com.example.feature.article.presentation.detail.ArticleReaderPane
+import com.example.feature.article.presentation.detail.ARTICLE_READER_PANE_KEY
+import com.example.feature.audio.presentation.detail.AudioPlayerPane
+import com.example.domain.module.SearchResultMetaData
+import androidx.activity.compose.BackHandler
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.feature.article.presentation.list.ArticleListScreen
 import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
@@ -350,6 +356,10 @@ class MainActivity : ComponentActivity() {
 
 
 
+        // The reader's share action: choosing the passage to share.
+        val shareArticle: (String) -> Unit = { articleId ->
+            navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
+        }
         // The player's share action (the player screen and the player beside the audio list).
         val shareAudio: AudioShareAction = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
             val encodedUrl = Uri.encode(audioUrl)
@@ -470,26 +480,58 @@ class MainActivity : ComponentActivity() {
                             )
                             }
                         }
-                        screen("search_screen") {
+                        screen("search_screen") { entry ->
+                            // Expanded: an article or an audio opens beside the results (Figma
+                            // 59:939); videos and designs open their own screens, as on the phone.
+                            // The chosen result is kept in the entry (rotation, resizing).
+                            val handle = entry.savedStateHandle
+                            val selectedId by handle.getStateFlow<String?>(SELECTED_RESULT_ID, null).collectAsState()
+                            val selectedType by handle.getStateFlow<String?>(SELECTED_RESULT_TYPE, null).collectAsState()
+                            val selectedTitle by handle.getStateFlow<String?>(SELECTED_RESULT_TITLE, null).collectAsState()
+                            val selectedUrl by handle.getStateFlow<String?>(SELECTED_RESULT_URL, null).collectAsState()
+                            val selected = selectedId?.let {
+                                SearchResultMetaData(objectID = it, title = selectedTitle, type = selectedType, url = selectedUrl)
+                            }
+                            val clearSelection: () -> Unit = { handle[SELECTED_RESULT_ID] = null }
+                            val expanded = layoutTokens.isExpanded
+                            if (!expanded && selected != null) {
+                                // Narrowed to one pane with a result open: it stays open here, on
+                                // the same reader or player ViewModel (an audio keeps playing);
+                                // back returns to the results.
+                                BackHandler(onBack = clearSelection)
+                                SearchResultDetail(selected, onBack = clearSelection, onShareArticle = shareArticle, onShareAudio = shareAudio)
+                            } else {
+                                SearchScreen(
+                                    selectedResult = selected.takeIf { expanded },
+                                    detailPane = { result ->
+                                        SearchResultDetail(result, onBack = null, onShareArticle = shareArticle, onShareAudio = shareAudio)
+                                    },
+                                ) { searchResultMetaData ->
+                                    if (expanded && searchResultMetaData.type in RESULT_TYPES_IN_PANE) {
+                                        handle[SELECTED_RESULT_TYPE] = searchResultMetaData.type
+                                        handle[SELECTED_RESULT_TITLE] = searchResultMetaData.title
+                                        handle[SELECTED_RESULT_URL] = searchResultMetaData.url
+                                        handle[SELECTED_RESULT_ID] = searchResultMetaData.objectID
+                                    } else {
+                                        val encodedUrl = Uri.encode(searchResultMetaData.url)
+                                        val encodedTitle = Uri.encode(searchResultMetaData.title)
+                                        when (searchResultMetaData.type) {
+                                            "article" -> {
 
-                            SearchScreen { searchResultMetaData ->
-                                val encodedUrl = Uri.encode(searchResultMetaData.url)
-                                val encodedTitle = Uri.encode(searchResultMetaData.title)
-                                when (searchResultMetaData.type) {
-                                    "article" -> {
+                                                val objectID = searchResultMetaData.objectID
 
-                                        val objectID = searchResultMetaData.objectID
+                                                val route = "detail_article_screen/$objectID"
+                                                Log.d(TAG, "MainAppContent: route")
+                                                navController.navigate(route)
+                                            }
 
-                                        val route = "detail_article_screen/$objectID"
-                                        Log.d(TAG, "MainAppContent: route")
-                                        navController.navigate(route)
-                                    }
+                                            "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
+                                            "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
+                                            "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
+                                            else -> {
 
-                                    "audio" -> navController.navigate("audio_detail_screen/${encodedTitle}/${encodedUrl}")
-                                    "image_group" -> navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/${searchResultMetaData.objectID}")
-                                    "video" -> navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${encodedUrl}/${encodedTitle}")
-                                    else -> {
-
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -984,6 +1026,39 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * A search result (an article or an audio) in the detail pane beside the results
+     * ([onBack] null), or on its own once the window has narrowed to one pane. Both use the
+     * search entry's one reader / player ViewModel.
+     */
+    @Composable
+    @UnstableApi
+    private fun SearchResultDetail(
+        result: SearchResultMetaData,
+        onBack: (() -> Unit)?,
+        onShareArticle: (String) -> Unit,
+        onShareAudio: AudioShareAction,
+    ) {
+        when (result.type) {
+            "audio" -> AudioPlayerPane(
+                title = result.title.orEmpty(),
+                audioUrl = result.url.orEmpty(),
+                onNavigateToShare = onShareAudio,
+                onNavigateUp = onBack,
+            )
+            else -> if (onBack == null) {
+                ArticleReaderPane(articleId = result.objectID, onShare = onShareArticle)
+            } else {
+                ArticleDetailScreen(
+                    viewModel = hiltViewModel(key = ARTICLE_READER_PANE_KEY),
+                    onNavigateBack = onBack,
+                    onNavigateToShareSelection = onShareArticle,
+                    articleId = result.objectID,
+                )
+            }
+        }
+    }
+
     private companion object {
         /** Debug builds: forces reduced motion for this run (see onCreate). */
         const val EXTRA_FORCE_REDUCED_MOTION = "force_reduced_motion"
@@ -994,6 +1069,15 @@ class MainActivity : ComponentActivity() {
         /** The audio chosen beside the list on a tablet (an entry's saved state). */
         const val SELECTED_AUDIO_URL = "selectedAudioUrl"
         const val SELECTED_AUDIO_TITLE = "selectedAudioTitle"
+
+        /** The search result open beside the results on a tablet (an entry's saved state). */
+        const val SELECTED_RESULT_ID = "selectedResultId"
+        const val SELECTED_RESULT_TYPE = "selectedResultType"
+        const val SELECTED_RESULT_TITLE = "selectedResultTitle"
+        const val SELECTED_RESULT_URL = "selectedResultUrl"
+
+        /** Search results shown in the detail pane; videos and designs open their own screens. */
+        val RESULT_TYPES_IN_PANE = setOf("article", "audio")
     }
 }
 

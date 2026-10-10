@@ -84,3 +84,12 @@ Figma: categories Expanded `57:498`, `57:870`, Medium `63:3174`, `63:3310`; Fatw
 - Playback continuity: `AudioDetailViewModel.showAudio(title, url)` switches the audio in place (loads it into the controller, doesn't start it, like opening the player). One player ViewModel per back-stack entry for both layouts, so rotation never re-creates it (a new one would restart the audio from 0). On the list route a selection kept after narrowing to one pane stays open in the player inside that destination (back returns to the list) instead of navigating to the player route.
 - Also fixed in passing: the ViewModel added a new `Player.Listener` on every controller (re)connection without removing the old one.
 - Tests: `AudioTabletTest` (category rows 366 at 16 inset; fatwa rows 366; pane seek bar 312 centred; Medium seek bar 624; Compact 312); not run yet.
+
+### Search (code done; instrumented run pending the emulator)
+
+Figma: Expanded `59:939`, `59:1412`; Medium `64:3376`, `64:3466`.
+
+- Expanded: `SearchAdaptiveLayout` = the phone's search (top bar «البحث», field, scrollable pills, results) in the list pane; the detail pane shows the chosen result or `EmptyDetail` (Search: «اختر نتيجة لعرضها» / «ابحث في المقالات والصوتيات والفتاوى والمرئيات»).
+- An article opens in the reader pane and an audio in the player pane beside the results (selected row style, `SearchResultRow(selected =)`); videos and designs still open their own (immersive) screens. The choice is kept in the entry; narrowed to one pane, it stays open on its own inside Search (back returns to the results), on the same reader / player ViewModel.
+- Medium: the phone's search inside the margin.
+- Tests: `SearchTabletTest` (rows 366 at 16 inset, field under the 56 top bar, empty detail centred; Medium 640; Compact 328); not run yet.
