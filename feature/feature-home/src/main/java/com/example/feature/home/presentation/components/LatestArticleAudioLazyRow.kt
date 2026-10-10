@@ -48,10 +48,12 @@ fun <T> LatestArticleAudioLazyRow(
     contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp),
     itemKey: ((item: T) -> Any)? = null,
     emptyMessage: String? = null,
+    // Between the header and the row: none on the phone, 12 on a tablet.
+    headerSpacing: Dp = 0.dp,
 ) {
     if (items.isEmpty() && !showLoading && emptyMessage == null) return
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(headerSpacing)) {
         SectionHeader(title = title, onSeeAll = onSeeAll, isLoading = showLoading)
         // The row stays in place while loading (the header shimmers); when the cards arrive
         // they fade in, and an empty message crossfades in instead of popping.

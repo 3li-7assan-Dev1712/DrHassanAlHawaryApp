@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.core.ui.icons.TablerIcons
@@ -45,12 +46,14 @@ data class Category(
 fun LessonsByCategory(
     categories: List<Category>,
     modifier: Modifier = Modifier,
+    // The phone keeps the tiles 16 from the screen edges; a tablet column has its own margin.
+    horizontalPadding: Dp = 16.dp,
     onCategoryClick: (String) -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = horizontalPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         categories.chunked(COLUMNS).forEach { row ->

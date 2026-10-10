@@ -61,3 +61,14 @@ Figma: Expanded `53:2` (light), `53:170` (dark); Medium articles `63:2412`, `63:
 - Tests: `ArticlesTabletTest` (8, all pass): Expanded items 366 at 17 from the pane edge, 73 from the top, 12 apart; reader text 646 at 33 from the pane edges; Medium items 640; Medium reader column 608 + padding centred; Compact list and reader at the phone's 328.
 - Matched: shell, panes, list, selected item, reader top bar actions, body padding, Medium reading width, light and dark colours.
 - Deviations: card and text heights are a little taller than Figma (Cairo line boxes, see above). Pre-existing on the phone too, left alone because changing them would change Compact: the reader body uses the app's `bodyLarge`, which is Bold (Figma Reader/body is Regular), and the reader title uses `headlineSmall`, which `CairoTypography` doesn't define, so it renders in the system font.
+
+### Home (code done; instrumented run pending the emulator)
+
+Figma: Expanded `56:192`, `56:414`; Medium `63:2756`, `63:2969`.
+
+- Expanded: `HomeHeader` (phone) full width, 24, then two equal columns 24 apart: start = `ImageCarousel` and `LessonsByCategory` at the column width (their phone 16 inset off: new `horizontalPadding` parameters, default 16), 24 between them; end = the latest articles and audios rows, 12 between header, row and next header (`LatestArticleAudioLazyRow(headerSpacing =)`), two cards across ((column - 16 - 8) / 2 = 266) with the phone's 16 start inset only.
+- Medium: one column, 12 between blocks, same full-width carousel and tiles, cards 324.
+- The rows stay `LazyRow`s: two cards show, more scroll in.
+- Compact: the same LazyColumn as before (sections extracted to functions, same parameters).
+- Tests: `HomeTabletTest` (tiles 180 / 218.67, cards 266 / 324, positions); not run yet.
+- Deviations: the carousel keeps the phone composable's height (240 tall, image 184) where the tablet frame draws 224 (image 188); its indicator keeps the phone's colours and centring.
