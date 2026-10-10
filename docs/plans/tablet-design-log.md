@@ -122,3 +122,12 @@ Figma: Expanded `60:1597`, `60:1960`; Medium `64:4089`, `64:4306`.
 - `ImagesGroupsScreen` split: stateful (ViewModel, per-tile image counts) and stateless `DesignsScreenContent`.
 - Medium and Expanded: `LazyVerticalGrid(GridCells.FixedSize(156))`, rows aligned, centred: Expanded 6 across, 24 apart, 24 under the top bar; Medium 4 across, 16 apart, directly under the top bar, with the grid screens' 20 Medium margin. Tiles keep their image's proportions inside the row (the phone's staggered grid stays on Compact).
 - Tests: `DesignsTabletTest` (6 / 4 across at 156, centred 72..1128 / 24..696; Compact 2 across); not run yet.
+
+### Designs viewer (code done; instrumented run pending the emulator)
+
+Figma: Expanded `60:1782`, `60:2086`; Medium `64:4976`, `64:5003`.
+
+- `viewerBackground` (#0B0B0B) and `onViewerBackground` (#F1EFE8) were not defined in the app: added to `BrandPalette` with Figma's values, the same in light and dark.
+- `ImageScreen` split: ViewModel wrapper + stateless `ImageViewerContent`. Medium and Expanded (`TabletViewer`): dark viewer background in both themes, light bar icons, drawn to the window edges (no rail, no shell padding: it pads for the system bars and the window margin itself); a centred column 16 apart: top row (close, title, counter), the poster at 688 × 460 (shrinks in a short window; the phone's pager, pinch / double-tap zoom and swipe-to-close), «قرّب بإصبعين», the outlined share pill, the 40dp thumbnails (6 apart, centred, selected with the 2dp accentStrong border). Compact: the phone viewer as before.
+- Shell change: on Medium/Expanded the status/navigation bar padding moved from the NavHost container into `WindowMargin` (and the viewer), so the container keeps the same bounds through the transition into and out of the immersive viewer.
+- Tests: `ViewerTabletTest` (poster 688 × 460 centred, no rail; Compact has no poster frame); not run yet.

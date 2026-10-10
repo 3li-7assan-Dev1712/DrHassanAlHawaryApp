@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -57,9 +60,10 @@ private val PaneStroke = 1.dp
  * windows; nothing in Compact, where the screen is the phone layout as it always was.
  * The navigation rail sits outside it.
  *
- * On Medium and Expanded the shell has already kept the content clear of the system bars,
- * so they are consumed here: a phone screen's Scaffold inside a pane would otherwise pad
- * for the navigation bar again. (The keyboard is left to the screens.)
+ * On Medium and Expanded the margin starts below the status bar and ends above the
+ * navigation bar (the shell keeps the sides clear), and the system bars are consumed: a
+ * phone screen's Scaffold inside a pane would otherwise pad for them again. (The keyboard is
+ * left to the screens.)
  *
  * [margin]: a screen whose frame Figma draws with another margin (the Medium grids: 20).
  */
@@ -79,6 +83,7 @@ fun WindowMargin(
                     Modifier
                 } else {
                     Modifier
+                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Vertical))
                         .consumeWindowInsets(WindowInsets.systemBars.union(WindowInsets.displayCutout))
                         .padding(margin ?: tokens.margin)
                 },

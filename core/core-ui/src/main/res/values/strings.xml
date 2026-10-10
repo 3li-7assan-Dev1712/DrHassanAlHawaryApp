@@ -132,6 +132,7 @@
     <string name="share_quote_multi_hint">ستتم مشاركة %1$d صور بالترتيب</string>
 
     <string name="page_counter">%1$s من %2$s</string>
+    <string name="viewer_pinch_hint">قرّب بإصبعين</string>
     <string name="share">مشاركة</string>
     <string name="sheikh_name">الشيخ د. حسن أحمد الهواري</string>
     <string name="reader_font_size">حجم الخط</string>

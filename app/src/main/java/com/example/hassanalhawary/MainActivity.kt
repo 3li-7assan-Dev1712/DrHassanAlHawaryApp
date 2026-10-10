@@ -377,7 +377,10 @@ class MainActivity : ComponentActivity() {
         // Medium and Expanded windows: a navigation rail instead of the bottom bar, on every
         // main-app screen (secondary ones too) except the immersive designs viewer.
         val tokens = layoutTokens
-        val showRail = !tokens.isCompact && currentRoute?.startsWith(Routes.IMAGE_DETAIL_SCREEN) != true
+        // The designs viewer is immersive on a tablet: no rail, drawn to the window edges on its
+        // dark background (it pads for the system bars itself).
+        val immersiveViewer = !tokens.isCompact && currentRoute?.startsWith(Routes.IMAGE_DETAIL_SCREEN) == true
+        val showRail = !tokens.isCompact && !immersiveViewer
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -404,14 +407,16 @@ class MainActivity : ComponentActivity() {
             // The rail runs the full window height on the start edge (right in RTL) and pads
             // itself for the system bars; the screens keep the Scaffold's insets.
             val layoutDirection = LocalLayoutDirection.current
-            val contentPadding = if (showRail) {
+            // On Medium and Expanded each destination pads for the status and navigation bars
+            // itself (WindowMargin; the immersive viewer draws under them), so the container
+            // keeps the same bounds through every transition. The rail takes the start side.
+            val contentPadding = if (tokens.isCompact) {
+                innerPadding
+            } else {
                 PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = innerPadding.calculateBottomPadding(),
+                    start = if (showRail) 0.dp else innerPadding.calculateStartPadding(layoutDirection),
                     end = innerPadding.calculateEndPadding(layoutDirection),
                 )
-            } else {
-                innerPadding
             }
             Row(modifier = Modifier.fillMaxSize()) {
             if (showRail) {
