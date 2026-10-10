@@ -140,3 +140,13 @@ Figma: Expanded `61:1998`, `61:2273`; Medium `64:6378`, `64:6446`.
 - Medium and Compact: the phone's single column (sections now come from one list for both layouts; same items, same 16 spacing).
 - Deviation: Figma draws the channels as three pills (يوتيوب، تيليجرام، الموقع الرسمي); the app's current channels card (website, Telegram with its QR sheet; no YouTube link exists in the app) is reused instead, so the QR sheet and the real links stay. The hero's name keeps the phone's titleLarge (Figma 18 SemiBold).
 - Tests: `AboutTabletTest` (profile pane 400, channels at 16 padding, tabs at the top of the detail pane; Medium phone column); not run yet.
+
+### Fasaloo (code done; instrumented run pending the emulator)
+
+Figma: Expanded `61:2118`, `61:2373`; Medium `64:6544`, `64:6603`.
+
+- `QAScreen` split into sections (intro, steps card, «قبل أن تسأل» card, teal button) shared by the layouts.
+- Expanded: intro pane (400) = top bar, the mark at 64 (phone 72), title, description, then the teal button pinned 16 from the pane's bottom; detail pane (16 padding, 16 apart) = the steps and «قبل أن تسأل» cards.
+- Medium: the phone column with the button pinned to the bottom. Compact: unchanged (the button at the end of the scrolling column).
+- Deviation: Figma's «قبل أن تسأل» card has topic pills under the search field; the app has none (the field opens Search), so the phone card is reused as it is. The mark is the app's logo image, not Figma's teal circle placeholder.
+- Tests: `FasalooTabletTest` (button pinned 16 above the pane / margin, 366 wide; steps in the detail pane); not run yet.
