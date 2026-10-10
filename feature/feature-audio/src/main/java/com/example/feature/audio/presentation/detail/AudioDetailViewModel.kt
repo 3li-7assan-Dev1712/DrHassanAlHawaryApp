@@ -112,7 +112,12 @@ class AudioDetailViewModel @Inject constructor(
         _uiState.update { AudioDetailUiState(audioUrl = url, title = title, playbackSpeed = it.playbackSpeed) }
         loadAudioDetails()
         isFirstControllerConnection = true
-        mediaControllerFuture?.let(::listenToController)
+        // Only a connected controller is listened to again. A connection still pending loads
+        // this audio when it completes (listenToController reads it after await()), and
+        // re-listening would cancel it: await() cancels the future when its coroutine is
+        // cancelled, which releases the controller and leaves the player dead (the tablet's
+        // player pane opens with its first selection while the controller is connecting).
+        mediaControllerFuture?.takeIf { it.isDone }?.let(::listenToController)
     }
 
     private fun loadAudioDetails() {
