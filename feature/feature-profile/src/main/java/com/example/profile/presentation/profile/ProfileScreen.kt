@@ -61,12 +61,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
 import com.example.core.ui.R
 import com.example.core.ui.animation.LoadingScreen
+import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.PreviewTab
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Motion
 import com.example.core.ui.theme.reducedMotion
 import com.example.core.ui.theme.stateChangeSpec
+import com.example.core.ui.theme.layoutTokens
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.BidiText
 import com.example.profile.presentation.components.ProfileRoute
@@ -139,101 +145,33 @@ fun ProfileScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            containerColor = colors.background,
-            topBar = { AppTopBar(title = stringResource(R.string.my_account)) }
-        ) { padding ->
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-
-                item { ProfileHeader(name = userName, email = userEmail, photoUrl = profileUrl) }
-
-                if (!isAdmin) {
-                    item {
-                        ProfileSection(title = stringResource(R.string.appearance)) {
-                            ThemeSegmentedControl(
-                                selected = themeChoice,
-                                onSelect = { choice ->
-                                    when (choice) {
-                                        ThemeChoice.SYSTEM -> onFollowSystemThemeChanged(true)
-                                        ThemeChoice.LIGHT -> {
-                                            onFollowSystemThemeChanged(false)
-                                            onThemeChanged(false)
-                                        }
-                                        ThemeChoice.DARK -> {
-                                            onFollowSystemThemeChanged(false)
-                                            onThemeChanged(true)
-                                        }
-                                    }
-                                },
-                            )
-                        }
+        ProfileContent(
+            userName = userName,
+            userEmail = userEmail,
+            photoUrl = profileUrl,
+            isAdmin = isAdmin,
+            themeChoice = themeChoice,
+            onThemeSelect = { choice ->
+                when (choice) {
+                    ThemeChoice.SYSTEM -> onFollowSystemThemeChanged(true)
+                    ThemeChoice.LIGHT -> {
+                        onFollowSystemThemeChanged(false)
+                        onThemeChanged(false)
                     }
-
-                    item {
-                        ProfileSection(title = stringResource(R.string.settings)) {
-                            FontSizeRow(step = readerFontStep, onStepChange = viewModel::setReaderFontStep)
-                        }
-                    }
-
-                    item {
-                        ProfileSection(title = "التطبيق") {
-                            ProfileRow(TablerIcons.InfoCircle, "عن التطبيق") { onNavigate(ProfileRoute.About) }
-                            ProfileRow(TablerIcons.Share, "مشاركة التطبيق") { onNavigate(ProfileRoute.Share) }
-                            ProfileRow(TablerIcons.Star, "تقييم التطبيق", isLast = true) { openStoreListing(context) }
-                        }
-                    }
-
-                    item {
-                        ProfileSection(title = "الدعم والسياسات") {
-                            ProfileRow(TablerIcons.Headset, "الدعم والتواصل") { onNavigate(ProfileRoute.Support) }
-                            ProfileRow(TablerIcons.ShieldLock, "سياسة الخصوصية") { onNavigate(ProfileRoute.Privacy) }
-                            ProfileRow(TablerIcons.FileText, "الشروط والأحكام") { onNavigate(ProfileRoute.Terms) }
-                            ProfileRow(TablerIcons.Code, "التراخيص والمصادر", isLast = true) { onNavigate(ProfileRoute.Licenses) }
-                        }
+                    ThemeChoice.DARK -> {
+                        onFollowSystemThemeChanged(false)
+                        onThemeChanged(true)
                     }
                 }
-
-                item {
-                    ProfileSection(title = "الحساب") {
-                        ProfileRow(
-                            icon = TablerIcons.Logout,
-                            title = "تسجيل الخروج",
-                            isLast = isAdmin,
-                            onClick = { viewModel.signOut() }
-                        )
-                        if (!isAdmin) {
-                            ProfileRow(
-                                icon = TablerIcons.Trash,
-                                title = "حذف الحساب نهائيًا",
-                                tint = colors.danger,
-                                textColor = colors.danger,
-                                isLast = true,
-                                onClick = { showDeleteConfirmation = true }
-                            )
-                        }
-                    }
-                }
-
-                item {
-                    Text(
-                        text = "الإصدار ${state.currentAppVersion}",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 24.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = colors.textMuted,
-                    )
-                }
-            }
-        }
+            },
+            readerFontStep = readerFontStep,
+            onReaderFontStepChange = viewModel::setReaderFontStep,
+            appVersion = state.currentAppVersion,
+            onNavigate = onNavigate,
+            onRateApp = { openStoreListing(context) },
+            onSignOut = { viewModel.signOut() },
+            onDeleteAccount = { showDeleteConfirmation = true },
+        )
 
         if (state.isDeleting) {
             Box(
@@ -247,6 +185,142 @@ fun ProfileScreen(
         }
     }
 }
+
+/**
+ * The account screen without its ViewModel (previews and UI tests use it too). Compact and
+ * Medium: the phone's single column. Expanded: the top bar over two equal columns 24 apart,
+ * sections 20 apart (Figma `59:1054`): the account card, المظهر, الإعدادات and التطبيق at the
+ * start; الدعم والسياسات, الحساب and the version at the end.
+ */
+@Composable
+fun ProfileContent(
+    userName: String,
+    userEmail: String,
+    photoUrl: String,
+    isAdmin: Boolean,
+    themeChoice: ThemeChoice,
+    onThemeSelect: (ThemeChoice) -> Unit,
+    readerFontStep: Int,
+    onReaderFontStepChange: (Int) -> Unit,
+    appVersion: String,
+    onNavigate: (ProfileRoute) -> Unit,
+    onRateApp: () -> Unit,
+    onSignOut: () -> Unit,
+    onDeleteAccount: () -> Unit,
+) {
+    val colors = Brand.colors
+    val header = @Composable { ProfileHeader(name = userName, email = userEmail, photoUrl = photoUrl) }
+    val appearance = @Composable {
+        ProfileSection(title = stringResource(R.string.appearance)) {
+            ThemeSegmentedControl(selected = themeChoice, onSelect = onThemeSelect)
+        }
+    }
+    val settings = @Composable {
+        ProfileSection(title = stringResource(R.string.settings)) {
+            FontSizeRow(step = readerFontStep, onStepChange = onReaderFontStepChange)
+        }
+    }
+    val appSection = @Composable {
+        ProfileSection(title = "التطبيق") {
+            ProfileRow(TablerIcons.InfoCircle, "عن التطبيق") { onNavigate(ProfileRoute.About) }
+            ProfileRow(TablerIcons.Share, "مشاركة التطبيق") { onNavigate(ProfileRoute.Share) }
+            ProfileRow(TablerIcons.Star, "تقييم التطبيق", isLast = true, onClick = onRateApp)
+        }
+    }
+    val support = @Composable {
+        ProfileSection(title = "الدعم والسياسات") {
+            ProfileRow(TablerIcons.Headset, "الدعم والتواصل") { onNavigate(ProfileRoute.Support) }
+            ProfileRow(TablerIcons.ShieldLock, "سياسة الخصوصية") { onNavigate(ProfileRoute.Privacy) }
+            ProfileRow(TablerIcons.FileText, "الشروط والأحكام") { onNavigate(ProfileRoute.Terms) }
+            ProfileRow(TablerIcons.Code, "التراخيص والمصادر", isLast = true) { onNavigate(ProfileRoute.Licenses) }
+        }
+    }
+    val account = @Composable {
+        ProfileSection(title = "الحساب") {
+            ProfileRow(
+                icon = TablerIcons.Logout,
+                title = "تسجيل الخروج",
+                isLast = isAdmin,
+                onClick = onSignOut
+            )
+            if (!isAdmin) {
+                ProfileRow(
+                    icon = TablerIcons.Trash,
+                    title = "حذف الحساب نهائيًا",
+                    tint = colors.danger,
+                    textColor = colors.danger,
+                    isLast = true,
+                    onClick = onDeleteAccount
+                )
+            }
+        }
+    }
+    val version = @Composable {
+        Text(
+            text = "الإصدار $appVersion",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelMedium,
+            color = colors.textMuted,
+        )
+    }
+
+    Scaffold(
+        containerColor = colors.background,
+        topBar = { AppTopBar(title = stringResource(R.string.my_account)) }
+    ) { padding ->
+        if (layoutTokens.isExpanded) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = ProfileExpandedTopGap),
+                horizontalArrangement = Arrangement.spacedBy(ProfileExpandedColumnGap),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)) {
+                    header()
+                    if (!isAdmin) {
+                        appearance()
+                        settings()
+                        appSection()
+                    }
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)) {
+                    if (!isAdmin) support()
+                    account()
+                    version()
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)
+            ) {
+                item { header() }
+                if (!isAdmin) {
+                    item { appearance() }
+                    item { settings() }
+                    item { appSection() }
+                    item { support() }
+                }
+                item { account() }
+                item { version() }
+            }
+        }
+    }
+}
+
+/** Between sections (phone and tablet). */
+private val ProfileSectionGap = 20.dp
+/** Expanded (Figma `59:1054`): top bar to the columns, and between the columns. */
+private val ProfileExpandedTopGap = 24.dp
+private val ProfileExpandedColumnGap = 24.dp
 
 /**
  * "تقييم التطبيق": the Play Store listing directly (market:// in the store app, else the
@@ -491,3 +565,52 @@ private fun FontSizeRow(step: Int, onStepChange: (Int) -> Unit) {
         ) { Text("A+", color = colors.textPrimary) }
     }
 }
+
+/** The account screen with sample data (the Figma frames' placeholders): previews and UI tests. */
+@Composable
+fun ProfilePreviewContent() {
+    ProfileContent(
+        userName = "Ali Hassan",
+        userEmail = "alihassan17122002@gmail.com",
+        photoUrl = "",
+        isAdmin = false,
+        themeChoice = ThemeChoice.SYSTEM,
+        onThemeSelect = {},
+        readerFontStep = 1,
+        onReaderFontStepChange = {},
+        appVersion = "1.0.7",
+        onNavigate = {},
+        onRateApp = {},
+        onSignOut = {},
+        onDeleteAccount = {},
+    )
+}
+
+@Composable
+private fun ProfilePreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme, selectedTab = PreviewTab.Profile) { ProfilePreviewContent() }
+}
+
+@Preview(name = "Profile - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun ProfileCompactLightPreview() = ProfilePreview(darkTheme = false)
+
+@Preview(name = "Profile - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun ProfileCompactDarkPreview() = ProfilePreview(darkTheme = true)
+
+@Preview(name = "Profile - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ProfileMediumLightPreview() = ProfilePreview(darkTheme = false)
+
+@Preview(name = "Profile - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ProfileMediumDarkPreview() = ProfilePreview(darkTheme = true)
+
+@Preview(name = "Profile - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ProfileExpandedLightPreview() = ProfilePreview(darkTheme = false)
+
+@Preview(name = "Profile - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ProfileExpandedDarkPreview() = ProfilePreview(darkTheme = true)

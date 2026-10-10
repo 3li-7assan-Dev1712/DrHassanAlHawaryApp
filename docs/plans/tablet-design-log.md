@@ -93,3 +93,13 @@ Figma: Expanded `59:939`, `59:1412`; Medium `64:3376`, `64:3466`.
 - An article opens in the reader pane and an audio in the player pane beside the results (selected row style, `SearchResultRow(selected =)`); videos and designs still open their own (immersive) screens. The choice is kept in the entry; narrowed to one pane, it stays open on its own inside Search (back returns to the results), on the same reader / player ViewModel.
 - Medium: the phone's search inside the margin.
 - Tests: `SearchTabletTest` (rows 366 at 16 inset, field under the 56 top bar, empty detail centred; Medium 640; Compact 328); not run yet.
+
+### Profile (code done; instrumented run pending the emulator)
+
+Figma: Expanded `59:1054`, `59:1522`; Medium `64:3557`, `64:3650`.
+
+- `ProfileScreen` split into the stateful screen (ViewModel, delete dialog, sign-out result, deleting overlay) and a stateless `ProfileContent`.
+- Expanded: root top bar «حسابي», 24, then two equal columns 24 apart, sections 20 apart: account card, المظهر, الإعدادات, التطبيق at the start; الدعم والسياسات, الحساب, the version at the end. The whole page scrolls.
+- Medium and Compact: the phone's LazyColumn (cards 640 on Medium, as Figma).
+- Admin app (also uses `ProfileScreen`): compiles; on a wide window it gets the same two columns.
+- Tests: `ProfileTabletTest` (columns 556 at 612/32, end column 24 under the top bar; Medium 640; Compact 328); not run yet.
