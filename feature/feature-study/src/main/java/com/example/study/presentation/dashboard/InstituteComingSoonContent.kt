@@ -38,6 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import coil.compose.AsyncImage
 import com.example.core.ui.R
+import com.example.core.ui.components.AdaptiveShellPreview
+import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.PreviewTab
+import com.example.core.ui.theme.layoutTokens
+import com.example.core.ui.components.TwoPaneLayout
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
@@ -68,6 +73,33 @@ fun InstituteComingSoonContent(
         item { ComingSoonCard(isLinked = studentData.isConnectedToTelegram) }
     }
 }
+
+/**
+ * Expanded (Figma `61:2211`): the tab's top bar and the profile card in the start pane, the
+ * coming-soon card at 380dp in the middle of the detail pane.
+ */
+@Composable
+fun InstituteComingSoonTwoPane(studentData: Student, title: String) {
+    TwoPaneLayout(
+        listPane = {
+            Column(Modifier.fillMaxSize()) {
+                AppTopBar(title = title)
+                Box(Modifier.padding(InstitutePanePadding)) { InstituteProfileCard(studentData) }
+            }
+        },
+        detailPane = {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(Modifier.width(InstituteComingSoonWidth)) {
+                    ComingSoonCard(isLinked = studentData.isConnectedToTelegram)
+                }
+            }
+        },
+    )
+}
+
+/** Expanded (Figma `61:2211`). */
+private val InstitutePanePadding = 16.dp
+private val InstituteComingSoonWidth = 380.dp
 
 /** Avatar with an accent ring, name, "@handle", and the membership status chip. */
 @Composable
@@ -221,3 +253,36 @@ private fun InstituteComingSoonLightPreview() {
 private fun InstituteComingSoonDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) { InstituteComingSoonContent(studentData = previewStudent) }
 }
+
+/** Sample student for previews and UI tests. */
+val InstitutePreviewStudent: Student = previewStudent
+
+@Composable
+private fun InstitutePreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme, selectedTab = PreviewTab.Institute) {
+        if (layoutTokens.isExpanded) {
+            InstituteComingSoonTwoPane(studentData = previewStudent, title = stringResource(R.string.dr_hassan_institute))
+        } else {
+            Column {
+                AppTopBar(title = stringResource(R.string.dr_hassan_institute))
+                InstituteComingSoonContent(studentData = previewStudent)
+            }
+        }
+    }
+}
+
+@Preview(name = "Institute - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun InstituteMediumLightPreview() = InstitutePreview(darkTheme = false)
+
+@Preview(name = "Institute - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun InstituteMediumDarkPreview() = InstitutePreview(darkTheme = true)
+
+@Preview(name = "Institute - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun InstituteExpandedLightPreview() = InstitutePreview(darkTheme = false)
+
+@Preview(name = "Institute - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun InstituteExpandedDarkPreview() = InstitutePreview(darkTheme = true)

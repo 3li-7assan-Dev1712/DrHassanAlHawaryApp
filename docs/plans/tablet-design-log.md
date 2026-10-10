@@ -150,3 +150,12 @@ Figma: Expanded `61:2118`, `61:2373`; Medium `64:6544`, `64:6603`.
 - Medium: the phone column with the button pinned to the bottom. Compact: unchanged (the button at the end of the scrolling column).
 - Deviation: Figma's «قبل أن تسأل» card has topic pills under the search field; the app has none (the field opens Search), so the phone card is reused as it is. The mark is the app's logo image, not Figma's teal circle placeholder.
 - Tests: `FasalooTabletTest` (button pinned 16 above the pane / margin, 366 wide; steps in the detail pane); not run yet.
+
+### Institute (code done; instrumented run pending the emulator)
+
+Figma: Expanded `61:2211`, `61:2458`; Medium `64:6686`, `64:6733`.
+
+- Expanded, student state: `InstituteComingSoonTwoPane` = the root top bar and the existing profile card (16 padding) in the start pane; the existing «coming soon» card at 380, centred in the detail pane. The placeholder behaviour is unchanged.
+- The guest and not-a-channel-member states have no tablet design: the phone layout inside the margin. Medium: the phone column.
+- Deviation: Figma's card shows an illustration placeholder and an «فتح قناة المعهد» button; the existing card (school icon, no button: the app has no channel URL) is reused, as the spec says.
+- Tests: `InstituteTabletTest` (card centred in the detail pane, profile card in the start pane); not run yet.

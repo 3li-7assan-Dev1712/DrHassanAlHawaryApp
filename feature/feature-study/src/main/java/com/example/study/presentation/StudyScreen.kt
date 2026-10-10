@@ -28,6 +28,8 @@ import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.theme.Brand
 import com.example.study.presentation.dashboard.GuestContent
 import com.example.study.presentation.dashboard.InstituteComingSoonContent
+import com.example.study.presentation.dashboard.InstituteComingSoonTwoPane
+import com.example.core.ui.theme.layoutTokens
 import com.example.study.presentation.dashboard.NotChannelMemberContent
 import com.example.study.presentation.model.StudyScreenUiState
 
@@ -45,6 +47,14 @@ fun StudyScreen(
 
     Log.d("StudyScreen", "StudyScreen: userEmail: $userEmail")
     val uiState by viewModel.uiState.collectAsState()
+
+    // Expanded: the student's "coming soon" state in two panes (Figma 61:2211). The other
+    // states have no tablet design and keep the phone layout.
+    val current = uiState
+    if (layoutTokens.isExpanded && current is StudyScreenUiState.StudentDashboard) {
+        InstituteComingSoonTwoPane(studentData = current.studentData, title = stringResource(R.string.dr_hassan_institute))
+        return
+    }
 
     Scaffold(
         containerColor = Brand.colors.background,
