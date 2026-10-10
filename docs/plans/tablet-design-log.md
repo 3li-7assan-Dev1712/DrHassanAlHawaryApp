@@ -103,3 +103,14 @@ Figma: Expanded `59:1054`, `59:1522`; Medium `64:3557`, `64:3650`.
 - Medium and Compact: the phone's LazyColumn (cards 640 on Medium, as Figma).
 - Admin app (also uses `ProfileScreen`): compiles; on a wide window it gets the same two columns.
 - Tests: `ProfileTabletTest` (columns 556 at 612/32, end column 24 under the top bar; Medium 640; Compact 328); not run yet.
+
+### Videos (code done; instrumented run pending the emulator)
+
+Figma: Expanded `60:1403`, `60:1809`; Medium `64:3744`, `64:3936`.
+
+- Figma's tablet Videos has category pills under the top bar and draws no video categories screen for tablet; the phone app has a separate categories screen and no pills. Followed Figma (and the spec) on Medium and Expanded: the Home tile opens Videos directly, the pills (shared `FilterPill`, categories from `VideoCategoryViewModel`, «الكل» first) switch the category in place (`VideosViewModel.selectCategory`, kept in the saved state). Compact keeps the categories screen and the list.
+- Grid: `LazyVerticalGrid(GridCells.FixedSize(328))`, 24 apart, centred: 3 across on Expanded, 2 on Medium. Expanded: 24 between top bar, pills and grid; Medium: none (Figma).
+- Medium margin 20 for the grid screens (`AdaptivePanesDefaults.GridScreenMediumMargin`, `screen(mediumMargin =)`), as Figma draws them; 24 everywhere else.
+- Title on tablet always «الفيديوهات» (the pills show the category).
+- Deviation (pre-existing, phone too): the Video model has no duration, so the card has no duration badge; its play overlay is black 55% (Figma `viewerBackground`).
+- Tests: `VideosTabletTest` (3 / 2 across at 328, centred 84..1116, Medium 20..700, pills 16 in; Compact list, no pills); not run yet.

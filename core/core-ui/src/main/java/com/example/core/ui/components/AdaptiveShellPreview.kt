@@ -14,6 +14,8 @@ import com.example.core.ui.theme.AdaptiveLayoutTokens
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.theme.LocalLayoutTokens
+import com.example.core.ui.theme.WindowClass
+import androidx.compose.ui.unit.Dp
 
 /** The rail destination a preview shows as selected. */
 enum class PreviewTab { Home, Search, Institute, Profile }
@@ -22,7 +24,8 @@ enum class PreviewTab { Home, Search, Institute, Profile }
  * Previews and UI tests: a screen inside the app shell the way `MainActivity` lays it out
  * for the window class — on Medium and Expanded the rail on the start edge and the screen
  * inside the window margin; on Compact the screen alone (the phone layout). [margin] false
- * is for the screens drawn to the window edges (the designs viewer) or without the rail.
+ * is for the screens drawn to the window edges (the designs viewer) or without the rail;
+ * [mediumMargin] for the grid screens drawn with another Medium margin.
  */
 @Composable
 fun AdaptiveShellPreview(
@@ -31,6 +34,7 @@ fun AdaptiveShellPreview(
     selectedTab: PreviewTab = PreviewTab.Home,
     showRail: Boolean = true,
     margin: Boolean = true,
+    mediumMargin: Dp? = null,
     layoutTokens: AdaptiveLayoutTokens? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -44,7 +48,11 @@ fun AdaptiveShellPreview(
                 )
             }
             Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                if (margin) WindowMargin(content = content) else Box(Modifier.fillMaxSize(), content = content)
+                if (margin) {
+                    WindowMargin(margin = mediumMargin.takeIf { tokens.windowClass == WindowClass.Medium }, content = content)
+                } else {
+                    Box(Modifier.fillMaxSize(), content = content)
+                }
             }
         }
     }

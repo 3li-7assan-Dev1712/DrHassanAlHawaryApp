@@ -8,18 +8,36 @@ import androidx.paging.cachedIn
 import com.example.domain.module.Video
 import com.example.feature.video.domain.use_case.GetPaginatedVideoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
 
 @HiltViewModel
 class VideosViewModel @Inject constructor(
     getPaginatedVideoUseCase: GetPaginatedVideoUseCase,
-    savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val categoryId: String? = savedStateHandle["categoryId"]
     val categoryTitle: String? = savedStateHandle["categoryTitle"]
 
-    val videos: Flow<PagingData<Video>> = getPaginatedVideoUseCase(categoryId).cachedIn(viewModelScope)
+    /**
+     * The category shown (null: all). The route's on the phone; on a tablet the category
+     * pills above the grid change it, kept in the saved state across rotation.
+     */
+    val categoryId: StateFlow<String?> = savedStateHandle.getStateFlow(CATEGORY_ID, null)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val videos: Flow<PagingData<Video>> = categoryId
+        .flatMapLatest { getPaginatedVideoUseCase(it) }
+        .cachedIn(viewModelScope)
+
+    fun selectCategory(id: String?) {
+        savedStateHandle[CATEGORY_ID] = id
+    }
+
+    private companion object {
+        const val CATEGORY_ID = "categoryId"
+    }
 }

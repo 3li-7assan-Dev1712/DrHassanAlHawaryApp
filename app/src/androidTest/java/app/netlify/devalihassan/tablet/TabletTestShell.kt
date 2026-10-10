@@ -16,6 +16,7 @@ import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.then
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpRect
@@ -47,6 +48,7 @@ fun ComposeContentTestRule.setShellContent(
     selectedTab: PreviewTab = PreviewTab.Home,
     showRail: Boolean = true,
     margin: Boolean = true,
+    mediumMargin: Dp? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     setContent {
@@ -61,6 +63,7 @@ fun ComposeContentTestRule.setShellContent(
                 selectedTab = selectedTab,
                 showRail = showRail,
                 margin = margin,
+                mediumMargin = mediumMargin,
                 layoutTokens = tokens,
                 content = content,
             )
@@ -90,6 +93,17 @@ fun ComposeContentTestRule.boundsInShell(node: SemanticsNodeInteraction): DpRect
 
 /** Bounds, relative to the shell, of the (merged) node showing [text]: a whole card for a card's title. */
 fun ComposeContentTestRule.boundsOfText(text: String): DpRect = boundsInShell(onNodeWithText(text))
+
+/** Bounds, relative to the shell, of every (merged) node showing [text], top to bottom. */
+fun ComposeContentTestRule.allBoundsOfText(text: String): List<DpRect> {
+    val shell = onNodeWithTag(SHELL_TAG).getUnclippedBoundsInRoot()
+    return onAllNodesWithText(text).fetchSemanticsNodes().map { node ->
+        val b = node.boundsInRoot
+        with(node.layoutInfo.density) {
+            DpRect(b.left.toDp() - shell.left, b.top.toDp() - shell.top, b.right.toDp() - shell.left, b.bottom.toDp() - shell.top)
+        }
+    }.sortedBy { it.top.value }
+}
 
 val DpRect.widthDp: Dp get() = right - left
 val DpRect.heightDp: Dp get() = bottom - top

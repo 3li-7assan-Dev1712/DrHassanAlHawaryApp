@@ -29,7 +29,10 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavGraphBuilder
 import app.netlify.devalihassan.ui.navigation.AppRail
 import com.example.core.ui.components.WindowMargin
+import com.example.core.ui.components.AdaptivePanesDefaults
 import com.example.core.ui.theme.layoutTokens
+import com.example.core.ui.theme.WindowClass
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
@@ -458,6 +461,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         screen("home_screen") {
+                            val homeTokens = layoutTokens
                             ProvideNavAnimatedScope(this) {
                             HomeScreen(onNavigateToDetailArticle = { articleId ->
                                 navController.navigate("detail_article_screen/$articleId")
@@ -469,7 +473,11 @@ class MainActivity : ComponentActivity() {
                             }, onCategoryClick = { route ->
                                 when (route) {
                                     Routes.AUDIO_LIST_SCREEN -> navController.navigate(Routes.AUDIO_CATEGORY_SCREEN)
-                                    Routes.VIDEOS_SCREEN -> navController.navigate(Routes.VIDEO_CATEGORY_SCREEN)
+                                    // A tablet has no video categories screen: the categories are pills
+                                    // above the videos grid (Figma Videos).
+                                    Routes.VIDEOS_SCREEN -> navController.navigate(
+                                        if (homeTokens.isCompact) Routes.VIDEO_CATEGORY_SCREEN else Routes.VIDEOS_SCREEN
+                                    )
                                     else -> navController.navigate(route)
                                 }
                             }, onNotificationsClick = {
@@ -831,7 +839,7 @@ class MainActivity : ComponentActivity() {
 
                         }
 
-                        screen(Routes.IMAGES_SCREEN) {
+                        screen(Routes.IMAGES_SCREEN, mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin) {
                             ProvideNavAnimatedScope(this) {
                             ImagesGroupsScreen(
                                 onNavigateBack = {
@@ -894,7 +902,8 @@ class MainActivity : ComponentActivity() {
                                     type = NavType.StringType
                                     nullable = true
                                 }
-                            )
+                            ),
+                            mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
                         ) {
 
                             VideosScreen(
@@ -1089,8 +1098,10 @@ class MainActivity : ComponentActivity() {
 private fun NavGraphBuilder.screen(
     route: String,
     arguments: List<NamedNavArgument> = emptyList(),
+    mediumMargin: Dp? = null,
     content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit,
 ) = composable(route = route, arguments = arguments) { entry ->
     val scope = this
-    WindowMargin { scope.content(entry) }
+    val margin = mediumMargin.takeIf { layoutTokens.windowClass == WindowClass.Medium }
+    WindowMargin(margin = margin) { scope.content(entry) }
 }

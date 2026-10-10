@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.layoutTokens
@@ -30,6 +31,12 @@ object AdaptivePanesDefaults {
     const val ListPaneTestTag = "listPane"
     const val DetailPaneTestTag = "detailPane"
     const val WindowMarginTestTag = "windowMargin"
+
+    /**
+     * The Medium margin of the grid screens (videos, designs): Figma draws them 20 from the
+     * window edges, so two 328dp video cards and their 24 gap fit the 680 between.
+     */
+    val GridScreenMediumMargin = 20.dp
 }
 
 /**
@@ -53,9 +60,15 @@ private val PaneStroke = 1.dp
  * On Medium and Expanded the shell has already kept the content clear of the system bars,
  * so they are consumed here: a phone screen's Scaffold inside a pane would otherwise pad
  * for the navigation bar again. (The keyboard is left to the screens.)
+ *
+ * [margin]: a screen whose frame Figma draws with another margin (the Medium grids: 20).
  */
 @Composable
-fun WindowMargin(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+fun WindowMargin(
+    modifier: Modifier = Modifier,
+    margin: Dp? = null,
+    content: @Composable BoxScope.() -> Unit,
+) {
     val tokens = layoutTokens
     Box(
         modifier = modifier
@@ -67,7 +80,7 @@ fun WindowMargin(modifier: Modifier = Modifier, content: @Composable BoxScope.()
                 } else {
                     Modifier
                         .consumeWindowInsets(WindowInsets.systemBars.union(WindowInsets.displayCutout))
-                        .padding(tokens.margin)
+                        .padding(margin ?: tokens.margin)
                 },
             ),
         content = content,
