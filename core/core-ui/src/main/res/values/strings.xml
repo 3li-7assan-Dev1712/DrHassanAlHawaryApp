@@ -208,4 +208,10 @@
     <string name="share_step_edges">٢. اسحب الطرفين لضبط البداية والنهاية</string>
     <string name="share_text_clear">مسح</string>
     <string name="share_text_select_all">تحديد النص كله</string>
+
+    <!-- Tablet: the detail pane before anything is selected -->
+    <string name="empty_detail_audio_title">اختر قسمًا للاستماع</string>
+    <string name="empty_detail_audio_subtitle">ستظهر هنا الدروس والخطب والفتاوى</string>
+    <string name="empty_detail_search_title">اختر نتيجة لعرضها</string>
+    <string name="empty_detail_search_subtitle">ابحث في المقالات والصوتيات والفتاوى والمرئيات</string>
 </resources>

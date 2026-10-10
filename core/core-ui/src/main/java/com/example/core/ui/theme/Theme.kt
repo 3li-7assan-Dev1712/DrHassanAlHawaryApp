@@ -7,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalConfiguration
 import backgroundDark
 import backgroundLight
 import errorContainerDark
@@ -161,9 +162,14 @@ fun HassanAlHawaryTheme(
     brandTheme: BrandTheme = BrandTheme.BROWN,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    // The window class's layout tokens; by default from the window width (tests pass one).
+    layoutTokens: AdaptiveLayoutTokens? = null,
     content: @Composable () -> Unit
 ) {
     val reduced = rememberSystemReducedMotion()
+    // screenWidthDp is the width of this window (all of it: the app targets SDK 35+), so a
+    // split-screen or freeform window gets the class of its own size, not the display's.
+    val tokens = layoutTokens ?: AdaptiveLayoutTokens.forWidth(LocalConfiguration.current.screenWidthDp.toFloat())
     // Switching light/dark animates every colour (see AnimatedTheme.kt).
     val colorScheme = animateColorScheme(if (darkTheme) brownDarkScheme else brownLightScheme, reduced)
     val brandPalette = animateBrandPalette(if (darkTheme) DarkBrandPalette else LightBrandPalette, reduced)
@@ -172,6 +178,7 @@ fun HassanAlHawaryTheme(
         LocalReducedMotion provides reduced,
         LocalBrandTheme provides brandTheme,
         LocalBrandPalette provides brandPalette,
+        LocalLayoutTokens provides tokens,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

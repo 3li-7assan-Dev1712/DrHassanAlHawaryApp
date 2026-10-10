@@ -16,9 +16,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedContentScope
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavGraphBuilder
+import app.netlify.devalihassan.ui.navigation.AppRail
+import com.example.core.ui.components.WindowMargin
+import com.example.core.ui.theme.layoutTokens
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.DisposableEffect
@@ -337,13 +348,18 @@ class MainActivity : ComponentActivity() {
 
 
 
+        // Medium and Expanded windows: a navigation rail instead of the bottom bar, on every
+        // main-app screen (secondary ones too) except the immersive designs viewer.
+        val tokens = layoutTokens
+        val showRail = !tokens.isCompact && currentRoute?.startsWith(Routes.IMAGE_DETAIL_SCREEN) != true
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             // This colour fills the status-bar padding above every screen: the brand
             // background (light or dark with the theme), never the old gray surfaceVariant strip.
             containerColor = Brand.colors.background,
             bottomBar = {
-                if (shouldShowBottomNav) {
+                if (tokens.isCompact && shouldShowBottomNav) {
                     BottomNavigationBar(
                         modifier = Modifier.fillMaxWidth(), navController = navController
                     )
@@ -359,8 +375,32 @@ class MainActivity : ComponentActivity() {
                 initialState.destination.route in routesWithBottomNav &&
                     targetState.destination.route in routesWithBottomNav
 
+            // The rail runs the full window height on the start edge (right in RTL) and pads
+            // itself for the system bars; the screens keep the Scaffold's insets.
+            val layoutDirection = LocalLayoutDirection.current
+            val contentPadding = if (showRail) {
+                PaddingValues(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding(),
+                    end = innerPadding.calculateEndPadding(layoutDirection),
+                )
+            } else {
+                innerPadding
+            }
+            Row(modifier = Modifier.fillMaxSize()) {
+            if (showRail) {
+                AppRail(
+                    navController = navController,
+                    modifier = Modifier.padding(start = innerPadding.calculateStartPadding(layoutDirection)),
+                )
+            }
             // Container transforms (card → screen) for three flows; see core-ui SharedElements.kt.
-            SharedTransitionLayout(modifier = Modifier.padding(innerPadding)) {
+            SharedTransitionLayout(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(contentPadding)
+            ) {
                 CompositionLocalProvider(LocalSharedTransitionScope provides this) {
                     NavHost(
                         navController,
@@ -383,7 +423,7 @@ class MainActivity : ComponentActivity() {
                         },
                     ) {
 
-                        composable("splash_screen") {
+                        screen("splash_screen") {
                             SplashScreen(
                                 onShowSplashScreenTimeEnd = {
                                     navController.navigate("home_screen") {
@@ -394,7 +434,7 @@ class MainActivity : ComponentActivity() {
                                 })
                         }
 
-                        composable("home_screen") {
+                        screen("home_screen") {
                             ProvideNavAnimatedScope(this) {
                             HomeScreen(onNavigateToDetailArticle = { articleId ->
                                 navController.navigate("detail_article_screen/$articleId")
@@ -417,7 +457,7 @@ class MainActivity : ComponentActivity() {
                             )
                             }
                         }
-                        composable("search_screen") {
+                        screen("search_screen") {
 
                             SearchScreen { searchResultMetaData ->
                                 val encodedUrl = Uri.encode(searchResultMetaData.url)
@@ -441,7 +481,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        composable("articles_screen") {
+                        screen("articles_screen") {
 
                             ArticleListScreen(onNavigateToArticleDetail = { articleId ->
                                 navController.navigate("detail_article_screen/$articleId")
@@ -449,7 +489,7 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                             })
                         }
-                        composable(
+                        screen(
                             // Update the route to include an optional parameter
                             route = "detail_article_screen/{articleId}",
                             arguments = listOf(
@@ -468,7 +508,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        composable(
+                        screen(
                             route = "${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/{articleId}",
                             arguments = listOf(navArgument("articleId") { type = NavType.StringType })
                         ) {
@@ -485,7 +525,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(
+                        screen(
                             route = "${Routes.TEXT_CARD_PREVIEW_SCREEN}/{articleId}?selectionStart={selectionStart}&selectionEnd={selectionEnd}",
                             arguments = listOf(
                                 navArgument("articleId") { type = NavType.StringType },
@@ -497,7 +537,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
-                        composable(Routes.AUDIO_CATEGORY_SCREEN) {
+                        screen(Routes.AUDIO_CATEGORY_SCREEN) {
                             AudioCategoryScreen(
                                 onCategoryClick = { categoryId, categoryTitle ->
                                     if (categoryId == ContentCategories.ALL_ID) {
@@ -510,7 +550,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
-                        composable(
+                        screen(
                             route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
                             arguments = listOf(
                                 navArgument("categoryId") {
@@ -532,7 +572,7 @@ class MainActivity : ComponentActivity() {
                             })
                         }
 
-                        composable(
+                        screen(
                             route = "audio_detail_screen/{title}/{audioUrl}",
                             arguments = listOf(navArgument("title") {
                                 type = NavType.StringType
@@ -560,7 +600,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        composable(
+                        screen(
                             route = "${Routes.SHARE_PREVIEW_SCREEN}/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
                             arguments = listOf(
                                 navArgument("audioUrl") { type = NavType.StringType },
@@ -578,7 +618,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(
+                        screen(
                             route = "${Routes.STUDY_SCREEN}?data={data}",
                             arguments = listOf(
                                 navArgument("data") {
@@ -605,7 +645,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(
+                        screen(
 
                             route = "${Routes.PLAYLIST_SCREEN}/{levelId}",
                             arguments = listOf(navArgument("levelId") {
@@ -622,7 +662,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        composable(
+                        screen(
 
                             route = "${Routes.QUIZ_SCREEN}/{quizId}",
                             arguments = listOf(navArgument("quizId") {
@@ -636,7 +676,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        composable(
+                        screen(
                             route = "${Routes.LESSONS_SCREEN}/{playlistId}",
                             arguments = listOf(navArgument("playlistId") {
                                 type = NavType.StringType
@@ -655,7 +695,7 @@ class MainActivity : ComponentActivity() {
 
                         }
 
-                        composable(
+                        screen(
                             route = "${Routes.LESSON_DETAIL_SCREEN}/{lessonId}",
                             arguments = listOf(navArgument("lessonId") {
                                 type = NavType.StringType
@@ -671,7 +711,7 @@ class MainActivity : ComponentActivity() {
 
                         }
 
-                        composable(Routes.IMAGES_SCREEN) {
+                        screen(Routes.IMAGES_SCREEN) {
                             ProvideNavAnimatedScope(this) {
                             ImagesGroupsScreen(
                                 onNavigateBack = {
@@ -709,12 +749,12 @@ class MainActivity : ComponentActivity() {
                             }
 
                         }
-                        composable(Routes.ABOUT_DR_HASSAN_SCREEN) {
+                        screen(Routes.ABOUT_DR_HASSAN_SCREEN) {
                             AboutDrHassanScreen {
                                 navController.popBackStack()
                             }
                         }
-                        composable(Routes.VIDEO_CATEGORY_SCREEN) {
+                        screen(Routes.VIDEO_CATEGORY_SCREEN) {
                             VideoCategoryScreen(
                                 onCategoryClick = { categoryId, categoryTitle ->
                                     val actualId = if (categoryId == ALL_VIDEO_CATEGORIES_ID) null else categoryId
@@ -723,7 +763,7 @@ class MainActivity : ComponentActivity() {
                                 onNavigateUp = { navController.popBackStack() }
                             )
                         }
-                        composable(
+                        screen(
                             route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
                             arguments = listOf(
                                 navArgument("categoryId") {
@@ -747,7 +787,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
-                        composable(
+                        screen(
 
                             route = "${Routes.VIDEO_PLAYER_SCREEN}/{videoUrl}/{videoTitle}",
                             arguments = listOf(
@@ -772,10 +812,10 @@ class MainActivity : ComponentActivity() {
                             }
 
                         }
-                        composable(Routes.NOTIFICATIONS_SCREEN) {
+                        screen(Routes.NOTIFICATIONS_SCREEN) {
                             NotificationsScreen(onBack = { navController.popBackStack() })
                         }
-                        composable(Routes.Q_A_SCREEN) {
+                        screen(Routes.Q_A_SCREEN) {
                             app.netlify.devalihassan.ui.q_a.QAScreen(
                                 onNavigateBack = { navController.popBackStack() },
                                 // The Search route takes no preset filter, so this opens plain Search.
@@ -784,7 +824,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // profile screens
-                        composable(Routes.PROFILE_SCREEN) {
+                        screen(Routes.PROFILE_SCREEN) {
                             ProfileScreen(
                                 onNavigate = { route ->
                                     when (route) {
@@ -809,14 +849,14 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(ProfileDestinations.ABOUT) {
+                        screen(ProfileDestinations.ABOUT) {
                             AboutAppScreen(
                                 onBack = { navController.popBackStack() },
                                 onContact = { navController.navigate(ProfileDestinations.SUPPORT) },
                             )
                         }
 
-                        composable(ProfileDestinations.SHARE) {
+                        screen(ProfileDestinations.SHARE) {
                             ShareAppScreen(
                                 "app.netlify.devalihassan",
                                 onBack = { navController.popBackStack() },
@@ -825,7 +865,7 @@ class MainActivity : ComponentActivity() {
                         }
 
 
-                        composable(ProfileDestinations.PRIVACY) {
+                        screen(ProfileDestinations.PRIVACY) {
                             LegalTextScreen(
                                 title = "سياسة الخصوصية",
                                 assetFileName = "privacy.md",
@@ -834,7 +874,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(ProfileDestinations.TERMS) {
+                        screen(ProfileDestinations.TERMS) {
                             LegalTextScreen(
                                 title = "الشروط والأحكام",
                                 assetFileName = "terms.md",
@@ -843,7 +883,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(ProfileDestinations.LICENSES) {
+                        screen(ProfileDestinations.LICENSES) {
                             LegalTextScreen(
                                 title = "التراخيص والمصادر المفتوحة",
                                 assetFileName = "licenses.md",
@@ -852,7 +892,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(ProfileDestinations.SUPPORT) {
+                        screen(ProfileDestinations.SUPPORT) {
                             SupportScreen(
                                 onBack = { navController.popBackStack() }
                             )
@@ -862,6 +902,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            }
         }
     }
 
@@ -869,4 +910,18 @@ class MainActivity : ComponentActivity() {
         /** Debug builds: forces reduced motion for this run (see onCreate). */
         const val EXTRA_FORCE_REDUCED_MOTION = "force_reduced_motion"
     }
+}
+
+/**
+ * A main-app destination: on Medium and Expanded windows the screen sits inside the window
+ * margin (grid/margin, 24 or 32) beside the rail; on Compact it fills the space as before.
+ * The immersive designs viewer is a plain `composable`: it draws to the window's edges.
+ */
+private fun NavGraphBuilder.screen(
+    route: String,
+    arguments: List<NamedNavArgument> = emptyList(),
+    content: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit,
+) = composable(route = route, arguments = arguments) { entry ->
+    val scope = this
+    WindowMargin { scope.content(entry) }
 }

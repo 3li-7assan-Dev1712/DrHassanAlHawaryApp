@@ -1,0 +1,87 @@
+package com.example.core.ui.components
+
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import com.example.core.ui.theme.Brand
+import com.example.core.ui.theme.layoutTokens
+
+/** Figma pane: radius 20 with a 1dp divider outline. */
+private val PaneShape = RoundedCornerShape(20.dp)
+
+object AdaptivePanesDefaults {
+    const val ListPaneTestTag = "listPane"
+    const val DetailPaneTestTag = "detailPane"
+    const val WindowMarginTestTag = "windowMargin"
+}
+
+/**
+ * A pane of a tablet layout: outlined, not filled (transparent, 1dp divider, radius 20,
+ * content clipped), so the phone cards inside keep the look they have on the background.
+ */
+@Composable
+fun Modifier.paneSurface(): Modifier = this
+    .clip(PaneShape)
+    .border(1.dp, Brand.colors.divider, PaneShape)
+
+/**
+ * The window margin (grid/margin) around a main-app screen in Medium (24) and Expanded (32)
+ * windows; nothing in Compact, where the screen is the phone layout as it always was.
+ * The navigation rail sits outside it.
+ */
+@Composable
+fun WindowMargin(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+    val tokens = layoutTokens
+    Box(
+        modifier = modifier
+            .testTag(AdaptivePanesDefaults.WindowMarginTestTag)
+            .fillMaxSize()
+            .padding(if (tokens.isCompact) 0.dp else tokens.margin),
+        content = content,
+    )
+}
+
+/**
+ * List and detail side by side (Expanded): the list pane (pane/listWidth, 400) on the start
+ * side (right in RTL), pane/gap (24), then the detail pane filling the rest. Both are
+ * [paneSurface]s the full height of the content area.
+ */
+@Composable
+fun TwoPaneLayout(
+    listPane: @Composable BoxScope.() -> Unit,
+    detailPane: @Composable BoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tokens = layoutTokens
+    Row(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .testTag(AdaptivePanesDefaults.ListPaneTestTag)
+                .width(tokens.listPaneWidth)
+                .fillMaxHeight()
+                .paneSurface(),
+            content = listPane,
+        )
+        Spacer(Modifier.width(tokens.paneGap))
+        Box(
+            modifier = Modifier
+                .testTag(AdaptivePanesDefaults.DetailPaneTestTag)
+                .weight(1f)
+                .fillMaxHeight()
+                .paneSurface(),
+            content = detailPane,
+        )
+    }
+}
