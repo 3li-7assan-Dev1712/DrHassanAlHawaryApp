@@ -114,3 +114,11 @@ Figma: Expanded `60:1403`, `60:1809`; Medium `64:3744`, `64:3936`.
 - Title on tablet always «الفيديوهات» (the pills show the category).
 - Deviation (pre-existing, phone too): the Video model has no duration, so the card has no duration badge; its play overlay is black 55% (Figma `viewerBackground`).
 - Tests: `VideosTabletTest` (3 / 2 across at 328, centred 84..1116, Medium 20..700, pills 16 in; Compact list, no pills); not run yet.
+
+### Designs (code done; instrumented run pending the emulator)
+
+Figma: Expanded `60:1597`, `60:1960`; Medium `64:4089`, `64:4306`.
+
+- `ImagesGroupsScreen` split: stateful (ViewModel, per-tile image counts) and stateless `DesignsScreenContent`.
+- Medium and Expanded: `LazyVerticalGrid(GridCells.FixedSize(156))`, rows aligned, centred: Expanded 6 across, 24 apart, 24 under the top bar; Medium 4 across, 16 apart, directly under the top bar, with the grid screens' 20 Medium margin. Tiles keep their image's proportions inside the row (the phone's staggered grid stays on Compact).
+- Tests: `DesignsTabletTest` (6 / 4 across at 156, centred 72..1128 / 24..696; Compact 2 across); not run yet.
