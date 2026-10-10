@@ -481,13 +481,31 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        screen("articles_screen") {
-
-                            ArticleListScreen(onNavigateToArticleDetail = { articleId ->
-                                navController.navigate("detail_article_screen/$articleId")
-                            }, onNavigateBack = {
-                                navController.popBackStack()
-                            })
+                        screen("articles_screen") { entry ->
+                            // Expanded: the article chosen beside the list, kept in the entry so
+                            // it survives rotation and resizing. Once the window narrows to one
+                            // pane, a chosen article opens in the reader.
+                            val selected by entry.savedStateHandle
+                                .getStateFlow<String?>(SELECTED_ARTICLE, null).collectAsState()
+                            val expanded = layoutTokens.isExpanded
+                            LaunchedEffect(expanded) {
+                                val chosen = selected
+                                if (!expanded && chosen != null) {
+                                    entry.savedStateHandle[SELECTED_ARTICLE] = null
+                                    navController.navigate("detail_article_screen/$chosen")
+                                }
+                            }
+                            ArticleListScreen(
+                                onNavigateToArticleDetail = { articleId ->
+                                    navController.navigate("detail_article_screen/$articleId")
+                                },
+                                onNavigateBack = { navController.popBackStack() },
+                                onNavigateToShareSelection = { articleId ->
+                                    navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
+                                },
+                                selectedArticleId = selected,
+                                onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                            )
                         }
                         screen(
                             // Update the route to include an optional parameter
@@ -497,14 +515,31 @@ class MainActivity : ComponentActivity() {
                             )
                         ) { entry ->
                             val articleId = entry.arguments?.getString("articleId").orEmpty()
+                            // Expanded: the reader sits beside the articles (Figma has no reader
+                            // of its own there), with this article selected. Another one chosen
+                            // there is still the one shown when the window narrows to the reader.
+                            val selected by entry.savedStateHandle
+                                .getStateFlow(SELECTED_ARTICLE, articleId).collectAsState()
+                            val onShare: (String) -> Unit = { id ->
+                                navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(id)}")
+                            }
                             ProvideNavAnimatedScope(this) {
-                            ArticleDetailScreen(
-                                onNavigateBack = { navController.popBackStack() },
-                                onNavigateToShareSelection = { articleId ->
-                                    navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
-                                },
-                                modifier = Modifier.sharedContainer(SharedKeys.article(articleId)),
-                            )
+                            if (layoutTokens.isExpanded) {
+                                ArticleListScreen(
+                                    onNavigateToArticleDetail = { id -> navController.navigate("detail_article_screen/$id") },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShareSelection = onShare,
+                                    selectedArticleId = selected,
+                                    onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                )
+                            } else {
+                                ArticleDetailScreen(
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShareSelection = onShare,
+                                    modifier = Modifier.sharedContainer(SharedKeys.article(articleId)),
+                                    articleId = selected,
+                                )
+                            }
                             }
                         }
 
@@ -909,6 +944,9 @@ class MainActivity : ComponentActivity() {
     private companion object {
         /** Debug builds: forces reduced motion for this run (see onCreate). */
         const val EXTRA_FORCE_REDUCED_MOTION = "force_reduced_motion"
+
+        /** The article chosen beside the list on a tablet (an entry's saved state). */
+        const val SELECTED_ARTICLE = "selectedArticleId"
     }
 }
 

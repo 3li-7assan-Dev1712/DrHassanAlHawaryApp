@@ -45,3 +45,19 @@ These can be swapped for the libraries later without changing the screens.
 ### Finding: Cairo line boxes
 
 Android lays a Cairo line out at the font's own height (about 1.85 × the font size: 22dp for 12sp) whatever `lineHeight`, `LineHeightStyle` mode or font padding say (fallback line spacing). Figma's text boxes use the style's line height (16 for 12sp), so every phone component's text is a little taller on device than in Figma. Phone composables are reused as they are. The rail label is centred in a 16sp slot so the destinations sit exactly where Figma has them.
+
+## 3. Screens
+
+### Articles + Reader (done)
+
+Figma: Expanded `53:2` (light), `53:170` (dark); Medium articles `63:2412`, `63:2490`; Medium reader `63:2569`, `63:2662`.
+
+- Expanded: `ArticlesAdaptiveContent` = `TwoPaneLayout`: list pane = the phone's articles screen (top bar «المقالات» with back, list 16 padding, 12 between), items fill the pane (366); detail pane = `ArticleReaderPane` (reader top bar with share and text size only, no back, no progress bar as in Figma, body 32 side padding). The newest article is open until one is chosen; the chosen one has the selected style (`ArticleItem(selected =)`).
+- Selection lives in the back-stack entry's `SavedStateHandle` (`SELECTED_ARTICLE`), so it survives rotation and resizing. Narrowing to one pane after choosing an article opens that article in the reader; on the reader route, the article chosen beside the list is the one the reader shows (`ArticleDetailScreen(articleId =)`).
+- The reader route (`detail_article_screen/{id}`) on Expanded shows the articles with that article selected (Figma has no reader of its own on Expanded).
+- `DetailArticleViewModel.showArticle(id)`: one reader ViewModel follows the selection; a superseded load's cancellation no longer overwrites the state with an error.
+- Medium: articles unchanged inside the margin; reader text column `readingMaxWidth` (640, its 16 padding included, as Figma's ArticleBody), centred.
+- `paneSurface()` now insets its content by the 1dp outline (Figma: 400 pane, 398 top bar, 366 items). `WindowMargin` consumes the system-bar insets on Medium/Expanded so a phone screen's Scaffold inside a pane doesn't pad for the navigation bar a second time.
+- Tests: `ArticlesTabletTest` (8, all pass): Expanded items 366 at 17 from the pane edge, 73 from the top, 12 apart; reader text 646 at 33 from the pane edges; Medium items 640; Medium reader column 608 + padding centred; Compact list and reader at the phone's 328.
+- Matched: shell, panes, list, selected item, reader top bar actions, body padding, Medium reading width, light and dark colours.
+- Deviations: card and text heights are a little taller than Figma (Cairo line boxes, see above). Pre-existing on the phone too, left alone because changing them would change Compact: the reader body uses the app's `bodyLarge`, which is Bold (Figma Reader/body is Regular), and the reader title uses `headlineSmall`, which `CairoTypography` doesn't define, so it renders in the system font.

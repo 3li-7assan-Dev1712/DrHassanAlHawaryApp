@@ -9,9 +9,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.LayoutDirection
+import androidx.compose.ui.test.Locales
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.then
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpRect
@@ -48,6 +52,7 @@ fun ComposeContentTestRule.setShellContent(
     setContent {
         DeviceConfigurationOverride(
             DeviceConfigurationOverride.ForcedSize(window) then
+                DeviceConfigurationOverride.Locales(LocaleList("ar")) then
                 DeviceConfigurationOverride.LayoutDirection(LayoutDirection.Rtl),
         ) {
             AdaptiveShellPreview(
@@ -73,11 +78,21 @@ fun assertDp(expected: Dp, actual: Dp, what: String) {
 }
 
 /** Bounds of the node tagged [tag], relative to the shell's top-left corner. */
-fun ComposeContentTestRule.boundsInShell(tag: String): DpRect {
+fun ComposeContentTestRule.boundsInShell(tag: String): DpRect =
+    boundsInShell(onNodeWithTag(tag, useUnmergedTree = true))
+
+/** Bounds of [node], relative to the shell's top-left corner. */
+fun ComposeContentTestRule.boundsInShell(node: SemanticsNodeInteraction): DpRect {
     val shell = onNodeWithTag(SHELL_TAG).getUnclippedBoundsInRoot()
-    val node = onNodeWithTag(tag, useUnmergedTree = true).getUnclippedBoundsInRoot()
-    return DpRect(node.left - shell.left, node.top - shell.top, node.right - shell.left, node.bottom - shell.top)
+    val bounds = node.getUnclippedBoundsInRoot()
+    return DpRect(bounds.left - shell.left, bounds.top - shell.top, bounds.right - shell.left, bounds.bottom - shell.top)
 }
+
+/** Bounds, relative to the shell, of the (merged) node showing [text]: a whole card for a card's title. */
+fun ComposeContentTestRule.boundsOfText(text: String): DpRect = boundsInShell(onNodeWithText(text))
+
+val DpRect.widthDp: Dp get() = right - left
+val DpRect.heightDp: Dp get() = bottom - top
 
 /**
  * Saves the shell as a PNG to the test app's external files (`tablet-shots/<name>.png`),

@@ -5,6 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,16 +35,24 @@ object AdaptivePanesDefaults {
 /**
  * A pane of a tablet layout: outlined, not filled (transparent, 1dp divider, radius 20,
  * content clipped), so the phone cards inside keep the look they have on the background.
+ * The content starts inside the outline, as in Figma (a 400 pane holds a 398 top bar).
  */
 @Composable
 fun Modifier.paneSurface(): Modifier = this
     .clip(PaneShape)
-    .border(1.dp, Brand.colors.divider, PaneShape)
+    .border(PaneStroke, Brand.colors.divider, PaneShape)
+    .padding(PaneStroke)
+
+private val PaneStroke = 1.dp
 
 /**
  * The window margin (grid/margin) around a main-app screen in Medium (24) and Expanded (32)
  * windows; nothing in Compact, where the screen is the phone layout as it always was.
  * The navigation rail sits outside it.
+ *
+ * On Medium and Expanded the shell has already kept the content clear of the system bars,
+ * so they are consumed here: a phone screen's Scaffold inside a pane would otherwise pad
+ * for the navigation bar again. (The keyboard is left to the screens.)
  */
 @Composable
 fun WindowMargin(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -48,7 +61,15 @@ fun WindowMargin(modifier: Modifier = Modifier, content: @Composable BoxScope.()
         modifier = modifier
             .testTag(AdaptivePanesDefaults.WindowMarginTestTag)
             .fillMaxSize()
-            .padding(if (tokens.isCompact) 0.dp else tokens.margin),
+            .then(
+                if (tokens.isCompact) {
+                    Modifier
+                } else {
+                    Modifier
+                        .consumeWindowInsets(WindowInsets.systemBars.union(WindowInsets.displayCutout))
+                        .padding(tokens.margin)
+                },
+            ),
         content = content,
     )
 }
