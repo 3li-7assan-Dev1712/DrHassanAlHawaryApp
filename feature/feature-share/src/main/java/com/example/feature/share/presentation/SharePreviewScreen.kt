@@ -43,18 +43,42 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.theme.layoutTokens
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.window.DialogWindowProvider
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.domain.text.ArabicNumerals
+import com.example.domain.text.HijriDate
+import com.example.feature.share.domain.ShareBackgroundSource
+import com.example.feature.share.domain.ShareCardContent
+import com.example.core.ui.components.AdaptiveShellPreview
+import com.example.core.ui.theme.HassanAlHawaryTheme
+import androidx.compose.foundation.background
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.feature.share.domain.ShareExportState
 import com.example.feature.share.presentation.components.ClipSelector
 import com.example.feature.share.presentation.components.ShareCardPreview
 
+/**
+ * The clip share preview. [asDialog]: the tablet's dialog over the previous screen (Figma
+ * Share preview, Medium and Expanded) instead of the phone's full screen.
+ */
 @UnstableApi
 @Composable
 fun SharePreviewScreen(
     onNavigateUp: () -> Unit,
     viewModel: SharePreviewViewModel = hiltViewModel(),
+    asDialog: Boolean = false,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -85,6 +109,28 @@ fun SharePreviewScreen(
         }
     }
 
+    val onShareLinkInstead = {
+        val title = uiState.content?.title.orEmpty()
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "$title\n${uiState.audioUrl}")
+        }
+        context.startActivity(Intent.createChooser(intent, chooserTitle))
+    }
+    if (asDialog) {
+        // Figma's scrim: black at 45% (the dialog window's own dim).
+        val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+        LaunchedEffect(dialogWindow) { dialogWindow?.setDimAmount(ShareDialogSpec.ScrimAlpha) }
+        SharePreviewDialogContent(
+            uiState = uiState,
+            onPlayPauseToggle = viewModel::onPlayPauseToggle,
+            onRangeChanged = viewModel::onRangeChanged,
+            onShareClick = viewModel::onShareClicked,
+            onRetry = viewModel::onRetry,
+            onShareLinkInstead = onShareLinkInstead,
+        )
+        return
+    }
     SharePreviewScreen(
         uiState = uiState,
         onNavigateUp = onNavigateUp,
@@ -92,15 +138,165 @@ fun SharePreviewScreen(
         onRangeChanged = viewModel::onRangeChanged,
         onShareClick = viewModel::onShareClicked,
         onRetry = viewModel::onRetry,
-        onShareLinkInstead = {
-            val title = uiState.content?.title.orEmpty()
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, "$title\n${uiState.audioUrl}")
-            }
-            context.startActivity(Intent.createChooser(intent, chooserTitle))
-        },
+        onShareLinkInstead = onShareLinkInstead,
     )
+}
+
+/** The tablet dialog, measured in Figma (`59:1158` Expanded, `64:4477` Medium). */
+object ShareDialogSpec {
+    const val ScrimAlpha = 0.45f
+    val ExpandedWidth = 720.dp
+    val MediumWidth = 600.dp
+    val Corner = 20.dp
+    val HeaderHeight = 56.dp
+    val HeaderPadding = 24.dp
+    val BodyPadding = 24.dp
+    /** Expanded: between the clip selector and the preview; Medium: between preview and selector. */
+    val ExpandedGap = 32.dp
+    val MediumGap = 24.dp
+    /** The 9:16 preview at 1.4 × the phone card: about 244 × 434. */
+    val PreviewHeight = 434.dp
+    /** Expanded: the clip selector's frame (its controls 328, 16 in from each side). */
+    val ClipSelectorWidth = 360.dp
+    val ClipSelectorPadding = 16.dp
+    val ButtonPadding = 16.dp
+    val ButtonBottom = 12.dp
+    const val TestTag = "shareDialog"
+}
+
+/**
+ * The share preview as a dialog card (Medium and Expanded): surface, radius 20, a shadow;
+ * the title-only header; Expanded: the clip selector and the preview side by side (preview
+ * at the start), Medium: the preview over the selector; the full-width share button under
+ * them. Width 720 / 600, never wider than the window.
+ */
+@Composable
+fun SharePreviewDialogContent(
+    uiState: SharePreviewUiState,
+    onPlayPauseToggle: () -> Unit,
+    onRangeChanged: (startMs: Long, endMs: Long) -> Unit,
+    onShareClick: () -> Unit,
+    onRetry: () -> Unit,
+    onShareLinkInstead: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = Brand.colors
+    val expanded = layoutTokens.isExpanded
+    val isGenerating = uiState.exportState is ShareExportState.Preparing ||
+        uiState.exportState is ShareExportState.Encoding
+    val shape = RoundedCornerShape(ShareDialogSpec.Corner)
+    val playbackPositionMs = smoothPlaybackPosition(uiState.playbackPositionMs, uiState.isPlaying)
+
+    val preview = @Composable {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            uiState.content?.let { content ->
+                ShareCardPreview(
+                    content = content,
+                    envelope = uiState.clipEnvelope,
+                    playbackPositionMs = playbackPositionMs,
+                    clipDurationMs = uiState.clipDurationMs,
+                    modifier = Modifier
+                        .height(ShareDialogSpec.PreviewHeight)
+                        .clip(RoundedCornerShape(16.dp)),
+                )
+            }
+            uiState.downloadProgressPercent?.let { percent ->
+                LinearProgressIndicator(
+                    progress = { percent / 100f },
+                    modifier = Modifier
+                        .width(120.dp)
+                        .padding(top = 6.dp),
+                    color = colors.accentStrong,
+                    trackColor = colors.divider,
+                )
+            }
+            uiState.playbackErrorMessage?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            }
+        }
+    }
+    val clipSelector = @Composable { selectorModifier: Modifier ->
+        ClipSelector(
+            overviewEnvelope = uiState.overviewEnvelope,
+            totalMs = uiState.totalTrackDurationMs,
+            startMs = uiState.startMs,
+            clipMs = uiState.clipDurationMs,
+            playbackPositionMs = playbackPositionMs,
+            isPlaying = uiState.isPlaying,
+            isBuffering = uiState.isBuffering,
+            enabled = !isGenerating,
+            onRangeChanged = onRangeChanged,
+            onPlayPause = onPlayPauseToggle,
+            modifier = selectorModifier,
+        )
+    }
+
+    Surface(
+        modifier = modifier
+            .testTag(ShareDialogSpec.TestTag)
+            .widthIn(max = if (expanded) ShareDialogSpec.ExpandedWidth else ShareDialogSpec.MediumWidth)
+            .fillMaxWidth()
+            .shadow(24.dp, shape, ambientColor = Color.Black.copy(alpha = 0.28f), spotColor = Color.Black.copy(alpha = 0.28f)),
+        shape = shape,
+        color = colors.surface,
+    ) {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(ShareDialogSpec.HeaderHeight)
+                    .padding(horizontal = ShareDialogSpec.HeaderPadding),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text(
+                    text = stringResource(R.string.share_preview_title),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = colors.textPrimary,
+                )
+            }
+            if (expanded) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = ShareDialogSpec.BodyPadding),
+                    horizontalArrangement = Arrangement.spacedBy(ShareDialogSpec.ExpandedGap, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    preview()
+                    Box(Modifier.width(ShareDialogSpec.ClipSelectorWidth).padding(horizontal = ShareDialogSpec.ClipSelectorPadding)) {
+                        clipSelector(Modifier)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(ShareDialogSpec.BodyPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(ShareDialogSpec.MediumGap),
+                ) {
+                    preview()
+                    clipSelector(Modifier.padding(horizontal = ShareDialogSpec.ClipSelectorPadding))
+                }
+            }
+            Box(
+                Modifier.padding(
+                    start = ShareDialogSpec.ButtonPadding,
+                    end = ShareDialogSpec.ButtonPadding,
+                    bottom = ShareDialogSpec.ButtonBottom,
+                ),
+            ) {
+                if (!uiState.isTooShortToShare) {
+                    val errorMessage = uiState.errorMessage
+                    if (errorMessage != null) {
+                        ErrorCard(message = errorMessage, onRetry = onRetry, onShareLinkInstead = onShareLinkInstead)
+                    } else {
+                        ShareButton(exportState = uiState.exportState, enabled = !isGenerating, onClick = onShareClick)
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -296,4 +492,84 @@ private fun smoothPlaybackPosition(targetMs: Long, isPlaying: Boolean): Long {
         }
     }
     return position.value.toLong()
+}
+
+/** The Figma dialog's clip (a Friday sermon, 30 s from 21:00 of 58:20): previews and UI tests. */
+val ShareDialogPreviewState = SharePreviewUiState(
+    audioUrl = "audio",
+    totalTrackDurationMs = 3_500_000L,
+    startMs = 1_260_000L,
+    clipDurationMs = 30_000L,
+    content = ShareCardContent(
+        title = "فضل العشر، والأضحية",
+        category = null,
+        instituteName = "الشيخ د. حسن الهواري",
+        background = ShareBackgroundSource.FromDrawableRes(R.drawable.dr_hassan_photo),
+        logoResId = R.drawable.admin_logo_app,
+        kindLabel = "خطبة الجمعة",
+        hijriDate = HijriDate(27, "ذو القعدة", 1447),
+    ),
+    clipEnvelope = FloatArray(60) { (0.35f + 0.3f * kotlin.math.sin(it / 3f)).coerceIn(0f, 1f) },
+    overviewEnvelope = FloatArray(60) { (0.4f + 0.3f * kotlin.math.sin(it / 5f)).coerceIn(0f, 1f) },
+    isExtracting = false,
+)
+
+/** The dialog over a dimmed window, as the app shows it: previews and UI tests. */
+@Composable
+fun ShareDialogPreviewContent() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = ShareDialogSpec.ScrimAlpha)),
+        contentAlignment = Alignment.Center,
+    ) {
+        SharePreviewDialogContent(
+            uiState = ShareDialogPreviewState,
+            onPlayPauseToggle = {},
+            onRangeChanged = { _, _ -> },
+            onShareClick = {},
+            onRetry = {},
+            onShareLinkInstead = {},
+        )
+    }
+}
+
+@Preview(name = "Share preview - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ShareDialogMediumLightPreview() {
+    AdaptiveShellPreview(darkTheme = false, margin = false) { ShareDialogPreviewContent() }
+}
+
+@Preview(name = "Share preview - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ShareDialogMediumDarkPreview() {
+    AdaptiveShellPreview(darkTheme = true, margin = false) { ShareDialogPreviewContent() }
+}
+
+@Preview(name = "Share preview - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ShareDialogExpandedLightPreview() {
+    AdaptiveShellPreview(darkTheme = false, margin = false) { ShareDialogPreviewContent() }
+}
+
+@Preview(name = "Share preview - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ShareDialogExpandedDarkPreview() {
+    AdaptiveShellPreview(darkTheme = true, margin = false) { ShareDialogPreviewContent() }
+}
+
+@Preview(name = "Share preview - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun SharePreviewCompactLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) {
+        SharePreviewScreen(ShareDialogPreviewState, {}, {}, { _, _ -> }, {}, {}, {})
+    }
+}
+
+@Preview(name = "Share preview - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun SharePreviewCompactDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) {
+        SharePreviewScreen(ShareDialogPreviewState, {}, {}, { _, _ -> }, {}, {}, {})
+    }
 }

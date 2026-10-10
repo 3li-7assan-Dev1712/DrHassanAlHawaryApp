@@ -159,3 +159,11 @@ Figma: Expanded `61:2211`, `61:2458`; Medium `64:6686`, `64:6733`.
 - The guest and not-a-channel-member states have no tablet design: the phone layout inside the margin. Medium: the phone column.
 - Deviation: Figma's card shows an illustration placeholder and an «فتح قناة المعهد» button; the existing card (school icon, no button: the app has no channel URL) is reused, as the spec says.
 - Tests: `InstituteTabletTest` (card centred in the detail pane, profile card in the start pane); not run yet.
+
+### Share preview (code done; instrumented run pending the emulator)
+
+Figma: Expanded `59:1158`, `59:1626`; Medium `64:4477`, `64:4726`.
+
+- Medium and Expanded: the player's share action opens a navigation `dialog` destination (`share_preview_dialog/...`, same arguments, same ViewModel) instead of the full-screen route, so it sits over the player. The dialog window dims to Figma's 45% black; `SharePreviewDialogContent`: surface, radius 20, shadow (24dp, black 28%), title-only 56 header with 24 padding; Expanded 720 wide: the 9:16 preview (434 tall, ~244 wide: the existing card at 1.4×) and the clip selector (360 frame, controls 328) side by side, 32 apart, centred; Medium 600 wide: the preview over the selector, 24 apart; the full-width share button (16 each side, 12 under). Never wider than the window; scrolls in a short one.
+- Compact: the full-screen route as before. The article quote share (TextCardPreview) has no tablet design: unchanged.
+- Tests: `ShareDialogTabletTest` (720 / 600 wide, centred, button 688); not run yet.

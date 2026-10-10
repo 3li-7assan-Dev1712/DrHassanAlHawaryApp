@@ -73,6 +73,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -363,14 +365,17 @@ class MainActivity : ComponentActivity() {
         val shareArticle: (String) -> Unit = { articleId ->
             navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
         }
-        // The player's share action (the player screen and the player beside the audio list).
+        // The player's share action (the player screen and the player beside the audio list):
+        // the clip share preview, a dialog over the player on a tablet (Figma Share preview).
+        val shareAsDialog = !layoutTokens.isCompact
         val shareAudio: AudioShareAction = { audioUrl, title, category, localFilePath, startMs, totalDurationMs ->
             val encodedUrl = Uri.encode(audioUrl)
             val encodedTitle = Uri.encode(title)
             val encodedCategory = Uri.encode(category ?: "")
             val encodedLocalFilePath = Uri.encode(localFilePath ?: "")
+            val route = if (shareAsDialog) SHARE_PREVIEW_DIALOG else Routes.SHARE_PREVIEW_SCREEN
             navController.navigate(
-                "${Routes.SHARE_PREVIEW_SCREEN}/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
+                "$route/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
             )
         }
 
@@ -750,6 +755,24 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                        // Medium and Expanded: the same preview as a dialog over the player.
+                        dialog(
+                            route = "$SHARE_PREVIEW_DIALOG/{audioUrl}?title={title}&category={category}&localFilePath={localFilePath}&startMs={startMs}&totalDurationMs={totalDurationMs}",
+                            arguments = listOf(
+                                navArgument("audioUrl") { type = NavType.StringType },
+                                navArgument("title") { type = NavType.StringType; nullable = true },
+                                navArgument("category") { type = NavType.StringType; nullable = true },
+                                navArgument("localFilePath") { type = NavType.StringType; nullable = true },
+                                navArgument("startMs") { type = NavType.LongType; defaultValue = 0L },
+                                navArgument("totalDurationMs") { type = NavType.LongType; defaultValue = 0L },
+                            ),
+                            dialogProperties = DialogProperties(usePlatformDefaultWidth = false),
+                        ) {
+                            SharePreviewScreen(
+                                onNavigateUp = { navController.popBackStack() },
+                                asDialog = true,
+                            )
+                        }
 
                         screen(
                             route = "${Routes.STUDY_SCREEN}?data={data}",
@@ -1079,6 +1102,9 @@ class MainActivity : ComponentActivity() {
 
         /** The article chosen beside the list on a tablet (an entry's saved state). */
         const val SELECTED_ARTICLE = "selectedArticleId"
+
+        /** The clip share preview as a dialog (Medium and Expanded). */
+        const val SHARE_PREVIEW_DIALOG = "share_preview_dialog"
 
         /** The audio chosen beside the list on a tablet (an entry's saved state). */
         const val SELECTED_AUDIO_URL = "selectedAudioUrl"
