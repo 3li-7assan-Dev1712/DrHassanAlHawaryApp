@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -47,10 +48,13 @@ import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.SeriesCard
 import com.example.core.ui.components.TwoPaneLayout
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.layoutTokens
 import com.example.domain.module.Article
+import com.example.domain.module.Series
+import com.example.domain.module.SeriesCollection
 import com.example.feature.article.presentation.components.ArticleItem
 import com.example.feature.article.presentation.detail.ArticleReaderPane
 import com.example.feature.article.presentation.detail.ArticleReaderPaneContent
@@ -58,6 +62,7 @@ import com.example.feature.article.presentation.detail.ReaderPreviewState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.LoadStates
 import androidx.paging.PagingData
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.util.Date
@@ -67,7 +72,8 @@ import java.util.Date
  * The articles. Expanded windows: the list and the reader side by side; a tap selects the
  * article ([onSelectArticle]; the caller keeps [selectedArticleId], so it survives rotation
  * and resizing) and the newest one is shown until something is chosen. Otherwise the
- * phone's list, where a tap opens the reader ([onNavigateToArticleDetail]).
+ * phone's list, where a tap opens the reader ([onNavigateToArticleDetail]). The article
+ * series come first, as cards ([onNavigateToSeries]).
  */
 @Composable
 fun ArticleListScreen(
@@ -77,8 +83,10 @@ fun ArticleListScreen(
     onNavigateToShareSelection: (articleId: String) -> Unit = {},
     selectedArticleId: String? = null,
     onSelectArticle: (articleId: String) -> Unit = {},
+    onNavigateToSeries: (Series) -> Unit = {},
 ) {
     val articles = articlesViewModel.articles.collectAsLazyPagingItems()
+    val series by articlesViewModel.series.collectAsStateWithLifecycle()
 
     ArticlesAdaptiveContent(
         articles = articles,
@@ -87,6 +95,8 @@ fun ArticleListScreen(
         onNavigateToArticleDetail = onNavigateToArticleDetail,
         onNavigateBack = onNavigateBack,
         readerPane = { articleId -> ArticleReaderPane(articleId, onShare = onNavigateToShareSelection) },
+        series = series,
+        onSeriesClick = onNavigateToSeries,
     )
 }
 
@@ -99,6 +109,8 @@ fun ArticlesAdaptiveContent(
     onNavigateToArticleDetail: (articleId: String) -> Unit,
     onNavigateBack: () -> Unit,
     readerPane: @Composable (articleId: String) -> Unit,
+    series: List<Series> = emptyList(),
+    onSeriesClick: (Series) -> Unit = {},
 ) {
     if (layoutTokens.isExpanded) {
         // Until one is chosen, the newest article (the list's first) is open.
@@ -110,12 +122,14 @@ fun ArticlesAdaptiveContent(
                     onArticleClick = onSelectArticle,
                     onNavigateBack = onNavigateBack,
                     selectedArticleId = shownId,
+                    series = series,
+                    onSeriesClick = onSeriesClick,
                 )
             },
             detailPane = { if (shownId != null) readerPane(shownId) },
         )
     } else {
-        ArticlesScreenContent(articles, onNavigateToArticleDetail, onNavigateBack)
+        ArticlesScreenContent(articles, onNavigateToArticleDetail, onNavigateBack, series = series, onSeriesClick = onSeriesClick)
     }
 }
 
@@ -126,6 +140,9 @@ private fun ArticlesScreenContent(
     onArticleClick: (String) -> Unit,
     onNavigateBack: () -> Unit = {},
     selectedArticleId: String? = null,
+    // The article series, as cards above the standalone articles.
+    series: List<Series> = emptyList(),
+    onSeriesClick: (Series) -> Unit = {},
 ) {
 
     val listState = rememberLazyListState()
@@ -133,11 +150,13 @@ private fun ArticlesScreenContent(
     // Paging's local-cache-first load can insert newer items (the mediator's remote
     // fetch, or a genuinely new article) above whatever the list last anchored on,
     // which otherwise leaves the list looking "scrolled down" without ever having
-    // moved. Track the newest item's key and snap/animate back to it when it changes.
+    // moved. Track the newest item's key and snap/animate back to it when it changes. The
+    // series cards sit above the articles, so the first one is the top while there are series.
     var topItemKey by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(articles.itemCount) {
-        if (articles.itemCount == 0) return@LaunchedEffect
-        val newestKey = articles.peek(0)?.id
+    val firstSeriesKey = series.firstOrNull()?.let(::seriesItemKey)
+    LaunchedEffect(articles.itemCount, firstSeriesKey) {
+        if (articles.itemCount == 0 && firstSeriesKey == null) return@LaunchedEffect
+        val newestKey = firstSeriesKey ?: articles.peek(0)?.id
         if (newestKey != null && newestKey != topItemKey) {
             if (topItemKey == null) {
                 listState.scrollToItem(0)
@@ -184,6 +203,10 @@ private fun ArticlesScreenContent(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
+                        items(series, key = ::seriesItemKey) { item ->
+                            SeriesCard(series = item, onClick = { onSeriesClick(item) })
+                        }
+
                         items(
                             count = articles.itemCount,
                             key = articles.itemKey { it.id }
@@ -221,6 +244,9 @@ private fun ArticlesScreenContent(
         }
     }
 }
+
+/** A series card's key: apart from the articles' ids in the same list. */
+private fun seriesItemKey(series: Series): String = "series:${series.id}"
 
 private const val HOUR_MS = 3_600_000L
 
@@ -267,6 +293,14 @@ fun articlesPreviewPagingData(): Flow<PagingData<Article>> = flowOf(
     ),
 )
 
+/** An article series for previews. */
+val ArticleSeriesPreviewData = Series(
+    id = "fiqh-zakat",
+    title = "فقه الزكاة",
+    collection = SeriesCollection.ARTICLES,
+    itemCount = 12,
+)
+
 @Composable
 private fun ArticlesPreview(darkTheme: Boolean) {
     val articles = remember { articlesPreviewPagingData() }.collectAsLazyPagingItems()
@@ -305,3 +339,44 @@ private fun ArticlesExpandedLightPreview() = ArticlesPreview(darkTheme = false)
 @Preview(name = "Articles - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun ArticlesExpandedDarkPreview() = ArticlesPreview(darkTheme = true)
+
+/** The articles with a series above them. */
+@Composable
+private fun ArticlesWithSeriesPreview(darkTheme: Boolean) {
+    val articles = remember { articlesPreviewPagingData() }.collectAsLazyPagingItems()
+    AdaptiveShellPreview(darkTheme = darkTheme) {
+        ArticlesAdaptiveContent(
+            articles = articles,
+            selectedArticleId = null,
+            onSelectArticle = {},
+            onNavigateToArticleDetail = {},
+            onNavigateBack = {},
+            readerPane = { ArticleReaderPaneContent(ReaderPreviewState, fontStep = 1, onFontStepChange = {}, onShare = {}) },
+            series = listOf(ArticleSeriesPreviewData),
+        )
+    }
+}
+
+@Preview(name = "Articles with series - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun ArticlesWithSeriesCompactLightPreview() = ArticlesWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Articles with series - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun ArticlesWithSeriesCompactDarkPreview() = ArticlesWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Articles with series - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ArticlesWithSeriesMediumLightPreview() = ArticlesWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Articles with series - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun ArticlesWithSeriesMediumDarkPreview() = ArticlesWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Articles with series - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ArticlesWithSeriesExpandedLightPreview() = ArticlesWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Articles with series - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun ArticlesWithSeriesExpandedDarkPreview() = ArticlesWithSeriesPreview(darkTheme = true)

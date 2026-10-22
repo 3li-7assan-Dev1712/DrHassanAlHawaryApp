@@ -96,6 +96,7 @@ import com.example.domain.module.SeriesCollection
 import androidx.activity.compose.BackHandler
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.feature.article.presentation.list.ArticleListScreen
+import com.example.feature.article.presentation.series.ArticleSeriesScreen
 import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
@@ -584,6 +585,33 @@ class MainActivity : ComponentActivity() {
                                     },
                                     selectedArticleId = selected,
                                     onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                    onNavigateToSeries = openSeries,
+                                )
+                            }
+                            screen(
+                                route = "${Routes.ARTICLE_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                            ) { entry ->
+                                // As the articles: the article chosen beside the list (Expanded) is
+                                // kept in the entry; once the window narrows, it opens in the reader.
+                                val selected by entry.savedStateHandle
+                                    .getStateFlow<String?>(SELECTED_ARTICLE, null).collectAsState()
+                                val expanded = layoutTokens.isExpanded
+                                LaunchedEffect(expanded) {
+                                    val chosen = selected
+                                    if (!expanded && chosen != null) {
+                                        entry.savedStateHandle[SELECTED_ARTICLE] = null
+                                        navController.navigate("detail_article_screen/$chosen")
+                                    }
+                                }
+                                ArticleSeriesScreen(
+                                    onNavigateToArticleDetail = { articleId ->
+                                        navController.navigate("detail_article_screen/$articleId")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShareSelection = shareArticle,
+                                    selectedArticleId = selected,
+                                    onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
                                 )
                             }
                             screen(
@@ -610,6 +638,7 @@ class MainActivity : ComponentActivity() {
                                         onNavigateToShareSelection = onShare,
                                         selectedArticleId = selected,
                                         onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                        onNavigateToSeries = openSeries,
                                     )
                                 } else {
                                     ArticleDetailScreen(
@@ -1172,5 +1201,6 @@ private fun NavGraphBuilder.screen(
 /** A series' screen, by the collection it groups; null where there is none yet (videos). */
 private fun seriesRoute(collection: SeriesCollection): String? = when (collection) {
     SeriesCollection.AUDIOS -> Routes.AUDIO_SERIES_SCREEN
-    SeriesCollection.ARTICLES, SeriesCollection.IMAGE_GROUPS, SeriesCollection.VIDEOS -> null
+    SeriesCollection.ARTICLES -> Routes.ARTICLE_SERIES_SCREEN
+    SeriesCollection.IMAGE_GROUPS, SeriesCollection.VIDEOS -> null
 }

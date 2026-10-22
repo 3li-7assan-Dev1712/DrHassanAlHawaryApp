@@ -217,4 +217,6 @@
     <string name="empty_detail_audio_subtitle">ستظهر هنا الدروس والخطب والفتاوى</string>
     <string name="empty_detail_search_title">اختر نتيجة لعرضها</string>
     <string name="empty_detail_search_subtitle">ابحث في المقالات والصوتيات والفتاوى والمرئيات</string>
+    <!-- A series screen whose items the server returned none of. -->
+    <string name="series_empty">لا يوجد محتوى في هذه السلسلة بعد</string>
 </resources>

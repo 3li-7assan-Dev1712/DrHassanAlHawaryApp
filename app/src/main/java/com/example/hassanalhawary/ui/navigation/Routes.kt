@@ -40,6 +40,7 @@ object Routes {
     const val IMPORTANT_QUESTIONS_SCREEN = "important_questions_screen"
     // --- Detail Screens ---
      const val ARTICLE_DETAIL_SCREEN = "article_detail_screen"
+    const val ARTICLE_SERIES_SCREEN = "article_series_screen"
     const val AUDIO_DETAIL_SCREEN = "audio_detail_screen"
     const val AUDIO_SERIES_SCREEN = "audio_series_screen"
     const val VIDEO_PLAYER_SCREEN = "video_player_screen"

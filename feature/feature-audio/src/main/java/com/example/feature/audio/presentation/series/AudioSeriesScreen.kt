@@ -153,7 +153,7 @@ private fun AudioSeriesList(
         onNavigateBack = onNavigateBack,
         key = { it.id },
         episodeNumber = { it.episodeNumber },
-        emptyText = stringResource(R.string.no_audios_available),
+        emptyText = stringResource(R.string.series_empty),
         modifier = modifier,
     ) { audio ->
         AudioListItem(
