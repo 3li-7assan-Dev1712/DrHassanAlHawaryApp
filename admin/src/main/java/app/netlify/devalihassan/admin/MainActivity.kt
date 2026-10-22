@@ -1,5 +1,6 @@
 package app.netlify.devalihassan.admin
 
+import app.netlify.devalihassan.admin.ui.series.SeriesListScreen
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -123,6 +124,7 @@ class MainActivity : ComponentActivity() {
                     }
                     currentRoute == "images_list" -> stringResource(R.string.images)
                     currentRoute == "images_upload" -> stringResource(R.string.upload_images)
+                    currentRoute == "series_list" -> stringResource(R.string.manage_series)
                     currentRoute == "not_allowed" -> stringResource(R.string.access_denied)
                     currentRoute == "manage_quizzes" -> stringResource(R.string.manage_quizzes)
                     currentRoute == "super_admin_panel" -> stringResource(R.string.super_admin_panel)
@@ -324,6 +326,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("images_upload") {
                             UploadImagesScreen()
+                        }
+                        composable("series_list") {
+                            SeriesListScreen()
                         }
 
                         composable("manage_quizzes") {

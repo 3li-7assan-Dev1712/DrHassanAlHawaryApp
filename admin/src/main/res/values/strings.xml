@@ -199,4 +199,23 @@
     <string name="final_exam">نهائي</string>
     <string name="no_images_found">لا توجد تصاميم متاحة الآن</string>
     <string name="category">التصنيف</string>
+
+    <!-- Series -->
+    <string name="series">السلاسل</string>
+    <string name="manage_series">إدارة السلاسل</string>
+    <string name="new_series">سلسلة جديدة</string>
+    <string name="edit_series">تعديل السلسلة</string>
+    <string name="delete_series">حذف السلسلة</string>
+    <string name="delete_series_confirm">حذف «%1$s»؟</string>
+    <string name="series_delete_not_empty">لا تُحذف سلسلة فيها عناصر: انقل عناصرها إلى سلسلة أخرى أو اجعلها منفردة أولًا</string>
+    <string name="series_title">عنوان السلسلة</string>
+    <string name="series_hashtag">الوسم</string>
+    <string name="series_hashtag_hint">يُنشأ من العنوان، ويمكن تعديله</string>
+    <string name="series_no_category">بلا تصنيف</string>
+    <string name="series_empty_admin">لا عناصر بعد</string>
+    <string name="no_series">لا توجد سلاسل بعد</string>
+    <string name="move_up">تحريك لأعلى</string>
+    <string name="move_down">تحريك لأسفل</string>
+    <string name="series_saved">تم الحفظ</string>
+    <string name="series_save_failed">تعذّر الحفظ، حاول مرة أخرى</string>
 </resources>
