@@ -41,4 +41,8 @@ interface VideoDao {
 
     @Query("DELETE FROM videos WHERE id = :videoId")
     suspend fun deleteById(videoId: String)
+
+    /** Which of [ids] are cached. */
+    @Query("SELECT id FROM videos WHERE id IN (:ids)")
+    suspend fun getCachedIds(ids: List<String>): List<String>
 }

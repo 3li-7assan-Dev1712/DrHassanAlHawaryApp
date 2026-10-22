@@ -32,6 +32,10 @@ interface ImageDao {
     @Query("DELETE FROM image_groups WHERE id = :groupId")
     suspend fun deleteById(groupId: String)
 
+    /** Which of [ids] are cached. */
+    @Query("SELECT id FROM image_groups WHERE id IN (:ids)")
+    suspend fun getCachedIds(ids: List<String>): List<String>
+
     @Query("DELETE FROM images WHERE group_id = :groupId")
     suspend fun deleteImagesByGroupId(groupId: String)
 

@@ -35,6 +35,10 @@ interface ArticleDao {
     @Query("DELETE FROM articles WHERE id = :articleId")
     suspend fun deleteById(articleId: String)
 
+    /** Which of [ids] are cached. */
+    @Query("SELECT id FROM articles WHERE id IN (:ids)")
+    suspend fun getCachedIds(ids: List<String>): List<String>
+
     @Transaction
     suspend fun syncArticles(articles: List<ArticleEntity>) {
         upsertAll(articles)

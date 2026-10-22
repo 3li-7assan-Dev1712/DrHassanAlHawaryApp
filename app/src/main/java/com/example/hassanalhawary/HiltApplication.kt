@@ -10,6 +10,7 @@ import app.netlify.devalihassan.core.util.LocaleForce
 import com.example.data.di.ApplicationScope
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
+import com.example.domain.use_cases.SyncContentUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.feature.share.engine.ShareFileStore
 import com.example.study.domain.use_case.GetLevelsUseCase
@@ -60,6 +61,9 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     @Inject
     lateinit var shareFileStore: ShareFileStore
 
+    @Inject
+    lateinit var syncContentUseCase: SyncContentUseCase
+
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleForce.wrap(newBase))
@@ -80,6 +84,12 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
         appScope.launch {
             observeAuthStateUseCase().collectLatest { isLoggedIn ->
                 if (isLoggedIn) {
+                    // Series, and what changed in the cached content (e.g. items moved into a series).
+                    launch {
+                        runCatching { syncContentUseCase() }
+                            .onFailure { Log.e(TAG, "content sync failed", it) }
+                    }
+
                     launch {
                         getLevelsUseCase().collectLatest {
                             Log.d(TAG, "onStart: $it")

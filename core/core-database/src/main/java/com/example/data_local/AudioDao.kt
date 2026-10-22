@@ -45,6 +45,10 @@ interface AudioDao {
     @Query("SELECT * FROM audios WHERE id IN (:serverAudioIds)")
     fun getAudiosByIds(serverAudioIds: List<String>): List<AudioEntity>
 
+    /** Which of [ids] are cached. */
+    @Query("SELECT id FROM audios WHERE id IN (:ids)")
+    suspend fun getCachedIds(ids: List<String>): List<String>
+
     /**
      * Server rows into the cache, keeping what only this device knows about each audio:
      * favourite, download and last played position.
