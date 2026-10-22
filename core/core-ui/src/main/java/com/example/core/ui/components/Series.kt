@@ -183,42 +183,50 @@ fun <T> SeriesList(
             state.series?.let { series ->
                 item(key = SERIES_HEADER_KEY) { SeriesHeader(series, Modifier.padding(bottom = 8.dp)) }
             }
-            when (state.phase) {
-                ContentPhase.Content -> itemsIndexed(state.items, key = { _, it -> key(it) }) { index, it ->
+            if (state.phase == ContentPhase.Content) {
+                itemsIndexed(state.items, key = { _, it -> key(it) }) { index, it ->
                     EpisodeRow(number = episodeNumber(it) ?: (index + 1L)) { item(it) }
                 }
-
-                ContentPhase.Loading -> item(key = SERIES_STATUS_KEY) {
-                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = colors.accentStrong, strokeWidth = 3.dp)
-                    }
-                }
-
-                ContentPhase.Error -> item(key = SERIES_STATUS_KEY) {
-                    EmptyState(
-                        illustration = Illustration.ComputerAndServer,
-                        title = stringResource(R.string.empty_no_connection),
-                        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
-                    )
-                }
-
-                ContentPhase.Empty -> item(key = SERIES_STATUS_KEY) {
-                    Text(
-                        text = emptyText,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = colors.textMuted,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
-                    )
-                }
+            } else {
+                item(key = SERIES_STATUS_KEY) { SeriesStatus(state.phase, emptyText) }
             }
         }
     }
 }
 
-// Apart from the items' ids in the same list.
-private const val SERIES_HEADER_KEY = "series:header"
-private const val SERIES_STATUS_KEY = "series:status"
+/**
+ * A series screen with no items to show yet: the spinner while they load, the connection
+ * error if that failed, or [emptyText]. Nothing for [ContentPhase.Content].
+ */
+@Composable
+fun SeriesStatus(phase: ContentPhase, emptyText: String, modifier: Modifier = Modifier) {
+    val colors = Brand.colors
+    when (phase) {
+        ContentPhase.Content -> Unit
+
+        ContentPhase.Loading -> Box(modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = colors.accentStrong, strokeWidth = 3.dp)
+        }
+
+        ContentPhase.Error -> EmptyState(
+            illustration = Illustration.ComputerAndServer,
+            title = stringResource(R.string.empty_no_connection),
+            modifier = modifier.fillMaxWidth().padding(top = 32.dp),
+        )
+
+        ContentPhase.Empty -> Text(
+            text = emptyText,
+            style = MaterialTheme.typography.bodyLarge,
+            color = colors.textMuted,
+            textAlign = TextAlign.Center,
+            modifier = modifier.fillMaxWidth().padding(top = 32.dp),
+        )
+    }
+}
+
+// Apart from the items' ids in the same list or grid.
+const val SERIES_HEADER_KEY = "series:header"
+const val SERIES_STATUS_KEY = "series:status"
 
 @Composable
 private fun SeriesIcon(size: Dp, iconSize: Dp) {

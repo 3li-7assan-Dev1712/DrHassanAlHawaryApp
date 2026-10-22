@@ -104,6 +104,7 @@ import com.example.feature.audio.presentation.detail.AudioSelection
 import com.example.feature.audio.presentation.detail.AudioShareAction
 import com.example.feature.audio.presentation.list.AudioListScreen
 import com.example.feature.audio.presentation.series.AudioSeriesScreen
+import com.example.feature.image.presentation.series.DesignSeriesScreen
 import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.home.presentation.notifications.NotificationsScreen
@@ -939,7 +940,22 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onImageClick = { groupId, index ->
                                         navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
-                                    }
+                                    },
+                                    onSeriesClick = openSeries,
+                                )
+                                }
+                            }
+                            screen(
+                                route = "${Routes.DESIGN_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                                mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
+                            ) {
+                                ProvideNavAnimatedScope(this) {
+                                DesignSeriesScreen(
+                                    onGroupClick = { groupId ->
+                                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
                                 )
                                 }
                             }
@@ -1202,5 +1218,6 @@ private fun NavGraphBuilder.screen(
 private fun seriesRoute(collection: SeriesCollection): String? = when (collection) {
     SeriesCollection.AUDIOS -> Routes.AUDIO_SERIES_SCREEN
     SeriesCollection.ARTICLES -> Routes.ARTICLE_SERIES_SCREEN
-    SeriesCollection.IMAGE_GROUPS, SeriesCollection.VIDEOS -> null
+    SeriesCollection.IMAGE_GROUPS -> Routes.DESIGN_SERIES_SCREEN
+    SeriesCollection.VIDEOS -> null
 }

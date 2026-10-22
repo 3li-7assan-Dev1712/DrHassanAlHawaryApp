@@ -37,11 +37,13 @@ import com.example.core.ui.theme.Brand
 import com.example.domain.module.ImageGroup
 import com.example.domain.text.ArabicDates
 import com.example.domain.text.DesignTitle
+import com.example.domain.text.SeriesText
 
 /**
  * One design post in the 2-column grid: the preview image (natural height, 10dp corners),
  * a count badge for multi-image posts ("٩ صور"), the cleaned title in full (up to 2
- * lines, wrapping rather than cut with "..") and the date phrase.
+ * lines, wrapping rather than cut with "..") and the date phrase. Inside a series, its
+ * [episodeNumber] in a badge at the top start.
  */
 @Composable
 fun DesignTile(
@@ -49,6 +51,7 @@ fun DesignTile(
     imageCount: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    episodeNumber: Long? = null,
 ) {
     val colors = Brand.colors
     val title = remember(group.id, group.title) { DesignTitle.clean(group.title) }
@@ -85,6 +88,18 @@ fun DesignTile(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp)),
                 )
+                if (episodeNumber != null) {
+                    Text(
+                        text = SeriesText.episodeNumber(episodeNumber),
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(6.dp)
+                            .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(50))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                }
                 if (imageCount > 1) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
