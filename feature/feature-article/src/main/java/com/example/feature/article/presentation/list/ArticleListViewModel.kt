@@ -35,9 +35,9 @@ class ArticleListViewModel @Inject constructor(
     val articles: Flow<PagingData<Article>> =
         getPaginatedArticlesUseCase("").cachedIn(viewModelScope)
 
-    /** The article series, shown above the standalone articles. */
-    val series: StateFlow<List<Series>> = getSeriesUseCase(SeriesCollection.ARTICLES)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    /** The series, shown as cards with «متفرقات» when there are any; null until read. */
+    val series: StateFlow<List<Series>?> = getSeriesUseCase(SeriesCollection.ARTICLES)
+        .stateIn<List<Series>?>(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     init {
         // Network failures are already logged; a cache write failing leaves the cached series.

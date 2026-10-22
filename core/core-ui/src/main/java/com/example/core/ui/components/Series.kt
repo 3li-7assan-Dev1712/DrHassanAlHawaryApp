@@ -1,5 +1,7 @@
 package com.example.core.ui.components
 
+import com.example.core.ui.theme.layoutTokens
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -59,14 +61,31 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * A series above a list's standalone items: the stack icon in a 40dp accentContainer circle,
- * the title, "٥٩ درسًا · ٢٨ ساعة" and a chevron, on the list items' surface card. The whole
- * card opens the series.
+ * A series on a content screen: the stack icon in a 40dp accentContainer circle, the title,
+ * "٥٩ درسًا · ٢٨ ساعة" and a chevron, on the list items' surface card. The whole card opens
+ * the series.
  */
 @Composable
 fun SeriesCard(series: Series, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val colors = Brand.colors
     val meta = remember(series) { SeriesText.meta(series) }
+    SeriesCardLayout(TablerIcons.Stack2, series.title, meta, onClick, modifier)
+}
+
+/** «متفرقات», after the series cards: opens the items that are in no series. */
+@Composable
+fun SeriesMiscCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    SeriesCardLayout(
+        icon = TablerIcons.Category,
+        title = stringResource(R.string.series_misc),
+        subtitle = stringResource(R.string.series_misc_subtitle),
+        onClick = onClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun SeriesCardLayout(icon: Int, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier) {
+    val colors = Brand.colors
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -78,18 +97,18 @@ fun SeriesCard(series: Series, onClick: () -> Unit, modifier: Modifier = Modifie
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SeriesIcon(size = 40.dp, iconSize = 20.dp)
+            SeriesIcon(icon = icon, size = 40.dp, iconSize = 20.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = series.title,
+                    text = title,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, lineHeight = 1.5.em),
                     color = colors.textPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = meta,
+                    text = subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.textMuted,
                     modifier = Modifier.padding(top = 2.dp),
@@ -115,7 +134,7 @@ fun SeriesHeader(series: Series, modifier: Modifier = Modifier) {
     val colors = Brand.colors
     val meta = remember(series) { SeriesText.meta(series) }
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        SeriesIcon(size = 48.dp, iconSize = 24.dp)
+        SeriesIcon(icon = TablerIcons.Stack2, size = 48.dp, iconSize = 24.dp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
@@ -227,9 +246,10 @@ fun SeriesStatus(phase: ContentPhase, emptyText: String, modifier: Modifier = Mo
 // Apart from the items' ids in the same list or grid.
 const val SERIES_HEADER_KEY = "series:header"
 const val SERIES_STATUS_KEY = "series:status"
+private const val SERIES_MISC_KEY = "series:misc"
 
 @Composable
-private fun SeriesIcon(size: Dp, iconSize: Dp) {
+private fun SeriesIcon(icon: Int, size: Dp, iconSize: Dp) {
     val colors = Brand.colors
     Box(
         modifier = Modifier
@@ -238,11 +258,64 @@ private fun SeriesIcon(size: Dp, iconSize: Dp) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painter = painterResource(TablerIcons.Stack2),
+            painter = painterResource(icon),
             contentDescription = null,
             tint = colors.onAccentContainer,
             modifier = Modifier.size(iconSize),
         )
+    }
+}
+
+/**
+ * A content screen whose items are grouped in series: the series' cards, then «متفرقات» for
+ * the items in none. Expanded: the cards in the list pane, [emptyDetail] beside them (a card
+ * opens its own screen).
+ */
+@Composable
+fun SeriesCategoryContent(
+    title: String,
+    series: List<Series>,
+    onSeriesClick: (Series) -> Unit,
+    onMiscClick: () -> Unit,
+    onNavigateBack: () -> Unit,
+    emptyDetail: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (layoutTokens.isExpanded) {
+        TwoPaneLayout(
+            modifier = modifier,
+            listPane = { SeriesCards(title, series, onSeriesClick, onMiscClick, onNavigateBack) },
+            detailPane = { emptyDetail() },
+        )
+    } else {
+        SeriesCards(title, series, onSeriesClick, onMiscClick, onNavigateBack, modifier)
+    }
+}
+
+@Composable
+private fun SeriesCards(
+    title: String,
+    series: List<Series>,
+    onSeriesClick: (Series) -> Unit,
+    onMiscClick: () -> Unit,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Brand.colors.background,
+        topBar = { AppTopBar(title = title, onBack = onNavigateBack) },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(series, key = { it.id }) { item -> SeriesCard(series = item, onClick = { onSeriesClick(item) }) }
+            item(key = SERIES_MISC_KEY) { SeriesMiscCard(onClick = onMiscClick) }
+        }
     }
 }
 
@@ -315,6 +388,7 @@ private fun SeriesComponentsPreviewContent() {
     ) {
         SeriesHeader(SeriesPreviewData[0])
         SeriesPreviewData.forEach { SeriesCard(it, onClick = {}) }
+        SeriesMiscCard(onClick = {})
         EpisodeRow(number = 1) { SeriesCard(SeriesPreviewData[1], onClick = {}) }
     }
 }

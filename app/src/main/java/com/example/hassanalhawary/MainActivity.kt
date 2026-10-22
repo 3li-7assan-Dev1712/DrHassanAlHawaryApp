@@ -95,6 +95,7 @@ import com.example.domain.module.Series
 import com.example.domain.module.SeriesCollection
 import androidx.activity.compose.BackHandler
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import com.example.feature.article.presentation.list.ArticleListScreen
 import com.example.feature.article.presentation.series.ArticleSeriesScreen
 import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
@@ -562,7 +563,13 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                            screen("articles_screen") { entry ->
+                            screen(
+                                // misc: «متفرقات», the articles outside any series (otherwise, with
+                                // article series, the screen shows their cards).
+                                route = "${Routes.ARTICLES_SCREEN}?misc={misc}",
+                                arguments = listOf(navArgument("misc") { type = NavType.BoolType; defaultValue = false }),
+                            ) { entry ->
+                                val misc = entry.arguments?.getBoolean("misc") ?: false
                                 // Expanded: the article chosen beside the list, kept in the entry so
                                 // it survives rotation and resizing. Once the window narrows to one
                                 // pane, a chosen article opens in the reader.
@@ -586,7 +593,10 @@ class MainActivity : ComponentActivity() {
                                     },
                                     selectedArticleId = selected,
                                     onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                    showSeries = !misc,
                                     onNavigateToSeries = openSeries,
+                                    onNavigateToMisc = { navController.navigate("${Routes.ARTICLES_SCREEN}?misc=true") },
+                                    title = if (misc) stringResource(com.example.core.ui.R.string.series_misc) else null,
                                 )
                             }
                             screen(
@@ -639,7 +649,7 @@ class MainActivity : ComponentActivity() {
                                         onNavigateToShareSelection = onShare,
                                         selectedArticleId = selected,
                                         onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
-                                        onNavigateToSeries = openSeries,
+                                        showSeries = false,
                                     )
                                 } else {
                                     ArticleDetailScreen(
@@ -695,7 +705,9 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             screen(
-                                route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                                // misc: «متفرقات», the category's audios outside any series (otherwise,
+                                // when the category has series, the screen shows their cards).
+                                route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}&misc={misc}",
                                 arguments = listOf(
                                     navArgument("categoryId") {
                                         type = NavType.StringType
@@ -704,9 +716,14 @@ class MainActivity : ComponentActivity() {
                                     navArgument("categoryTitle") {
                                         type = NavType.StringType
                                         nullable = true
+                                    },
+                                    navArgument("misc") {
+                                        type = NavType.BoolType
+                                        defaultValue = false
                                     }
                                 )
                             ) { entry ->
+                                val misc = entry.arguments?.getBoolean("misc") ?: false
                                 // Expanded: the audio chosen beside the list, kept in the entry so it
                                 // survives rotation and resizing (narrowed to one pane, it stays open
                                 // in the player here, see AudioListScreen).
@@ -727,7 +744,18 @@ class MainActivity : ComponentActivity() {
                                         handle[SELECTED_AUDIO_URL] = it.audioUrl
                                     },
                                     onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
+                                    showSeries = !misc,
                                     onNavigateToSeries = openSeries,
+                                    onNavigateToMisc = {
+                                        navController.navigate(
+                                            audioListRoute(
+                                                categoryId = entry.arguments?.getString("categoryId"),
+                                                categoryTitle = entry.arguments?.getString("categoryTitle"),
+                                                misc = true,
+                                            )
+                                        )
+                                    },
+                                    title = if (misc) stringResource(com.example.core.ui.R.string.series_misc) else null,
                                 )
                             }
 
@@ -785,7 +813,7 @@ class MainActivity : ComponentActivity() {
                                             handle[SELECTED_AUDIO_URL] = it.audioUrl
                                         },
                                         playerViewModelKey = null,
-                                        onNavigateToSeries = openSeries,
+                                        showSeries = false,
                                     )
                                 } else {
                                     AudioDetailScreen(
@@ -1212,6 +1240,16 @@ private fun NavGraphBuilder.screen(
     val scope = this
     val margin = mediumMargin.takeIf { layoutTokens.windowClass == WindowClass.Medium }
     WindowMargin(margin = margin) { scope.content(entry) }
+}
+
+/** The audio list of a category (all audios for a null [categoryId]); [misc]: its «متفرقات». */
+private fun audioListRoute(categoryId: String?, categoryTitle: String?, misc: Boolean): String {
+    val args = listOfNotNull(
+        categoryId?.let { "categoryId=${Uri.encode(it)}" },
+        categoryTitle?.let { "categoryTitle=${Uri.encode(it)}" },
+        "misc=$misc",
+    )
+    return "${Routes.AUDIO_LIST_SCREEN}?${args.joinToString("&")}"
 }
 
 /** A series' screen, by the collection it groups; null where there is none yet (videos). */

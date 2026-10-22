@@ -45,9 +45,9 @@ class AudioListViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val audios: Flow<PagingData<Audio>> = getPaginatedAudioUseCase("", categoryId).cachedIn(viewModelScope)
 
-    /** The category's series (every audio series for "الكل"), shown above its standalone audios. */
-    val series: StateFlow<List<Series>> = getSeriesUseCase(SeriesCollection.AUDIOS, categoryId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    /** The series, shown as cards with «متفرقات» when there are any; null until read. */
+    val series: StateFlow<List<Series>?> = getSeriesUseCase(SeriesCollection.AUDIOS, categoryId)
+        .stateIn<List<Series>?>(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     init {
         // Network failures are already logged; a cache write failing leaves the cached series.

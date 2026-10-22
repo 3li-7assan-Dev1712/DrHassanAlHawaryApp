@@ -82,6 +82,8 @@ object TablerIcons {
     @DrawableRes val Mail = R.drawable.ic_tabler_mail
     /** A series (an ordered course or collection). */
     @DrawableRes val Stack2 = R.drawable.ic_tabler_stack_2
+    /** «متفرقات»: what is outside any series. */
+    @DrawableRes val Category = R.drawable.ic_tabler_category
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
@@ -98,7 +100,7 @@ object TablerIcons {
         "rotate" to Rotate, "rotate-clockwise" to RotateClockwise, "messages" to Messages, "books" to Books,
         "building-mosque" to BuildingMosque, "microphone" to Microphone, "book" to Book,
         "layout-grid" to LayoutGrid, "copy" to Copy, "qrcode" to QrCode, "music" to Music, "mail" to Mail,
-        "stack-2" to Stack2,
+        "stack-2" to Stack2, "category" to Category,
     )
 }
 

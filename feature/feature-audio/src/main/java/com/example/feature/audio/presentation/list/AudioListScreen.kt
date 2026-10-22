@@ -1,5 +1,8 @@
 package com.example.feature.audio.presentation.list
 
+import com.example.domain.module.Series
+import com.example.core.ui.components.SeriesPreviewData
+import com.example.core.ui.components.SeriesCategoryContent
 import androidx.compose.foundation.background
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
@@ -17,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -62,8 +64,6 @@ import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.components.EmptyDetail
-import com.example.core.ui.components.SeriesCard
-import com.example.core.ui.components.SeriesPreviewData
 import com.example.core.ui.components.TwoPaneLayout
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.layoutTokens
@@ -76,7 +76,6 @@ import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.theme.Brand
 import com.example.domain.module.Audio
-import com.example.domain.module.Series
 import com.example.feature.audio.presentation.components.AudioListItem
 
 
@@ -86,7 +85,8 @@ import com.example.feature.audio.presentation.components.AudioListItem
  * rotation and resizing). After the window narrows to one pane, a selected audio stays open
  * in the player here, on the same player ViewModel, so playback carries on;
  * [onClearSelection] (back) returns to the list. Otherwise the phone's list, where a tap
- * opens the player screen ([onNavigateToAudioDetail]).
+ * opens the player screen ([onNavigateToAudioDetail]). A category with series shows their
+ * cards and «متفرقات» instead ([showSeries]).
  *
  * [playerViewModelKey]: the player ViewModel this entry uses (the player route passes null,
  * its own; the list route a key of its own).
@@ -102,10 +102,15 @@ fun AudioListScreen(
     onSelectAudio: (AudioSelection) -> Unit = {},
     onClearSelection: () -> Unit = {},
     playerViewModelKey: String? = AUDIO_PLAYER_PANE_KEY,
+    // A category with series shows their cards and «متفرقات» ([onNavigateToMisc]) instead of
+    // its items; false: the items outside any series as a list (the «متفرقات» screen, and the
+    // list beside the player).
+    showSeries: Boolean = true,
     onNavigateToSeries: (Series) -> Unit = {},
+    onNavigateToMisc: () -> Unit = {},
+    // The top bar's title instead of the category's («متفرقات»).
+    title: String? = null,
 ) {
-    val audios = audiosViewModel.audios.collectAsLazyPagingItems()
-    val series by audiosViewModel.series.collectAsStateWithLifecycle()
     val expanded = layoutTokens.isExpanded
 
     if (!expanded && selectedAudio != null) {
@@ -122,6 +127,25 @@ fun AudioListScreen(
         return
     }
 
+    if (showSeries) {
+        val series by audiosViewModel.series.collectAsStateWithLifecycle()
+        // Nothing until the cached series are read: the list would flash before the cards.
+        val loaded = series ?: return
+        if (loaded.isNotEmpty()) {
+            SeriesCategoryContent(
+                title = title ?: audiosViewModel.categoryTitle ?: stringResource(R.string.audios),
+                series = loaded,
+                onSeriesClick = onNavigateToSeries,
+                onMiscClick = onNavigateToMisc,
+                onNavigateBack = onNavigateBack,
+                emptyDetail = { AudioCategoryEmptyDetail() },
+                modifier = modifier,
+            )
+            return
+        }
+    }
+
+    val audios = audiosViewModel.audios.collectAsLazyPagingItems()
     val playingAudioUrl = if (expanded) {
         val playerViewModel: AudioDetailViewModel = hiltViewModel(key = playerViewModelKey)
         val playerState by playerViewModel.uiState.collectAsStateWithLifecycle()
@@ -132,7 +156,7 @@ fun AudioListScreen(
     AudioListAdaptiveContent(
         modifier = modifier,
         audios = audios,
-        categoryTitle = audiosViewModel.categoryTitle,
+        categoryTitle = title ?: audiosViewModel.categoryTitle,
         selectedAudio = selectedAudio,
         playingAudioUrl = playingAudioUrl,
         onSelectAudio = onSelectAudio,
@@ -146,15 +170,13 @@ fun AudioListScreen(
                 viewModel = hiltViewModel(key = playerViewModelKey),
             )
         },
-        series = series,
-        onSeriesClick = onNavigateToSeries,
     )
 }
 
 /**
  * [AudioListScreen] without its ViewModels (previews and UI tests pass the player pane).
  * Expanded: the list pane and the detail pane, which shows the selected audio's player or,
- * before anything is chosen, the empty state. The category's [series] come first in the list.
+ * before anything is chosen, the empty state.
  */
 @Composable
 fun AudioListAdaptiveContent(
@@ -167,8 +189,6 @@ fun AudioListAdaptiveContent(
     onNavigateBack: () -> Unit,
     playerPane: @Composable (AudioSelection) -> Unit,
     modifier: Modifier = Modifier,
-    series: List<Series> = emptyList(),
-    onSeriesClick: (Series) -> Unit = {},
 ) {
     if (layoutTokens.isExpanded) {
         TwoPaneLayout(
@@ -181,8 +201,6 @@ fun AudioListAdaptiveContent(
                     onNavigateBack = onNavigateBack,
                     selectedAudioUrl = selectedAudio?.audioUrl,
                     playingAudioUrl = playingAudioUrl,
-                    series = series,
-                    onSeriesClick = onSeriesClick,
                 )
             },
             detailPane = {
@@ -204,8 +222,6 @@ fun AudioListAdaptiveContent(
             categoryTitle = categoryTitle,
             onNavigateToAudioDetail = onNavigateToAudioDetail,
             onNavigateBack = onNavigateBack,
-            series = series,
-            onSeriesClick = onSeriesClick,
         )
     }
 }
@@ -222,9 +238,6 @@ fun AudioListComposable(
     // Tablet: the row open in the player beside the list, and the one playing there.
     selectedAudioUrl: String? = null,
     playingAudioUrl: String? = null,
-    // The category's series, as cards above its standalone audios.
-    series: List<Series> = emptyList(),
-    onSeriesClick: (Series) -> Unit = {},
 ) {
 
     val listState = rememberLazyListState()
@@ -232,13 +245,11 @@ fun AudioListComposable(
     // Same "list looks scrolled down" issue as the article list: the mediator's
     // remote fetch (or a genuinely new audio) can insert newer items above the
     // anchor after the local cache already rendered. Track the newest item's key
-    // and snap/animate back to it when it changes. The series cards sit above the audios, so
-    // the first one is the top while there are series.
+    // and snap/animate back to it when it changes.
     var topItemKey by remember { mutableStateOf<String?>(null) }
-    val firstSeriesKey = series.firstOrNull()?.let(::seriesItemKey)
-    LaunchedEffect(audios.itemCount, firstSeriesKey) {
-        if (audios.itemCount == 0 && firstSeriesKey == null) return@LaunchedEffect
-        val newestKey = firstSeriesKey ?: audios.peek(0)?.id
+    LaunchedEffect(audios.itemCount) {
+        if (audios.itemCount == 0) return@LaunchedEffect
+        val newestKey = audios.peek(0)?.id
         if (newestKey != null && newestKey != topItemKey) {
             if (topItemKey == null) {
                 listState.scrollToItem(0)
@@ -265,7 +276,7 @@ fun AudioListComposable(
             val isMediatorRefreshing = audios.loadState.mediator?.refresh is LoadState.Loading
             val phase = when {
                 isMediatorRefreshing -> ContentPhase.Loading
-                audios.itemCount == 0 && series.isEmpty() && audios.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
+                audios.itemCount == 0 && audios.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
                 else -> ContentPhase.Content
             }
             val reduced = reducedMotion
@@ -311,10 +322,6 @@ fun AudioListComposable(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(series, key = ::seriesItemKey) { item ->
-                            SeriesCard(series = item, onClick = { onSeriesClick(item) })
-                        }
-
                         items(
                             count = audios.itemCount,
                             key = audios.itemKey { it.id }
@@ -361,8 +368,15 @@ fun AudioListComposable(
     }
 }
 
-/** A series card's key: apart from the audios' ids in the same list. */
-private fun seriesItemKey(series: Series): String = "series:${series.id}"
+/** The detail pane beside the series cards (Expanded). */
+@Composable
+private fun AudioCategoryEmptyDetail() {
+    EmptyDetail(
+        icon = TablerIcons.Headphones,
+        title = stringResource(R.string.empty_detail_audio_title),
+        subtitle = stringResource(R.string.empty_detail_audio_subtitle),
+    )
+}
 
 /** Sample fatwas for previews and UI tests: the Figma player frames' list. */
 val AudiosPreviewData: List<Audio> = listOf(
@@ -453,21 +467,17 @@ private fun AudioListExpandedLightPreview() = AudioListPreview(darkTheme = false
 @Composable
 private fun AudioListExpandedDarkPreview() = AudioListPreview(darkTheme = true)
 
-/** «دروس علمية»: its series above its standalone lessons. */
+/** «دروس علمية»: its series and «متفرقات». */
 @Composable
 private fun LessonsWithSeriesPreview(darkTheme: Boolean) {
-    val audios = remember { audiosPreviewPagingData() }.collectAsLazyPagingItems()
     AdaptiveShellPreview(darkTheme = darkTheme) {
-        AudioListAdaptiveContent(
-            audios = audios,
-            categoryTitle = "دروس علمية",
-            selectedAudio = null,
-            playingAudioUrl = null,
-            onSelectAudio = {},
-            onNavigateToAudioDetail = { _, _ -> },
-            onNavigateBack = {},
-            playerPane = { PlayerPanePreviewContent() },
+        SeriesCategoryContent(
+            title = "دروس علمية",
             series = SeriesPreviewData,
+            onSeriesClick = {},
+            onMiscClick = {},
+            onNavigateBack = {},
+            emptyDetail = { AudioCategoryEmptyDetail() },
         )
     }
 }
