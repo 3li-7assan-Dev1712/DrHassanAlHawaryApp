@@ -153,6 +153,20 @@ class FirebaseArticlesSource @Inject constructor(
         }
     }
 
+    /**
+     * Every article of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesArticles(seriesId: String): List<ArticleDto>? {
+        return try {
+            val snapshot = articlesCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toObject<ArticleDto>()?.copy(id = it.id) }
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error fetching series $seriesId: ${e.message}", e)
+            null
+        }
+    }
+
     suspend fun getUpdatedArticles(lastSyncTime: Long): List<ArticleDto> {
         return try {
             val snapshot = articlesCollection

@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
 
+/** Largest page fetched while skipping past pages that add nothing to the list. */
+private const val MAX_SKIP_PAGE_SIZE = 50
+
 @OptIn(ExperimentalPagingApi::class)
 class AudioRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
@@ -61,15 +64,16 @@ class AudioRemoteMediator @Inject constructor(
 
             var currentLastPublishDate = initialPublishDate
             var lastResultEndOfPaginationReached = false
+            var limit = state.config.pageSize
 
             while (true) {
                 val audiosFromServer = audioFirestoreSource.fetchAudioPage(
                     startAfterPublishDate = currentLastPublishDate,
-                    limit = state.config.pageSize,
+                    limit = limit,
                     categoryId = categoryId
                 )
 
-                lastResultEndOfPaginationReached = audiosFromServer.size < state.config.pageSize
+                lastResultEndOfPaginationReached = audiosFromServer.size < limit
 
                 if (audiosFromServer.isEmpty()) break
 
@@ -81,32 +85,19 @@ class AudioRemoteMediator @Inject constructor(
                     }
 
                     if (activeItems.isNotEmpty()) {
-                        val serverAudioIds = activeItems.map { it.id }
-                        val localAudiosMap = audioDao.getAudiosByIds(serverAudioIds).associateBy { it.id }
-
-                        val mergedEntities = activeItems.map { serverAudio ->
-                            val localAudio = localAudiosMap[serverAudio.id]
-                            val serverEntity = serverAudio.toEntity()
-
-                            if (localAudio != null) {
-                                serverEntity.copy(
-                                    isFavorite = localAudio.isFavorite,
-                                    lastPlayedTimestamp = localAudio.lastPlayedTimestamp,
-                                    localFilePath = localAudio.localFilePath,
-                                    isDownloaded = localAudio.isDownloaded
-                                )
-                            } else {
-                                serverEntity
-                            }
-                        }
-                        audioDao.upsertAll(mergedEntities)
+                        audioDao.upsertKeepingUserData(activeItems.map { it.toEntity() })
                     }
                 }
 
-                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                // The list shows standalone audios only (a series is one card above it), so a
+                // page of series and deleted audios adds nothing to it and the next load's
+                // cursor (the list's last item) would not move. Keep going from the last
+                // document fetched, in bigger pages: a series can fill many pages in a row.
+                if (activeItems.any { it.seriesId == null } || lastResultEndOfPaginationReached) {
                     break
                 }
                 currentLastPublishDate = audiosFromServer.last().publishDate?.toDate()?.time
+                limit = (limit * 2).coerceAtMost(MAX_SKIP_PAGE_SIZE)
             }
 
             MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)

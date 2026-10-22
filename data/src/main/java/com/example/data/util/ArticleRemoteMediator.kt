@@ -14,6 +14,9 @@ import com.example.domain.use_cases.IsUserLoggedInUseCase
 import java.io.IOException
 import javax.inject.Inject
 
+/** Largest page fetched while skipping past pages that add nothing to the list. */
+private const val MAX_SKIP_PAGE_SIZE = 50L
+
 @OptIn(ExperimentalPagingApi::class)
 class ArticleRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
@@ -43,16 +46,20 @@ class ArticleRemoteMediator @Inject constructor(
 
             var currentLastPublishDate = initialPublishDate
             var lastResultEndOfPaginationReached = false
+            var limit = state.config.pageSize.toLong()
 
             // A page can come back entirely soft-deleted (isDeleted=true), which upserts
             // nothing into Room. Deriving the next cursor from the local table's last row
             // (as before) would then never advance past that page, re-fetching the same
             // dead page forever. Instead, loop and advance the cursor from the last document
             // actually fetched from Firestore until we find active items or truly run out.
+            // The same goes for a page of series articles: the list shows standalone ones
+            // only (a series is one card above it), and a series can fill many pages in a row,
+            // so the pages grow while they add nothing.
             while (true) {
                 val (articlesFromFirebase, endOfPaginationReached) = firebaseArticlesSource.getArticlesPage(
                     lastPublishDate = currentLastPublishDate,
-                    limit = state.config.pageSize.toLong()
+                    limit = limit
                 )
 
                 lastResultEndOfPaginationReached = endOfPaginationReached
@@ -71,10 +78,11 @@ class ArticleRemoteMediator @Inject constructor(
                     }
                 }
 
-                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                if (activeItems.any { it.seriesId == null } || lastResultEndOfPaginationReached) {
                     break
                 }
                 currentLastPublishDate = articlesFromFirebase.last().publishDate?.toDate()?.time
+                limit = (limit * 2).coerceAtMost(MAX_SKIP_PAGE_SIZE)
             }
 
             MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)

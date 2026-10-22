@@ -94,6 +94,20 @@ class VideoFirestoreSource @Inject constructor(
         }
     }
 
+    /**
+     * Every video of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesVideos(seriesId: String): List<VideoDto>? {
+        return try {
+            val snapshot = videosCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toVideoDtoSafe() }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchSeriesVideos failed: ${e.message}")
+            null
+        }
+    }
+
     suspend fun getUpdatedVideos(lastSyncTime: Long): List<VideoDto> {
         return try {
             val snapshot = videosCollection

@@ -255,6 +255,20 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
+    /**
+     * Every image group of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesImageGroups(seriesId: String): List<ImageGroupDto>? {
+        return try {
+            val snapshot = imagesGroupCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toImageGroupDtoSafe() }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchSeriesImageGroups failed: ${e.message}")
+            null
+        }
+    }
+
     suspend fun getUpdatedImageGroups(lastSyncTime: Long): List<ImageGroupDto> {
         return try {
             val snapshot = imagesGroupCollection

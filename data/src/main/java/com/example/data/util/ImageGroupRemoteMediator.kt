@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
 
+/** Largest page fetched while skipping past pages that add nothing to the grid. */
+private const val MAX_SKIP_PAGE_SIZE = 50
+
 /**
  * ImageGroupRemoteMediator will load data from database when there is a cache data
  * when user scrolls down the Mediator will call the server (fireaase firestore) to get new data,
@@ -47,7 +50,8 @@ class ImageGroupRemoteMediator @Inject constructor(
         // This is the key. On first launch, check if we have data.
         // If we do, don't launch a remote refresh. Show cache first.
         // If the database is empty, then launch a remote refresh.
-        return if (imageDao.count() > 0) {
+        // Only standalone groups count: groups cached for a series screen aren't in the grid.
+        return if (imageDao.countStandalone() > 0) {
             Log.d(TAG, "DB has data. Skipping remote refresh on launch.")
             InitializeAction.SKIP_INITIAL_REFRESH
         } else {
@@ -85,6 +89,7 @@ class ImageGroupRemoteMediator @Inject constructor(
             var currentLoadKey = initialLoadKey
             var lastResultEndOfPaginationReached = false
             var isFirstIteration = true
+            var limit = state.config.pageSize
 
             // A page can come back entirely soft-deleted. The old code upserted every fetched
             // group with toEntity()'s default isDeleted=false, so deleted groups resurrected as
@@ -93,10 +98,13 @@ class ImageGroupRemoteMediator @Inject constructor(
             // visible - which would leave the local "last item" cursor stuck forever re-fetching
             // the same dead page. So we also loop, advancing the cursor from the last document
             // actually fetched from Firestore, until we find active items or truly run out.
+            // The same goes for a page of series groups: the grid shows standalone ones only
+            // (a series is one card above it), and a series can fill many pages in a row, so
+            // the pages grow while they add nothing.
             while (true) {
                 val (fetchedImageGroupsPage, endOfPaginationReached) = imageFirestoreSource.fetchImageGroupsPage(
                     startAfterPublishDate = currentLoadKey,
-                    limit = state.config.pageSize
+                    limit = limit
                 )
 
                 lastResultEndOfPaginationReached = endOfPaginationReached
@@ -125,10 +133,11 @@ class ImageGroupRemoteMediator @Inject constructor(
 
                 isFirstIteration = false
 
-                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                if (activeItems.any { it.seriesId == null } || lastResultEndOfPaginationReached) {
                     break
                 }
                 currentLoadKey = fetchedImageGroupsPage.last().publishDate.time
+                limit = (limit * 2).coerceAtMost(MAX_SKIP_PAGE_SIZE)
             }
 
             MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)

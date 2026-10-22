@@ -103,6 +103,20 @@ class AudioFirestoreSource @Inject constructor(
         }
     }
 
+    /**
+     * Every audio of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesAudios(seriesId: String): List<AudioDto>? {
+        return try {
+            val snapshot = audiosCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toAudioDtoSafe() }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchSeriesAudios failed: ${e.message}")
+            null
+        }
+    }
+
     suspend fun getUpdatedAudios(lastSyncTime: Long): List<AudioDto> {
         return try {
             val snapshot = audiosCollection
