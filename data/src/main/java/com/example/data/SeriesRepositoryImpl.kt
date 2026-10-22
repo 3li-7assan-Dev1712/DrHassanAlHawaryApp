@@ -127,4 +127,34 @@ class SeriesRepositoryImpl @Inject constructor(
         }
         return true
     }
+
+    override suspend fun createSeries(series: Series): Result<Unit> {
+        return seriesFirestoreSource.createSeries(
+            title = series.title,
+            collection = series.collection.firestoreName,
+            categoryId = series.categoryId,
+            hashtag = series.hashtag,
+            order = series.order,
+        ).onSuccess { syncSeries() }
+    }
+
+    override suspend fun updateSeries(series: Series): Result<Unit> {
+        return seriesFirestoreSource.updateSeries(
+            series.id,
+            mapOf(
+                "title" to series.title,
+                "categoryId" to series.categoryId,
+                "hashtag" to series.hashtag,
+                "order" to series.order,
+            ),
+        ).onSuccess { syncSeries() }
+    }
+
+    override suspend fun deleteSeries(seriesId: String): Result<Unit> {
+        return seriesFirestoreSource.deleteSeries(seriesId).onSuccess {
+            // Hidden at once, whether or not the delete reached the delta sync yet.
+            seriesDao.markDeleted(seriesId)
+            syncSeries()
+        }
+    }
 }

@@ -9,12 +9,18 @@ import javax.inject.Inject
 
 /**
  * The series to show above [collection]'s list (only [categoryId]'s when given), in display
- * order. Series with no items yet (created before their content is uploaded) are hidden.
+ * order. Series with no items yet (created before their content is uploaded) are hidden,
+ * except with [includeEmpty] (the admin app, which fills them).
  */
 class GetSeriesUseCase @Inject constructor(
     private val repository: SeriesRepository
 ) {
-    operator fun invoke(collection: SeriesCollection, categoryId: String? = null): Flow<List<Series>> {
-        return repository.getSeries(collection, categoryId).map { series -> series.filter { it.itemCount > 0 } }
+    operator fun invoke(
+        collection: SeriesCollection,
+        categoryId: String? = null,
+        includeEmpty: Boolean = false,
+    ): Flow<List<Series>> {
+        val series = repository.getSeries(collection, categoryId)
+        return if (includeEmpty) series else series.map { all -> all.filter { it.itemCount > 0 } }
     }
 }

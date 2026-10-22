@@ -1,5 +1,6 @@
 package com.example.domain.repository
 
+import com.example.domain.module.SeriesPlacement
 import androidx.paging.PagingData
 import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
@@ -24,7 +25,8 @@ interface AudiosRepository {
         title: String,
         uriString: String,
         durationInMillis: Long,
-        type: String = ""
+        type: String = "",
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult>
 
     suspend fun updateAudio(
@@ -33,7 +35,9 @@ interface AudiosRepository {
         newUriString: String?,
         existingUrl: String,
         durationInMillis: Long,
-        type: String? = null
+        type: String? = null,
+        /** Null leaves the audio's series as it is. */
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult>
 
     suspend fun deleteAudio(audioId: String, audioUrl: String): Result<Unit>

@@ -27,4 +27,7 @@ interface SeriesDao {
     /** Soft-deleted series are kept with isDeleted = 1, so the queries above skip them. */
     @Upsert
     suspend fun upsertAll(series: List<SeriesEntity>)
+
+    @Query("UPDATE series SET isDeleted = 1 WHERE id = :seriesId")
+    suspend fun markDeleted(seriesId: String)
 }

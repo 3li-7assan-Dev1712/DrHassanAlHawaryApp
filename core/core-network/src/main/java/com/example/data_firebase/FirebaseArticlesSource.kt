@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import com.example.data_firebase.model.ArticleDto
 import com.example.domain.module.Article
@@ -25,7 +26,7 @@ class FirebaseArticlesSource @Inject constructor(
 
     private val articlesCollection = firestoreDb.collection("articles")
 
-    suspend fun uploadArticle(article: Article) {
+    suspend fun uploadArticle(article: Article, placement: SeriesPlacement? = null) {
         try {
             val publishDateIso = article.publishDate.toIsoString()
 
@@ -35,7 +36,7 @@ class FirebaseArticlesSource @Inject constructor(
                 "content" to article.content,
                 "publishDate" to publishDateIso,
                 "type" to article.type
-            )
+            ) + placement.toNewItemFields()
 
             val payload = hashMapOf(
                 "collectionName" to "articles",
@@ -61,13 +62,15 @@ class FirebaseArticlesSource @Inject constructor(
         }
     }
 
-    suspend fun updateArticle(article: Article) {
+    /** [placement]: null leaves the article's series as it is. */
+    suspend fun updateArticle(article: Article, placement: SeriesPlacement? = null) {
         try {
-            val updates = hashMapOf<String, Any>(
+            val updates = hashMapOf<String, Any?>(
                 "title" to article.title,
                 "content" to article.content,
                 "type" to article.type
             )
+            placement?.let { updates.putAll(it.toFirestoreFields()) }
 
             val payload = hashMapOf(
                 "collectionName" to "articles",

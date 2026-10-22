@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -77,9 +78,10 @@ class AudiosRepositoryImpl
         title: String,
         uriString: String,
         durationInMillis: Long,
-        type: String
+        type: String,
+        placement: SeriesPlacement?,
     ): Flow<UploadResult> {
-        return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis, type)
+        return audioFirestoreSource.uploadAudio(title, uriString, durationInMillis, type, placement)
     }
 
     override suspend fun updateAudio(
@@ -88,7 +90,8 @@ class AudiosRepositoryImpl
         newUriString: String?,
         existingUrl: String,
         durationInMillis: Long,
-        type: String?
+        type: String?,
+        placement: SeriesPlacement?,
     ): Flow<UploadResult> {
         return audioFirestoreSource.updateAudio(
             id,
@@ -96,7 +99,8 @@ class AudiosRepositoryImpl
             newUriString,
             existingUrl,
             durationInMillis,
-            type
+            type,
+            placement,
         )
     }
 

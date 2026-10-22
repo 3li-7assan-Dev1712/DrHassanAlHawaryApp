@@ -32,4 +32,16 @@ interface SeriesRepository {
      * above emit them. False if the fetch failed; what was cached stays.
      */
     suspend fun refreshSeriesItems(series: Series): Boolean
+
+    // Admin writes. The backend sets updatedAt and keeps itemCount / totalDurationMs; each
+    // successful write syncs the series, so the getters above show it.
+
+    /** A new series: [series]' title, collection, categoryId, hashtag and order (its id is assigned). */
+    suspend fun createSeries(series: Series): Result<Unit>
+
+    /** Saves [series]' title, categoryId, hashtag and order. */
+    suspend fun updateSeries(series: Series): Result<Unit>
+
+    /** Soft-deletes the series; its items keep their seriesId. */
+    suspend fun deleteSeries(seriesId: String): Result<Unit>
 }

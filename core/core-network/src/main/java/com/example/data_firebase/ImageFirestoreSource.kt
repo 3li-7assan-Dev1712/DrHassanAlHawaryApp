@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.data_firebase.model.ImageDto
@@ -116,7 +117,7 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
-    fun uploadImageGroup(title: String, imageUris: List<String>): Flow<UploadResult> =
+    fun uploadImageGroup(title: String, imageUris: List<String>, placement: SeriesPlacement? = null): Flow<UploadResult> =
         callbackFlow {
             if (imageUris.isEmpty()) {
                 trySend(UploadResult.Error("No images to upload."))
@@ -152,7 +153,7 @@ class ImageFirestoreSource @Inject constructor(
                         "images" to uploadedImageUrls.mapIndexed { index, url ->
                             mapOf("imageUrl" to url, "orderIndex" to index)
                         }
-                    )
+                    ) + placement.toNewItemFields()
 
                     val payload = hashMapOf(
                         "collectionName" to "image_groups",
@@ -279,6 +280,27 @@ class ImageFirestoreSource @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "getUpdatedImageGroups failed: ${e.message}")
             emptyList()
+        }
+    }
+
+    /** Moves a design group into a series, or out of one (the admin list's series dialog). */
+    suspend fun updateImageGroupSeries(groupId: String, placement: SeriesPlacement): Result<Unit> {
+        return try {
+            val payload = hashMapOf(
+                "collectionName" to "image_groups",
+                "documentId" to groupId,
+                "updates" to placement.toFirestoreFields()
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("updateContent")
+                .call(payload)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "updateImageGroupSeries failed", e)
+            Result.failure(e)
         }
     }
 

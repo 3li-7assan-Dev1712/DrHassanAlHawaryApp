@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import android.util.Log.e
 import androidx.paging.ExperimentalPagingApi
@@ -36,8 +37,13 @@ class ImagesRepositoryImpl @Inject constructor(
     override suspend fun uploadDesignGroup(
         title: String,
         imageUris: List<String>,
+        placement: SeriesPlacement?,
     ): Flow<UploadResult> {
-        return imageFirestoreSource.uploadImageGroup(title, imageUris)
+        return imageFirestoreSource.uploadImageGroup(title, imageUris, placement)
+    }
+
+    override suspend fun updateImageGroupSeries(groupId: String, placement: SeriesPlacement): Result<Unit> {
+        return imageFirestoreSource.updateImageGroupSeries(groupId, placement)
     }
 
     override suspend fun getAllRemoteImageGroups(): List<ImageGroup> {

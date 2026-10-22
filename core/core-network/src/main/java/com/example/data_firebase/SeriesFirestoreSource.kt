@@ -43,4 +43,54 @@ class SeriesFirestoreSource @Inject constructor(
             emptyList()
         }
     }
+
+    // Admin writes go through the content callables, as for the other collections. The
+    // backend sets updatedAt and isDeleted and keeps itemCount / totalDurationMs.
+
+    /** A new series in [collection] ("audios", ...); [categoryId] only for audios and videos. */
+    suspend fun createSeries(
+        title: String,
+        collection: String,
+        categoryId: String?,
+        hashtag: String,
+        order: Long,
+    ): Result<Unit> = callContent(
+        "uploadContent",
+        hashMapOf(
+            "collectionName" to SERIES,
+            "contentData" to hashMapOf(
+                "title" to title,
+                "collection" to collection,
+                "categoryId" to categoryId,
+                "hashtag" to hashtag,
+                "order" to order,
+            ),
+        ),
+    )
+
+    /** Rename, re-tag, move to another category or reorder: [updates] by field name. */
+    suspend fun updateSeries(seriesId: String, updates: Map<String, Any?>): Result<Unit> = callContent(
+        "updateContent",
+        hashMapOf("collectionName" to SERIES, "documentId" to seriesId, "updates" to updates),
+    )
+
+    /** Soft-deletes the series (deleteContent sets isDeleted); its items keep their seriesId. */
+    suspend fun deleteSeries(seriesId: String): Result<Unit> = callContent(
+        "deleteContent",
+        hashMapOf("collectionName" to SERIES, "documentId" to seriesId),
+    )
+
+    private suspend fun callContent(function: String, payload: Map<String, Any?>): Result<Unit> {
+        return try {
+            firebaseFunctions.getHttpsCallable(function).call(payload).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "$function on series failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    private companion object {
+        const val SERIES = "series"
+    }
 }

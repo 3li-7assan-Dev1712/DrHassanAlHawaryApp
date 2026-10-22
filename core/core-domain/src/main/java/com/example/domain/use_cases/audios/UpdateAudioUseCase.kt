@@ -1,5 +1,6 @@
 package com.example.domain.use_cases.audios
 
+import com.example.domain.module.SeriesPlacement
 import com.example.domain.repository.AudiosRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -13,8 +14,9 @@ class UpdateAudioUseCase @Inject constructor(
         newUriString: String?,
         existingUrl: String,
         durationInMillis: Long,
-        type: String? = null
+        type: String? = null,
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> {
-        return repository.updateAudio(id, title, newUriString, existingUrl, durationInMillis, type)
+        return repository.updateAudio(id, title, newUriString, existingUrl, durationInMillis, type, placement)
     }
 }

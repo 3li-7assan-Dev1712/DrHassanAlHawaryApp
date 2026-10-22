@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -52,12 +53,12 @@ class ArticlesRepositoryImpl
         }
     }
 
-    override suspend fun uploadArticle(article: Article) {
-        firebaseArticlesSource.uploadArticle(article)
+    override suspend fun uploadArticle(article: Article, placement: SeriesPlacement?) {
+        firebaseArticlesSource.uploadArticle(article, placement)
     }
 
-    override suspend fun updateArticle(article: Article) {
-        firebaseArticlesSource.updateArticle(article)
+    override suspend fun updateArticle(article: Article, placement: SeriesPlacement?) {
+        firebaseArticlesSource.updateArticle(article, placement)
     }
 
     override suspend fun getArticleById(articleId: String): Flow<Article?> {

@@ -28,3 +28,13 @@ enum class SeriesCollection(val firestoreName: String) {
         fun fromFirestoreName(name: String): SeriesCollection? = entries.find { it.firestoreName == name }
     }
 }
+
+/**
+ * Where an upload or an edit puts an item: in series [seriesId] at [episodeNumber] (1-based),
+ * or standalone when [seriesId] is null (its episode number is dropped too).
+ */
+data class SeriesPlacement(val seriesId: String?, val episodeNumber: Long?) {
+    companion object {
+        val Standalone = SeriesPlacement(seriesId = null, episodeNumber = null)
+    }
+}

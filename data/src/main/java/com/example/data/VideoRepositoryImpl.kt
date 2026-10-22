@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -26,12 +27,23 @@ class VideoRepositoryImpl @Inject constructor(
     private val videoDao: VideoDao
 ) : VideosRepository {
 
-    override fun uploadVideo(title: String, youtubeUrl: String, categoryId: String): Flow<UploadResult> {
-        return videoFirestoreSource.uploadVideo(title, youtubeUrl, categoryId = categoryId)
+    override fun uploadVideo(
+        title: String,
+        youtubeUrl: String,
+        categoryId: String,
+        placement: SeriesPlacement?,
+    ): Flow<UploadResult> {
+        return videoFirestoreSource.uploadVideo(title, youtubeUrl, categoryId = categoryId, placement = placement)
     }
 
-    override fun updateVideo(id: String, title: String, youtubeUrl: String, categoryId: String): Flow<UploadResult> {
-        return videoFirestoreSource.updateVideo(id, title, youtubeUrl, categoryId = categoryId)
+    override fun updateVideo(
+        id: String,
+        title: String,
+        youtubeUrl: String,
+        categoryId: String,
+        placement: SeriesPlacement?,
+    ): Flow<UploadResult> {
+        return videoFirestoreSource.updateVideo(id, title, youtubeUrl, categoryId = categoryId, placement = placement)
     }
 
     override suspend fun deleteVideo(videoId: String): Result<Unit> {

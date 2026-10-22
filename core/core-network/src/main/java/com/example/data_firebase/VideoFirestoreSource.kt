@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import com.example.data_firebase.model.VideoDto
 import com.example.domain.module.Video
@@ -149,6 +150,7 @@ class VideoFirestoreSource @Inject constructor(
         videoUrl: String,
         categoryId: String,
         publishDate: Long = System.currentTimeMillis(),
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -167,7 +169,7 @@ class VideoFirestoreSource @Inject constructor(
                     "videoYoutubeId" to youtubeId,
                     "publishDate" to publishDateIso,
                     "categoryId" to categoryId,
-                )
+                ) + placement.toNewItemFields()
 
                 val payload = hashMapOf(
                     "collectionName" to "videos",
@@ -195,6 +197,8 @@ class VideoFirestoreSource @Inject constructor(
         title: String,
         videoUrl: String,
         categoryId: String,
+        // Null leaves the video's series as it is.
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -206,12 +210,13 @@ class VideoFirestoreSource @Inject constructor(
 
         launch {
             try {
-                val updates = mutableMapOf<String, Any>(
+                val updates = mutableMapOf<String, Any?>(
                     "title" to title,
                     "videoUrl" to videoUrl,
                     "videoYoutubeId" to youtubeId,
                     "categoryId" to categoryId
                 )
+                placement?.let { updates.putAll(it.toFirestoreFields()) }
 
                 val payload = hashMapOf(
                     "collectionName" to "videos",
