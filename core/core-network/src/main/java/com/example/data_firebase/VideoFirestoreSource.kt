@@ -57,7 +57,9 @@ class VideoFirestoreSource @Inject constructor(
                     publishDate = publishDate,
                     updatedAt = updatedAt,
                     type = this.getString("type") ?: "",
-                    categoryId = this.getString("categoryId")
+                    categoryId = this.getString("categoryId"),
+                    seriesId = this.getString("seriesId"),
+                    episodeNumber = this.getLong("episodeNumber")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -117,7 +119,9 @@ class VideoFirestoreSource @Inject constructor(
                     publishDate = it.publishDate?.toDate() ?: Date(),
                     youtubeVideoId = it.videoYoutubeId,
                     type = it.type,
-                    categoryId = it.categoryId
+                    categoryId = it.categoryId,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
         } catch (e: Exception) {

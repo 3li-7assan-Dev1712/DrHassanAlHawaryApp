@@ -13,7 +13,9 @@ fun Article.toEntity(): ArticleEntity =
         content = this.content,
         type = this.type,
         updatedAt = this.updatedAt,
-        isDeleted = this.isDeleted
+        isDeleted = this.isDeleted,
+        seriesId = this.seriesId,
+        episodeNumber = this.episodeNumber
     )
 
 fun ArticleEntity.toDomainModel(): Article =
@@ -24,7 +26,9 @@ fun ArticleEntity.toDomainModel(): Article =
         type = this.type,
         publishDate = Date(this.publishDate),
         updatedAt = this.updatedAt,
-        isDeleted = this.isDeleted
+        isDeleted = this.isDeleted,
+        seriesId = this.seriesId,
+        episodeNumber = this.episodeNumber
     )
 
 fun ArticleDto.toEntity(): ArticleEntity =
@@ -35,7 +39,9 @@ fun ArticleDto.toEntity(): ArticleEntity =
         type = type,
         publishDate = publishDate?.toDate()?.time ?: 0L,
         updatedAt = updatedAt?.toDate()?.time ?: 0L,
-        isDeleted = isDeleted
+        isDeleted = isDeleted,
+        seriesId = seriesId,
+        episodeNumber = episodeNumber
     )
 
 fun ArticleDto.toDomainModel(): Article =
@@ -46,5 +52,7 @@ fun ArticleDto.toDomainModel(): Article =
         type = type,
         publishDate = publishDate?.toDate() ?: Date(),
         updatedAt = updatedAt?.toDate()?.time ?: 0L,
-        isDeleted = isDeleted
+        isDeleted = isDeleted,
+        seriesId = seriesId,
+        episodeNumber = episodeNumber
     )

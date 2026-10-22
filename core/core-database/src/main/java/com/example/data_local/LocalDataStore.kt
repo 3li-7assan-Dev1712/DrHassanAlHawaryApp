@@ -28,6 +28,7 @@ private const val LAST_ARTICLE_SYNC = "last_article_sync"
 private const val LAST_VIDEO_SYNC = "last_video_sync"
 private const val LAST_AUDIO_SYNC = "last_audio_sync"
 private const val LAST_IMAGE_GROUP_SYNC = "last_image_group_sync"
+private const val LAST_SERIES_SYNC = "last_series_sync"
 private const val LAST_SYNC_TIME = "last_sync_time"
 
 val KEY_COMPLETED = booleanPreferencesKey("onboarding_completed")
@@ -114,6 +115,14 @@ class LocalDataStore @Inject constructor(
 
     suspend fun setLastImageGroupSync(timestamp: Long) {
         dataStore.edit { it[longPreferencesKey(LAST_IMAGE_GROUP_SYNC)] = timestamp }
+    }
+
+    suspend fun getLastSeriesSync(): Long {
+        return dataStore.data.map { it[longPreferencesKey(LAST_SERIES_SYNC)] ?: 0 }.firstOrNull() ?: 0
+    }
+
+    suspend fun setLastSeriesSync(timestamp: Long) {
+        dataStore.edit { it[longPreferencesKey(LAST_SERIES_SYNC)] = timestamp }
     }
 
     fun observeCompleted(): Flow<Boolean> {

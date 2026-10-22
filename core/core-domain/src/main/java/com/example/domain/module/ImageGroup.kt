@@ -10,5 +10,9 @@ data class ImageGroup(
     val publishDate: Date = Date(),
     val previewImageUrl: String,
     val isDeleted: Boolean = false,
-    val type: String = ""
+    val type: String = "",
+    // series membership: null for a standalone item
+    val seriesId: String? = null,
+    /** 1-based position inside [seriesId]. */
+    val episodeNumber: Long? = null,
 )

@@ -104,7 +104,9 @@ class HomeRepositoryImpl @Inject constructor(
                     publishDate = dto.publishDate?.toDate()?.time ?: 0L,
                     updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
                     type = dto.type,
-                    isDeleted = dto.isDeleted
+                    isDeleted = dto.isDeleted,
+                    seriesId = dto.seriesId,
+                    episodeNumber = dto.episodeNumber
                 )
             }
             articleDao.upsertAll(articleEntities)
@@ -142,7 +144,10 @@ class HomeRepositoryImpl @Inject constructor(
                             publishDate = dto.publishDate?.toDate()?.time ?: 0L,
                             updatedAt = dto.updatedAt?.toDate()?.time ?: 0L,
                             isDeleted = dto.isDeleted,
-                            type = dto.type
+                            type = dto.type,
+                            categoryId = dto.categoryId,
+                            seriesId = dto.seriesId,
+                            episodeNumber = dto.episodeNumber
                         )
 
                         if (localAudio != null) {
@@ -195,6 +200,8 @@ class HomeRepositoryImpl @Inject constructor(
                             updatedAt = System.currentTimeMillis(),
                             isDeleted = false,
                             type = group.type,
+                            seriesId = group.seriesId,
+                            episodeNumber = group.episodeNumber,
                         )
                     }
                     imageDao.upsertImageGroups(entities)

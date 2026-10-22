@@ -61,7 +61,9 @@ class AudioFirestoreSource @Inject constructor(
                     publishDate = publishDate,
                     updatedAt = updatedAt,
                     type = this.getString("type") ?: "",
-                    categoryId = this.getString("categoryId")
+                    categoryId = this.getString("categoryId"),
+                    seriesId = this.getString("seriesId"),
+                    episodeNumber = this.getLong("episodeNumber")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -133,7 +135,9 @@ class AudioFirestoreSource @Inject constructor(
                     lastPlayedTimestamp = null,
                     isPlaying = false,
                     localFilePath = null,
-                    type = it.type
+                    type = it.type,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
         } catch (e: Exception) {

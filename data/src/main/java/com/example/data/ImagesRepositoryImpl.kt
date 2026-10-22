@@ -81,7 +81,9 @@ class ImagesRepositoryImpl @Inject constructor(
                     id = it.id,
                     title = it.title,
                     publishDate = Date(it.publishDate),
-                    previewImageUrl = it.previewImageUrl
+                    previewImageUrl = it.previewImageUrl,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
 

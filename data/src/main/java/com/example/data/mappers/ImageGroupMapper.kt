@@ -13,7 +13,9 @@ fun ImageGroup.toEntity(updatedAt: Long = System.currentTimeMillis(), isDeleted:
         previewImageUrl = this.previewImageUrl,
         updatedAt = updatedAt,
         isDeleted = isDeleted,
-        type = this.type
+        type = this.type,
+        seriesId = this.seriesId,
+        episodeNumber = this.episodeNumber
     )
 }
 
@@ -24,7 +26,9 @@ fun ImageGroupEntity.toDomainModel(): ImageGroup {
         publishDate = Date(this.publishDate),
         previewImageUrl = this.previewImageUrl,
         type = this.type,
-        isDeleted = this.isDeleted
+        isDeleted = this.isDeleted,
+        seriesId = this.seriesId,
+        episodeNumber = this.episodeNumber
     )
 }
 
@@ -36,5 +40,7 @@ fun ImageGroupDto.toEntity(): ImageGroupEntity =
         updatedAt = updatedAt?.toDate()?.time ?: 0L,
         isDeleted = isDeleted,
         previewImageUrl = previewImageUrl,
-        type = type
+        type = type,
+        seriesId = seriesId,
+        episodeNumber = episodeNumber
     )

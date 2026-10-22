@@ -22,6 +22,10 @@ data class Audio(
     // for ui state play/pause
     val isPlaying: Boolean = false,
 
-    val localFilePath: String? = null
+    val localFilePath: String? = null,
 
+    // series membership: null for a standalone item
+    val seriesId: String? = null,
+    /** 1-based position inside [seriesId]. */
+    val episodeNumber: Long? = null,
 )

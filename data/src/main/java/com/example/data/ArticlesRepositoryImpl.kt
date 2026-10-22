@@ -136,7 +136,9 @@ class ArticlesRepositoryImpl
                             publishDate = article.publishDate.time,
                             updatedAt = article.updatedAt,
                             isDeleted = article.isDeleted,
-                            type = article.type
+                            type = article.type,
+                            seriesId = article.seriesId,
+                            episodeNumber = article.episodeNumber
                         )
                     }
                     articleDao.upsertAll(activeEntities)

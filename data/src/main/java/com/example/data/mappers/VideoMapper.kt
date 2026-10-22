@@ -13,7 +13,9 @@ fun VideoEntity.toDomainModel(): Video =
         publishDate = Date(this.publishDate),
         youtubeVideoId = this.youtubeVideoId,
         type = this.type,
-        categoryId = this.categoryId
+        categoryId = this.categoryId,
+        seriesId = this.seriesId,
+        episodeNumber = this.episodeNumber
     )
 
 fun Video.toEntity(updatedAt: Long = System.currentTimeMillis()): VideoEntity =
@@ -25,7 +27,9 @@ fun Video.toEntity(updatedAt: Long = System.currentTimeMillis()): VideoEntity =
         youtubeVideoId = this.youtubeVideoId,
         updatedAt = updatedAt,
         type = this.type,
-        categoryId = this.categoryId
+        categoryId = this.categoryId,
+        seriesId = this.seriesId,
+        episodeNumber = this.episodeNumber
     )
 
 fun VideoDto.toDomainModel(): Video = Video(
@@ -35,7 +39,9 @@ fun VideoDto.toDomainModel(): Video = Video(
     publishDate = this.publishDate?.toDate() ?: Date(),
     youtubeVideoId = this.videoYoutubeId,
     type = this.type,
-    categoryId = this.categoryId
+    categoryId = this.categoryId,
+    seriesId = this.seriesId,
+    episodeNumber = this.episodeNumber
 )
 
 fun VideoDto.toEntity(): VideoEntity =
@@ -47,5 +53,7 @@ fun VideoDto.toEntity(): VideoEntity =
         youtubeVideoId = videoYoutubeId,
         updatedAt = updatedAt?.toDate()?.time ?: 0L,
         type = type,
-        categoryId = categoryId
+        categoryId = categoryId,
+        seriesId = seriesId,
+        episodeNumber = episodeNumber
     )

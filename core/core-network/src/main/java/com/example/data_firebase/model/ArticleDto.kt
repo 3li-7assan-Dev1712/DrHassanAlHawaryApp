@@ -19,5 +19,9 @@ data class ArticleDto(
     val type: String= "",
     @get:PropertyName("isDeleted")
     @set:PropertyName("isDeleted")
-    var isDeleted: Boolean = false
+    var isDeleted: Boolean = false,
+    /** The series this item belongs to (null: a standalone item). */
+    val seriesId: String? = null,
+    /** 1-based position inside [seriesId]. */
+    val episodeNumber: Long? = null
 )

@@ -60,7 +60,9 @@ class ImageFirestoreSource @Inject constructor(
                     previewImageUrl = this.getString("previewImageUrl") ?: "",
                     publishDate = publishDate,
                     updatedAt = updatedAt,
-                    type = this.getString("type") ?: ""
+                    type = this.getString("type") ?: "",
+                    seriesId = this.getString("seriesId"),
+                    episodeNumber = this.getLong("episodeNumber")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for image group ${this.id}", ex)
@@ -103,7 +105,9 @@ class ImageFirestoreSource @Inject constructor(
                     publishDate = it.publishDate?.toDate() ?: Date(),
                     previewImageUrl = it.previewImageUrl,
                     isDeleted = it.isDeleted,
-                    type = it.type
+                    type = it.type,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
         } catch (e: Exception) {
@@ -237,7 +241,9 @@ class ImageFirestoreSource @Inject constructor(
                         publishDate = it.publishDate?.toDate() ?: Date(),
                         previewImageUrl = it.previewImageUrl,
                         isDeleted = it.isDeleted,
-                        type = it.type
+                        type = it.type,
+                        seriesId = it.seriesId,
+                        episodeNumber = it.episodeNumber
                     )
                 }
             }

@@ -195,7 +195,9 @@ class FirebaseArticlesSource @Inject constructor(
                                     publishDate = it.publishDate?.toDate() ?: Date(),
                                     type = it.type,
                                     updatedAt = it.updatedAt?.toDate()?.time ?: 0L,
-                                    isDeleted = it.isDeleted
+                                    isDeleted = it.isDeleted,
+                                    seriesId = it.seriesId,
+                                    episodeNumber = it.episodeNumber
                                 )
                             }
                         }
