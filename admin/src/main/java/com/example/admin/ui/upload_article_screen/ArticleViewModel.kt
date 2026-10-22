@@ -1,5 +1,9 @@
 package app.netlify.devalihassan.admin.ui.upload_article_screen
 
+import com.example.domain.use_cases.series.SyncSeriesUseCase
+import com.example.domain.use_cases.series.GetSeriesUseCase
+import com.example.domain.module.SeriesCollection
+import app.netlify.devalihassan.admin.ui.components.SeriesFormController
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,11 +27,16 @@ class ArticleViewModel @Inject constructor(
     private val uploadArticleUseCase: UploadArticleUseCase,
     private val updateArticleUseCase: UpdateArticleUseCase,
     private val getArticleByIdUseCase: GetArticleByIdUseCase,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    getSeriesUseCase: GetSeriesUseCase,
+    syncSeriesUseCase: SyncSeriesUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ArticleUiState())
     val uiState: StateFlow<ArticleUiState> = _uiState.asStateFlow()
+
+    /** The series the article goes in, and its episode number. */
+    val seriesForm = SeriesFormController(viewModelScope, getSeriesUseCase, syncSeriesUseCase, SeriesCollection.ARTICLES)
 
     private val articleId: String? = savedStateHandle["articleId"]
 
@@ -40,7 +49,13 @@ class ArticleViewModel @Inject constructor(
     private fun loadArticle(id: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            var seriesLoaded = false
             getArticleByIdUseCase(id).collectLatest { article ->
+                // Once: a later emission of the cache must not undo the admin's choice.
+                if (!seriesLoaded && article != null) {
+                    seriesForm.load(article.seriesId, article.episodeNumber)
+                    seriesLoaded = true
+                }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -91,6 +106,12 @@ class ArticleViewModel @Inject constructor(
             return
         }
 
+        val series = seriesForm.state.value
+        if (!series.isValid) {
+            _uiState.update { it.copy(userMessage = "Please enter the episode number (1 or more)") }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
@@ -103,7 +124,7 @@ class ArticleViewModel @Inject constructor(
                 )
                 
                 if (currentState.articleId == null) {
-                    uploadArticleUseCase(article)
+                    uploadArticleUseCase(article, series.placement)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -112,7 +133,7 @@ class ArticleViewModel @Inject constructor(
                         )
                     }
                 } else {
-                    updateArticleUseCase(article)
+                    updateArticleUseCase(article, series.changedPlacement)
                     _uiState.update {
                         it.copy(
                             isLoading = false,

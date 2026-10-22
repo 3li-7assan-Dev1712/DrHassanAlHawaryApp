@@ -1,5 +1,8 @@
 package app.netlify.devalihassan.admin.ui.upload_images_screen
 
+import com.example.domain.text.ArabicNumerals
+import androidx.compose.material.icons.filled.Layers
+import app.netlify.devalihassan.admin.ui.components.SeriesPickerField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,6 +72,8 @@ fun ImageGroupsListScreen(
     LaunchedEffect(Unit) { viewModel.loadGroups() }
     AdminActionFeedback(viewModel)
     var groupToDelete by remember { mutableStateOf<ImageGroup?>(null) }
+    var groupForSeries by remember { mutableStateOf<ImageGroup?>(null) }
+    val seriesOptions by viewModel.seriesForm.options.collectAsState()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -130,6 +135,11 @@ fun ImageGroupsListScreen(
                             items(state.groups) { group ->
                                 ImageGroupAdminItem(
                                     group = group,
+                                    seriesTitle = group.seriesId?.let { id -> seriesOptions.find { it.id == id }?.title ?: id },
+                                    onSeriesClick = {
+                                        viewModel.editSeries(group)
+                                        groupForSeries = group
+                                    },
                                     onDeleteClick = { groupToDelete = group }
                                 )
                             }
@@ -143,6 +153,27 @@ fun ImageGroupsListScreen(
                 }
             }
         }
+    }
+
+    groupForSeries?.let { group ->
+        val form by viewModel.seriesForm.state.collectAsState()
+        AlertDialog(
+            onDismissRequest = { groupForSeries = null },
+            title = { Text(stringResource(R.string.design_series)) },
+            text = { SeriesPickerField(controller = viewModel.seriesForm) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.saveSeries(group.id)
+                        groupForSeries = null
+                    },
+                    enabled = form.isValid,
+                ) { Text(stringResource(R.string.save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { groupForSeries = null }) { Text(stringResource(R.string.cancel)) }
+            },
+        )
     }
 
     if (groupToDelete != null) {
@@ -172,7 +203,10 @@ fun ImageGroupsListScreen(
 @Composable
 fun ImageGroupAdminItem(
     group: ImageGroup,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    // The group's series ("رمضانيات"), or null for a standalone design.
+    seriesTitle: String? = null,
+    onSeriesClick: () -> Unit = {},
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -229,6 +263,21 @@ fun ImageGroupAdminItem(
                     fontWeight = FontWeight.Medium
                 )
                 
+                if (seriesTitle != null) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.series_episode_label,
+                            seriesTitle,
+                            ArabicNumerals.digits(group.episodeNumber?.toString().orEmpty()),
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                }
+
                 if (group.type.isNotBlank()) {
                     Spacer(Modifier.height(4.dp))
                     Surface(
@@ -245,6 +294,15 @@ fun ImageGroupAdminItem(
                 }
             }
             
+            IconButton(onClick = onSeriesClick) {
+                Icon(
+                    imageVector = Icons.Default.Layers,
+                    contentDescription = stringResource(R.string.design_series),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f),

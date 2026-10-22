@@ -218,4 +218,10 @@
     <string name="move_down">تحريك لأسفل</string>
     <string name="series_saved">تم الحفظ</string>
     <string name="series_save_failed">تعذّر الحفظ، حاول مرة أخرى</string>
+    <string name="series_label">السلسلة</string>
+    <string name="series_none">بدون سلسلة</string>
+    <string name="episode_number">رقم الحلقة</string>
+    <string name="episode_number_required">اكتب رقم الحلقة: ١ فأكثر</string>
+    <string name="design_series">سلسلة التصميم</string>
+    <string name="series_episode_label">%1$s · الحلقة %2$s</string>
 </resources>

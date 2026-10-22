@@ -1,5 +1,7 @@
 package app.netlify.devalihassan.admin.ui.upload_audio_screen
 
+import app.netlify.devalihassan.admin.ui.components.SeriesPickerField
+import app.netlify.devalihassan.admin.ui.components.SeriesFormController
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -113,6 +115,7 @@ fun AudioUploadScreen(
                     onAudioSelected = viewModel::onAudioSelected,
                     onClearSelectedAudio = viewModel::onClearSelectedAudio,
                     onUploadClick = viewModel::saveAudio,
+                    seriesForm = viewModel.seriesForm,
                     isEditing = state.audioId != null,
                     errorMessage = state.error
                 )
@@ -132,6 +135,7 @@ private fun UploadForm(
     onAudioSelected: (Uri) -> Unit,
     onClearSelectedAudio: () -> Unit,
     onUploadClick: () -> Unit,
+    seriesForm: SeriesFormController,
     isEditing: Boolean,
     errorMessage: String?
 ) {
@@ -163,6 +167,8 @@ private fun UploadForm(
             onCategorySelected = onCategoryChange,
             modifier = Modifier.fillMaxWidth()
         )
+
+        SeriesPickerField(controller = seriesForm, categoryId = categoryId)
 
         // When editing, the file is optional: nothing picked keeps the current one.
         if (isEditing) {

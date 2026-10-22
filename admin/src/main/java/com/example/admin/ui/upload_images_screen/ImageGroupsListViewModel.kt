@@ -1,5 +1,10 @@
 package app.netlify.devalihassan.admin.ui.upload_images_screen
 
+import com.example.domain.use_cases.images.UpdateImageGroupSeriesUseCase
+import com.example.domain.use_cases.series.SyncSeriesUseCase
+import com.example.domain.use_cases.series.GetSeriesUseCase
+import com.example.domain.module.SeriesCollection
+import app.netlify.devalihassan.admin.ui.components.SeriesFormController
 import androidx.lifecycle.viewModelScope
 import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
 import com.example.domain.module.ImageGroup
@@ -22,8 +27,14 @@ sealed interface ImageGroupsListUiState {
 @HiltViewModel
 class ImageGroupsListViewModel @Inject constructor(
     private val getAllRemoteImageGroupsUseCase: GetAllRemoteImageGroupsUseCase,
-    private val deleteImageGroupUseCase: DeleteImageGroupUseCase
+    private val deleteImageGroupUseCase: DeleteImageGroupUseCase,
+    private val updateImageGroupSeriesUseCase: UpdateImageGroupSeriesUseCase,
+    getSeriesUseCase: GetSeriesUseCase,
+    syncSeriesUseCase: SyncSeriesUseCase,
 ) : AdminActionViewModel() {
+
+    /** The series dialog's fields (there is no design edit screen). */
+    val seriesForm = SeriesFormController(viewModelScope, getSeriesUseCase, syncSeriesUseCase, SeriesCollection.IMAGE_GROUPS)
 
     private val _uiState = MutableStateFlow<ImageGroupsListUiState>(ImageGroupsListUiState.Loading)
     val uiState: StateFlow<ImageGroupsListUiState> = _uiState.asStateFlow()
@@ -42,5 +53,16 @@ class ImageGroupsListViewModel @Inject constructor(
 
     fun deleteGroup(groupId: String) {
         runAction({ deleteImageGroupUseCase(groupId) }) { loadGroups() }
+    }
+
+    /** Opens [group]'s series in the dialog's fields. */
+    fun editSeries(group: ImageGroup) {
+        seriesForm.load(group.seriesId, group.episodeNumber)
+    }
+
+    /** Saves the dialog's choice for [groupId], if it changed. */
+    fun saveSeries(groupId: String) {
+        val placement = seriesForm.state.value.changedPlacement ?: return
+        runAction({ updateImageGroupSeriesUseCase(groupId, placement) }) { loadGroups() }
     }
 }

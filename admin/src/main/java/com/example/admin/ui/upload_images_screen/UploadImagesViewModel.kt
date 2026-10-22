@@ -1,5 +1,9 @@
 package app.netlify.devalihassan.admin.ui.upload_images_screen
 
+import com.example.domain.use_cases.series.SyncSeriesUseCase
+import com.example.domain.use_cases.series.GetSeriesUseCase
+import com.example.domain.module.SeriesCollection
+import app.netlify.devalihassan.admin.ui.components.SeriesFormController
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,8 +30,13 @@ sealed class UploadImagesUiState {
 
 @HiltViewModel
 class UploadImagesViewModel @Inject constructor(
-    private val uploadImageGroupUseCase: UploadImageGroupUseCase
+    private val uploadImageGroupUseCase: UploadImageGroupUseCase,
+    getSeriesUseCase: GetSeriesUseCase,
+    syncSeriesUseCase: SyncSeriesUseCase,
 ) : ViewModel() {
+
+    /** The series the design goes in, and its episode number. */
+    val seriesForm = SeriesFormController(viewModelScope, getSeriesUseCase, syncSeriesUseCase, SeriesCollection.IMAGE_GROUPS)
 
     // --- State Holders ---
 
@@ -62,10 +71,15 @@ class UploadImagesViewModel @Inject constructor(
             _uiState.value = UploadImagesUiState.Error("Please select at least one image.")
             return
         }
+        val series = seriesForm.state.value
+        if (!series.isValid) {
+            _uiState.value = UploadImagesUiState.Error("Please enter the episode number (1 or more)")
+            return
+        }
 
         // --- Logic Execution ---
 
-        uploadImageGroupUseCase(title, uris.map { it.toString() })
+        uploadImageGroupUseCase(title, uris.map { it.toString() }, series.placement)
             .onEach { result ->
                 when (result) {
                     is UploadResult.Progress -> {
@@ -92,5 +106,6 @@ class UploadImagesViewModel @Inject constructor(
         _groupTitle.value = ""
         _selectedImageUris.value = emptyList()
         _uiState.value = UploadImagesUiState.Idle
+        seriesForm.reset()
     }
 }
