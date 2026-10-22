@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -61,6 +62,8 @@ import androidx.paging.compose.itemKey
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.components.EmptyDetail
+import com.example.core.ui.components.SeriesCard
+import com.example.core.ui.components.SeriesPreviewData
 import com.example.core.ui.components.TwoPaneLayout
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.layoutTokens
@@ -73,6 +76,7 @@ import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.theme.Brand
 import com.example.domain.module.Audio
+import com.example.domain.module.Series
 import com.example.feature.audio.presentation.components.AudioListItem
 
 
@@ -98,8 +102,10 @@ fun AudioListScreen(
     onSelectAudio: (AudioSelection) -> Unit = {},
     onClearSelection: () -> Unit = {},
     playerViewModelKey: String? = AUDIO_PLAYER_PANE_KEY,
+    onNavigateToSeries: (Series) -> Unit = {},
 ) {
     val audios = audiosViewModel.audios.collectAsLazyPagingItems()
+    val series by audiosViewModel.series.collectAsStateWithLifecycle()
     val expanded = layoutTokens.isExpanded
 
     if (!expanded && selectedAudio != null) {
@@ -140,13 +146,15 @@ fun AudioListScreen(
                 viewModel = hiltViewModel(key = playerViewModelKey),
             )
         },
+        series = series,
+        onSeriesClick = onNavigateToSeries,
     )
 }
 
 /**
  * [AudioListScreen] without its ViewModels (previews and UI tests pass the player pane).
  * Expanded: the list pane and the detail pane, which shows the selected audio's player or,
- * before anything is chosen, the empty state.
+ * before anything is chosen, the empty state. The category's [series] come first in the list.
  */
 @Composable
 fun AudioListAdaptiveContent(
@@ -159,6 +167,8 @@ fun AudioListAdaptiveContent(
     onNavigateBack: () -> Unit,
     playerPane: @Composable (AudioSelection) -> Unit,
     modifier: Modifier = Modifier,
+    series: List<Series> = emptyList(),
+    onSeriesClick: (Series) -> Unit = {},
 ) {
     if (layoutTokens.isExpanded) {
         TwoPaneLayout(
@@ -171,6 +181,8 @@ fun AudioListAdaptiveContent(
                     onNavigateBack = onNavigateBack,
                     selectedAudioUrl = selectedAudio?.audioUrl,
                     playingAudioUrl = playingAudioUrl,
+                    series = series,
+                    onSeriesClick = onSeriesClick,
                 )
             },
             detailPane = {
@@ -192,6 +204,8 @@ fun AudioListAdaptiveContent(
             categoryTitle = categoryTitle,
             onNavigateToAudioDetail = onNavigateToAudioDetail,
             onNavigateBack = onNavigateBack,
+            series = series,
+            onSeriesClick = onSeriesClick,
         )
     }
 }
@@ -208,6 +222,9 @@ fun AudioListComposable(
     // Tablet: the row open in the player beside the list, and the one playing there.
     selectedAudioUrl: String? = null,
     playingAudioUrl: String? = null,
+    // The category's series, as cards above its standalone audios.
+    series: List<Series> = emptyList(),
+    onSeriesClick: (Series) -> Unit = {},
 ) {
 
     val listState = rememberLazyListState()
@@ -215,11 +232,13 @@ fun AudioListComposable(
     // Same "list looks scrolled down" issue as the article list: the mediator's
     // remote fetch (or a genuinely new audio) can insert newer items above the
     // anchor after the local cache already rendered. Track the newest item's key
-    // and snap/animate back to it when it changes.
+    // and snap/animate back to it when it changes. The series cards sit above the audios, so
+    // the first one is the top while there are series.
     var topItemKey by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(audios.itemCount) {
-        if (audios.itemCount == 0) return@LaunchedEffect
-        val newestKey = audios.peek(0)?.id
+    val firstSeriesKey = series.firstOrNull()?.let(::seriesItemKey)
+    LaunchedEffect(audios.itemCount, firstSeriesKey) {
+        if (audios.itemCount == 0 && firstSeriesKey == null) return@LaunchedEffect
+        val newestKey = firstSeriesKey ?: audios.peek(0)?.id
         if (newestKey != null && newestKey != topItemKey) {
             if (topItemKey == null) {
                 listState.scrollToItem(0)
@@ -246,7 +265,7 @@ fun AudioListComposable(
             val isMediatorRefreshing = audios.loadState.mediator?.refresh is LoadState.Loading
             val phase = when {
                 isMediatorRefreshing -> ContentPhase.Loading
-                audios.itemCount == 0 && audios.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
+                audios.itemCount == 0 && series.isEmpty() && audios.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
                 else -> ContentPhase.Content
             }
             val reduced = reducedMotion
@@ -292,6 +311,10 @@ fun AudioListComposable(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        items(series, key = ::seriesItemKey) { item ->
+                            SeriesCard(series = item, onClick = { onSeriesClick(item) })
+                        }
+
                         items(
                             count = audios.itemCount,
                             key = audios.itemKey { it.id }
@@ -337,6 +360,9 @@ fun AudioListComposable(
         }
     }
 }
+
+/** A series card's key: apart from the audios' ids in the same list. */
+private fun seriesItemKey(series: Series): String = "series:${series.id}"
 
 /** Sample fatwas for previews and UI tests: the Figma player frames' list. */
 val AudiosPreviewData: List<Audio> = listOf(
@@ -426,3 +452,46 @@ private fun AudioListExpandedLightPreview() = AudioListPreview(darkTheme = false
 @Preview(name = "Fatwas + player - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun AudioListExpandedDarkPreview() = AudioListPreview(darkTheme = true)
+
+/** «دروس علمية»: its series above its standalone lessons. */
+@Composable
+private fun LessonsWithSeriesPreview(darkTheme: Boolean) {
+    val audios = remember { audiosPreviewPagingData() }.collectAsLazyPagingItems()
+    AdaptiveShellPreview(darkTheme = darkTheme) {
+        AudioListAdaptiveContent(
+            audios = audios,
+            categoryTitle = "دروس علمية",
+            selectedAudio = null,
+            playingAudioUrl = null,
+            onSelectAudio = {},
+            onNavigateToAudioDetail = { _, _ -> },
+            onNavigateBack = {},
+            playerPane = { PlayerPanePreviewContent() },
+            series = SeriesPreviewData,
+        )
+    }
+}
+
+@Preview(name = "Lessons with series - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun LessonsWithSeriesCompactLightPreview() = LessonsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Lessons with series - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun LessonsWithSeriesCompactDarkPreview() = LessonsWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Lessons with series - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesMediumLightPreview() = LessonsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Lessons with series - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesMediumDarkPreview() = LessonsWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Lessons with series - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesExpandedLightPreview() = LessonsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Lessons with series - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesExpandedDarkPreview() = LessonsWithSeriesPreview(darkTheme = true)

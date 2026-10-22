@@ -91,6 +91,8 @@ import com.example.feature.article.presentation.detail.ArticleReaderPane
 import com.example.feature.article.presentation.detail.ARTICLE_READER_PANE_KEY
 import com.example.feature.audio.presentation.detail.AudioPlayerPane
 import com.example.domain.module.SearchResultMetaData
+import com.example.domain.module.Series
+import com.example.domain.module.SeriesCollection
 import androidx.activity.compose.BackHandler
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.feature.article.presentation.list.ArticleListScreen
@@ -100,6 +102,7 @@ import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.detail.AudioSelection
 import com.example.feature.audio.presentation.detail.AudioShareAction
 import com.example.feature.audio.presentation.list.AudioListScreen
+import com.example.feature.audio.presentation.series.AudioSeriesScreen
 import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.home.presentation.notifications.NotificationsScreen
@@ -377,6 +380,10 @@ class MainActivity : ComponentActivity() {
             navController.navigate(
                 "$route/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
             )
+        }
+        // A series card above a list: the series' own screen.
+        val openSeries: (Series) -> Unit = { series ->
+            seriesRoute(series.collection)?.let { navController.navigate("$it/${Uri.encode(series.id)}") }
         }
 
         // Medium and Expanded windows: a navigation rail instead of the bottom bar, on every
@@ -690,6 +697,31 @@ class MainActivity : ComponentActivity() {
                                         handle[SELECTED_AUDIO_URL] = it.audioUrl
                                     },
                                     onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
+                                    onNavigateToSeries = openSeries,
+                                )
+                            }
+
+                            screen(
+                                route = "${Routes.AUDIO_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                            ) { entry ->
+                                // As the audio list: the lesson chosen beside the list (Expanded) is
+                                // kept in the entry; narrowed to one pane it stays open in the player.
+                                val handle = entry.savedStateHandle
+                                val selectedUrl by handle.getStateFlow<String?>(SELECTED_AUDIO_URL, null).collectAsState()
+                                val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, "").collectAsState()
+                                AudioSeriesScreen(
+                                    onNavigateToAudioDetail = { title, audioUrl ->
+                                        navController.navigate("audio_detail_screen/${Uri.encode(title)}/${Uri.encode(audioUrl)}")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShare = shareAudio,
+                                    selectedAudio = selectedUrl?.let { AudioSelection(selectedTitle, it) },
+                                    onSelectAudio = {
+                                        handle[SELECTED_AUDIO_TITLE] = it.title
+                                        handle[SELECTED_AUDIO_URL] = it.audioUrl
+                                    },
+                                    onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
                                 )
                             }
 
@@ -723,6 +755,7 @@ class MainActivity : ComponentActivity() {
                                             handle[SELECTED_AUDIO_URL] = it.audioUrl
                                         },
                                         playerViewModelKey = null,
+                                        onNavigateToSeries = openSeries,
                                     )
                                 } else {
                                     AudioDetailScreen(
@@ -1134,4 +1167,10 @@ private fun NavGraphBuilder.screen(
     val scope = this
     val margin = mediumMargin.takeIf { layoutTokens.windowClass == WindowClass.Medium }
     WindowMargin(margin = margin) { scope.content(entry) }
+}
+
+/** A series' screen, by the collection it groups; null where there is none yet (videos). */
+private fun seriesRoute(collection: SeriesCollection): String? = when (collection) {
+    SeriesCollection.AUDIOS -> Routes.AUDIO_SERIES_SCREEN
+    SeriesCollection.ARTICLES, SeriesCollection.IMAGE_GROUPS, SeriesCollection.VIDEOS -> null
 }
