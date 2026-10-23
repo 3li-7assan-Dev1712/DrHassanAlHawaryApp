@@ -1,46 +1,27 @@
 package app.netlify.devalihassan.admin.ui.upload_audio_screen
 
-import androidx.lifecycle.viewModelScope
-import app.netlify.devalihassan.admin.ui.components.AdminActionViewModel
+import androidx.lifecycle.SavedStateHandle
+import app.netlify.devalihassan.admin.ui.content.AdminContentListViewModel
+import app.netlify.devalihassan.admin.ui.content.ContentListDependencies
+import app.netlify.devalihassan.admin.ui.content.toAdminItem
 import com.example.domain.module.Audio
+import com.example.domain.module.SeriesCollection
 import com.example.domain.use_cases.audios.DeleteAudioUseCase
 import com.example.domain.use_cases.audios.GetAllRemoteAudiosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-sealed interface AudiosListUiState {
-    object Loading : AudiosListUiState
-    data class Success(val audios: List<Audio>) : AudiosListUiState
-    data class Error(val message: String) : AudiosListUiState
-}
-
+/** Every audio on the server, searchable and filterable (see [AdminContentListViewModel]). */
 @HiltViewModel
 class AudiosListViewModel @Inject constructor(
     private val getAllRemoteAudiosUseCase: GetAllRemoteAudiosUseCase,
-    private val deleteAudioUseCase: DeleteAudioUseCase
-) : AdminActionViewModel() {
+    private val deleteAudioUseCase: DeleteAudioUseCase,
+    savedStateHandle: SavedStateHandle,
+    dependencies: ContentListDependencies,
+) : AdminContentListViewModel<Audio>(SeriesCollection.AUDIOS, savedStateHandle, dependencies) {
 
-    private val _uiState = MutableStateFlow<AudiosListUiState>(AudiosListUiState.Loading)
-    val uiState: StateFlow<AudiosListUiState> = _uiState.asStateFlow()
+    override suspend fun fetchAll(): List<Audio> = getAllRemoteAudiosUseCase()
+    override fun itemOf(value: Audio) = value.toAdminItem()
 
-    fun loadAudios() {
-        viewModelScope.launch {
-            _uiState.update { AudiosListUiState.Loading }
-            try {
-                val audios = getAllRemoteAudiosUseCase()
-                _uiState.update { AudiosListUiState.Success(audios) }
-            } catch (e: Exception) {
-                _uiState.update { AudiosListUiState.Error(e.message ?: "Failed to load audios") }
-            }
-        }
-    }
-
-    fun deleteAudio(audioId: String, audioUrl: String) {
-        runAction({ deleteAudioUseCase(audioId, audioUrl) }) { loadAudios() }
-    }
+    fun deleteAudio(audio: Audio) = runAndReload { deleteAudioUseCase(audio.id, audio.audioUrl) }
 }

@@ -27,6 +27,10 @@ import com.example.domain.repository.WisdomRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import com.example.data.CategoryRepositoryImpl
+import com.example.data.ContentEditRepositoryImpl
+import com.example.domain.repository.CategoryRepository
+import com.example.domain.repository.ContentEditRepository
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
@@ -98,6 +102,18 @@ abstract class DataModule {
     abstract fun bindSeriesRepository(
         impl: SeriesRepositoryImpl
     ): SeriesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryRepository(
+        impl: CategoryRepositoryImpl
+    ): CategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindContentEditRepository(
+        impl: ContentEditRepositoryImpl
+    ): ContentEditRepository
 
     @Binds
     @Singleton

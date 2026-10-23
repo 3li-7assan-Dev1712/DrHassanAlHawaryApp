@@ -54,13 +54,13 @@ object ContentCategories {
     )
 
     /**
-     * [items] (id to title, as loaded) mapped onto the shared definition and sorted by its
-     * order. A category the definition doesn't know goes at the end with a generic icon
-     * and its own title.
+     * [items] (id to title, as loaded, in the admin's order) with their icons: the shared
+     * definition's for the built-in ids, a generic one for a category the admin added. The
+     * loaded title wins, so a renamed category shows its new name.
      */
     fun resolve(items: List<Pair<String, String>>): List<CategoryDef> = items.mapIndexed { index, (id, title) ->
-        all.find { it.id == id } ?: CategoryDef(id, title, TablerIcons.Music, 100 + index)
-    }.sortedBy { it.order }
+        all.find { it.id == id }?.copy(name = title, order = index) ?: CategoryDef(id, title, TablerIcons.Category, index)
+    }
 }
 
 /**

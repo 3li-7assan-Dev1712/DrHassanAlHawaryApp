@@ -3,7 +3,11 @@ package app.netlify.devalihassan
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.ui.components.CategoryCatalog
 import com.example.core.ui.theme.BrandTheme
+import com.example.domain.module.ContentType
+import com.example.domain.use_cases.categories.GetCategoriesUseCase
+import kotlinx.coroutines.flow.StateFlow
 import com.example.domain.module.AppConfig
 import com.example.domain.repository.DataStoreRepository
 import com.example.domain.use_cases.GetAppConfigUseCase
@@ -60,12 +64,20 @@ class MainActivityViewModel @Inject constructor(
     private val getStudentDataUseCase: GetStudentDataUseCase,
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
     private val dataStoreRepository: DataStoreRepository,
+    getCategoriesUseCase: GetCategoriesUseCase,
 ) : ViewModel() {
 
     private val TAG = "MainActivityViewModel"
 
     private val _state = MutableStateFlow(MainActivityState())
     val state = _state.asStateFlow()
+
+    /** The categories' current names for the labels across the app (LocalCategoryCatalog). */
+    val categoryCatalog: StateFlow<CategoryCatalog> = kotlinx.coroutines.flow.combine(
+        getCategoriesUseCase(ContentType.AUDIO),
+        getCategoriesUseCase(ContentType.VIDEO),
+        ::CategoryCatalog,
+    ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CategoryCatalog.BuiltIn)
 
     private val _appConfig = MutableStateFlow<AppConfig?>(null)
     val appConfig = _appConfig.asStateFlow()

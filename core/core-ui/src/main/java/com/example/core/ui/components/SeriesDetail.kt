@@ -157,7 +157,7 @@ private fun SeriesDetailHeader(
     val colors = Brand.colors
     val meta = remember(series) { SeriesText.meta(series) }
     val icon = remember(series.title) { seriesIcon(series.title) }
-    val category = remember(series.categoryId) { ContentCategories.all.find { it.id == series.categoryId }?.name }
+    val category = LocalCategoryCatalog.current.title(series.collection, series.categoryId)
     Column(modifier.fillMaxWidth()) {
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
             SeriesIconCircle(icon = icon, size = 64.dp, iconSize = 32.dp)

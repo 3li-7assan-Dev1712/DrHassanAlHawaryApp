@@ -1,5 +1,10 @@
 package app.netlify.devalihassan.admin
 
+import com.example.domain.module.SeriesCollection
+import com.example.domain.module.ContentType
+import app.netlify.devalihassan.admin.ui.content.AdminContentListViewModel
+import app.netlify.devalihassan.admin.ui.categories.CategoriesScreen
+import android.net.Uri
 import app.netlify.devalihassan.admin.ui.series.SeriesListScreen
 import android.content.Context
 import android.os.Bundle
@@ -101,30 +106,31 @@ class MainActivity : ComponentActivity() {
 
                 val topBarTitle = when {
                     currentRoute == "control_screen" -> stringResource(R.string.admin_control_panel)
-                    currentRoute == "articles_list" -> stringResource(R.string.manage_articles)
+                    currentRoute?.startsWith("articles_list") == true -> stringResource(R.string.manage_articles)
                     currentRoute?.startsWith("articles_upload") == true -> {
                         if (navBackStackEntry?.arguments?.getString("articleId") == null) 
                             stringResource(R.string.upload_new_article) 
                         else 
                             stringResource(R.string.edit_article)
                     }
-                    currentRoute == "audios_list" -> stringResource(R.string.audios)
+                    currentRoute?.startsWith("audios_list") == true -> stringResource(R.string.audios)
                     currentRoute?.startsWith("audios_upload") == true -> {
                         if (navBackStackEntry?.arguments?.getString("audioId") == null)
                             stringResource(R.string.upload_new_audio)
                         else
                             stringResource(R.string.edit_lesson)
                     }
-                    currentRoute == "videos_list" -> stringResource(R.string.videos)
+                    currentRoute?.startsWith("videos_list") == true -> stringResource(R.string.videos)
                     currentRoute?.startsWith("videos_upload") == true -> {
                         if (navBackStackEntry?.arguments?.getString("videoId") == null)
                             stringResource(R.string.upload_new_video)
                         else
                             stringResource(R.string.edit_lesson)
                     }
-                    currentRoute == "images_list" -> stringResource(R.string.images)
+                    currentRoute?.startsWith("images_list") == true -> stringResource(R.string.images)
                     currentRoute == "images_upload" -> stringResource(R.string.upload_images)
                     currentRoute == "series_list" -> stringResource(R.string.manage_series)
+                    currentRoute == "categories_list" -> stringResource(R.string.categories)
                     currentRoute == "not_allowed" -> stringResource(R.string.access_denied)
                     currentRoute == "manage_quizzes" -> stringResource(R.string.manage_quizzes)
                     currentRoute == "super_admin_panel" -> stringResource(R.string.super_admin_panel)
@@ -251,7 +257,10 @@ class MainActivity : ComponentActivity() {
                                 idToken = state.idToken ?: ""
                             )
                         }
-                        composable("articles_list") {
+                        composable(
+                            route = "articles_list?categoryId={categoryId}&seriesId={seriesId}",
+                            arguments = listFilterArguments,
+                        ) {
                             ArticlesListScreen(
                                 onAddArticle = { navController.navigate("articles_upload") },
                                 onEditArticle = { articleId ->
@@ -272,7 +281,10 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                             }
                         }
-                        composable("audios_list") {
+                        composable(
+                            route = "audios_list?categoryId={categoryId}&seriesId={seriesId}",
+                            arguments = listFilterArguments,
+                        ) {
                             AudiosListScreen(
                                 onAddAudio = { navController.navigate("audios_upload") },
                                 onEditAudio = { audioId ->
@@ -293,7 +305,10 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
-                        composable("videos_list") {
+                        composable(
+                            route = "videos_list?categoryId={categoryId}&seriesId={seriesId}",
+                            arguments = listFilterArguments,
+                        ) {
                             VideosListScreen(
                                 onAddVideo = { navController.navigate("videos_upload") },
                                 onEditVideo = { videoId ->
@@ -319,7 +334,10 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = { navController.popBackStack() }
                             )
                         }
-                        composable("images_list") {
+                        composable(
+                            route = "images_list?categoryId={categoryId}&seriesId={seriesId}",
+                            arguments = listFilterArguments,
+                        ) {
                             ImageGroupsListScreen(
                                 onAddGroup = { navController.navigate("images_upload") }
                             )
@@ -328,7 +346,15 @@ class MainActivity : ComponentActivity() {
                             UploadImagesScreen()
                         }
                         composable("series_list") {
-                            SeriesListScreen()
+                            SeriesListScreen(onOpenSeries = { series ->
+                                navController.navigate("${series.collection.adminListRoute}?seriesId=${Uri.encode(series.id)}")
+                            })
+                        }
+                        composable("categories_list") {
+                            CategoriesScreen(onOpenItems = { type, categoryId ->
+                                val list = if (type == ContentType.VIDEO) "videos_list" else "audios_list"
+                                navController.navigate("$list?categoryId=${Uri.encode(categoryId)}")
+                            })
                         }
 
                         composable("manage_quizzes") {
@@ -492,3 +518,24 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+/** A content list route's optional opening filter (AdminContentListViewModel / ContentFilter). */
+private val listFilterArguments = listOf(
+    navArgument(AdminContentListViewModel.CATEGORY_ARG) {
+        type = NavType.StringType
+        nullable = true
+    },
+    navArgument(AdminContentListViewModel.SERIES_ARG) {
+        type = NavType.StringType
+        nullable = true
+    },
+)
+
+/** The admin list of a series' collection. */
+private val SeriesCollection.adminListRoute: String
+    get() = when (this) {
+        SeriesCollection.AUDIOS -> "audios_list"
+        SeriesCollection.VIDEOS -> "videos_list"
+        SeriesCollection.ARTICLES -> "articles_list"
+        SeriesCollection.IMAGE_GROUPS -> "images_list"
+    }

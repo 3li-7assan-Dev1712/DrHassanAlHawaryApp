@@ -63,6 +63,7 @@ import com.example.core.ui.theme.SharedKeys
 import com.example.core.ui.theme.sharedContainer
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.CompositionLocalProvider
+import com.example.core.ui.components.LocalCategoryCatalog
 import androidx.compose.ui.graphics.RectangleShape
 import backgroundDark
 import backgroundLight
@@ -197,6 +198,8 @@ class MainActivity : ComponentActivity() {
             val systemDark = isSystemInDarkTheme()
             val isDarkTheme = if (themeState.followSystem) systemDark else themeState.isDarkTheme
 
+            val categoryCatalog by mainActivityViewModel.categoryCatalog.collectAsState()
+            CompositionLocalProvider(LocalCategoryCatalog provides categoryCatalog) {
             HassanAlHawaryTheme(darkTheme = isDarkTheme, brandTheme = themeState.brandTheme) {
 
                 // Follow the app's own light/dark setting, not the phone's: the plain
@@ -304,6 +307,7 @@ class MainActivity : ComponentActivity() {
                         launcher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                     }
                 }
+            }
             }
         }
     }

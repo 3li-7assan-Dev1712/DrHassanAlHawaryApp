@@ -49,7 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import app.netlify.devalihassan.admin.R
 import app.netlify.devalihassan.admin.ui.components.CategoryDropdownField
 import com.example.domain.module.ContentType
-import com.example.domain.module.FixedCategories
+import app.netlify.devalihassan.admin.ui.components.CategoryOptionsViewModel
 import com.example.domain.module.Series
 import com.example.domain.module.SeriesCollection
 import com.example.domain.text.SeriesHashtag
@@ -57,7 +57,11 @@ import com.example.domain.text.SeriesText
 
 /** The series of one collection, by category for audios and videos, with their actions. */
 @Composable
-fun SeriesListScreen(viewModel: SeriesListViewModel = hiltViewModel()) {
+fun SeriesListScreen(
+    viewModel: SeriesListViewModel = hiltViewModel(),
+    // A series' items, in episode order, to reorder or change them.
+    onOpenSeries: (Series) -> Unit = {},
+) {
     val state by viewModel.uiState.collectAsState()
     // null: no dialog; NEW_SERIES: the create dialog; else the series being edited.
     var editing by remember { mutableStateOf<Series?>(null) }
@@ -101,6 +105,7 @@ fun SeriesListScreen(viewModel: SeriesListViewModel = hiltViewModel()) {
                     // A series with items is refused at once (the ViewModel says why).
                     onDelete = { if (it.itemCount > 0) viewModel.delete(it) else deleting = it },
                     onMove = viewModel::move,
+                    onOpen = onOpenSeries,
                 )
             }
         }
@@ -173,8 +178,16 @@ private fun SeriesSections(
     onEdit: (Series) -> Unit,
     onDelete: (Series) -> Unit,
     onMove: (Series, up: Boolean) -> Unit,
+    onOpen: (Series) -> Unit,
+    options: CategoryOptionsViewModel = hiltViewModel(),
 ) {
-    val categories = collection.contentType?.let { FixedCategories.getCategories(it) }.orEmpty()
+    val audioCategories by options.categories(ContentType.AUDIO).collectAsState()
+    val videoCategories by options.categories(ContentType.VIDEO).collectAsState()
+    val categories = when (collection.contentType) {
+        ContentType.AUDIO -> audioCategories
+        ContentType.VIDEO -> videoCategories
+        else -> emptyList()
+    }
     val sections = series.groupBy { it.categoryId }.toList()
         .sortedBy { (categoryId, _) -> categories.indexOfFirst { it.id == categoryId }.let { if (it < 0) Int.MAX_VALUE else it } }
     val uncategorised = stringResource(R.string.series_no_category)
@@ -202,6 +215,7 @@ private fun SeriesSections(
                     canMoveUp = index > 0,
                     canMoveDown = index < sectionSeries.lastIndex,
                     onEdit = { onEdit(item) },
+                    onOpen = { onOpen(item) },
                     onDelete = { onDelete(item) },
                     onMove = { up -> onMove(item, up) },
                 )
@@ -219,8 +233,10 @@ private fun SeriesRow(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onMove: (up: Boolean) -> Unit,
+    onOpen: () -> Unit,
 ) {
     Card(
+        onClick = onOpen,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {

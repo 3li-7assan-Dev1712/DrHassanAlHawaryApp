@@ -1,5 +1,7 @@
 package com.example.data
 
+import com.example.data.util.ADMIN_PAGE_SIZE
+import com.example.data.util.fetchAllPages
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import android.util.Log.e
@@ -49,9 +51,11 @@ class ImagesRepositoryImpl @Inject constructor(
     override suspend fun getAllRemoteImageGroups(): List<ImageGroup> {
         // fetchImageGroupsPage now returns DTOs via toImageGroupDtoSafe
         // We filter out deleted items and map to domain
-        return imageFirestoreSource.fetchImageGroupsPage(null, 100).first
-            .filter { !it.isDeleted }
-            .map { it }
+        // Every page, not only the newest 100: the admin's list searches and filters all of them.
+        return fetchAllPages(
+            fetch = { after -> imageFirestoreSource.fetchImageGroupsPage(after, ADMIN_PAGE_SIZE).first },
+            publishDate = { it.publishDate.time },
+        ).filter { !it.isDeleted }
     }
 
     override suspend fun deleteImageGroup(groupId: String): Result<Unit> {

@@ -1,5 +1,7 @@
 package com.example.data
 
+import com.example.data.util.ADMIN_PAGE_SIZE
+import com.example.data.util.fetchAllPages
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
@@ -17,14 +19,13 @@ import com.example.domain.module.Audio
 import com.example.domain.module.AudiosResult
 import com.example.domain.module.ContentCategory
 import com.example.domain.module.ContentType
-import com.example.domain.module.FixedCategories
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import com.example.domain.repository.CategoryRepository
 import javax.inject.Inject
 
 
@@ -33,7 +34,8 @@ class AudiosRepositoryImpl
     private val appDatabase: AppDatabase,
     private val audioFirestoreSource: AudioFirestoreSource,
     private val fileDownloader: FileDownloader,
-    private val audioRemoteMediator: AudioRemoteMediator
+    private val audioRemoteMediator: AudioRemoteMediator,
+    private val categoryRepository: CategoryRepository,
 ) : AudiosRepository {
 
 
@@ -41,7 +43,7 @@ class AudiosRepositoryImpl
 
 
     override fun getCategories(type: ContentType): Flow<List<ContentCategory>> {
-        return flowOf(FixedCategories.getCategories(type))
+        return categoryRepository.getCategories(type)
     }
 
     override fun filterAudios(audios: List<Audio>, query: String): List<Audio> {
@@ -112,8 +114,12 @@ class AudiosRepositoryImpl
         return audioFirestoreSource.getAudioById(audioId)
     }
 
+    // Every page, not only the newest 100: the admin's list searches and filters all of them.
     override suspend fun getAllRemoteAudios(): List<Audio> {
-        return audioFirestoreSource.fetchAudioPage(null, 100)
+        return fetchAllPages(
+            fetch = { after -> audioFirestoreSource.fetchAudioPage(after, ADMIN_PAGE_SIZE) },
+            publishDate = { it.publishDate?.toDate()?.time },
+        )
             .filter { !it.isDeleted }
             .map { it.toDomainModel() }
     }

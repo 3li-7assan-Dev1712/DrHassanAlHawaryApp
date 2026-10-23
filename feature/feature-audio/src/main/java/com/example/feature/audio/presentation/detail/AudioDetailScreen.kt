@@ -1,5 +1,7 @@
 package com.example.feature.audio.presentation.detail
 
+import com.example.domain.module.ContentType
+import com.example.core.ui.components.LocalCategoryCatalog
 import android.content.ComponentName
 import android.content.Intent
 import android.util.Log
@@ -91,7 +93,6 @@ import com.example.core.ui.theme.SharedKeys
 import com.example.core.ui.theme.sharedPart
 import com.example.core.ui.theme.reducedMotion
 import com.example.core.ui.theme.stateChangeSpec
-import com.example.domain.module.FixedCategories
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.AudioTitleCleaner
 import com.example.domain.text.ShareTitleParser
@@ -313,9 +314,7 @@ fun AudioDetailScreen(
 @Composable
 private fun TitleBlock(uiState: AudioDetailUiState) {
     val colors = Brand.colors
-    val categoryTitle = remember(uiState.category) {
-        FixedCategories.AUDIO_CATEGORIES.find { it.id == uiState.category }?.title
-    }
+    val categoryTitle = LocalCategoryCatalog.current.title(ContentType.AUDIO, uiState.category)
     val (title, dateLine) = remember(uiState.title) {
         val parsed = ShareTitleParser.parse(uiState.title)
         val date = ArabicNumerals.formatDateLine(parsed.hijriDate, parsed.gregorianDate)
