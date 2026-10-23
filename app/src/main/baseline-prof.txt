@@ -1,0 +1,10 @@
+# Baseline Profile for the app's own code. The libraries (Compose, Room, Firebase ...) ship their
+# own; without this file our code ran in ART's interpreter on the first launches after every
+# install or update (92% of the main thread's time at cold start). profileinstaller (already
+# on the classpath through Compose) installs it on sideloaded builds, Play delivers it itself.
+# AGP rewrites these rules with the R8 mapping. Wildcards: the app is small enough that
+# precompiling all of it costs little.
+Lapp/netlify/devalihassan/**;
+HSPLapp/netlify/devalihassan/**->**(**)**
+Lcom/example/**;
+HSPLcom/example/**->**(**)**
