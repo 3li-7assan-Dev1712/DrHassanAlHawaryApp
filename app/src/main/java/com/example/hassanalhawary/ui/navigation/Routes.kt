@@ -44,6 +44,7 @@ object Routes {
     const val AUDIO_DETAIL_SCREEN = "audio_detail_screen"
     const val AUDIO_SERIES_SCREEN = "audio_series_screen"
     const val VIDEO_PLAYER_SCREEN = "video_player_screen"
+    const val VIDEO_SERIES_SCREEN = "video_series_screen"
     const val KHOTAB_DETAIL_SCREEN = "khotab_detail_screen"
     const val IMAGE_DETAIL_SCREEN = "image_detail_screen"
     const val DESIGN_SERIES_SCREEN = "design_series_screen"

@@ -13,10 +13,12 @@ interface VideoDao {
     @Query("SELECT * FROM videos WHERE isDeleted = 0 ORDER BY publishDate DESC LIMIT 1")
     suspend fun getLastVideo(): VideoEntity?
 
+    /** The paged list shows standalone videos only: a series' videos are reached through its card. */
     @Query(
         """
         SELECT * FROM videos
         WHERE isDeleted = 0
+        AND seriesId IS NULL
         AND (:categoryId IS NULL OR categoryId = :categoryId)
         ORDER BY publishDate DESC
     """

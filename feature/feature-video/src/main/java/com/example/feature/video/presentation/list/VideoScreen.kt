@@ -51,6 +51,7 @@ import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.components.CategoryDef
 import com.example.core.ui.components.ContentCategories
 import com.example.core.ui.components.FilterPill
+import com.example.core.ui.components.SeriesCard
 import com.example.core.ui.theme.layoutTokens
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryViewModel
@@ -59,6 +60,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,22 +70,27 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.util.Date
 import com.example.core.ui.theme.Brand
+import com.example.domain.module.Series
 import com.example.domain.module.Video
 import com.example.feature.video.presentation.components.VideoCard
+import com.example.feature.video.presentation.series.VideoSeriesPreviewData
 
 
 /**
  * The videos. On the phone, of the category chosen on the previous screen. On a tablet
- * (Figma Videos, no categories screen there) the categories are pills above the grid.
+ * (Figma Videos, no categories screen there) the categories are pills above the grid. The
+ * category's series come first, as cards ([onSeriesClick] opens one).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideosScreen(
     viewModel: VideosViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToVideo: (String, String) -> Unit
+    onNavigateToVideo: (String, String) -> Unit,
+    onSeriesClick: (Series) -> Unit = {},
 ) {
     val videos = viewModel.videos.collectAsLazyPagingItems()
+    val series by viewModel.series.collectAsStateWithLifecycle()
     val categoryId by viewModel.categoryId.collectAsStateWithLifecycle()
     val categories = if (layoutTokens.isCompact) {
         emptyList()
@@ -104,12 +111,17 @@ fun VideosScreen(
         categories = categories,
         selectedCategoryId = categoryId ?: ALL_VIDEO_CATEGORIES_ID,
         onSelectCategory = { id -> viewModel.selectCategory(id.takeUnless { it == ALL_VIDEO_CATEGORIES_ID }) },
+        series = series,
+        onSeriesClick = onSeriesClick,
     )
 }
 
 /**
  * Compact: the phone's list of cards. Medium and Expanded: the category pills under the top
  * bar, then a grid of cards at their designed width, centred (Figma `60:1403`, `64:3744`).
+ * The [series] come first, as cards the width of the list or grid; [videos] are the ones
+ * outside any series. While the series are read (null), the spinner: the cards would
+ * otherwise come in above a list already shown, and it would look scrolled past them.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,6 +133,8 @@ fun VideosScreenContent(
     categories: List<CategoryDef> = emptyList(),
     selectedCategoryId: String = ALL_VIDEO_CATEGORIES_ID,
     onSelectCategory: (String) -> Unit = {},
+    series: List<Series>? = emptyList(),
+    onSeriesClick: (Series) -> Unit = {},
 ) {
     val tokens = layoutTokens
     // "الكل" is a category on the previous screen, not a title: show "الفيديوهات" for it.
@@ -159,10 +173,11 @@ fun VideosScreenContent(
                 val isMediatorRefreshing = videos.loadState.mediator?.refresh is LoadState.Loading
 
                 val phase = when {
-                    isMediatorRefreshing -> ContentPhase.Loading
-                    videos.itemCount == 0 && videos.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
+                    isMediatorRefreshing || series == null -> ContentPhase.Loading
+                    videos.itemCount == 0 && series.isEmpty() && videos.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
                     else -> ContentPhase.Content
                 }
+                val shownSeries = series.orEmpty()
                 val reduced = reducedMotion
 
                 AnimatedContent(
@@ -201,12 +216,21 @@ fun VideosScreenContent(
                         }
 
                         ContentPhase.Content -> if (!tokens.isCompact) {
-                            VideoGrid(videos = videos, onNavigateToVideo = onNavigateToVideo)
+                            VideoGrid(
+                                videos = videos,
+                                onNavigateToVideo = onNavigateToVideo,
+                                series = shownSeries,
+                                onSeriesClick = onSeriesClick,
+                            )
                         } else LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            items(shownSeries, key = ::seriesItemKey) { item ->
+                                SeriesCard(series = item, onClick = { onSeriesClick(item) })
+                            }
+
                             items(
                                 count = videos.itemCount,
                                 key = videos.itemKey { it.id }
@@ -257,9 +281,17 @@ private object VideosTablet {
     val BlockGap = 24.dp
 }
 
-/** As many [VideosTablet.CardWidth] columns as fit (3 on Expanded, 2 on Medium), centred, 24 apart. */
+/**
+ * As many [VideosTablet.CardWidth] columns as fit (3 on Expanded, 2 on Medium), centred, 24
+ * apart, after the [series] cards (the grid's width, as on the designs screen).
+ */
 @Composable
-private fun VideoGrid(videos: LazyPagingItems<Video>, onNavigateToVideo: (String, String) -> Unit) {
+private fun VideoGrid(
+    videos: LazyPagingItems<Video>,
+    onNavigateToVideo: (String, String) -> Unit,
+    series: List<Series>,
+    onSeriesClick: (Series) -> Unit,
+) {
     LazyVerticalGrid(
         columns = GridCells.FixedSize(VideosTablet.CardWidth),
         modifier = Modifier.fillMaxSize(),
@@ -267,6 +299,9 @@ private fun VideoGrid(videos: LazyPagingItems<Video>, onNavigateToVideo: (String
         horizontalArrangement = Arrangement.spacedBy(VideosTablet.Gap, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(VideosTablet.Gap),
     ) {
+        items(series, key = ::seriesItemKey, span = { GridItemSpan(maxLineSpan) }) { item ->
+            SeriesCard(series = item, onClick = { onSeriesClick(item) })
+        }
         items(count = videos.itemCount, key = videos.itemKey { it.id }) { index ->
             val video = videos[index]
             if (video != null) {
@@ -286,6 +321,9 @@ private fun VideoGrid(videos: LazyPagingItems<Video>, onNavigateToVideo: (String
         }
     }
 }
+
+/** A series card's key: apart from the videos' ids in the same list or grid. */
+private fun seriesItemKey(series: Series): String = "series:${series.id}"
 
 /** Sample videos for previews and UI tests (the Figma frames' titles). */
 val VideosPreviewData: List<Video> = List(6) { index ->
@@ -312,7 +350,7 @@ fun videosPreviewPagingData(): Flow<PagingData<Video>> = flowOf(
 )
 
 @Composable
-private fun VideosPreview(darkTheme: Boolean) {
+private fun VideosPreview(darkTheme: Boolean, series: List<Series> = emptyList()) {
     val videos = remember { videosPreviewPagingData() }.collectAsLazyPagingItems()
     AdaptiveShellPreview(darkTheme = darkTheme, mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin) {
         VideosScreenContent(
@@ -320,6 +358,7 @@ private fun VideosPreview(darkTheme: Boolean) {
             onNavigateBack = {},
             onNavigateToVideo = { _, _ -> },
             categories = ContentCategories.all,
+            series = series,
         )
     }
 }
@@ -347,3 +386,27 @@ private fun VideosExpandedLightPreview() = VideosPreview(darkTheme = false)
 @Preview(name = "Videos - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun VideosExpandedDarkPreview() = VideosPreview(darkTheme = true)
+
+@Preview(name = "Videos with series - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun VideosWithSeriesCompactLightPreview() = VideosPreview(darkTheme = false, series = VideoSeriesPreviewData)
+
+@Preview(name = "Videos with series - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun VideosWithSeriesCompactDarkPreview() = VideosPreview(darkTheme = true, series = VideoSeriesPreviewData)
+
+@Preview(name = "Videos with series - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun VideosWithSeriesMediumLightPreview() = VideosPreview(darkTheme = false, series = VideoSeriesPreviewData)
+
+@Preview(name = "Videos with series - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun VideosWithSeriesMediumDarkPreview() = VideosPreview(darkTheme = true, series = VideoSeriesPreviewData)
+
+@Preview(name = "Videos with series - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun VideosWithSeriesExpandedLightPreview() = VideosPreview(darkTheme = false, series = VideoSeriesPreviewData)
+
+@Preview(name = "Videos with series - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun VideosWithSeriesExpandedDarkPreview() = VideosPreview(darkTheme = true, series = VideoSeriesPreviewData)

@@ -118,6 +118,7 @@ import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
+import com.example.feature.video.presentation.series.VideoSeriesScreen
 import com.example.profile.presentation.about_app.AboutAppScreen
 import com.example.profile.presentation.components.LegalTextScreen
 import com.example.profile.presentation.components.ProfileRoute
@@ -386,7 +387,7 @@ class MainActivity : ComponentActivity() {
         }
         // A series card above a list: the series' own screen.
         val openSeries: (Series) -> Unit = { series ->
-            seriesRoute(series.collection)?.let { navController.navigate("$it/${Uri.encode(series.id)}") }
+            navController.navigate("${seriesRoute(series.collection)}/${Uri.encode(series.id)}")
         }
 
         // Medium and Expanded windows: a navigation rail instead of the bottom bar, on every
@@ -1046,7 +1047,19 @@ class MainActivity : ComponentActivity() {
                                         val encodedUrl = Uri.encode(videoUrl)
                                         val encodedTitle = Uri.encode(videoTitle)
                                         navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
-                                    }
+                                    },
+                                    onSeriesClick = openSeries,
+                                )
+                            }
+                            screen(
+                                route = "${Routes.VIDEO_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                            ) {
+                                VideoSeriesScreen(
+                                    onNavigateToVideo = { videoUrl, videoTitle ->
+                                        navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${Uri.encode(videoUrl)}/${Uri.encode(videoTitle)}")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
                                 )
                             }
                             screen(
@@ -1252,10 +1265,10 @@ private fun audioListRoute(categoryId: String?, categoryTitle: String?, misc: Bo
     return "${Routes.AUDIO_LIST_SCREEN}?${args.joinToString("&")}"
 }
 
-/** A series' screen, by the collection it groups; null where there is none yet (videos). */
-private fun seriesRoute(collection: SeriesCollection): String? = when (collection) {
+/** A series' screen, by the collection it groups. */
+private fun seriesRoute(collection: SeriesCollection): String = when (collection) {
     SeriesCollection.AUDIOS -> Routes.AUDIO_SERIES_SCREEN
     SeriesCollection.ARTICLES -> Routes.ARTICLE_SERIES_SCREEN
     SeriesCollection.IMAGE_GROUPS -> Routes.DESIGN_SERIES_SCREEN
-    SeriesCollection.VIDEOS -> null
+    SeriesCollection.VIDEOS -> Routes.VIDEO_SERIES_SCREEN
 }
