@@ -182,7 +182,8 @@ private fun ConnectMediaController(viewModel: AudioDetailViewModel) {
     }
 
     val controllerFuture: ListenableFuture<MediaController> = remember {
-        MediaController.Builder(context, sessionToken).buildAsync()
+        // The application context: the ViewModel keeps the controller past this Activity.
+        MediaController.Builder(context.applicationContext, sessionToken).buildAsync()
     }
 
     LaunchedEffect(controllerFuture) {

@@ -48,6 +48,8 @@ class LessonDetailViewModel @Inject constructor(
 
     var mediaControllerFuture: ListenableFuture<MediaController>? = null
         set(value) {
+            // Release the previous screen's controller, or every rotation leaks its connection.
+            field?.takeIf { it !== value }?.let { MediaController.releaseFuture(it) }
             field = value
             value?.let { listenToController(it) }
         }
