@@ -22,7 +22,9 @@ import com.example.feature.home.domain.model.ArticleFeed
 import com.example.feature.home.domain.model.AudioFeed
 import com.example.feature.home.domain.model.ImageFeed
 import com.example.feature.home.domain.repository.HomeRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -55,6 +57,9 @@ class HomeRepositoryImpl @Inject constructor(
                 )
             }
         }
+            // The cleaning reads every line of each body: off the main thread, where Home's
+            // first frame was waiting for it.
+            .flowOn(Dispatchers.Default)
     }
 
     override fun getLatestAudios(): Flow<List<AudioFeed>> {
@@ -75,6 +80,7 @@ class HomeRepositoryImpl @Inject constructor(
                 )
             }
         }
+            .flowOn(Dispatchers.Default)
     }
 
     override fun getLatestImages(): Flow<List<ImageFeed>> {

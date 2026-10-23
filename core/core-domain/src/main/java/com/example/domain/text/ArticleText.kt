@@ -60,9 +60,15 @@ object ArticleText {
 
     /** True for a line that is only the author's name, e.g. "- الشيخ د. حسن أحمد الهواري -". */
     internal fun isAuthorLine(line: String): Boolean {
-        val rest = line.replace("ـ", "").replace(Regex("[•·|\\-–—:،,()]"), " ").replace(WHITESPACE, " ").trim()
+        val plain = line.replace("ـ", "")
+        // Runs on every body line: skip the regexes when the name can't be there.
+        if (!plain.contains("حسن")) return false
+        val rest = plain.replace(AUTHOR_LINE_SEPARATORS, " ").replace(WHITESPACE, " ").trim()
         return rest.isNotEmpty() && AUTHOR_NAME.matches(rest)
     }
+
+    private val AUTHOR_LINE_SEPARATORS = Regex("[•·|\\-–—:،,()]")
+    private val BYLINE_SEPARATORS = Regex("[•·|\\-–—]")
 
     /**
      * True for a Facebook post byline copied into the article body, e.g.
@@ -70,6 +76,9 @@ object ArticleText {
      * besides that only the author's name and "•" separators.
      */
     internal fun isFacebookByline(line: String): Boolean {
+        // Every timestamp has English words (IGNORE_CASE is ASCII-only): an all-Arabic line,
+        // nearly every line of a body, can skip the four regex passes below.
+        if (line.none { it in 'a'..'z' || it in 'A'..'Z' }) return false
         var rest = line.replace("\u0640", "")
         var hadTimestamp = false
         FACEBOOK_TIMESTAMPS.forEach { pattern ->
@@ -77,7 +86,7 @@ object ArticleText {
             rest = pattern.replace(rest, " ")
         }
         if (!hadTimestamp) return false
-        rest = rest.replace(Regex("[•·|\\-–—]"), " ").replace(WHITESPACE, " ").trim()
+        rest = rest.replace(BYLINE_SEPARATORS, " ").replace(WHITESPACE, " ").trim()
         return rest.isEmpty() || AUTHOR_NAME.matches(rest)
     }
 }
