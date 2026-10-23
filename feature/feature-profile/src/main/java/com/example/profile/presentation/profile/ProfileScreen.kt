@@ -578,7 +578,7 @@ fun ProfilePreviewContent() {
         onThemeSelect = {},
         readerFontStep = 1,
         onReaderFontStepChange = {},
-        appVersion = "1.0.7",
+        appVersion = "1.2.0",
         onNavigate = {},
         onRateApp = {},
         onSignOut = {},
