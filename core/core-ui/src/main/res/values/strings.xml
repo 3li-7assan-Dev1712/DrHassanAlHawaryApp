@@ -222,4 +222,14 @@
     <!-- The card, and the screen it opens, for the items outside any series. -->
     <string name="series_misc">متفرقات</string>
     <string name="series_misc_subtitle">كل ما ليس في سلسلة</string>
+    <!-- An audio series' screen: opens its first lesson in the player. -->
+    <string name="series_play_from_start">تشغيل من البداية</string>
+    <!-- Saves every lesson of the series on the device, one after another. -->
+    <string name="series_download">تحميل السلسلة</string>
+    <string name="series_download_cancel">إلغاء تحميل السلسلة</string>
+    <string name="series_downloaded">السلسلة محفوظة على الجهاز</string>
+    <!-- Above the lessons: "الدروس · ٥٩". -->
+    <string name="series_lessons_count">الدروس · %1$s</string>
+    <!-- Shared as text: the series' title, "٥٩ درسًا · ٢٩ ساعة", then the store link. -->
+    <string name="series_share_text">سلسلة «%1$s» (%2$s)\nاستمع إليها في تطبيق الشيخ د. حسن الهواري:\n%3$s</string>
 </resources>

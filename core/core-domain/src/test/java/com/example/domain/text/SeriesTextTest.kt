@@ -52,6 +52,20 @@ class SeriesTextTest {
     }
 
     @Test
+    fun `summary counts the series and the items in them`() {
+        fun audios(vararg counts: Long) = counts.mapIndexed { i, n ->
+            Series(id = "$i", title = "سلسلة $i", collection = SeriesCollection.AUDIOS, itemCount = n)
+        }
+        assertNull(SeriesText.summary(emptyList()))
+        assertEquals("سلسلة واحدة · ٢٨ درسًا", SeriesText.summary(audios(28)))
+        assertEquals("سلسلتان · ٣ دروس", SeriesText.summary(audios(1, 2)))
+        assertEquals("٣ سلاسل · ٨٧ درسًا", SeriesText.summary(audios(59, 28, 0)))
+        assertEquals("١٢ سلسلة · ١٥٨ درسًا", SeriesText.summary(audios(59, 28, 10, 10, 10, 10, 10, 5, 5, 5, 5, 1)))
+        val articles = listOf(Series(id = "a", title = "مقالات", collection = SeriesCollection.ARTICLES, itemCount = 11))
+        assertEquals("سلسلة واحدة · ١١ مقالًا", SeriesText.summary(articles))
+    }
+
+    @Test
     fun `episode numbers use arabic-indic digits`() {
         assertEquals("١", SeriesText.episodeNumber(1))
         assertEquals("٢٨", SeriesText.episodeNumber(28))

@@ -1,5 +1,6 @@
 package com.example.core.ui.components
 
+import androidx.annotation.DrawableRes
 import com.example.core.ui.theme.layoutTokens
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.BorderStroke
@@ -42,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import com.example.core.ui.R
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
@@ -49,6 +51,8 @@ import com.example.core.ui.theme.ContentPhase
 import com.example.core.ui.theme.HassanAlHawaryTheme
 import com.example.domain.module.Series
 import com.example.domain.module.SeriesCollection
+import com.example.domain.text.SeriesIcon
+import com.example.domain.text.SeriesIcons
 import com.example.domain.text.SeriesText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -61,14 +65,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * A series on a content screen: the stack icon in a 40dp accentContainer circle, the title,
- * "٥٩ درسًا · ٢٨ ساعة" and a chevron, on the list items' surface card. The whole card opens
- * the series.
+ * A series on a content screen: its subject's icon ([seriesIcon]) in a 48dp accentContainer
+ * circle, the title (two lines at most), "٥٩ درسًا · ٢٨ ساعة" and a chevron, on the list
+ * items' surface card. The whole card opens the series.
  */
 @Composable
 fun SeriesCard(series: Series, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val meta = remember(series) { SeriesText.meta(series) }
-    SeriesCardLayout(TablerIcons.Stack2, series.title, meta, onClick, modifier)
+    val icon = remember(series.title) { seriesIcon(series.title) }
+    SeriesCardLayout(icon, series.title, meta, onClick, modifier)
 }
 
 /** «متفرقات», after the series cards: opens the items that are in no series. */
@@ -94,15 +99,15 @@ private fun SeriesCardLayout(icon: Int, title: String, subtitle: String, onClick
         border = BorderStroke(0.5.dp, colors.divider),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SeriesIcon(icon = icon, size = 40.dp, iconSize = 20.dp)
-            Spacer(Modifier.width(12.dp))
+            SeriesIconCircle(icon = icon, size = 48.dp, iconSize = 24.dp)
             Column(Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, lineHeight = 1.5.em),
+                    style = MaterialTheme.typography.titleSmall.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.5.em),
                     color = colors.textPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -114,7 +119,6 @@ private fun SeriesCardLayout(icon: Int, title: String, subtitle: String, onClick
                     modifier = Modifier.padding(top = 2.dp),
                 )
             }
-            Spacer(Modifier.width(8.dp))
             Icon(
                 painter = painterResource(TablerIcons.ChevronLeft),
                 contentDescription = null,
@@ -126,15 +130,17 @@ private fun SeriesCardLayout(icon: Int, title: String, subtitle: String, onClick
 }
 
 /**
- * The top of a series screen: the stack icon in a 48dp circle, the title in full and
- * "٥٩ درسًا · ٢٨ ساعة". The screen's top bar shows the title once this has scrolled away.
+ * The top of an article or design series' screen: its subject's icon in a 48dp circle, the
+ * title in full and "١٢ مقالًا". The screen's top bar shows the title once this has scrolled
+ * away. (Audio series have a header of their own, with the play button.)
  */
 @Composable
 fun SeriesHeader(series: Series, modifier: Modifier = Modifier) {
     val colors = Brand.colors
     val meta = remember(series) { SeriesText.meta(series) }
+    val icon = remember(series.title) { seriesIcon(series.title) }
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        SeriesIcon(icon = TablerIcons.Stack2, size = 48.dp, iconSize = 24.dp)
+        SeriesIconCircle(icon = icon, size = 48.dp, iconSize = 24.dp)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(
@@ -247,12 +253,14 @@ fun SeriesStatus(phase: ContentPhase, emptyText: String, modifier: Modifier = Mo
 const val SERIES_HEADER_KEY = "series:header"
 const val SERIES_STATUS_KEY = "series:status"
 private const val SERIES_MISC_KEY = "series:misc"
+private const val SERIES_SUMMARY_KEY = "series:summary"
 
+/** [icon] tinted onAccentContainer, centred in a [size] accentContainer circle. */
 @Composable
-private fun SeriesIcon(icon: Int, size: Dp, iconSize: Dp) {
+fun SeriesIconCircle(icon: Int, size: Dp, iconSize: Dp, modifier: Modifier = Modifier) {
     val colors = Brand.colors
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(size)
             .background(colors.accentContainer, CircleShape),
         contentAlignment = Alignment.Center,
@@ -266,8 +274,24 @@ private fun SeriesIcon(icon: Int, size: Dp, iconSize: Dp) {
     }
 }
 
+/** The Tabler icon of a series titled [title] (see [SeriesIcons.forTitle]). */
+@DrawableRes
+fun seriesIcon(title: String): Int = when (SeriesIcons.forTitle(title)) {
+    SeriesIcon.Kaaba -> TablerIcons.Kaaba
+    SeriesIcon.MoonStars -> TablerIcons.MoonStars
+    SeriesIcon.Rings -> TablerIcons.Rings
+    SeriesIcon.HomeHeart -> TablerIcons.HomeHeart
+    SeriesIcon.Hourglass -> TablerIcons.Hourglass
+    SeriesIcon.Scale -> TablerIcons.Scale
+    SeriesIcon.Feather -> TablerIcons.Feather
+    SeriesIcon.Quote -> TablerIcons.Quote
+    SeriesIcon.Book2 -> TablerIcons.Book2
+    SeriesIcon.Stack2 -> TablerIcons.Stack2
+}
+
 /**
- * A content screen whose items are grouped in series: the series' cards, then «متفرقات» for
+ * A content screen whose items are grouped in series: "١٢ سلسلة · ١٥٨ درسًا", the series'
+ * cards, then «متفرقات» for
  * the items in none. Expanded: the cards in the list pane, [emptyDetail] beside them (a card
  * opens its own screen).
  */
@@ -306,13 +330,19 @@ private fun SeriesCards(
         containerColor = Brand.colors.background,
         topBar = { AppTopBar(title = title, onBack = onNavigateBack) },
     ) { padding ->
+        val summary = remember(series) { SeriesText.summary(series) }
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (summary != null) {
+                item(key = SERIES_SUMMARY_KEY) {
+                    Text(text = summary, style = MaterialTheme.typography.labelSmall, color = Brand.colors.textMuted)
+                }
+            }
             items(series, key = { it.id }) { item -> SeriesCard(series = item, onClick = { onSeriesClick(item) }) }
             item(key = SERIES_MISC_KEY) { SeriesMiscCard(onClick = onMiscClick) }
         }
@@ -404,3 +434,48 @@ private fun SeriesComponentsLightPreview() {
 private fun SeriesComponentsDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) { SeriesComponentsPreviewContent() }
 }
+
+/** One series per icon rule (see SeriesIcons), the long titles wrapping to two lines. */
+private val SeriesListPreviewData: List<Series> = listOf(
+    "شرح صحيح البخاري" to 59L,
+    "شرح مناسك الحج" to 28L,
+    "شرح ألفية السيوطي في مصطلح الحديث مع بيان مسائلها وأمثلتها" to 34L,
+    "شرح كتاب النكاح" to 17L,
+    "شرح حديث جبريل الطويل" to 6L,
+    "شرح منظومة القواعد الفقهية للسعدي" to 12L,
+    "فقه الصيام" to 9L,
+    "فقه الحياة الزوجية" to 2L,
+    "فقه الجنائز" to 1L,
+    "مجالس التزكية" to 11L,
+).mapIndexed { index, (title, count) ->
+    Series(
+        id = "preview-$index",
+        title = title,
+        collection = SeriesCollection.AUDIOS,
+        categoryId = "scientific_lessons",
+        itemCount = count,
+        totalDurationMs = count * 40 * 60_000L,
+    )
+}
+
+@Composable
+private fun SeriesListPreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme) {
+        SeriesCategoryContent(
+            title = "دروس علمية",
+            series = SeriesListPreviewData,
+            onSeriesClick = {},
+            onMiscClick = {},
+            onNavigateBack = {},
+            emptyDetail = {},
+        )
+    }
+}
+
+@Preview(name = "Series list - light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun SeriesListLightPreview() = SeriesListPreview(darkTheme = false)
+
+@Preview(name = "Series list - dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun SeriesListDarkPreview() = SeriesListPreview(darkTheme = true)

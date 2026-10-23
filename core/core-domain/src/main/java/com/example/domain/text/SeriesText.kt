@@ -12,6 +12,7 @@ object SeriesText {
     private val LESSON = ArabicDates.Unit("درس واحد", "درسان", "دروس", many = "درسًا", other = "درس")
     private val ARTICLE = ArabicDates.Unit("مقال واحد", "مقالان", "مقالات", many = "مقالًا", other = "مقال")
     private val DESIGN = ArabicDates.Unit("تصميم واحد", "تصميمان", "تصاميم", many = "تصميمًا", other = "تصميم")
+    private val SERIES = ArabicDates.Unit("سلسلة واحدة", "سلسلتان", "سلاسل", many = "سلسلة", other = "سلسلة")
     private val HOUR = ArabicDates.Unit("ساعة واحدة", "ساعتان", "ساعات", many = "ساعة", other = "ساعة")
     private val MINUTE = ArabicDates.Unit("دقيقة واحدة", "دقيقتان", "دقائق", many = "دقيقة", other = "دقيقة")
 
@@ -21,6 +22,16 @@ object SeriesText {
     fun meta(series: Series): String =
         listOfNotNull(itemCount(series.itemCount, series.collection), duration(series.totalDurationMs))
             .joinToString(ArabicNumerals.DATE_SEPARATOR)
+
+    /**
+     * A category's series and the items in them: "١٢ سلسلة · ١٥٨ درسًا" (items outside any
+     * series are not counted). Null for no series.
+     */
+    fun summary(series: List<Series>): String? {
+        val collection = series.firstOrNull()?.collection ?: return null
+        return listOf(ArabicDates.count(series.size.toLong(), SERIES), itemCount(series.sumOf { it.itemCount }, collection))
+            .joinToString(ArabicNumerals.DATE_SEPARATOR)
+    }
 
     /** "درس واحد", "درسان", "٣ دروس", "٥٩ درسًا"; videos count as lessons too. */
     fun itemCount(n: Long, collection: SeriesCollection): String = ArabicDates.count(
