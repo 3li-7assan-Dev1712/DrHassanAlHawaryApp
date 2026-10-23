@@ -1026,7 +1026,9 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             screen(
-                                route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                                // misc: «متفرقات», the category's videos outside any series (otherwise,
+                                // when the category has series, the screen shows their cards).
+                                route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}&misc={misc}",
                                 arguments = listOf(
                                     navArgument("categoryId") {
                                         type = NavType.StringType
@@ -1035,10 +1037,15 @@ class MainActivity : ComponentActivity() {
                                     navArgument("categoryTitle") {
                                         type = NavType.StringType
                                         nullable = true
+                                    },
+                                    navArgument("misc") {
+                                        type = NavType.BoolType
+                                        defaultValue = false
                                     }
                                 ),
                                 mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
-                            ) {
+                            ) { entry ->
+                                val misc = entry.arguments?.getBoolean("misc") ?: false
 
                                 VideosScreen(
                                     onNavigateBack = {
@@ -1049,6 +1056,18 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
                                     },
                                     onSeriesClick = openSeries,
+                                    showSeries = !misc,
+                                    // The category shown: on a tablet the pills may have changed it.
+                                    onNavigateToMisc = { categoryId ->
+                                        navController.navigate(
+                                            videosRoute(
+                                                categoryId = categoryId,
+                                                categoryTitle = entry.arguments?.getString("categoryTitle"),
+                                                misc = true,
+                                            )
+                                        )
+                                    },
+                                    title = if (misc) stringResource(com.example.core.ui.R.string.series_misc) else null,
                                 )
                             }
                             screen(
@@ -1263,6 +1282,16 @@ private fun audioListRoute(categoryId: String?, categoryTitle: String?, misc: Bo
         "misc=$misc",
     )
     return "${Routes.AUDIO_LIST_SCREEN}?${args.joinToString("&")}"
+}
+
+/** The videos of a category (all of them for a null [categoryId]); [misc]: its «متفرقات». */
+private fun videosRoute(categoryId: String?, categoryTitle: String?, misc: Boolean): String {
+    val args = listOfNotNull(
+        categoryId?.let { "categoryId=${Uri.encode(it)}" },
+        categoryTitle?.let { "categoryTitle=${Uri.encode(it)}" },
+        "misc=$misc",
+    )
+    return "${Routes.VIDEOS_SCREEN}?${args.joinToString("&")}"
 }
 
 /** A series' screen, by the collection it groups. */

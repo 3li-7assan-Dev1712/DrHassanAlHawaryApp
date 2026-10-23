@@ -52,6 +52,9 @@ import com.example.core.ui.components.CategoryDef
 import com.example.core.ui.components.ContentCategories
 import com.example.core.ui.components.FilterPill
 import com.example.core.ui.components.SeriesCard
+import com.example.core.ui.components.SeriesMiscCard
+import com.example.domain.text.SeriesText
+import androidx.compose.foundation.lazy.LazyListScope
 import com.example.core.ui.theme.layoutTokens
 import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryViewModel
@@ -78,8 +81,10 @@ import com.example.feature.video.presentation.series.VideoSeriesPreviewData
 
 /**
  * The videos. On the phone, of the category chosen on the previous screen. On a tablet
- * (Figma Videos, no categories screen there) the categories are pills above the grid. The
- * category's series come first, as cards ([onSeriesClick] opens one).
+ * (Figma Videos, no categories screen there) the categories are pills above the grid. As on
+ * the audio screens, a category with series shows only cards: its series ([onSeriesClick]
+ * opens one), then «متفرقات» ([onNavigateToMisc], with the category shown), the videos in
+ * none. [showSeries] false: those videos as the list (the «متفرقات» screen, titled [title]).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,11 +93,15 @@ fun VideosScreen(
     onNavigateBack: () -> Unit,
     onNavigateToVideo: (String, String) -> Unit,
     onSeriesClick: (Series) -> Unit = {},
+    showSeries: Boolean = true,
+    onNavigateToMisc: (categoryId: String?) -> Unit = {},
+    title: String? = null,
 ) {
     val videos = viewModel.videos.collectAsLazyPagingItems()
     val series by viewModel.series.collectAsStateWithLifecycle()
     val categoryId by viewModel.categoryId.collectAsStateWithLifecycle()
-    val categories = if (layoutTokens.isCompact) {
+    // «متفرقات» belongs to one category: no pills to switch it.
+    val categories = if (layoutTokens.isCompact || !showSeries) {
         emptyList()
     } else {
         val categoriesViewModel: VideoCategoryViewModel = hiltViewModel()
@@ -106,28 +115,32 @@ fun VideosScreen(
     VideosScreenContent(
         videos = videos,
         categoryTitle = viewModel.categoryTitle,
+        title = title,
         onNavigateBack = onNavigateBack,
         onNavigateToVideo = onNavigateToVideo,
         categories = categories,
         selectedCategoryId = categoryId ?: ALL_VIDEO_CATEGORIES_ID,
         onSelectCategory = { id -> viewModel.selectCategory(id.takeUnless { it == ALL_VIDEO_CATEGORIES_ID }) },
-        series = series,
+        series = if (showSeries) series else emptyList(),
         onSeriesClick = onSeriesClick,
+        onMiscClick = { onNavigateToMisc(categoryId) },
     )
 }
 
 /**
  * Compact: the phone's list of cards. Medium and Expanded: the category pills under the top
  * bar, then a grid of cards at their designed width, centred (Figma `60:1403`, `64:3744`).
- * The [series] come first, as cards the width of the list or grid; [videos] are the ones
- * outside any series. While the series are read (null), the spinner: the cards would
- * otherwise come in above a list already shown, and it would look scrolled past them.
+ * With [series]: "١٢ سلسلة · ١٥٨ درسًا", their cards and «متفرقات» ([onMiscClick]), the width
+ * of the list or grid, instead of [videos] (the ones outside any series). While the series
+ * are read (null), the spinner: the videos would flash before the cards.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideosScreenContent(
     videos: LazyPagingItems<Video>,
     categoryTitle: String? = null,
+    // Instead of the category's («متفرقات»).
+    title: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToVideo: (String, String) -> Unit,
     categories: List<CategoryDef> = emptyList(),
@@ -135,11 +148,13 @@ fun VideosScreenContent(
     onSelectCategory: (String) -> Unit = {},
     series: List<Series>? = emptyList(),
     onSeriesClick: (Series) -> Unit = {},
+    onMiscClick: () -> Unit = {},
 ) {
     val tokens = layoutTokens
     // "الكل" is a category on the previous screen, not a title: show "الفيديوهات" for it.
     // On a tablet the pills show the category, so always "الفيديوهات".
-    val title = categoryTitle?.takeIf { tokens.isCompact && it.isNotBlank() && it != ALL_CATEGORIES_TITLE }
+    val title = title
+        ?: categoryTitle?.takeIf { tokens.isCompact && it.isNotBlank() && it != ALL_CATEGORIES_TITLE }
         ?: stringResource(id = R.string.videos)
     Scaffold(
         containerColor = Brand.colors.background,
@@ -173,11 +188,15 @@ fun VideosScreenContent(
                 val isMediatorRefreshing = videos.loadState.mediator?.refresh is LoadState.Loading
 
                 val phase = when {
-                    isMediatorRefreshing || series == null -> ContentPhase.Loading
-                    videos.itemCount == 0 && series.isEmpty() && videos.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
+                    series == null -> ContentPhase.Loading
+                    // The cards are cached: they don't wait for the videos' refresh.
+                    series.isNotEmpty() -> ContentPhase.Content
+                    isMediatorRefreshing -> ContentPhase.Loading
+                    videos.itemCount == 0 && videos.loadState.refresh is LoadState.NotLoading -> ContentPhase.Empty
                     else -> ContentPhase.Content
                 }
                 val shownSeries = series.orEmpty()
+                val summary = remember(shownSeries) { SeriesText.summary(shownSeries) }
                 val reduced = reducedMotion
 
                 AnimatedContent(
@@ -220,15 +239,18 @@ fun VideosScreenContent(
                                 videos = videos,
                                 onNavigateToVideo = onNavigateToVideo,
                                 series = shownSeries,
+                                summary = summary,
                                 onSeriesClick = onSeriesClick,
+                                onMiscClick = onMiscClick,
                             )
                         } else LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            items(shownSeries, key = ::seriesItemKey) { item ->
-                                SeriesCard(series = item, onClick = { onSeriesClick(item) })
+                            if (shownSeries.isNotEmpty()) {
+                                seriesCards(shownSeries, summary, onSeriesClick, onMiscClick)
+                                return@LazyColumn
                             }
 
                             items(
@@ -283,14 +305,16 @@ private object VideosTablet {
 
 /**
  * As many [VideosTablet.CardWidth] columns as fit (3 on Expanded, 2 on Medium), centred, 24
- * apart, after the [series] cards (the grid's width, as on the designs screen).
+ * apart; with [series], their cards and «متفرقات» the grid's width instead.
  */
 @Composable
 private fun VideoGrid(
     videos: LazyPagingItems<Video>,
     onNavigateToVideo: (String, String) -> Unit,
     series: List<Series>,
+    summary: String?,
     onSeriesClick: (Series) -> Unit,
+    onMiscClick: () -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.FixedSize(VideosTablet.CardWidth),
@@ -299,8 +323,13 @@ private fun VideoGrid(
         horizontalArrangement = Arrangement.spacedBy(VideosTablet.Gap, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(VideosTablet.Gap),
     ) {
-        items(series, key = ::seriesItemKey, span = { GridItemSpan(maxLineSpan) }) { item ->
-            SeriesCard(series = item, onClick = { onSeriesClick(item) })
+        if (series.isNotEmpty()) {
+            if (summary != null) item(key = SUMMARY_KEY, span = { GridItemSpan(maxLineSpan) }) { SeriesSummary(summary) }
+            items(series, key = ::seriesItemKey, span = { GridItemSpan(maxLineSpan) }) { item ->
+                SeriesCard(series = item, onClick = { onSeriesClick(item) })
+            }
+            item(key = MISC_KEY, span = { GridItemSpan(maxLineSpan) }) { SeriesMiscCard(onClick = onMiscClick) }
+            return@LazyVerticalGrid
         }
         items(count = videos.itemCount, key = videos.itemKey { it.id }) { index ->
             val video = videos[index]
@@ -324,6 +353,26 @@ private fun VideoGrid(
 
 /** A series card's key: apart from the videos' ids in the same list or grid. */
 private fun seriesItemKey(series: Series): String = "series:${series.id}"
+
+private const val SUMMARY_KEY = "series-summary"
+private const val MISC_KEY = "series-misc"
+
+/** The phone's cards: "١٢ سلسلة · ١٥٨ درسًا", the series, then «متفرقات». */
+private fun LazyListScope.seriesCards(
+    series: List<Series>,
+    summary: String?,
+    onSeriesClick: (Series) -> Unit,
+    onMiscClick: () -> Unit,
+) {
+    if (summary != null) item(key = SUMMARY_KEY) { SeriesSummary(summary) }
+    items(series, key = ::seriesItemKey) { item -> SeriesCard(series = item, onClick = { onSeriesClick(item) }) }
+    item(key = MISC_KEY) { SeriesMiscCard(onClick = onMiscClick) }
+}
+
+@Composable
+private fun SeriesSummary(summary: String) {
+    Text(text = summary, style = MaterialTheme.typography.labelSmall, color = Brand.colors.textMuted)
+}
 
 /** Sample videos for previews and UI tests (the Figma frames' titles). */
 val VideosPreviewData: List<Video> = List(6) { index ->
