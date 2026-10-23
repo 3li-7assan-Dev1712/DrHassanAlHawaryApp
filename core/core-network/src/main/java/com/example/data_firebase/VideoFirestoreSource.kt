@@ -287,4 +287,12 @@ class VideoFirestoreSource @Inject constructor(
             awaitClose { listenerRegistration.remove() }
         }
     }
+
+    /**
+     * Every document of the collection, deleted ones included, for the admin's lists: one
+     * unordered read, so documents with a wrongly typed publishDate can't upset paging.
+     * Throws on failure, so the admin sees the error instead of a short list.
+     */
+    suspend fun fetchAllVideos(): List<VideoDto> =
+        videosCollection.get().await().documents.mapNotNull { it.toVideoDtoSafe() }
 }

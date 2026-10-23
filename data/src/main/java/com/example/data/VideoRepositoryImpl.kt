@@ -1,7 +1,5 @@
 package com.example.data
 
-import com.example.data.util.ADMIN_PAGE_SIZE
-import com.example.data.util.fetchAllPages
 import com.example.domain.module.SeriesPlacement
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -56,12 +54,9 @@ class VideoRepositoryImpl @Inject constructor(
         return videoFirestoreSource.getVideoById(videoId)
     }
 
-    // Every page, not only the newest 100: the admin's list searches and filters all of them.
+    // Every document, not only the newest 100: the admin's list searches and filters all of them.
     override suspend fun getAllRemoteVideos(): List<Video> {
-        return fetchAllPages(
-            fetch = { after -> videoFirestoreSource.fetchVideoPage(after, ADMIN_PAGE_SIZE) },
-            publishDate = { it.publishDate?.toDate()?.time },
-        )
+        return videoFirestoreSource.fetchAllVideos()
             .filter { !it.isDeleted }
             .map {
                 it.toDomainModel()

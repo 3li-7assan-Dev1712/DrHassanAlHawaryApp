@@ -1,7 +1,5 @@
 package com.example.data
 
-import com.example.data.util.ADMIN_PAGE_SIZE
-import com.example.data.util.fetchAllPages
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
@@ -80,12 +78,12 @@ class ArticlesRepositoryImpl
         firebaseArticlesSource.deleteArticle(articleId)
     }
 
-    // Every page, not only the newest 100: the admin's list searches and filters all of them.
+    // Every document, not only the newest 100: the admin's list searches and filters all of them.
     override suspend fun getAllRemoteArticles(): List<Article> {
-        return fetchAllPages(
-            fetch = { after -> firebaseArticlesSource.getArticlesPage(after, ADMIN_PAGE_SIZE.toLong()).first },
-            publishDate = { it.publishDate?.toDate()?.time },
-        ).filter { !it.isDeleted }.map { it.toDomainModel() }
+        return firebaseArticlesSource.fetchAllArticles()
+            .filter { !it.isDeleted }
+            .map { it.toDomainModel() }
+            .sortedByDescending { it.publishDate }
     }
 
     override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {

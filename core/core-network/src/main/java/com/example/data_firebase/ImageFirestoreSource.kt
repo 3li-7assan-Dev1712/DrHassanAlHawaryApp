@@ -233,21 +233,7 @@ class ImageFirestoreSource @Inject constructor(
 
             val snapshot = query.get().await()
 
-            val imageGroups = snapshot.documents.mapNotNull { document ->
-                val dto = document.toImageGroupDtoSafe()
-                dto?.let {
-                    ImageGroup(
-                        id = document.id,
-                        title = it.title,
-                        publishDate = it.publishDate?.toDate() ?: Date(),
-                        previewImageUrl = it.previewImageUrl,
-                        isDeleted = it.isDeleted,
-                        type = it.type,
-                        seriesId = it.seriesId,
-                        episodeNumber = it.episodeNumber
-                    )
-                }
-            }
+            val imageGroups = snapshot.documents.mapNotNull { it.toImageGroupSafe() }
             val endOfPaginationReached = imageGroups.size < limit
             Pair(imageGroups, endOfPaginationReached)
         } catch (e: Exception) {
@@ -345,5 +331,26 @@ class ImageFirestoreSource @Inject constructor(
                 }
             awaitClose { listenerRegistration.remove() }
         }
+    }
+
+    /**
+     * Every document of the collection, deleted ones included, for the admin's lists: one
+     * unordered read, so documents with a wrongly typed publishDate can't upset paging.
+     * Throws on failure, so the admin sees the error instead of a short list.
+     */
+    suspend fun fetchAllImageGroups(): List<ImageGroup> =
+        imagesGroupCollection.get().await().documents.mapNotNull { it.toImageGroupSafe() }
+
+    private fun DocumentSnapshot.toImageGroupSafe(): ImageGroup? = toImageGroupDtoSafe()?.let {
+        ImageGroup(
+            id = id,
+            title = it.title,
+            publishDate = it.publishDate?.toDate() ?: Date(),
+            previewImageUrl = it.previewImageUrl,
+            isDeleted = it.isDeleted,
+            type = it.type,
+            seriesId = it.seriesId,
+            episodeNumber = it.episodeNumber
+        )
     }
 }

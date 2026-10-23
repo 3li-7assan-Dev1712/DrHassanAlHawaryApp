@@ -1,7 +1,5 @@
 package com.example.data
 
-import com.example.data.util.ADMIN_PAGE_SIZE
-import com.example.data.util.fetchAllPages
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
@@ -114,14 +112,12 @@ class AudiosRepositoryImpl
         return audioFirestoreSource.getAudioById(audioId)
     }
 
-    // Every page, not only the newest 100: the admin's list searches and filters all of them.
+    // Every document, not only the newest 100: the admin's list searches and filters all of them.
     override suspend fun getAllRemoteAudios(): List<Audio> {
-        return fetchAllPages(
-            fetch = { after -> audioFirestoreSource.fetchAudioPage(after, ADMIN_PAGE_SIZE) },
-            publishDate = { it.publishDate?.toDate()?.time },
-        )
+        return audioFirestoreSource.fetchAllAudios()
             .filter { !it.isDeleted }
             .map { it.toDomainModel() }
+            .sortedByDescending { it.publishDate }
     }
 
     override suspend fun downloadAudio(audio: Audio): Flow<DownloadResult> {
