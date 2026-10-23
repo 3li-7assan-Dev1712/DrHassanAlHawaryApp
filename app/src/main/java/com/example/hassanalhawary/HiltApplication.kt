@@ -21,6 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -65,6 +66,9 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     lateinit var syncContentUseCase: SyncContentUseCase
 
 
+    /** The foreground's sync collectors, replaced on the next onStart instead of piling up. */
+    private var foregroundJob: Job? = null
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleForce.wrap(newBase))
     }
@@ -81,7 +85,10 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
         Log.d(TAG, "onStart: start app")
-        appScope.launch {
+        // onStart runs on every return to the foreground: without the cancel each one added
+        // another set of these collectors and the syncs ran once per earlier visit.
+        foregroundJob?.cancel()
+        foregroundJob = appScope.launch {
             observeAuthStateUseCase().collectLatest { isLoggedIn ->
                 if (isLoggedIn) {
                     // Series, and what changed in the cached content (e.g. items moved into a series).
