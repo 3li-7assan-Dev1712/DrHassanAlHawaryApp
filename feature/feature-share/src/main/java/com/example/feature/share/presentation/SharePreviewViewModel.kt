@@ -8,6 +8,8 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -117,7 +119,20 @@ class SharePreviewViewModel @Inject constructor(
 
     // Plays the ORIGINAL source directly (never the extracted clip) so the user
     // can freely scrub/preview any part of the track before generation ever runs.
-    private val exoPlayer: ExoPlayer by lazy { ExoPlayer.Builder(context).build() }
+    // Takes audio focus on play, so the lecture still playing in PlaybackService (the audio
+    // the user came from) pauses instead of playing over the clip.
+    private val exoPlayer: ExoPlayer by lazy {
+        ExoPlayer.Builder(context)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
+                    .build(),
+                /* handleAudioFocus = */ true,
+            )
+            .setHandleAudioBecomingNoisy(true)
+            .build()
+    }
 
     private val _uiState = MutableStateFlow(buildInitialState())
     val uiState = _uiState.asStateFlow()
