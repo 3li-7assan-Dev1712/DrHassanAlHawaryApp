@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.AudioFile
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
@@ -57,6 +58,7 @@ fun ControlScreen(
         ControlItem(R.string.categories, Icons.Default.Category, "categories_list"),
         ControlItem(R.string.series, Icons.Default.Layers, "series_list"),
         ControlItem(R.string.profile, Icons.Default.Person, "profile_screen"),
+        ControlItem(R.string.maintenance, Icons.Default.Build, "maintenance", isSuperAdminOnly = true),
         ControlItem(R.string.super_admin, Icons.Default.Security, "super_admin_panel", isSuperAdminOnly = true)
     )
 

@@ -56,6 +56,7 @@ import app.netlify.devalihassan.admin.ui.control_screen.ControlScreen
 import app.netlify.devalihassan.admin.ui.control_screen.ManageQuizzesScreen
 import app.netlify.devalihassan.admin.ui.institute_main.InstituteMainScreen
 import app.netlify.devalihassan.admin.ui.lessons.LessonsScreen
+import app.netlify.devalihassan.admin.ui.maintenance.MaintenanceScreen
 import app.netlify.devalihassan.admin.ui.playlist.PlaylistScreen
 import app.netlify.devalihassan.admin.ui.super_admin.SuperAdminScreen
 import app.netlify.devalihassan.admin.ui.theme.HassanAlHawaryTheme
@@ -134,6 +135,7 @@ class MainActivity : ComponentActivity() {
                     currentRoute == "not_allowed" -> stringResource(R.string.access_denied)
                     currentRoute == "manage_quizzes" -> stringResource(R.string.manage_quizzes)
                     currentRoute == "super_admin_panel" -> stringResource(R.string.super_admin_panel)
+                    currentRoute == "maintenance" -> stringResource(R.string.maintenance)
                     currentRoute == "telegram_login" || currentRoute?.startsWith("telegram_login") == true -> stringResource(R.string.institute_management)
                     currentRoute == "upload_quiz" -> stringResource(R.string.upload_quiz)
                     currentRoute == "upload_announcement" -> stringResource(R.string.upload_announcement)
@@ -201,6 +203,13 @@ class MainActivity : ComponentActivity() {
 
                         composable("super_admin_panel") {
                             SuperAdminScreen(
+                                isSuperAdmin = state.isUserSuperAdmin
+                            ) {
+                                mainActivityViewModel.logoutSuccess()
+                            }
+                        }
+                        composable("maintenance") {
+                            MaintenanceScreen(
                                 isSuperAdmin = state.isUserSuperAdmin
                             ) {
                                 mainActivityViewModel.logoutSuccess()

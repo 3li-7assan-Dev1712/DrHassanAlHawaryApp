@@ -96,6 +96,21 @@
     <string name="final_exam">نهائي</string>
     <string name="no_images_found">لا توجد تصاميم متاحة الآن</string>
     <string name="category">التصنيف</string>
-
-
+    <!-- Maintenance mode (config/app_config). -->
+    <string name="maintenance">وضع الصيانة</string>
+    <string name="maintenance_on_status">مُفعّل: المستخدمون يرون شاشة الصيانة الآن</string>
+    <string name="maintenance_off_status">متوقف: التطبيق يعمل بشكل طبيعي</string>
+    <string name="maintenance_message_label">رسالة الصيانة (اختياري)</string>
+    <string name="maintenance_message_hint">تظهر للمستخدمين بدل النص الافتراضي. اتركها فارغة لعرض النص الافتراضي.</string>
+    <string name="maintenance_save_message">حفظ الرسالة</string>
+    <string name="maintenance_confirm_title">تشغيل وضع الصيانة؟</string>
+    <string name="maintenance_confirm_msg">سيرى جميع مستخدمي التطبيق شاشة الصيانة فورًا، ولن يتمكنوا من استخدام التطبيق حتى تُطفئه.</string>
+    <string name="maintenance_turn_on">تشغيل</string>
+    <string name="maintenance_turned_on">تم تشغيل وضع الصيانة</string>
+    <string name="maintenance_turned_off">تم إيقاف وضع الصيانة، وعاد التطبيق للعمل</string>
+    <string name="maintenance_message_saved">تم حفظ الرسالة</string>
+    <string name="maintenance_denied">رُفض الحفظ: قواعد Firestore لا تسمح لك بالكتابة في config/app_config.</string>
+    <string name="maintenance_pending">لم يصل التغيير إلى الخادم بعد (لا يوجد اتصال؟). سيُرسل تلقائيًا عند عودة الاتصال.</string>
+    <string name="maintenance_read_failed">تعذّرت قراءة config/app_config. تحقّق من الاتصال وقواعد Firestore.</string>
+    <string name="maintenance_console_note">يمكن التحكم بها أيضًا من Firebase Console: المستند config/app_config، الحقل maintenanceMode (true أو false) والحقل maintenanceMessage (نص).</string>
 </resources>
