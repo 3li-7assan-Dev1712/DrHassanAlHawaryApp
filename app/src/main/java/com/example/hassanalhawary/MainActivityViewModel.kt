@@ -5,13 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.ui.components.CategoryCatalog
 import com.example.core.ui.theme.BrandTheme
-import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.ContentType
 import com.example.domain.use_cases.categories.GetCategoriesUseCase
 import kotlinx.coroutines.flow.StateFlow
 import com.example.domain.module.AppConfig
 import com.example.domain.repository.DataStoreRepository
-import com.example.domain.use_cases.GetAppConfigUseCase
 import com.example.domain.use_cases.GetUserIdTokenUseCase
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
@@ -61,7 +59,7 @@ class MainActivityViewModel @Inject constructor(
     private val storeStudentDataUseCase: StoreStudentDataUseCase,
     private val getUserIdTokenUseCase: GetUserIdTokenUseCase,
     private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
-    private val getAppConfigUseCase: GetAppConfigUseCase,
+    private val appConfigMonitor: AppConfigMonitor,
     private val getStudentDataUseCase: GetStudentDataUseCase,
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
     private val dataStoreRepository: DataStoreRepository,
@@ -80,8 +78,11 @@ class MainActivityViewModel @Inject constructor(
         ::CategoryCatalog,
     ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CategoryCatalog.BuiltIn)
 
-    private val _appConfig = MutableStateFlow<AppConfig?>(null)
-    val appConfig = _appConfig.asStateFlow()
+    /** config/app_config (update and maintenance), read signed in or not (AppConfigMonitor). */
+    val appConfig: StateFlow<AppConfig?> = appConfigMonitor.config
+
+    /** The maintenance screen's retry is reading from the server. */
+    val isRetryingConfig: StateFlow<Boolean> = appConfigMonitor.isRetrying
 
     val onboardingCompleted = observeOnboardingCompletedUseCase()
         .map<Boolean, Boolean?> { it }
@@ -109,12 +110,15 @@ class MainActivityViewModel @Inject constructor(
         )
 
     //  2) single "app ready" flag for splash
+    // The config check (at most 1.5 s, AppConfigMonitor) keeps the app from flashing before
+    // the maintenance screen.
     val appReady = kotlinx.coroutines.flow.combine(
         themeState,
         onboardingCompleted,
-        state
-    ) { theme, onboarding, main ->
-        theme.isReady && onboarding != null && !main.isLoading
+        state,
+        appConfigMonitor.checked,
+    ) { theme, onboarding, main, configChecked ->
+        theme.isReady && onboarding != null && !main.isLoading && configChecked
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
@@ -126,25 +130,14 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch {
             observeAuthStateUseCase().collectLatest { isLoggedIn ->
                 if (isLoggedIn) {
-                    launch { observeAppConfig() }
                     launch { storeUserDataSuspend() }
-                } else {
-                    _appConfig.value = null
                 }
             }
         }
     }
 
-    private suspend fun observeAppConfig() {
-        getAppConfigUseCase()
-            .catch { e ->
-                Log.e(TAG, "observeAppConfig error: ${e.message}")
-                ErrorReporter.record("app config", e)
-            }
-            .collect { config ->
-                _appConfig.value = config
-            }
-    }
+    /** The maintenance screen's «إعادة المحاولة». */
+    fun retryConfig() = appConfigMonitor.retry()
 
     private suspend fun storeUserDataSuspend() {
         // if no data in the room db (user may close the app before deep link happen so we fill the database again if deeplink fail)

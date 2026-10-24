@@ -19,11 +19,13 @@ import com.example.study.domain.use_case.GetPlaylistsForLevelUseCase
 import com.example.study.domain.use_case.SyncLessonsUseCase
 import com.example.study.domain.use_case.SyncPlaylistsUseCase
 import com.google.firebase.messaging.FirebaseMessaging
+import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -66,6 +68,10 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     @Inject
     lateinit var syncContentUseCase: SyncContentUseCase
 
+    /** Lazy: created on the first foreground, not when FCM or the player starts the process. */
+    @Inject
+    lateinit var appConfigMonitor: Lazy<AppConfigMonitor>
+
 
     /** The foreground's sync collectors, replaced on the next onStart instead of piling up. */
     private var foregroundJob: Job? = null
@@ -91,8 +97,16 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
         // another set of these collectors and the syncs ran once per earlier visit.
         foregroundJob?.cancel()
         foregroundJob = appScope.launch {
-            observeAuthStateUseCase().collectLatest { isLoggedIn ->
-                if (isLoggedIn) {
+            // No syncs or topic subscriptions during maintenance: switching it on cancels the
+            // running ones, switching it off starts them again. They wait for the config check
+            // (at most 1.5 s, AppConfigMonitor).
+            combine(
+                observeAuthStateUseCase(),
+                appConfigMonitor.get().isUnderMaintenance,
+            ) { isLoggedIn, underMaintenance ->
+                isLoggedIn && !underMaintenance
+            }.collectLatest { canSync ->
+                if (canSync) {
                     // Series, and what changed in the cached content (e.g. items moved into a series).
                     launch {
                         runCatching { syncContentUseCase() }

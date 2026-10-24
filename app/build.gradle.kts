@@ -56,6 +56,11 @@ android {
         buildConfig = true
     }
 
+    // Unit tests: android.util.Log (AppConfigMonitor logs failures) returns instead of throwing.
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     // Firebase, Ktor (three engines) and the media3 stack each ship their own copies of these
     // metadata files. Without this block the packaging task aborts with
     // "N files found with path 'META-INF/...'", which is what fails :app:packageDebug.
@@ -184,6 +189,7 @@ dependencies {
 
     // test
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
