@@ -58,10 +58,12 @@ import com.example.study.presentation.utils.formatBatchName
  *
  * No "open channel" button: the institute channel's URL isn't in the app. No "notify me"
  * either: it needs a backend (FCM topic + sender).
+ *
+ * [studentData] is null for a guest (Telegram not connected yet): no profile card then.
  */
 @Composable
 fun InstituteComingSoonContent(
-    studentData: Student,
+    studentData: Student?,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -69,33 +71,40 @@ fun InstituteComingSoonContent(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { InstituteProfileCard(studentData) }
-        item { ComingSoonCard(isLinked = studentData.isConnectedToTelegram) }
+        if (studentData != null) item { InstituteProfileCard(studentData) }
+        item { ComingSoonCard(isLinked = studentData.isLinkedToChannel) }
     }
 }
 
 /**
  * Expanded (Figma `61:2211`): the tab's top bar and the profile card in the start pane, the
- * coming-soon card at 380dp in the middle of the detail pane.
+ * coming-soon card at 380dp in the middle of the detail pane. A guest's start pane has the top
+ * bar only.
  */
 @Composable
-fun InstituteComingSoonTwoPane(studentData: Student, title: String) {
+fun InstituteComingSoonTwoPane(studentData: Student?, title: String) {
     TwoPaneLayout(
         listPane = {
             Column(Modifier.fillMaxSize()) {
                 AppTopBar(title = title)
-                Box(Modifier.padding(InstitutePanePadding)) { InstituteProfileCard(studentData) }
+                if (studentData != null) {
+                    Box(Modifier.padding(InstitutePanePadding)) { InstituteProfileCard(studentData) }
+                }
             }
         },
         detailPane = {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Box(Modifier.width(InstituteComingSoonWidth)) {
-                    ComingSoonCard(isLinked = studentData.isConnectedToTelegram)
+                    ComingSoonCard(isLinked = studentData.isLinkedToChannel)
                 }
             }
         },
     )
 }
+
+/** Telegram connected and in the institute channel (membershipState "none" is not). */
+private val Student?.isLinkedToChannel: Boolean
+    get() = this != null && isConnectedToTelegram && membershipState != "none"
 
 /** Expanded (Figma `61:2211`). */
 private val InstitutePanePadding = 16.dp
@@ -254,18 +263,30 @@ private fun InstituteComingSoonDarkPreview() {
     HassanAlHawaryTheme(darkTheme = true) { InstituteComingSoonContent(studentData = previewStudent) }
 }
 
+@Preview(name = "Institute - guest, light", locale = "ar", widthDp = 360, heightDp = 560, showBackground = true, backgroundColor = 0xFFF4EEE5)
+@Composable
+private fun InstituteGuestLightPreview() {
+    HassanAlHawaryTheme(darkTheme = false) { InstituteComingSoonContent(studentData = null) }
+}
+
+@Preview(name = "Institute - guest, dark", locale = "ar", widthDp = 360, heightDp = 560, showBackground = true, backgroundColor = 0xFF1A1512)
+@Composable
+private fun InstituteGuestDarkPreview() {
+    HassanAlHawaryTheme(darkTheme = true) { InstituteComingSoonContent(studentData = null) }
+}
+
 /** Sample student for previews and UI tests. */
 val InstitutePreviewStudent: Student = previewStudent
 
 @Composable
-private fun InstitutePreview(darkTheme: Boolean) {
+private fun InstitutePreview(darkTheme: Boolean, student: Student? = previewStudent) {
     AdaptiveShellPreview(darkTheme = darkTheme, selectedTab = PreviewTab.Institute) {
         if (layoutTokens.isExpanded) {
-            InstituteComingSoonTwoPane(studentData = previewStudent, title = stringResource(R.string.dr_hassan_institute))
+            InstituteComingSoonTwoPane(studentData = student, title = stringResource(R.string.dr_hassan_institute))
         } else {
             Column {
                 AppTopBar(title = stringResource(R.string.dr_hassan_institute))
-                InstituteComingSoonContent(studentData = previewStudent)
+                InstituteComingSoonContent(studentData = student)
             }
         }
     }
@@ -286,3 +307,19 @@ private fun InstituteExpandedLightPreview() = InstitutePreview(darkTheme = false
 @Preview(name = "Institute - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun InstituteExpandedDarkPreview() = InstitutePreview(darkTheme = true)
+
+@Preview(name = "Institute - guest, medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun InstituteGuestMediumLightPreview() = InstitutePreview(darkTheme = false, student = null)
+
+@Preview(name = "Institute - guest, medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun InstituteGuestMediumDarkPreview() = InstitutePreview(darkTheme = true, student = null)
+
+@Preview(name = "Institute - guest, expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun InstituteGuestExpandedLightPreview() = InstitutePreview(darkTheme = false, student = null)
+
+@Preview(name = "Institute - guest, expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun InstituteGuestExpandedDarkPreview() = InstitutePreview(darkTheme = true, student = null)

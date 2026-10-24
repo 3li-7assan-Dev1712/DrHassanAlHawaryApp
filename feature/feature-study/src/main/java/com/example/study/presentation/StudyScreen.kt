@@ -10,7 +10,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,11 +25,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.ui.R
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.theme.Brand
-import com.example.study.presentation.dashboard.GuestContent
+import com.example.domain.module.Student
 import com.example.study.presentation.dashboard.InstituteComingSoonContent
 import com.example.study.presentation.dashboard.InstituteComingSoonTwoPane
 import com.example.core.ui.theme.layoutTokens
-import com.example.study.presentation.dashboard.NotChannelMemberContent
 import com.example.study.presentation.model.StudyScreenUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,11 +46,11 @@ fun StudyScreen(
     Log.d("StudyScreen", "StudyScreen: userEmail: $userEmail")
     val uiState by viewModel.uiState.collectAsState()
 
-    // Expanded: the student's "coming soon" state in two panes (Figma 61:2211). The other
-    // states have no tablet design and keep the phone layout.
+    // Expanded: the "coming soon" state in two panes (Figma 61:2211). Loading keeps the
+    // phone layout.
     val current = uiState
-    if (layoutTokens.isExpanded && current is StudyScreenUiState.StudentDashboard) {
-        InstituteComingSoonTwoPane(studentData = current.studentData, title = stringResource(R.string.dr_hassan_institute))
+    if (layoutTokens.isExpanded && current !is StudyScreenUiState.Loading) {
+        InstituteComingSoonTwoPane(studentData = current.student, title = stringResource(R.string.dr_hassan_institute))
         return
     }
 
@@ -73,39 +71,23 @@ fun StudyScreen(
         ) {
             when (val state = uiState) {
                 is StudyScreenUiState.Loading -> CircularProgressIndicator(color = Brand.colors.accentStrong)
-                is StudyScreenUiState.Error -> Text(
-                    text = state.message,
-                    color = MaterialTheme.colorScheme.error
-                )
 
-                is StudyScreenUiState.StudentDashboard -> {
-                    // Student interaction is temporarily paused; show a "coming soon"
-                    // placeholder instead of the full dashboard.
-                    InstituteComingSoonContent(studentData = state.studentData)
-                }
-
-                is StudyScreenUiState.Guest -> {
-                    // Show the simple connect button for guests
-                    GuestContent(
-                        userEmail = userEmail,
-                        idToken = idToken
-                    )
-                }
-
-                is StudyScreenUiState.NotChannelMember -> {
-                    NotChannelMemberContent(
-                        studentData = state.studentData,
-                        onDisconnect = { /* viewModel.onDisconnectTelegram() */ },
-                        onRefreshClick = {
-                            viewModel.onRefreshStudentData()
-                        }
-                    )
-                }
-
+                // Student interaction is temporarily paused: every state shows the "coming
+                // soon" placeholder instead of the dashboard, the Telegram connect button
+                // (GuestContent) or NotChannelMemberContent.
+                else -> InstituteComingSoonContent(studentData = state.student)
             }
         }
     }
 }
+
+/** The student on the "coming soon" screen; a guest (Telegram not connected yet) has none. */
+private val StudyScreenUiState.student: Student?
+    get() = when (this) {
+        is StudyScreenUiState.StudentDashboard -> studentData
+        is StudyScreenUiState.NotChannelMember -> studentData
+        else -> null
+    }
 
 @Composable
 fun TelegramLoginButton() {
