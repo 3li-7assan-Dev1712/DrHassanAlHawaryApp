@@ -4,31 +4,33 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -48,14 +50,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.SubcomposeAsyncImage
@@ -64,15 +67,12 @@ import com.example.core.ui.animation.LoadingScreen
 import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.components.AppTopBar
 import com.example.core.ui.components.PreviewTab
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Motion
+import com.example.core.ui.theme.layoutTokens
 import com.example.core.ui.theme.reducedMotion
 import com.example.core.ui.theme.stateChangeSpec
-import com.example.core.ui.theme.layoutTokens
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.BidiText
 import com.example.profile.presentation.components.ProfileRoute
@@ -108,7 +108,13 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
             containerColor = colors.surface,
-            title = { Text("حذف الحساب؟", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
+            title = {
+                Text(
+                    "حذف الحساب؟",
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textPrimary
+                )
+            },
             text = {
                 Text(
                     "سيُحذف حسابك وجميع بياناتك وسجل دراستك نهائيًا، ولا يمكن التراجع عن ذلك.",
@@ -158,6 +164,7 @@ fun ProfileScreen(
                         onFollowSystemThemeChanged(false)
                         onThemeChanged(false)
                     }
+
                     ThemeChoice.DARK -> {
                         onFollowSystemThemeChanged(false)
                         onThemeChanged(true)
@@ -209,7 +216,8 @@ fun ProfileContent(
     onDeleteAccount: () -> Unit,
 ) {
     val colors = Brand.colors
-    val header = @Composable { ProfileHeader(name = userName, email = userEmail, photoUrl = photoUrl) }
+    val header =
+        @Composable { ProfileHeader(name = userName, email = userEmail, photoUrl = photoUrl) }
     val appearance = @Composable {
         ProfileSection(title = stringResource(R.string.appearance)) {
             ThemeSegmentedControl(selected = themeChoice, onSelect = onThemeSelect)
@@ -230,9 +238,16 @@ fun ProfileContent(
     val support = @Composable {
         ProfileSection(title = "الدعم والسياسات") {
             ProfileRow(TablerIcons.Headset, "الدعم والتواصل") { onNavigate(ProfileRoute.Support) }
-            ProfileRow(TablerIcons.ShieldLock, "سياسة الخصوصية") { onNavigate(ProfileRoute.Privacy) }
+            ProfileRow(
+                TablerIcons.ShieldLock,
+                "سياسة الخصوصية"
+            ) { onNavigate(ProfileRoute.Privacy) }
             ProfileRow(TablerIcons.FileText, "الشروط والأحكام") { onNavigate(ProfileRoute.Terms) }
-            ProfileRow(TablerIcons.Code, "التراخيص والمصادر", isLast = true) { onNavigate(ProfileRoute.Licenses) }
+            ProfileRow(TablerIcons.Code, "التراخيص والمصادر", isLast = true) {
+                onNavigate(
+                    ProfileRoute.Licenses
+                )
+            }
         }
     }
     val account = @Composable {
@@ -280,7 +295,10 @@ fun ProfileContent(
                     .padding(top = ProfileExpandedTopGap),
                 horizontalArrangement = Arrangement.spacedBy(ProfileExpandedColumnGap),
             ) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)) {
+                Column(
+                    Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)
+                ) {
                     header()
                     if (!isAdmin) {
                         appearance()
@@ -288,7 +306,10 @@ fun ProfileContent(
                         appSection()
                     }
                 }
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)) {
+                Column(
+                    Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)
+                ) {
                     if (!isAdmin) support()
                     account()
                     version()
@@ -299,7 +320,12 @@ fun ProfileContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 4.dp,
+                    bottom = 16.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(ProfileSectionGap)
             ) {
                 item { header() }
@@ -318,6 +344,7 @@ fun ProfileContent(
 
 /** Between sections (phone and tablet). */
 private val ProfileSectionGap = 20.dp
+
 /** Expanded (Figma `59:1054`): top bar to the columns, and between the columns. */
 private val ProfileExpandedTopGap = 24.dp
 private val ProfileExpandedColumnGap = 24.dp
@@ -329,11 +356,19 @@ private val ProfileExpandedColumnGap = 24.dp
 private fun openStoreListing(context: Context) {
     val id = context.packageName
     try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$id")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        context.startActivity(
+            Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("market://details?id=$id")
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
     } catch (_: ActivityNotFoundException) {
         try {
             context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$id")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=$id")
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
         } catch (_: ActivityNotFoundException) {
             // No store and no browser: nothing to open.
@@ -437,7 +472,12 @@ private fun ProfileRow(
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(painter = painterResource(icon), contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(22.dp)
+        )
         Spacer(Modifier.width(14.dp))
         Text(
             text = title,
@@ -453,7 +493,11 @@ private fun ProfileRow(
         )
     }
     if (!isLast) {
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = colors.divider)
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            thickness = 0.5.dp,
+            color = colors.divider
+        )
     }
 }
 
@@ -480,7 +524,11 @@ private fun ThemeSegmentedControl(selected: ThemeChoice, onSelect: (ThemeChoice)
         // Segments share the track equally; offset is from the START edge (RTL-aware).
         val segmentWidth = maxWidth / segments.size
         val selectedIndex = segments.indexOfFirst { it.first == selected }.coerceAtLeast(0)
-        val pillOffset by animateDpAsState(segmentWidth * selectedIndex, stateChangeSpec(), label = "pillOffset")
+        val pillOffset by animateDpAsState(
+            segmentWidth * selectedIndex,
+            stateChangeSpec(),
+            label = "pillOffset"
+        )
         val pillWidth by animateDpAsState(segmentWidth, stateChangeSpec(), label = "pillWidth")
         Box(
             Modifier
@@ -496,10 +544,14 @@ private fun ThemeSegmentedControl(selected: ThemeChoice, onSelect: (ThemeChoice)
             segments.forEach { (choice, label, icon) ->
                 val isSelected = choice == selected
                 val contentColor by animateColorAsState(
-                    if (isSelected) colors.textPrimary else colors.textMuted, stateChangeSpec(), label = "segmentText",
+                    if (isSelected) colors.textPrimary else colors.textMuted,
+                    stateChangeSpec(),
+                    label = "segmentText",
                 )
                 val iconColor by animateColorAsState(
-                    if (isSelected) colors.accent else colors.textMuted, stateChangeSpec(), label = "segmentIcon",
+                    if (isSelected) colors.accent else colors.textMuted,
+                    stateChangeSpec(),
+                    label = "segmentIcon",
                 )
                 Row(
                     modifier = Modifier
@@ -510,7 +562,12 @@ private fun ThemeSegmentedControl(selected: ThemeChoice, onSelect: (ThemeChoice)
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painterResource(icon), contentDescription = null, tint = iconColor, modifier = Modifier.size(16.dp))
+                    Icon(
+                        painterResource(icon),
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = stringResource(label),
@@ -534,7 +591,12 @@ private fun FontSizeRow(step: Int, onStepChange: (Int) -> Unit) {
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(painterResource(TablerIcons.TextSize), contentDescription = null, tint = colors.accent, modifier = Modifier.size(22.dp))
+        Icon(
+            painterResource(TablerIcons.TextSize),
+            contentDescription = null,
+            tint = colors.accent,
+            modifier = Modifier.size(22.dp)
+        )
         Spacer(Modifier.width(14.dp))
         Text(
             text = stringResource(R.string.reader_font_setting),
@@ -588,7 +650,10 @@ fun ProfilePreviewContent() {
 
 @Composable
 private fun ProfilePreview(darkTheme: Boolean) {
-    AdaptiveShellPreview(darkTheme = darkTheme, selectedTab = PreviewTab.Profile) { ProfilePreviewContent() }
+    AdaptiveShellPreview(
+        darkTheme = darkTheme,
+        selectedTab = PreviewTab.Profile
+    ) { ProfilePreviewContent() }
 }
 
 @Preview(name = "Profile - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
@@ -599,18 +664,34 @@ private fun ProfileCompactLightPreview() = ProfilePreview(darkTheme = false)
 @Composable
 private fun ProfileCompactDarkPreview() = ProfilePreview(darkTheme = true)
 
-@Preview(name = "Profile - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Preview(
+    name = "Profile - medium, light",
+    locale = "ar",
+    device = "spec:width=800dp,height=1280dp,dpi=320"
+)
 @Composable
 private fun ProfileMediumLightPreview() = ProfilePreview(darkTheme = false)
 
-@Preview(name = "Profile - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Preview(
+    name = "Profile - medium, dark",
+    locale = "ar",
+    device = "spec:width=800dp,height=1280dp,dpi=320"
+)
 @Composable
 private fun ProfileMediumDarkPreview() = ProfilePreview(darkTheme = true)
 
-@Preview(name = "Profile - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Preview(
+    name = "Profile - expanded, light",
+    locale = "ar",
+    device = "spec:width=1280dp,height=800dp,dpi=320"
+)
 @Composable
 private fun ProfileExpandedLightPreview() = ProfilePreview(darkTheme = false)
 
-@Preview(name = "Profile - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Preview(
+    name = "Profile - expanded, dark",
+    locale = "ar",
+    device = "spec:width=1280dp,height=800dp,dpi=320"
+)
 @Composable
 private fun ProfileExpandedDarkPreview() = ProfilePreview(darkTheme = true)
