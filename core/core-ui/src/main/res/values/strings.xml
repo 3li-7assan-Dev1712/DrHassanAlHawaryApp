@@ -234,4 +234,11 @@
     <string name="series_share_text">سلسلة «%1$s» (%2$s)\nاستمع إليها في تطبيق الشيخ د. حسن الهواري:\n%3$s</string>
     <!-- The same for a video series ("٢٨ درسًا"). -->
     <string name="series_share_text_video">سلسلة «%1$s» (%2$s)\nشاهدها في تطبيق الشيخ د. حسن الهواري:\n%3$s</string>
+    <!-- The maintenance screen (config/app_config.maintenanceMode). -->
+    <string name="maintenance_title">التطبيق قيد الصيانة</string>
+    <string name="maintenance_body">نجري حاليًا أعمال صيانة وتحسين لنقدّم لك تجربة أفضل، وسيعود التطبيق للعمل قريبًا بإذن الله.</string>
+    <string name="maintenance_apology">نعتذر عن هذا الانقطاع، ونشكر لك صبرك وتفهّمك.</string>
+    <string name="maintenance_retry">إعادة المحاولة</string>
+    <string name="maintenance_checking">جارٍ التحقق…</string>
+    <string name="maintenance_telegram">تابع المستجدات على قناتنا في تيليجرام</string>
 </resources>
