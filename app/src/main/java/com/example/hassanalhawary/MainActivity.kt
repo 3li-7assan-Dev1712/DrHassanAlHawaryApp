@@ -327,6 +327,7 @@ class MainActivity : ComponentActivity() {
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
+        LaunchedEffect(currentRoute) { CrashReporting.setScreen(currentRoute) }
 
         // routes where the bottom nav should be shown
         val routesWithBottomNav = remember {

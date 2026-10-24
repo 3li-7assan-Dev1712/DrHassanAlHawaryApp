@@ -11,6 +11,7 @@ import com.example.data_local.LevelsDao
 import com.example.data_local.LocalDataStore
 import com.example.data_local.PlaylistDao
 import com.example.data_local.StudentDao
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.LeaderBoard
 import com.example.domain.module.Lesson
 import com.example.domain.module.Level
@@ -116,6 +117,7 @@ class StudyRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "syncPlaylists failed", e)
+            ErrorReporter.record("playlists sync", e)
         }
     }
 
@@ -136,6 +138,7 @@ class StudyRepositoryImpl @Inject constructor(
             versionStore.updateLevelsVersion(remoteLevelVersion)
         } catch (e: Exception) {
             Log.e(TAG, "syncLevels failed", e)
+            ErrorReporter.record("levels sync", e)
         }
     }
 
@@ -192,6 +195,7 @@ class StudyRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "syncLessons failed", e)
+            ErrorReporter.record("lessons sync", e)
         }
     }
 

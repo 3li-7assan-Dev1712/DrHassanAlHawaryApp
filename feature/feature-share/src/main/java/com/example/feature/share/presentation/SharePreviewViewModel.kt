@@ -17,6 +17,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.transformer.ExportException
 import com.example.core.ui.R
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.Audio
 import com.example.domain.use_cases.audios.DownloadAudioUseCase
 import com.example.domain.use_cases.audios.DownloadResult
@@ -74,6 +75,7 @@ class SharePreviewViewModel @Inject constructor(
      */
     private val exportFailureHandler = CoroutineExceptionHandler { _, error ->
         Log.e(TAG, "share export failed", error)
+        ErrorReporter.record("share export", error)
         _uiState.update {
             it.copy(
                 exportState = ShareExportState.Failed(error.message ?: error.javaClass.simpleName),

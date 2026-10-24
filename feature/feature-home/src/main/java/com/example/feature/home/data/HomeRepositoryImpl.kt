@@ -1,5 +1,6 @@
 package com.example.feature.home.data
 
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.text.AudioTitleCleaner
 import com.example.domain.text.ShareTitleParser
 import com.example.core.ui.util.HijriCalendar
@@ -118,6 +119,7 @@ class HomeRepositoryImpl @Inject constructor(
             articleDao.upsertAll(articleEntities)
         } catch (e: Exception) {
             Log.e("HomeRepositoryImpl", "syncLatestArticles failed", e)
+            ErrorReporter.record("latest articles sync", e)
         }
     }
 
@@ -173,6 +175,7 @@ class HomeRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e("HomeRepositoryImpl", "syncLatestAudios failed", e)
+            ErrorReporter.record("latest audios sync", e)
         }
     }
 
@@ -232,6 +235,7 @@ class HomeRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e("HomeRepositoryImpl", "syncLatestImageGroup failed", e)
+            ErrorReporter.record("latest image group sync", e)
         }
     }
 

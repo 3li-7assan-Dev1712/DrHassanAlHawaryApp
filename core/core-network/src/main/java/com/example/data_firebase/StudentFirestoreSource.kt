@@ -10,6 +10,7 @@ import com.example.data_firebase.model.QuestionDto
 import com.example.data_firebase.model.QuestionTypeDto
 import com.example.data_firebase.model.QuizDto
 import com.example.data_firebase.model.StudentDto
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.use_cases.audios.UploadResult
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
@@ -73,6 +74,7 @@ class StudentFirestoreSource @Inject constructor(
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for playlist ${this.id}", ex)
+                ErrorReporter.record("playlist mapping ${this.id}", ex)
                 null
             }
         }
@@ -114,6 +116,7 @@ class StudentFirestoreSource @Inject constructor(
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for lesson ${this.id}", ex)
+                ErrorReporter.record("lesson mapping ${this.id}", ex)
                 null
             }
         }

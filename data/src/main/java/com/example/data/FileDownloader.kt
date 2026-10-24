@@ -2,6 +2,7 @@ package com.example.data
 
 import android.content.Context
 import android.util.Log
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.use_cases.audios.DownloadResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -159,6 +160,7 @@ class FileDownloader @Inject constructor(
             file.absolutePath
         } catch (e: Exception) {
             Log.e("FileDownloader", "Download failed for $url", e)
+            ErrorReporter.record("download $url", e)
             if (file.exists()) file.delete()
             throw e
         }

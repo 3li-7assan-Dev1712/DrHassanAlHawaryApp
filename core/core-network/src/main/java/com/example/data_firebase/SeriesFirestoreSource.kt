@@ -2,6 +2,7 @@ package com.example.data_firebase
 
 import android.util.Log
 import com.example.data_firebase.model.SeriesDto
+import com.example.domain.diagnostics.ErrorReporter
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,6 +27,7 @@ class SeriesFirestoreSource @Inject constructor(
             this.toObject<SeriesDto>()?.copy(id = this.id)
         } catch (e: Exception) {
             Log.e(TAG, "Deserialization failed for series ${this.id}", e)
+            ErrorReporter.record("series mapping ${this.id}", e)
             null
         }
     }

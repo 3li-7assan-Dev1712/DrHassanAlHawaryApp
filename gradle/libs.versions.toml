@@ -24,6 +24,8 @@ composeBom = "2025.12.00"
 # compileSdk 37, and checkDebugAarMetadata fails on AGP 8.x.
 adaptive = "1.2.0"
 googleGmsGoogleServices = "4.4.3"
+# Uploads the R8 mapping file of release builds so Crashlytics stack traces are readable.
+firebaseCrashlyticsPlugin = "3.0.8"
 firebaseAuth = "24.0.0"
 firebaseFirestore = "25.1.4"
 lottieCompose = "6.7.1"
@@ -163,6 +165,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 google-firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 
 firebase-functions = { module = "com.google.firebase:firebase-functions" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 leakcanary = { group = "com.android.tools.studio.leakcanary", name = "leakcanary", version.ref = "leakcanary" }
 
 
@@ -173,6 +176,7 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin" }
 #hilt = { id = "dagger.hilt.android.plugin", version = "2.57" }
 hilt = { id = "com.google.dagger.hilt.android", version = "2.57"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
