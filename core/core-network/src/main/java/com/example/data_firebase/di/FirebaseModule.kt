@@ -7,6 +7,7 @@ import com.example.data_firebase.ConfigRepositoryImpl
 import com.example.data_firebase.FirebaseArticlesSource
 import com.example.data_firebase.GoogleAuthUiClient
 import com.example.data_firebase.ImageFirestoreSource
+import com.example.data_firebase.SeriesFirestoreSource
 import com.example.data_firebase.VideoFirestoreSource
 import com.example.domain.repository.ConfigRepository
 import com.google.firebase.Firebase
@@ -66,6 +67,15 @@ object FirebaseModule {
         functions: FirebaseFunctions
     ): VideoFirestoreSource {
         return VideoFirestoreSource(firestore, functions)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSeriesFirestoreSource(
+        firestore: FirebaseFirestore,
+        functions: FirebaseFunctions
+    ): SeriesFirestoreSource {
+        return SeriesFirestoreSource(firestore, functions)
     }
 
     @Singleton

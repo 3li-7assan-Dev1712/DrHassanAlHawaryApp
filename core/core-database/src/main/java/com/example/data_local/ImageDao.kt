@@ -15,14 +15,26 @@ interface ImageDao {
     @Upsert
     suspend fun upsertImageGroups(imageGroups: List<ImageGroupEntity>)
 
-    @Query("SELECT * FROM image_groups WHERE isDeleted = 0 ORDER BY publishDate DESC")
+    /** The paged grid shows standalone groups only: a series' groups are reached through its card. */
+    @Query("SELECT * FROM image_groups WHERE isDeleted = 0 AND seriesId IS NULL ORDER BY publishDate DESC")
     fun pagingSource(): PagingSource<Int, ImageGroupEntity>
+
+    @Query("SELECT * FROM image_groups WHERE seriesId = :seriesId AND isDeleted = 0 ORDER BY episodeNumber ASC")
+    fun getSeriesImageGroups(seriesId: String): Flow<List<ImageGroupEntity>>
+
+    /** Groups cached as part of [seriesId] that the server no longer lists in it become standalone. */
+    @Query("UPDATE image_groups SET seriesId = NULL, episodeNumber = NULL WHERE seriesId = :seriesId AND id NOT IN (:keepIds)")
+    suspend fun leaveSeries(seriesId: String, keepIds: List<String>)
 
     @Query("DELETE FROM image_groups")
     suspend fun clearAll()
 
     @Query("DELETE FROM image_groups WHERE id = :groupId")
     suspend fun deleteById(groupId: String)
+
+    /** Which of [ids] are cached. */
+    @Query("SELECT id FROM image_groups WHERE id IN (:ids)")
+    suspend fun getCachedIds(ids: List<String>): List<String>
 
     @Query("DELETE FROM images WHERE group_id = :groupId")
     suspend fun deleteImagesByGroupId(groupId: String)
@@ -38,6 +50,10 @@ interface ImageDao {
 
     @Query("SELECT COUNT(*) FROM image_groups WHERE isDeleted = 0")
     suspend fun count(): Int
+
+    /** What the paged grid can show: groups outside any series. */
+    @Query("SELECT COUNT(*) FROM image_groups WHERE isDeleted = 0 AND seriesId IS NULL")
+    suspend fun countStandalone(): Int
 
     @Transaction
     @Query("SELECT * FROM image_groups WHERE id = :groupId AND isDeleted = 0")

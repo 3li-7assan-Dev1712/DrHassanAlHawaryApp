@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -11,27 +12,38 @@ import com.example.data_firebase.VideoFirestoreSource
 import com.example.data_local.VideoDao
 import com.example.domain.module.ContentCategory
 import com.example.domain.module.ContentType
-import com.example.domain.module.FixedCategories
 import com.example.domain.module.Video
+import com.example.domain.repository.CategoryRepository
 import com.example.domain.repository.VideosRepository
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class VideoRepositoryImpl @Inject constructor(
     private val videoFirestoreSource: VideoFirestoreSource,
     private val videoRemoteMediator: VideoRemoteMediator,
-    private val videoDao: VideoDao
+    private val videoDao: VideoDao,
+    private val categoryRepository: CategoryRepository,
 ) : VideosRepository {
 
-    override fun uploadVideo(title: String, youtubeUrl: String, categoryId: String): Flow<UploadResult> {
-        return videoFirestoreSource.uploadVideo(title, youtubeUrl, categoryId = categoryId)
+    override fun uploadVideo(
+        title: String,
+        youtubeUrl: String,
+        categoryId: String,
+        placement: SeriesPlacement?,
+    ): Flow<UploadResult> {
+        return videoFirestoreSource.uploadVideo(title, youtubeUrl, categoryId = categoryId, placement = placement)
     }
 
-    override fun updateVideo(id: String, title: String, youtubeUrl: String, categoryId: String): Flow<UploadResult> {
-        return videoFirestoreSource.updateVideo(id, title, youtubeUrl, categoryId = categoryId)
+    override fun updateVideo(
+        id: String,
+        title: String,
+        youtubeUrl: String,
+        categoryId: String,
+        placement: SeriesPlacement?,
+    ): Flow<UploadResult> {
+        return videoFirestoreSource.updateVideo(id, title, youtubeUrl, categoryId = categoryId, placement = placement)
     }
 
     override suspend fun deleteVideo(videoId: String): Result<Unit> {
@@ -42,8 +54,9 @@ class VideoRepositoryImpl @Inject constructor(
         return videoFirestoreSource.getVideoById(videoId)
     }
 
+    // Every document, not only the newest 100: the admin's list searches and filters all of them.
     override suspend fun getAllRemoteVideos(): List<Video> {
-        return videoFirestoreSource.fetchVideoPage(null, 100)
+        return videoFirestoreSource.fetchAllVideos()
             .filter { !it.isDeleted }
             .map {
                 it.toDomainModel()
@@ -51,7 +64,7 @@ class VideoRepositoryImpl @Inject constructor(
     }
 
     override fun getCategories(type: ContentType): Flow<List<ContentCategory>> {
-        return flowOf(FixedCategories.getCategories(type))
+        return categoryRepository.getCategories(type)
     }
 
     @OptIn(ExperimentalPagingApi::class)

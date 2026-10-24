@@ -1,5 +1,6 @@
 package app.netlify.devalihassan.admin.ui.upload_video_screen
 
+import app.netlify.devalihassan.admin.ui.components.SeriesPickerField
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -92,6 +93,8 @@ fun UploadVideoScreen(
                 onCategorySelected = viewModel::onCategoryChange,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            SeriesPickerField(controller = viewModel.seriesForm, categoryId = viewModel.categoryId)
 
             if (uploadState is UploadResult.Progress) {
                 CircularProgressIndicator()

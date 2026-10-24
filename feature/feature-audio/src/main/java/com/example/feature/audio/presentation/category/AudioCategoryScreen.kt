@@ -28,6 +28,7 @@ fun AudioCategoryScreen(
     viewModel: AudioCategoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val counts by viewModel.seriesCounts.collectAsStateWithLifecycle()
     val categories = remember(uiState.categories) {
         ContentCategories.resolve(listOf(ContentCategories.ALL_ID to "الكل") + uiState.categories.map { it.id to it.title })
     }
@@ -37,6 +38,7 @@ fun AudioCategoryScreen(
         categories = categories,
         onBack = onNavigateUp,
         onClick = { onCategoryClick(it.id, it.name) },
+        counts = counts,
     )
 }
 
@@ -51,6 +53,8 @@ fun AudioCategoriesAdaptiveContent(
     categories: List<CategoryDef>,
     onBack: () -> Unit,
     onClick: (CategoryDef) -> Unit,
+    // "١٢ سلسلة · ١٥٨ درسًا" under the categories with series.
+    counts: Map<String, String> = emptyMap(),
 ) {
     val list = @Composable {
         CategoryScreenContent(
@@ -60,6 +64,7 @@ fun AudioCategoriesAdaptiveContent(
             categories = categories,
             onBack = onBack,
             onClick = onClick,
+            counts = counts,
         )
     }
     if (layoutTokens.isExpanded) {
@@ -87,6 +92,11 @@ private fun AudioCategoriesPreview(darkTheme: Boolean) {
             categories = ContentCategories.all,
             onBack = {},
             onClick = {},
+            counts = mapOf(
+                ContentCategories.ALL_ID to "١٤ سلسلة · ٢٠٤ دروس",
+                "scientific_lessons" to "١٢ سلسلة · ١٥٨ درسًا",
+                "lectures" to "سلسلتان · ٤٦ درسًا",
+            ),
         )
     }
 }

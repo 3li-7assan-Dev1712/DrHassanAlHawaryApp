@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
@@ -52,12 +53,12 @@ class ArticlesRepositoryImpl
         }
     }
 
-    override suspend fun uploadArticle(article: Article) {
-        firebaseArticlesSource.uploadArticle(article)
+    override suspend fun uploadArticle(article: Article, placement: SeriesPlacement?) {
+        firebaseArticlesSource.uploadArticle(article, placement)
     }
 
-    override suspend fun updateArticle(article: Article) {
-        firebaseArticlesSource.updateArticle(article)
+    override suspend fun updateArticle(article: Article, placement: SeriesPlacement?) {
+        firebaseArticlesSource.updateArticle(article, placement)
     }
 
     override suspend fun getArticleById(articleId: String): Flow<Article?> {
@@ -77,9 +78,12 @@ class ArticlesRepositoryImpl
         firebaseArticlesSource.deleteArticle(articleId)
     }
 
+    // Every document, not only the newest 100: the admin's list searches and filters all of them.
     override suspend fun getAllRemoteArticles(): List<Article> {
-        val (list, _) = firebaseArticlesSource.getArticlesPage(null, 100)
-        return list.filter { !it.isDeleted }.map { it.toDomainModel() }
+        return firebaseArticlesSource.fetchAllArticles()
+            .filter { !it.isDeleted }
+            .map { it.toDomainModel() }
+            .sortedByDescending { it.publishDate }
     }
 
     override suspend fun getLatestArticlesFromDb(): Flow<List<Article>> {
@@ -136,7 +140,9 @@ class ArticlesRepositoryImpl
                             publishDate = article.publishDate.time,
                             updatedAt = article.updatedAt,
                             isDeleted = article.isDeleted,
-                            type = article.type
+                            type = article.type,
+                            seriesId = article.seriesId,
+                            episodeNumber = article.episodeNumber
                         )
                     }
                     articleDao.upsertAll(activeEntities)

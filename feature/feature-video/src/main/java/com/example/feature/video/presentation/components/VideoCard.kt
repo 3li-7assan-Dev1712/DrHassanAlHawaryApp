@@ -1,5 +1,7 @@
 package com.example.feature.video.presentation.components
 
+import com.example.domain.module.ContentType
+import com.example.core.ui.components.LocalCategoryCatalog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -36,7 +38,6 @@ import com.example.core.ui.components.shimmer
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.HassanAlHawaryTheme
-import com.example.domain.module.FixedCategories
 import com.example.domain.module.Video
 import com.example.domain.text.ArabicDates
 import java.util.Date
@@ -92,7 +93,7 @@ fun VideoCard(
                     )
                 }
 
-                val categoryTitle = FixedCategories.VIDEO_CATEGORIES.find { it.id == video.categoryId }?.title
+                val categoryTitle = LocalCategoryCatalog.current.title(ContentType.VIDEO, video.categoryId)
                 if (categoryTitle != null) {
                     Text(
                         text = categoryTitle,

@@ -10,6 +10,7 @@ import app.netlify.devalihassan.core.util.LocaleForce
 import com.example.data.di.ApplicationScope
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
+import com.example.domain.use_cases.SyncContentUseCase
 import com.example.domain.use_cases.study.GetStudentDataUseCase
 import com.example.feature.share.engine.ShareFileStore
 import com.example.study.domain.use_case.GetLevelsUseCase
@@ -20,6 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -60,6 +62,12 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
     @Inject
     lateinit var shareFileStore: ShareFileStore
 
+    @Inject
+    lateinit var syncContentUseCase: SyncContentUseCase
+
+
+    /** The foreground's sync collectors, replaced on the next onStart instead of piling up. */
+    private var foregroundJob: Job? = null
 
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LocaleForce.wrap(newBase))
@@ -77,9 +85,18 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
         Log.d(TAG, "onStart: start app")
-        appScope.launch {
+        // onStart runs on every return to the foreground: without the cancel each one added
+        // another set of these collectors and the syncs ran once per earlier visit.
+        foregroundJob?.cancel()
+        foregroundJob = appScope.launch {
             observeAuthStateUseCase().collectLatest { isLoggedIn ->
                 if (isLoggedIn) {
+                    // Series, and what changed in the cached content (e.g. items moved into a series).
+                    launch {
+                        runCatching { syncContentUseCase() }
+                            .onFailure { Log.e(TAG, "content sync failed", it) }
+                    }
+
                     launch {
                         getLevelsUseCase().collectLatest {
                             Log.d(TAG, "onStart: $it")

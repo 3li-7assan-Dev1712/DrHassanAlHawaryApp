@@ -11,6 +11,7 @@ import com.example.data_local.model.LessonEntity
 import com.example.data_local.model.LevelEntity
 import com.example.data_local.model.NotificationEntity
 import com.example.data_local.model.PlaylistEntity
+import com.example.data_local.model.SeriesEntity
 import com.example.data_local.model.StudentEntity
 import com.example.data_local.model.VideoEntity
 
@@ -26,9 +27,10 @@ import com.example.data_local.model.VideoEntity
         LevelEntity::class,
         LessonEntity::class,
         PlaylistEntity::class,
-        NotificationEntity::class],
+        NotificationEntity::class,
+        SeriesEntity::class],
 
-    version = 39,
+    version = 40,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -52,5 +54,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun levelDao(): LevelsDao
 
     abstract fun notificationDao(): NotificationDao
+
+    abstract fun seriesDao(): SeriesDao
 
 }

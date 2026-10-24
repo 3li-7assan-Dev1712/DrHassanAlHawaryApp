@@ -69,6 +69,9 @@ class AudioDetailViewModel @Inject constructor(
 
     var mediaControllerFuture: ListenableFuture<MediaController>? = null
         set(value) {
+            // The previous screen's controller stays bound to the service until released:
+            // without this every rotation leaked a ServiceConnection.
+            field?.takeIf { it !== value }?.let { MediaController.releaseFuture(it) }
             field = value
             value?.let {
                 listenToController(it)

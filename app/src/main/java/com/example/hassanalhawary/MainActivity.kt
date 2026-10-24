@@ -63,6 +63,7 @@ import com.example.core.ui.theme.SharedKeys
 import com.example.core.ui.theme.sharedContainer
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.CompositionLocalProvider
+import com.example.core.ui.components.LocalCategoryCatalog
 import androidx.compose.ui.graphics.RectangleShape
 import backgroundDark
 import backgroundLight
@@ -91,15 +92,21 @@ import com.example.feature.article.presentation.detail.ArticleReaderPane
 import com.example.feature.article.presentation.detail.ARTICLE_READER_PANE_KEY
 import com.example.feature.audio.presentation.detail.AudioPlayerPane
 import com.example.domain.module.SearchResultMetaData
+import com.example.domain.module.Series
+import com.example.domain.module.SeriesCollection
 import androidx.activity.compose.BackHandler
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import com.example.feature.article.presentation.list.ArticleListScreen
+import com.example.feature.article.presentation.series.ArticleSeriesScreen
 import com.example.feature.article.presentation.share.ArticleShareSelectionScreen
 import com.example.feature.audio.presentation.category.AudioCategoryScreen
 import com.example.feature.audio.presentation.detail.AudioDetailScreen
 import com.example.feature.audio.presentation.detail.AudioSelection
 import com.example.feature.audio.presentation.detail.AudioShareAction
 import com.example.feature.audio.presentation.list.AudioListScreen
+import com.example.feature.audio.presentation.series.AudioSeriesScreen
+import com.example.feature.image.presentation.series.DesignSeriesScreen
 import com.example.feature.auth.presentation.auth.AuthScreen
 import com.example.feature.home.presentation.HomeScreen
 import com.example.feature.home.presentation.notifications.NotificationsScreen
@@ -112,6 +119,7 @@ import com.example.feature.video.presentation.category.ALL_VIDEO_CATEGORIES_ID
 import com.example.feature.video.presentation.category.VideoCategoryScreen
 import com.example.feature.video.presentation.detail.VideoPlayerScreen
 import com.example.feature.video.presentation.list.VideosScreen
+import com.example.feature.video.presentation.series.VideoSeriesScreen
 import com.example.profile.presentation.about_app.AboutAppScreen
 import com.example.profile.presentation.components.LegalTextScreen
 import com.example.profile.presentation.components.ProfileRoute
@@ -190,6 +198,8 @@ class MainActivity : ComponentActivity() {
             val systemDark = isSystemInDarkTheme()
             val isDarkTheme = if (themeState.followSystem) systemDark else themeState.isDarkTheme
 
+            val categoryCatalog by mainActivityViewModel.categoryCatalog.collectAsState()
+            CompositionLocalProvider(LocalCategoryCatalog provides categoryCatalog) {
             HassanAlHawaryTheme(darkTheme = isDarkTheme, brandTheme = themeState.brandTheme) {
 
                 // Follow the app's own light/dark setting, not the phone's: the plain
@@ -298,6 +308,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+            }
         }
     }
 
@@ -377,6 +388,10 @@ class MainActivity : ComponentActivity() {
             navController.navigate(
                 "$route/$encodedUrl?title=$encodedTitle&category=$encodedCategory&localFilePath=$encodedLocalFilePath&startMs=$startMs&totalDurationMs=$totalDurationMs"
             )
+        }
+        // A series card above a list: the series' own screen.
+        val openSeries: (Series) -> Unit = { series ->
+            navController.navigate("${seriesRoute(series.collection)}/${Uri.encode(series.id)}")
         }
 
         // Medium and Expanded windows: a navigation rail instead of the bottom bar, on every
@@ -553,7 +568,13 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                            screen("articles_screen") { entry ->
+                            screen(
+                                // misc: «متفرقات», the articles outside any series (otherwise, with
+                                // article series, the screen shows their cards).
+                                route = "${Routes.ARTICLES_SCREEN}?misc={misc}",
+                                arguments = listOf(navArgument("misc") { type = NavType.BoolType; defaultValue = false }),
+                            ) { entry ->
+                                val misc = entry.arguments?.getBoolean("misc") ?: false
                                 // Expanded: the article chosen beside the list, kept in the entry so
                                 // it survives rotation and resizing. Once the window narrows to one
                                 // pane, a chosen article opens in the reader.
@@ -575,6 +596,36 @@ class MainActivity : ComponentActivity() {
                                     onNavigateToShareSelection = { articleId ->
                                         navController.navigate("${Routes.ARTICLE_SHARE_SELECTION_SCREEN}/${Uri.encode(articleId)}")
                                     },
+                                    selectedArticleId = selected,
+                                    onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                    showSeries = !misc,
+                                    onNavigateToSeries = openSeries,
+                                    onNavigateToMisc = { navController.navigate("${Routes.ARTICLES_SCREEN}?misc=true") },
+                                    title = if (misc) stringResource(com.example.core.ui.R.string.series_misc) else null,
+                                )
+                            }
+                            screen(
+                                route = "${Routes.ARTICLE_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                            ) { entry ->
+                                // As the articles: the article chosen beside the list (Expanded) is
+                                // kept in the entry; once the window narrows, it opens in the reader.
+                                val selected by entry.savedStateHandle
+                                    .getStateFlow<String?>(SELECTED_ARTICLE, null).collectAsState()
+                                val expanded = layoutTokens.isExpanded
+                                LaunchedEffect(expanded) {
+                                    val chosen = selected
+                                    if (!expanded && chosen != null) {
+                                        entry.savedStateHandle[SELECTED_ARTICLE] = null
+                                        navController.navigate("detail_article_screen/$chosen")
+                                    }
+                                }
+                                ArticleSeriesScreen(
+                                    onNavigateToArticleDetail = { articleId ->
+                                        navController.navigate("detail_article_screen/$articleId")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShareSelection = shareArticle,
                                     selectedArticleId = selected,
                                     onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
                                 )
@@ -603,6 +654,7 @@ class MainActivity : ComponentActivity() {
                                         onNavigateToShareSelection = onShare,
                                         selectedArticleId = selected,
                                         onSelectArticle = { entry.savedStateHandle[SELECTED_ARTICLE] = it },
+                                        showSeries = false,
                                     )
                                 } else {
                                     ArticleDetailScreen(
@@ -658,7 +710,9 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             screen(
-                                route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                                // misc: «متفرقات», the category's audios outside any series (otherwise,
+                                // when the category has series, the screen shows their cards).
+                                route = "${Routes.AUDIO_LIST_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}&misc={misc}",
                                 arguments = listOf(
                                     navArgument("categoryId") {
                                         type = NavType.StringType
@@ -667,9 +721,14 @@ class MainActivity : ComponentActivity() {
                                     navArgument("categoryTitle") {
                                         type = NavType.StringType
                                         nullable = true
+                                    },
+                                    navArgument("misc") {
+                                        type = NavType.BoolType
+                                        defaultValue = false
                                     }
                                 )
                             ) { entry ->
+                                val misc = entry.arguments?.getBoolean("misc") ?: false
                                 // Expanded: the audio chosen beside the list, kept in the entry so it
                                 // survives rotation and resizing (narrowed to one pane, it stays open
                                 // in the player here, see AudioListScreen).
@@ -681,6 +740,42 @@ class MainActivity : ComponentActivity() {
                                         val encodedUrl = Uri.encode(audioUrl)
                                         val encodedTitle = Uri.encode(title)
                                         navController.navigate("audio_detail_screen/$encodedTitle/$encodedUrl")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToShare = shareAudio,
+                                    selectedAudio = selectedUrl?.let { AudioSelection(selectedTitle, it) },
+                                    onSelectAudio = {
+                                        handle[SELECTED_AUDIO_TITLE] = it.title
+                                        handle[SELECTED_AUDIO_URL] = it.audioUrl
+                                    },
+                                    onClearSelection = { handle[SELECTED_AUDIO_URL] = null },
+                                    showSeries = !misc,
+                                    onNavigateToSeries = openSeries,
+                                    onNavigateToMisc = {
+                                        navController.navigate(
+                                            audioListRoute(
+                                                categoryId = entry.arguments?.getString("categoryId"),
+                                                categoryTitle = entry.arguments?.getString("categoryTitle"),
+                                                misc = true,
+                                            )
+                                        )
+                                    },
+                                    title = if (misc) stringResource(com.example.core.ui.R.string.series_misc) else null,
+                                )
+                            }
+
+                            screen(
+                                route = "${Routes.AUDIO_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                            ) { entry ->
+                                // As the audio list: the lesson chosen beside the list (Expanded) is
+                                // kept in the entry; narrowed to one pane it stays open in the player.
+                                val handle = entry.savedStateHandle
+                                val selectedUrl by handle.getStateFlow<String?>(SELECTED_AUDIO_URL, null).collectAsState()
+                                val selectedTitle by handle.getStateFlow(SELECTED_AUDIO_TITLE, "").collectAsState()
+                                AudioSeriesScreen(
+                                    onNavigateToAudioDetail = { title, audioUrl ->
+                                        navController.navigate("audio_detail_screen/${Uri.encode(title)}/${Uri.encode(audioUrl)}")
                                     },
                                     onNavigateBack = { navController.popBackStack() },
                                     onNavigateToShare = shareAudio,
@@ -723,6 +818,7 @@ class MainActivity : ComponentActivity() {
                                             handle[SELECTED_AUDIO_URL] = it.audioUrl
                                         },
                                         playerViewModelKey = null,
+                                        showSeries = false,
                                     )
                                 } else {
                                     AudioDetailScreen(
@@ -877,7 +973,22 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onImageClick = { groupId, index ->
                                         navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId?startIndex=$index")
-                                    }
+                                    },
+                                    onSeriesClick = openSeries,
+                                )
+                                }
+                            }
+                            screen(
+                                route = "${Routes.DESIGN_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                                mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
+                            ) {
+                                ProvideNavAnimatedScope(this) {
+                                DesignSeriesScreen(
+                                    onGroupClick = { groupId ->
+                                        navController.navigate("${Routes.IMAGE_DETAIL_SCREEN}/$groupId")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
                                 )
                                 }
                             }
@@ -919,7 +1030,9 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                             screen(
-                                route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}",
+                                // misc: «متفرقات», the category's videos outside any series (otherwise,
+                                // when the category has series, the screen shows their cards).
+                                route = "${Routes.VIDEOS_SCREEN}?categoryId={categoryId}&categoryTitle={categoryTitle}&misc={misc}",
                                 arguments = listOf(
                                     navArgument("categoryId") {
                                         type = NavType.StringType
@@ -928,10 +1041,15 @@ class MainActivity : ComponentActivity() {
                                     navArgument("categoryTitle") {
                                         type = NavType.StringType
                                         nullable = true
+                                    },
+                                    navArgument("misc") {
+                                        type = NavType.BoolType
+                                        defaultValue = false
                                     }
                                 ),
                                 mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin,
-                            ) {
+                            ) { entry ->
+                                val misc = entry.arguments?.getBoolean("misc") ?: false
 
                                 VideosScreen(
                                     onNavigateBack = {
@@ -940,7 +1058,31 @@ class MainActivity : ComponentActivity() {
                                         val encodedUrl = Uri.encode(videoUrl)
                                         val encodedTitle = Uri.encode(videoTitle)
                                         navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/$encodedUrl/$encodedTitle")
-                                    }
+                                    },
+                                    onSeriesClick = openSeries,
+                                    showSeries = !misc,
+                                    // The category shown: on a tablet the pills may have changed it.
+                                    onNavigateToMisc = { categoryId ->
+                                        navController.navigate(
+                                            videosRoute(
+                                                categoryId = categoryId,
+                                                categoryTitle = entry.arguments?.getString("categoryTitle"),
+                                                misc = true,
+                                            )
+                                        )
+                                    },
+                                    title = if (misc) stringResource(com.example.core.ui.R.string.series_misc) else null,
+                                )
+                            }
+                            screen(
+                                route = "${Routes.VIDEO_SERIES_SCREEN}/{seriesId}",
+                                arguments = listOf(navArgument("seriesId") { type = NavType.StringType }),
+                            ) {
+                                VideoSeriesScreen(
+                                    onNavigateToVideo = { videoUrl, videoTitle ->
+                                        navController.navigate("${Routes.VIDEO_PLAYER_SCREEN}/${Uri.encode(videoUrl)}/${Uri.encode(videoTitle)}")
+                                    },
+                                    onNavigateBack = { navController.popBackStack() },
                                 )
                             }
                             screen(
@@ -1134,4 +1276,32 @@ private fun NavGraphBuilder.screen(
     val scope = this
     val margin = mediumMargin.takeIf { layoutTokens.windowClass == WindowClass.Medium }
     WindowMargin(margin = margin) { scope.content(entry) }
+}
+
+/** The audio list of a category (all audios for a null [categoryId]); [misc]: its «متفرقات». */
+private fun audioListRoute(categoryId: String?, categoryTitle: String?, misc: Boolean): String {
+    val args = listOfNotNull(
+        categoryId?.let { "categoryId=${Uri.encode(it)}" },
+        categoryTitle?.let { "categoryTitle=${Uri.encode(it)}" },
+        "misc=$misc",
+    )
+    return "${Routes.AUDIO_LIST_SCREEN}?${args.joinToString("&")}"
+}
+
+/** The videos of a category (all of them for a null [categoryId]); [misc]: its «متفرقات». */
+private fun videosRoute(categoryId: String?, categoryTitle: String?, misc: Boolean): String {
+    val args = listOfNotNull(
+        categoryId?.let { "categoryId=${Uri.encode(it)}" },
+        categoryTitle?.let { "categoryTitle=${Uri.encode(it)}" },
+        "misc=$misc",
+    )
+    return "${Routes.VIDEOS_SCREEN}?${args.joinToString("&")}"
+}
+
+/** A series' screen, by the collection it groups. */
+private fun seriesRoute(collection: SeriesCollection): String = when (collection) {
+    SeriesCollection.AUDIOS -> Routes.AUDIO_SERIES_SCREEN
+    SeriesCollection.ARTICLES -> Routes.ARTICLE_SERIES_SCREEN
+    SeriesCollection.IMAGE_GROUPS -> Routes.DESIGN_SERIES_SCREEN
+    SeriesCollection.VIDEOS -> Routes.VIDEO_SERIES_SCREEN
 }

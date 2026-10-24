@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.data_firebase.model.ImageDto
@@ -60,7 +61,9 @@ class ImageFirestoreSource @Inject constructor(
                     previewImageUrl = this.getString("previewImageUrl") ?: "",
                     publishDate = publishDate,
                     updatedAt = updatedAt,
-                    type = this.getString("type") ?: ""
+                    type = this.getString("type") ?: "",
+                    seriesId = this.getString("seriesId"),
+                    episodeNumber = this.getLong("episodeNumber")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for image group ${this.id}", ex)
@@ -103,7 +106,9 @@ class ImageFirestoreSource @Inject constructor(
                     publishDate = it.publishDate?.toDate() ?: Date(),
                     previewImageUrl = it.previewImageUrl,
                     isDeleted = it.isDeleted,
-                    type = it.type
+                    type = it.type,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
         } catch (e: Exception) {
@@ -112,7 +117,7 @@ class ImageFirestoreSource @Inject constructor(
         }
     }
 
-    fun uploadImageGroup(title: String, imageUris: List<String>): Flow<UploadResult> =
+    fun uploadImageGroup(title: String, imageUris: List<String>, placement: SeriesPlacement? = null): Flow<UploadResult> =
         callbackFlow {
             if (imageUris.isEmpty()) {
                 trySend(UploadResult.Error("No images to upload."))
@@ -148,7 +153,7 @@ class ImageFirestoreSource @Inject constructor(
                         "images" to uploadedImageUrls.mapIndexed { index, url ->
                             mapOf("imageUrl" to url, "orderIndex" to index)
                         }
-                    )
+                    ) + placement.toNewItemFields()
 
                     val payload = hashMapOf(
                         "collectionName" to "image_groups",
@@ -228,24 +233,26 @@ class ImageFirestoreSource @Inject constructor(
 
             val snapshot = query.get().await()
 
-            val imageGroups = snapshot.documents.mapNotNull { document ->
-                val dto = document.toImageGroupDtoSafe()
-                dto?.let {
-                    ImageGroup(
-                        id = document.id,
-                        title = it.title,
-                        publishDate = it.publishDate?.toDate() ?: Date(),
-                        previewImageUrl = it.previewImageUrl,
-                        isDeleted = it.isDeleted,
-                        type = it.type
-                    )
-                }
-            }
+            val imageGroups = snapshot.documents.mapNotNull { it.toImageGroupSafe() }
             val endOfPaginationReached = imageGroups.size < limit
             Pair(imageGroups, endOfPaginationReached)
         } catch (e: Exception) {
             Log.e(TAG, "fetchImageGroupsPage failed: ${e.message}")
             Pair(emptyList(), true) // On error, return empty list and signal end of page
+        }
+    }
+
+    /**
+     * Every image group of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesImageGroups(seriesId: String): List<ImageGroupDto>? {
+        return try {
+            val snapshot = imagesGroupCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toImageGroupDtoSafe() }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchSeriesImageGroups failed: ${e.message}")
+            null
         }
     }
 
@@ -259,6 +266,27 @@ class ImageFirestoreSource @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "getUpdatedImageGroups failed: ${e.message}")
             emptyList()
+        }
+    }
+
+    /** Moves a design group into a series, or out of one (the admin list's series dialog). */
+    suspend fun updateImageGroupSeries(groupId: String, placement: SeriesPlacement): Result<Unit> {
+        return try {
+            val payload = hashMapOf(
+                "collectionName" to "image_groups",
+                "documentId" to groupId,
+                "updates" to placement.toFirestoreFields()
+            )
+
+            firebaseFunctions
+                .getHttpsCallable("updateContent")
+                .call(payload)
+                .await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "updateImageGroupSeries failed", e)
+            Result.failure(e)
         }
     }
 
@@ -303,5 +331,26 @@ class ImageFirestoreSource @Inject constructor(
                 }
             awaitClose { listenerRegistration.remove() }
         }
+    }
+
+    /**
+     * Every document of the collection, deleted ones included, for the admin's lists: one
+     * unordered read, so documents with a wrongly typed publishDate can't upset paging.
+     * Throws on failure, so the admin sees the error instead of a short list.
+     */
+    suspend fun fetchAllImageGroups(): List<ImageGroup> =
+        imagesGroupCollection.get().await().documents.mapNotNull { it.toImageGroupSafe() }
+
+    private fun DocumentSnapshot.toImageGroupSafe(): ImageGroup? = toImageGroupDtoSafe()?.let {
+        ImageGroup(
+            id = id,
+            title = it.title,
+            publishDate = it.publishDate?.toDate() ?: Date(),
+            previewImageUrl = it.previewImageUrl,
+            isDeleted = it.isDeleted,
+            type = it.type,
+            seriesId = it.seriesId,
+            episodeNumber = it.episodeNumber
+        )
     }
 }

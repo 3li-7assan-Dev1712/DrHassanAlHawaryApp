@@ -199,4 +199,65 @@
     <string name="final_exam">نهائي</string>
     <string name="no_images_found">لا توجد تصاميم متاحة الآن</string>
     <string name="category">التصنيف</string>
+
+    <!-- Series -->
+    <string name="series">السلاسل</string>
+    <string name="manage_series">إدارة السلاسل</string>
+    <string name="new_series">سلسلة جديدة</string>
+    <string name="edit_series">تعديل السلسلة</string>
+    <string name="delete_series">حذف السلسلة</string>
+    <string name="delete_series_confirm">حذف «%1$s»؟</string>
+    <string name="series_delete_not_empty">لا تُحذف سلسلة فيها عناصر: انقل عناصرها إلى سلسلة أخرى أو اجعلها منفردة أولًا</string>
+    <string name="series_title">عنوان السلسلة</string>
+    <string name="series_hashtag">الوسم</string>
+    <string name="series_hashtag_hint">يُنشأ من العنوان، ويمكن تعديله</string>
+    <string name="series_no_category">بلا تصنيف</string>
+    <string name="series_empty_admin">لا عناصر بعد</string>
+    <string name="no_series">لا توجد سلاسل بعد</string>
+    <string name="move_up">تحريك لأعلى</string>
+    <string name="move_down">تحريك لأسفل</string>
+    <string name="series_saved">تم الحفظ</string>
+    <string name="series_save_failed">تعذّر الحفظ، حاول مرة أخرى</string>
+    <string name="series_label">السلسلة</string>
+    <string name="series_none">بدون سلسلة</string>
+    <string name="episode_number">رقم الحلقة</string>
+    <string name="episode_number_required">اكتب رقم الحلقة: ١ فأكثر</string>
+    <string name="design_series">سلسلة التصميم</string>
+    <string name="series_episode_label">%1$s · الحلقة %2$s</string>
+    <!-- Categories (الأقسام) -->
+    <string name="categories">الأقسام</string>
+    <string name="categories_audio">الصوتيات</string>
+    <string name="categories_video">المرئيات</string>
+    <string name="new_category">قسم جديد</string>
+    <string name="edit_category">تعديل القسم</string>
+    <string name="delete_category">حذف القسم</string>
+    <string name="delete_category_confirm">حذف قسم «%1$s»؟</string>
+    <string name="category_title">اسم القسم</string>
+    <string name="category_description">وصف قصير (اختياري)</string>
+    <string name="category_in_use">لا يُحذف قسم فيه عناصر: انقلها إلى قسم آخر أولًا</string>
+    <string name="category_last">يبقى قسم واحد على الأقل</string>
+    <string name="category_item_count">%1$s عنصر</string>
+    <string name="category_series_count">%1$s سلسلة</string>
+    <string name="categories_built_in_note">هذه الأقسام المدمجة في التطبيق. أول تعديل يحفظها في قاعدة البيانات لتصبح قابلة للتعديل.</string>
+    <string name="uncategorized_items">بدون قسم: %1$s</string>
+
+    <!-- Finding and changing items -->
+    <string name="search_by_title">ابحث بالعنوان</string>
+    <string name="filter_all">الكل</string>
+    <string name="filter_no_category">بدون قسم</string>
+    <string name="filter_all_series">كل السلاسل</string>
+    <string name="filter_no_series">بدون سلسلة</string>
+    <string name="filter_missing_series">في سلسلة محذوفة</string>
+    <string name="shown_of_total">%1$s من %2$s</string>
+    <string name="no_matching_items">لا عناصر بهذا البحث</string>
+    <string name="selected_count">%1$s محدد</string>
+    <string name="select_all_shown">تحديد الكل</string>
+    <string name="cancel_selection">إلغاء التحديد</string>
+    <string name="move_to_category">نقل إلى قسم</string>
+    <string name="add_to_series">إضافة إلى سلسلة</string>
+    <string name="remove_from_series">إخراج من السلسلة</string>
+    <string name="move_to_category_note">العنصر الذي في سلسلة من قسم آخر يخرج من سلسلته.</string>
+    <string name="add_to_series_note">تُضاف في آخر السلسلة، الأقدم أولًا، وتنتقل إلى قسم السلسلة.</string>
+    <string name="episode_short">الحلقة %1$s</string>
+    <string name="changes_saved">تم الحفظ</string>
 </resources>

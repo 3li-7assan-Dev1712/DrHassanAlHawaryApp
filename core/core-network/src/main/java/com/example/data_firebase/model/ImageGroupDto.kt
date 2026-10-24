@@ -18,5 +18,9 @@ data class ImageGroupDto(
     val previewImageUrl: String = "",
     val publishDate: Timestamp? = null,
     val updatedAt: Timestamp? = null,
-    val type: String = ""
+    val type: String = "",
+    /** The series this item belongs to (null: a standalone item). */
+    val seriesId: String? = null,
+    /** 1-based position inside [seriesId]. */
+    val episodeNumber: Long? = null
 )

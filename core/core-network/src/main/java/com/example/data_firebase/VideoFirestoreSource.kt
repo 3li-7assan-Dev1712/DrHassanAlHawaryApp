@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import com.example.data_firebase.model.VideoDto
 import com.example.domain.module.Video
@@ -57,7 +58,9 @@ class VideoFirestoreSource @Inject constructor(
                     publishDate = publishDate,
                     updatedAt = updatedAt,
                     type = this.getString("type") ?: "",
-                    categoryId = this.getString("categoryId")
+                    categoryId = this.getString("categoryId"),
+                    seriesId = this.getString("seriesId"),
+                    episodeNumber = this.getLong("episodeNumber")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -92,6 +95,20 @@ class VideoFirestoreSource @Inject constructor(
         }
     }
 
+    /**
+     * Every video of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesVideos(seriesId: String): List<VideoDto>? {
+        return try {
+            val snapshot = videosCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toVideoDtoSafe() }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchSeriesVideos failed: ${e.message}")
+            null
+        }
+    }
+
     suspend fun getUpdatedVideos(lastSyncTime: Long): List<VideoDto> {
         return try {
             val snapshot = videosCollection
@@ -117,7 +134,9 @@ class VideoFirestoreSource @Inject constructor(
                     publishDate = it.publishDate?.toDate() ?: Date(),
                     youtubeVideoId = it.videoYoutubeId,
                     type = it.type,
-                    categoryId = it.categoryId
+                    categoryId = it.categoryId,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
         } catch (e: Exception) {
@@ -131,6 +150,7 @@ class VideoFirestoreSource @Inject constructor(
         videoUrl: String,
         categoryId: String,
         publishDate: Long = System.currentTimeMillis(),
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -149,7 +169,7 @@ class VideoFirestoreSource @Inject constructor(
                     "videoYoutubeId" to youtubeId,
                     "publishDate" to publishDateIso,
                     "categoryId" to categoryId,
-                )
+                ) + placement.toNewItemFields()
 
                 val payload = hashMapOf(
                     "collectionName" to "videos",
@@ -177,6 +197,8 @@ class VideoFirestoreSource @Inject constructor(
         title: String,
         videoUrl: String,
         categoryId: String,
+        // Null leaves the video's series as it is.
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -188,12 +210,13 @@ class VideoFirestoreSource @Inject constructor(
 
         launch {
             try {
-                val updates = mutableMapOf<String, Any>(
+                val updates = mutableMapOf<String, Any?>(
                     "title" to title,
                     "videoUrl" to videoUrl,
                     "videoYoutubeId" to youtubeId,
                     "categoryId" to categoryId
                 )
+                placement?.let { updates.putAll(it.toFirestoreFields()) }
 
                 val payload = hashMapOf(
                     "collectionName" to "videos",
@@ -264,4 +287,12 @@ class VideoFirestoreSource @Inject constructor(
             awaitClose { listenerRegistration.remove() }
         }
     }
+
+    /**
+     * Every document of the collection, deleted ones included, for the admin's lists: one
+     * unordered read, so documents with a wrongly typed publishDate can't upset paging.
+     * Throws on failure, so the admin sees the error instead of a short list.
+     */
+    suspend fun fetchAllVideos(): List<VideoDto> =
+        videosCollection.get().await().documents.mapNotNull { it.toVideoDtoSafe() }
 }

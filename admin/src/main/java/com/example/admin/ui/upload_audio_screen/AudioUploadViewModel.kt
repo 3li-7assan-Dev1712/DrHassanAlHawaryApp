@@ -1,5 +1,9 @@
 package app.netlify.devalihassan.admin.ui.upload_audio_screen
 
+import com.example.domain.use_cases.series.SyncSeriesUseCase
+import com.example.domain.use_cases.series.GetSeriesUseCase
+import com.example.domain.module.SeriesCollection
+import app.netlify.devalihassan.admin.ui.components.SeriesFormController
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -39,11 +43,16 @@ class AudioUploadViewModel @Inject constructor(
     private val updateAudioUseCase: UpdateAudioUseCase,
     private val getAudioByIdUseCase: GetAudioByIdUseCase,
     @ApplicationContext private val context: Context,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    getSeriesUseCase: GetSeriesUseCase,
+    syncSeriesUseCase: SyncSeriesUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AudioUploadUiState())
     val uiState = _uiState.asStateFlow()
+
+    /** The series the audio goes in, and its episode number. */
+    val seriesForm = SeriesFormController(viewModelScope, getSeriesUseCase, syncSeriesUseCase, SeriesCollection.AUDIOS)
 
     private val audioId: String? = savedStateHandle["audioId"]
 
@@ -68,6 +77,7 @@ class AudioUploadViewModel @Inject constructor(
                         isLoading = false
                     )
                 }
+                seriesForm.load(audio.seriesId, audio.episodeNumber)
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "Failed to load audio data") }
             }
@@ -80,6 +90,7 @@ class AudioUploadViewModel @Inject constructor(
 
     fun onCategoryChange(newCategoryId: String) {
         _uiState.update { it.copy(categoryId = newCategoryId) }
+        seriesForm.onCategoryChange(newCategoryId)
     }
 
     fun onAudioSelected(uri: Uri) {
@@ -109,6 +120,12 @@ class AudioUploadViewModel @Inject constructor(
             return
         }
 
+        val series = seriesForm.state.value
+        if (!series.isValid) {
+            _uiState.update { it.copy(error = "Please enter the episode number (1 or more)") }
+            return
+        }
+
         viewModelScope.launch {
             // Show the spinner now: a metadata-only update never reports progress.
             _uiState.update { it.copy(error = null, isUploading = true, progress = 0) }
@@ -121,7 +138,8 @@ class AudioUploadViewModel @Inject constructor(
                     title = currentState.title,
                     uriString = currentState.selectedUri.toString(),
                     durationInMillis = duration,
-                    type = currentState.categoryId
+                    type = currentState.categoryId,
+                    placement = series.placement,
                 )
             } else {
                 updateAudioUseCase(
@@ -130,7 +148,8 @@ class AudioUploadViewModel @Inject constructor(
                     newUriString = currentState.selectedUri?.toString(),
                     existingUrl = currentState.existingUrl ?: "",
                     durationInMillis = duration,
-                    type = currentState.categoryId
+                    type = currentState.categoryId,
+                    placement = series.changedPlacement,
                 )
             }
 
@@ -164,5 +183,6 @@ class AudioUploadViewModel @Inject constructor(
 
     fun resetState() {
         _uiState.value = AudioUploadUiState()
+        seriesForm.reset()
     }
 }

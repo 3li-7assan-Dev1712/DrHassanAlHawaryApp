@@ -217,4 +217,21 @@
     <string name="empty_detail_audio_subtitle">ستظهر هنا الدروس والخطب والفتاوى</string>
     <string name="empty_detail_search_title">اختر نتيجة لعرضها</string>
     <string name="empty_detail_search_subtitle">ابحث في المقالات والصوتيات والفتاوى والمرئيات</string>
+    <!-- A series screen whose items the server returned none of. -->
+    <string name="series_empty">لا يوجد محتوى في هذه السلسلة بعد</string>
+    <!-- The card, and the screen it opens, for the items outside any series. -->
+    <string name="series_misc">متفرقات</string>
+    <string name="series_misc_subtitle">كل ما ليس في سلسلة</string>
+    <!-- A series' screen (audio or video): opens its first lesson. -->
+    <string name="series_play_from_start">تشغيل من البداية</string>
+    <!-- Saves every lesson of the series on the device, one after another. -->
+    <string name="series_download">تحميل السلسلة</string>
+    <string name="series_download_cancel">إلغاء تحميل السلسلة</string>
+    <string name="series_downloaded">السلسلة محفوظة على الجهاز</string>
+    <!-- Above the lessons: "الدروس · ٥٩". -->
+    <string name="series_lessons_count">الدروس · %1$s</string>
+    <!-- Shared as text: the series' title, "٥٩ درسًا · ٢٩ ساعة", then the store link. -->
+    <string name="series_share_text">سلسلة «%1$s» (%2$s)\nاستمع إليها في تطبيق الشيخ د. حسن الهواري:\n%3$s</string>
+    <!-- The same for a video series ("٢٨ درسًا"). -->
+    <string name="series_share_text_video">سلسلة «%1$s» (%2$s)\nشاهدها في تطبيق الشيخ د. حسن الهواري:\n%3$s</string>
 </resources>

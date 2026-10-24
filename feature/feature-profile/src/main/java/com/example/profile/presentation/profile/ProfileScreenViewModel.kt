@@ -7,6 +7,7 @@ import com.example.domain.use_cases.DeleteAccountUseCase
 import com.example.domain.use_cases.study.DeleteStudentDataUseCase
 import com.example.profile.domain.use_case.GetUserDataUseCase
 import com.example.profile.domain.use_case.SignOutUseCase
+import com.example.profile.presentation.about_app.AppInfoProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +25,7 @@ class ProfileScreenViewModel @Inject constructor(
     private val deleteAccountUseCase: DeleteAccountUseCase,
     private val deleteStudentDataUseCase: DeleteStudentDataUseCase,
     private val dataStoreRepository: DataStoreRepository,
+    appInfoProvider: AppInfoProvider,
 ) : ViewModel() {
 
     /** The article reader's text-size step (shared preference, 0..3; 1 = original). */
@@ -37,8 +39,9 @@ class ProfileScreenViewModel @Inject constructor(
     private val _state: MutableStateFlow<ProfileUiState> = MutableStateFlow(
         ProfileUiState(
             userData = null,
-            currentAppVersion = "1.0.8",
-            )
+            // The installed version, the same one the About screen shows.
+            currentAppVersion = appInfoProvider.getAppInfo().versionName,
+        )
     )
 
 

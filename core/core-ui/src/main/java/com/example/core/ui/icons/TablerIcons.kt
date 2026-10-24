@@ -80,6 +80,22 @@ object TablerIcons {
     @DrawableRes val QrCode = R.drawable.ic_tabler_qrcode
     @DrawableRes val Music = R.drawable.ic_tabler_music
     @DrawableRes val Mail = R.drawable.ic_tabler_mail
+    /** A series (an ordered course or collection). */
+    @DrawableRes val Stack2 = R.drawable.ic_tabler_stack_2
+    /** «متفرقات»: what is outside any series. */
+    @DrawableRes val Category = R.drawable.ic_tabler_category
+    // A series' icon by its subject (see SeriesIcons).
+    @DrawableRes val Book2 = R.drawable.ic_tabler_book_2
+    @DrawableRes val Feather = R.drawable.ic_tabler_feather
+    @DrawableRes val Quote = R.drawable.ic_tabler_quote
+    @DrawableRes val Scale = R.drawable.ic_tabler_scale
+    @DrawableRes val MoonStars = R.drawable.ic_tabler_moon_stars
+    @DrawableRes val HomeHeart = R.drawable.ic_tabler_home_heart
+    @DrawableRes val Hourglass = R.drawable.ic_tabler_hourglass
+    /** Not in Tabler: drawn in its style for Hajj and Umrah. */
+    @DrawableRes val Kaaba = R.drawable.ic_tabler_kaaba
+    /** Not in Tabler: drawn in its style for marriage. */
+    @DrawableRes val Rings = R.drawable.ic_tabler_rings
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
@@ -96,6 +112,9 @@ object TablerIcons {
         "rotate" to Rotate, "rotate-clockwise" to RotateClockwise, "messages" to Messages, "books" to Books,
         "building-mosque" to BuildingMosque, "microphone" to Microphone, "book" to Book,
         "layout-grid" to LayoutGrid, "copy" to Copy, "qrcode" to QrCode, "music" to Music, "mail" to Mail,
+        "stack-2" to Stack2, "category" to Category,
+        "book-2" to Book2, "feather" to Feather, "quote" to Quote, "scale" to Scale, "moon-stars" to MoonStars,
+        "home-heart" to HomeHeart, "hourglass" to Hourglass, "kaaba" to Kaaba, "rings" to Rings,
     )
 }
 

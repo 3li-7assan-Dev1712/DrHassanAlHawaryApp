@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,13 +54,13 @@ object ContentCategories {
     )
 
     /**
-     * [items] (id to title, as loaded) mapped onto the shared definition and sorted by its
-     * order. A category the definition doesn't know goes at the end with a generic icon
-     * and its own title.
+     * [items] (id to title, as loaded, in the admin's order) with their icons: the shared
+     * definition's for the built-in ids, a generic one for a category the admin added. The
+     * loaded title wins, so a renamed category shows its new name.
      */
     fun resolve(items: List<Pair<String, String>>): List<CategoryDef> = items.mapIndexed { index, (id, title) ->
-        all.find { it.id == id } ?: CategoryDef(id, title, TablerIcons.Music, 100 + index)
-    }.sortedBy { it.order }
+        all.find { it.id == id }?.copy(name = title, order = index) ?: CategoryDef(id, title, TablerIcons.Category, index)
+    }
 }
 
 /**
@@ -87,7 +86,7 @@ fun CategoryList(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onClick(category) }
+                        .rowClickable(onClick = { onClick(category) })
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -132,7 +131,8 @@ fun CategoryList(
 
 /**
  * The whole category screen (audio and video share it): start-aligned [title] with a
- * back arrow on the app background, then the [CategoryList] - or a spinner / the error.
+ * back arrow on the app background, then the [CategoryList] (with [counts] under the names
+ * that have one) - or a spinner / the error.
  */
 @Composable
 fun CategoryScreenContent(
@@ -142,6 +142,7 @@ fun CategoryScreenContent(
     categories: List<CategoryDef>,
     onBack: () -> Unit,
     onClick: (CategoryDef) -> Unit,
+    counts: Map<String, String> = emptyMap(),
 ) {
     val colors = Brand.colors
     androidx.compose.material3.Scaffold(
@@ -180,6 +181,7 @@ fun CategoryScreenContent(
                         categories = categories,
                         onClick = onClick,
                         modifier = Modifier.padding(16.dp),
+                        counts = counts,
                     )
                 }
             }

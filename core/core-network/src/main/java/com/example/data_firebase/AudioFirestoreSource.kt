@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.data_firebase.model.AudioDto
@@ -61,7 +62,9 @@ class AudioFirestoreSource @Inject constructor(
                     publishDate = publishDate,
                     updatedAt = updatedAt,
                     type = this.getString("type") ?: "",
-                    categoryId = this.getString("categoryId")
+                    categoryId = this.getString("categoryId"),
+                    seriesId = this.getString("seriesId"),
+                    episodeNumber = this.getLong("episodeNumber")
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
@@ -101,6 +104,20 @@ class AudioFirestoreSource @Inject constructor(
         }
     }
 
+    /**
+     * Every audio of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesAudios(seriesId: String): List<AudioDto>? {
+        return try {
+            val snapshot = audiosCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toAudioDtoSafe() }
+        } catch (e: Exception) {
+            Log.e(TAG, "fetchSeriesAudios failed: ${e.message}")
+            null
+        }
+    }
+
     suspend fun getUpdatedAudios(lastSyncTime: Long): List<AudioDto> {
         return try {
             val snapshot = audiosCollection
@@ -133,7 +150,9 @@ class AudioFirestoreSource @Inject constructor(
                     lastPlayedTimestamp = null,
                     isPlaying = false,
                     localFilePath = null,
-                    type = it.type
+                    type = it.type,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
         } catch (e: Exception) {
@@ -149,7 +168,8 @@ class AudioFirestoreSource @Inject constructor(
         title: String,
         uriString: String,
         durationInMillis: Long,
-        type: String = ""
+        type: String = "",
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> = callbackFlow {
         trySend(UploadResult.Progress(0))
 
@@ -174,7 +194,7 @@ class AudioFirestoreSource @Inject constructor(
                         "durationInMillis" to durationInMillis,
                         "publishDate" to publishDateIso,
                         "categoryId" to type
-                    )
+                    ) + placement.toNewItemFields()
 
                     val payload = hashMapOf(
                         "collectionName" to "audios",
@@ -208,16 +228,19 @@ class AudioFirestoreSource @Inject constructor(
         newUriString: String?,
         existingUrl: String,
         durationInMillis: Long,
-        type: String? = null
+        type: String? = null,
+        // Null leaves the audio's series as it is.
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> = callbackFlow {
         if (newUriString == null) {
             // Only update metadata
             launch {
                 try {
-                    val updates = hashMapOf<String, Any>("title" to title)
+                    val updates = hashMapOf<String, Any?>("title" to title)
                     // The file is unchanged, so only a known duration may overwrite the stored one.
                     if (durationInMillis > 0) updates["durationInMillis"] = durationInMillis
                     type?.let { updates["categoryId"] = it }
+                    placement?.let { updates.putAll(it.toFirestoreFields()) }
 
                     val payload = hashMapOf(
                         "collectionName" to "audios",
@@ -254,12 +277,13 @@ class AudioFirestoreSource @Inject constructor(
                 launch {
                     try {
                         val downloadUri = taskSnapshot.storage.downloadUrl.await()
-                        val updates = hashMapOf<String, Any>(
+                        val updates = hashMapOf<String, Any?>(
                             "title" to title,
                             "audioUrl" to downloadUri.toString(),
                         )
                         if (durationInMillis > 0) updates["durationInMillis"] = durationInMillis
                         type?.let { updates["categoryId"] = it }
+                        placement?.let { updates.putAll(it.toFirestoreFields()) }
 
                         val payload = hashMapOf(
                             "collectionName" to "audios",
@@ -334,4 +358,12 @@ class AudioFirestoreSource @Inject constructor(
             awaitClose { listenerRegistration.remove() }
         }
     }
+
+    /**
+     * Every document of the collection, deleted ones included, for the admin's lists: one
+     * unordered read, so documents with a wrongly typed publishDate can't upset paging.
+     * Throws on failure, so the admin sees the error instead of a short list.
+     */
+    suspend fun fetchAllAudios(): List<AudioDto> =
+        audiosCollection.get().await().documents.mapNotNull { it.toAudioDtoSafe() }
 }

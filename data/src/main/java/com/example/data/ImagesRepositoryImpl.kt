@@ -1,5 +1,6 @@
 package com.example.data
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import android.util.Log.e
 import androidx.paging.ExperimentalPagingApi
@@ -36,16 +37,22 @@ class ImagesRepositoryImpl @Inject constructor(
     override suspend fun uploadDesignGroup(
         title: String,
         imageUris: List<String>,
+        placement: SeriesPlacement?,
     ): Flow<UploadResult> {
-        return imageFirestoreSource.uploadImageGroup(title, imageUris)
+        return imageFirestoreSource.uploadImageGroup(title, imageUris, placement)
+    }
+
+    override suspend fun updateImageGroupSeries(groupId: String, placement: SeriesPlacement): Result<Unit> {
+        return imageFirestoreSource.updateImageGroupSeries(groupId, placement)
     }
 
     override suspend fun getAllRemoteImageGroups(): List<ImageGroup> {
         // fetchImageGroupsPage now returns DTOs via toImageGroupDtoSafe
         // We filter out deleted items and map to domain
-        return imageFirestoreSource.fetchImageGroupsPage(null, 100).first
+        // Every document, not only the newest 100: the admin's list searches and filters all of them.
+        return imageFirestoreSource.fetchAllImageGroups()
             .filter { !it.isDeleted }
-            .map { it }
+            .sortedByDescending { it.publishDate }
     }
 
     override suspend fun deleteImageGroup(groupId: String): Result<Unit> {
@@ -81,7 +88,9 @@ class ImagesRepositoryImpl @Inject constructor(
                     id = it.id,
                     title = it.title,
                     publishDate = Date(it.publishDate),
-                    previewImageUrl = it.previewImageUrl
+                    previewImageUrl = it.previewImageUrl,
+                    seriesId = it.seriesId,
+                    episodeNumber = it.episodeNumber
                 )
             }
 

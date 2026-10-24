@@ -23,5 +23,9 @@ data class AudioEntity(
     val isDeleted: Boolean = false,
     val type: String = "",
     val categoryId: String? = null,
+    /** The series this item belongs to (null: a standalone item). */
+    val seriesId: String? = null,
+    /** 1-based position inside [seriesId]. */
+    val episodeNumber: Long? = null,
 )
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.SystemClock
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +34,7 @@ import com.example.feature.share.engine.WaveformAnalyzer
 import com.example.feature.share.engine.WaveformOverlay
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -62,6 +64,21 @@ class SharePreviewViewModel @Inject constructor(
     private val getAudioByUrlUseCase: GetAudioByUrlUseCase,
     private val downloadAudioUseCase: DownloadAudioUseCase,
 ) : ViewModel() {
+
+    /**
+     * Whatever the card render, the waveform analysis or the encoder throws (no memory for
+     * the card, a codec or GPU the device lacks) ends the export with the error message and
+     * its retry, instead of escaping viewModelScope and closing the app.
+     */
+    private val exportFailureHandler = CoroutineExceptionHandler { _, error ->
+        Log.e(TAG, "share export failed", error)
+        _uiState.update {
+            it.copy(
+                exportState = ShareExportState.Failed(error.message ?: error.javaClass.simpleName),
+                errorMessage = context.getString(R.string.share_error_generic),
+            )
+        }
+    }
 
     /** Identifies this share session's temp files - stable across rotation since the ViewModel survives it. */
     private val shareId = UUID.randomUUID().toString()
@@ -298,7 +315,7 @@ class SharePreviewViewModel @Inject constructor(
         // Set synchronously (not inside the coroutine below) so the generating overlay
         // appears on the very next frame after the tap, with zero dispatch lag.
         _uiState.update { it.copy(exportState = ShareExportState.Preparing, errorMessage = null) }
-        extractionJob = viewModelScope.launch {
+        extractionJob = viewModelScope.launch(exportFailureHandler) {
             // §8: refuse up front rather than failing mid-encode.
             if (shareFileStore.usableSpaceBytes() < MIN_USABLE_SPACE_BYTES) {
                 _uiState.update {
@@ -522,6 +539,7 @@ class SharePreviewViewModel @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "SharePreviewViewModel"
         const val ARG_AUDIO_URL = "audioUrl"
         const val ARG_TITLE = "title"
         /** Nav arg name kept as "category"; it carries the audio's category id. */

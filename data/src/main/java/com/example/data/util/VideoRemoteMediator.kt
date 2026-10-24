@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
 
+/** Largest page fetched while skipping past pages that add nothing to the list. */
+private const val MAX_SKIP_PAGE_SIZE = 50
+
 @OptIn(ExperimentalPagingApi::class)
 class VideoRemoteMediator @Inject constructor(
     private val appDatabase: AppDatabase,
@@ -61,15 +64,16 @@ class VideoRemoteMediator @Inject constructor(
 
             var currentLastPublishDate = initialPublishDate
             var lastResultEndOfPaginationReached = false
+            var limit = state.config.pageSize
 
             while (true) {
                 val videosFromServer = videoFirestoreSource.fetchVideoPage(
                     startAfterPublishDate = currentLastPublishDate,
-                    limit = state.config.pageSize,
+                    limit = limit,
                     categoryId = categoryId
                 )
 
-                lastResultEndOfPaginationReached = videosFromServer.size < state.config.pageSize
+                lastResultEndOfPaginationReached = videosFromServer.size < limit
 
                 if (videosFromServer.isEmpty()) break
 
@@ -86,10 +90,15 @@ class VideoRemoteMediator @Inject constructor(
                     }
                 }
 
-                if (activeItems.isNotEmpty() || lastResultEndOfPaginationReached) {
+                // The list shows standalone videos only (a series is one card above it), so a
+                // page of series and deleted videos adds nothing to it and the next load's
+                // cursor (the list's last item) would not move. Keep going from the last
+                // document fetched, in bigger pages: a series can fill many pages in a row.
+                if (activeItems.any { it.seriesId == null } || lastResultEndOfPaginationReached) {
                     break
                 }
                 currentLastPublishDate = videosFromServer.last().publishDate?.toDate()?.time
+                limit = (limit * 2).coerceAtMost(MAX_SKIP_PAGE_SIZE)
             }
 
             MediatorResult.Success(endOfPaginationReached = lastResultEndOfPaginationReached)

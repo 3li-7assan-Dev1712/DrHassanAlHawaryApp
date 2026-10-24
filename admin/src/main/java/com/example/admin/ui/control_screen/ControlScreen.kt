@@ -1,5 +1,7 @@
 package app.netlify.devalihassan.admin.ui.control_screen
 
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,6 +54,8 @@ fun ControlScreen(
         ControlItem(R.string.audios, Icons.Default.AudioFile, "audios_upload"),
         ControlItem(R.string.videos, Icons.Default.VideoFile, "videos_upload"),
         ControlItem(R.string.images, Icons.Default.Image, "images_upload"),
+        ControlItem(R.string.categories, Icons.Default.Category, "categories_list"),
+        ControlItem(R.string.series, Icons.Default.Layers, "series_list"),
         ControlItem(R.string.profile, Icons.Default.Person, "profile_screen"),
         ControlItem(R.string.super_admin, Icons.Default.Security, "super_admin_panel", isSuperAdminOnly = true)
     )

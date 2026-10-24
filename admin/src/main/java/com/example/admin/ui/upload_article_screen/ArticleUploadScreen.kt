@@ -1,5 +1,6 @@
 package app.netlify.devalihassan.admin.ui.upload_article_screen
 
+import app.netlify.devalihassan.admin.ui.components.SeriesPickerField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -120,6 +121,8 @@ fun ArticleUploadScreen(
                 Button(onClick = { showDatePicker = true }) {
                     Text(stringResource(R.string.publish_date_label, formattedDate))
                 }
+
+                SeriesPickerField(controller = viewModel.seriesForm)
 
                 Button(
                     onClick = { viewModel.onEvent(ArticleUserEvent.OnUploadClicked) },

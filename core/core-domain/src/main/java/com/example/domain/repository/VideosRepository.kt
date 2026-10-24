@@ -1,5 +1,6 @@
 package com.example.domain.repository
 
+import com.example.domain.module.SeriesPlacement
 import androidx.paging.PagingData
 import com.example.domain.module.ContentCategory
 import com.example.domain.module.ContentType
@@ -13,6 +14,7 @@ interface VideosRepository {
         title: String,
         youtubeUrl: String,
         categoryId: String,
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult>
 
     fun updateVideo(
@@ -20,6 +22,8 @@ interface VideosRepository {
         title: String,
         youtubeUrl: String,
         categoryId: String,
+        /** Null leaves the video's series as it is. */
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult>
 
     suspend fun deleteVideo(videoId: String): Result<Unit>

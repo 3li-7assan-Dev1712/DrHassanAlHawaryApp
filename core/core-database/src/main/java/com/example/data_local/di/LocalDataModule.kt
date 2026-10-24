@@ -73,6 +73,30 @@ object LocalDataModule {
         }
     }
 
+    /** Series: the new `series` table, and every content table learns its item's place in one. */
+    private val MIGRATION_39_40 = object : Migration(39, 40) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `series` (" +
+                    "`id` TEXT NOT NULL, " +
+                    "`title` TEXT NOT NULL, " +
+                    "`collection` TEXT NOT NULL, " +
+                    "`categoryId` TEXT, " +
+                    "`hashtag` TEXT NOT NULL, " +
+                    "`order` INTEGER NOT NULL, " +
+                    "`itemCount` INTEGER NOT NULL, " +
+                    "`totalDurationMs` INTEGER NOT NULL, " +
+                    "`updatedAt` INTEGER NOT NULL, " +
+                    "`isDeleted` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`id`))"
+            )
+            for (table in listOf("audios", "articles", "videos", "image_groups")) {
+                db.execSQL("ALTER TABLE $table ADD COLUMN seriesId TEXT")
+                db.execSQL("ALTER TABLE $table ADD COLUMN episodeNumber INTEGER")
+            }
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -88,7 +112,8 @@ object LocalDataModule {
             MIGRATION_33_34,
             MIGRATION_34_35,
             MIGRATION_37_38,
-            MIGRATION_38_39
+            MIGRATION_38_39,
+            MIGRATION_39_40
         )
         .fallbackToDestructiveMigration(true)
         .build()
@@ -132,6 +157,10 @@ object LocalDataModule {
     @Provides
     @Singleton
     fun provideNotificationDao(appDatabase: AppDatabase) = appDatabase.notificationDao()
+
+    @Provides
+    @Singleton
+    fun provideSeriesDao(appDatabase: AppDatabase) = appDatabase.seriesDao()
 
 
     @Provides

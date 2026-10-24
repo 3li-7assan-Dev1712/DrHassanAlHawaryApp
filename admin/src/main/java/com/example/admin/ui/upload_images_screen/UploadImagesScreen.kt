@@ -1,5 +1,6 @@
 package app.netlify.devalihassan.admin.ui.upload_images_screen
 
+import app.netlify.devalihassan.admin.ui.components.SeriesPickerField
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -123,6 +124,9 @@ fun UploadImagesScreen(
                         singleLine = true,
                         enabled = uiState is UploadImagesUiState.Idle
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    SeriesPickerField(controller = viewModel.seriesForm)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(

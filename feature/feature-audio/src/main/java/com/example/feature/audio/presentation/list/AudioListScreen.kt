@@ -1,5 +1,8 @@
 package com.example.feature.audio.presentation.list
 
+import com.example.domain.module.Series
+import com.example.core.ui.components.SeriesPreviewData
+import com.example.core.ui.components.SeriesCategoryContent
 import androidx.compose.foundation.background
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
@@ -82,7 +85,8 @@ import com.example.feature.audio.presentation.components.AudioListItem
  * rotation and resizing). After the window narrows to one pane, a selected audio stays open
  * in the player here, on the same player ViewModel, so playback carries on;
  * [onClearSelection] (back) returns to the list. Otherwise the phone's list, where a tap
- * opens the player screen ([onNavigateToAudioDetail]).
+ * opens the player screen ([onNavigateToAudioDetail]). A category with series shows their
+ * cards and «متفرقات» instead ([showSeries]).
  *
  * [playerViewModelKey]: the player ViewModel this entry uses (the player route passes null,
  * its own; the list route a key of its own).
@@ -98,8 +102,15 @@ fun AudioListScreen(
     onSelectAudio: (AudioSelection) -> Unit = {},
     onClearSelection: () -> Unit = {},
     playerViewModelKey: String? = AUDIO_PLAYER_PANE_KEY,
+    // A category with series shows their cards and «متفرقات» ([onNavigateToMisc]) instead of
+    // its items; false: the items outside any series as a list (the «متفرقات» screen, and the
+    // list beside the player).
+    showSeries: Boolean = true,
+    onNavigateToSeries: (Series) -> Unit = {},
+    onNavigateToMisc: () -> Unit = {},
+    // The top bar's title instead of the category's («متفرقات»).
+    title: String? = null,
 ) {
-    val audios = audiosViewModel.audios.collectAsLazyPagingItems()
     val expanded = layoutTokens.isExpanded
 
     if (!expanded && selectedAudio != null) {
@@ -116,6 +127,25 @@ fun AudioListScreen(
         return
     }
 
+    if (showSeries) {
+        val series by audiosViewModel.series.collectAsStateWithLifecycle()
+        // Nothing until the cached series are read: the list would flash before the cards.
+        val loaded = series ?: return
+        if (loaded.isNotEmpty()) {
+            SeriesCategoryContent(
+                title = title ?: audiosViewModel.categoryTitle ?: stringResource(R.string.audios),
+                series = loaded,
+                onSeriesClick = onNavigateToSeries,
+                onMiscClick = onNavigateToMisc,
+                onNavigateBack = onNavigateBack,
+                emptyDetail = { AudioCategoryEmptyDetail() },
+                modifier = modifier,
+            )
+            return
+        }
+    }
+
+    val audios = audiosViewModel.audios.collectAsLazyPagingItems()
     val playingAudioUrl = if (expanded) {
         val playerViewModel: AudioDetailViewModel = hiltViewModel(key = playerViewModelKey)
         val playerState by playerViewModel.uiState.collectAsStateWithLifecycle()
@@ -126,7 +156,7 @@ fun AudioListScreen(
     AudioListAdaptiveContent(
         modifier = modifier,
         audios = audios,
-        categoryTitle = audiosViewModel.categoryTitle,
+        categoryTitle = title ?: audiosViewModel.categoryTitle,
         selectedAudio = selectedAudio,
         playingAudioUrl = playingAudioUrl,
         onSelectAudio = onSelectAudio,
@@ -338,6 +368,16 @@ fun AudioListComposable(
     }
 }
 
+/** The detail pane beside the series cards (Expanded). */
+@Composable
+private fun AudioCategoryEmptyDetail() {
+    EmptyDetail(
+        icon = TablerIcons.Headphones,
+        title = stringResource(R.string.empty_detail_audio_title),
+        subtitle = stringResource(R.string.empty_detail_audio_subtitle),
+    )
+}
+
 /** Sample fatwas for previews and UI tests: the Figma player frames' list. */
 val AudiosPreviewData: List<Audio> = listOf(
     "حكم شراء الذهب من التطبيقات والتجار" to 346_000L,
@@ -426,3 +466,42 @@ private fun AudioListExpandedLightPreview() = AudioListPreview(darkTheme = false
 @Preview(name = "Fatwas + player - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun AudioListExpandedDarkPreview() = AudioListPreview(darkTheme = true)
+
+/** «دروس علمية»: its series and «متفرقات». */
+@Composable
+private fun LessonsWithSeriesPreview(darkTheme: Boolean) {
+    AdaptiveShellPreview(darkTheme = darkTheme) {
+        SeriesCategoryContent(
+            title = "دروس علمية",
+            series = SeriesPreviewData,
+            onSeriesClick = {},
+            onMiscClick = {},
+            onNavigateBack = {},
+            emptyDetail = { AudioCategoryEmptyDetail() },
+        )
+    }
+}
+
+@Preview(name = "Lessons with series - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun LessonsWithSeriesCompactLightPreview() = LessonsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Lessons with series - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun LessonsWithSeriesCompactDarkPreview() = LessonsWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Lessons with series - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesMediumLightPreview() = LessonsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Lessons with series - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesMediumDarkPreview() = LessonsWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Lessons with series - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesExpandedLightPreview() = LessonsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Lessons with series - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun LessonsWithSeriesExpandedDarkPreview() = LessonsWithSeriesPreview(darkTheme = true)

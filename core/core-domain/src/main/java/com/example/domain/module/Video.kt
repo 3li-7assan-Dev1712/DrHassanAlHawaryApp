@@ -9,5 +9,9 @@ data class Video(
     val publishDate: Date,
     val youtubeVideoId: String?,
     val type: String = "",
-    val categoryId: String? = null
+    val categoryId: String? = null,
+    // series membership: null for a standalone item
+    val seriesId: String? = null,
+    /** 1-based position inside [seriesId]. */
+    val episodeNumber: Long? = null,
 )

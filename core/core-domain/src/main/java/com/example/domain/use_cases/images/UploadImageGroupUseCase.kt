@@ -1,5 +1,6 @@
 package com.example.domain.use_cases.images
 
+import com.example.domain.module.SeriesPlacement
 import com.example.domain.repository.ImagesRepository
 import com.example.domain.use_cases.audios.UploadResult
 import kotlinx.coroutines.flow.Flow
@@ -16,13 +17,14 @@ class UploadImageGroupUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(
         title: String,
-        imageUris: List<String>
+        imageUris: List<String>,
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> {
         // Basic validation
         if (title.isBlank() || imageUris.isEmpty()) {
             return flowOf(UploadResult.Error("Title and images cannot be empty."))
         }
         // Delegate the complex logic to the repository
-        return imageRepository.uploadDesignGroup(title, imageUris)
+        return imageRepository.uploadDesignGroup(title, imageUris, placement)
     }
 }

@@ -17,7 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import app.netlify.devalihassan.admin.R
 import com.example.domain.module.ContentType
-import com.example.domain.module.FixedCategories
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,9 +26,11 @@ fun CategoryDropdownField(
     contentType: ContentType,
     selectedCategoryId: String,
     onCategorySelected: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    options: CategoryOptionsViewModel = hiltViewModel(),
 ) {
-    val categories = FixedCategories.getCategories(contentType)
+    // The categories as the admin edited them (الأقسام), not only the built-in ones.
+    val categories by options.categories(contentType).collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
     ExposedDropdownMenuBox(

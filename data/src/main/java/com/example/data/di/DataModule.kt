@@ -4,9 +4,11 @@ import com.example.data.ArticlesRepositoryImpl
 import com.example.data.AudiosRepositoryImpl
 import com.example.data.AuthRepositoryImpl
 import com.example.data.ChannelRepositoryImpl
+import com.example.data.ContentSyncRepositoryImpl
 import com.example.data.DataStoreRepositoryImpl
 import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
+import com.example.data.SeriesRepositoryImpl
 import com.example.data.StudyRepositoryImpl
 import com.example.data.VideoRepositoryImpl
 import com.example.data.WisdomRepositoryImpl
@@ -14,15 +16,21 @@ import com.example.domain.repository.ArticlesRepository
 import com.example.domain.repository.AudiosRepository
 import com.example.domain.repository.AuthRepository
 import com.example.domain.repository.ChannelRepository
+import com.example.domain.repository.ContentSyncRepository
 import com.example.domain.repository.DataStoreRepository
 import com.example.domain.repository.ImagesRepository
 import com.example.domain.repository.NetworkRepository
+import com.example.domain.repository.SeriesRepository
 import com.example.domain.repository.StudyRepository
 import com.example.domain.repository.VideosRepository
 import com.example.domain.repository.WisdomRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import com.example.data.CategoryRepositoryImpl
+import com.example.data.ContentEditRepositoryImpl
+import com.example.domain.repository.CategoryRepository
+import com.example.domain.repository.ContentEditRepository
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
@@ -88,6 +96,30 @@ abstract class DataModule {
     abstract fun bindChannelRepository(
         impl: ChannelRepositoryImpl
     ): ChannelRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSeriesRepository(
+        impl: SeriesRepositoryImpl
+    ): SeriesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryRepository(
+        impl: CategoryRepositoryImpl
+    ): CategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindContentEditRepository(
+        impl: ContentEditRepositoryImpl
+    ): ContentEditRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindContentSyncRepository(
+        impl: ContentSyncRepositoryImpl
+    ): ContentSyncRepository
 
 }
 

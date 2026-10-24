@@ -49,12 +49,17 @@ import com.example.core.ui.R
 import com.example.core.ui.components.AdaptivePanesDefaults
 import com.example.core.ui.components.AdaptiveShellPreview
 import com.example.core.ui.components.AppTopBar
+import com.example.core.ui.components.SeriesCard
 import com.example.core.ui.theme.animateGridItem
 import com.example.core.ui.theme.layoutTokens
 import com.example.domain.module.ImageGroup
+import com.example.domain.module.Series
+import com.example.domain.module.SeriesCollection
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.paging.LoadStates
@@ -76,9 +81,11 @@ fun ImagesGroupsScreen(
     viewModel: ImagesGroupsViewModel = hiltViewModel(),
     onGroupClick: (groupId: String) -> Unit,
     onImageClick: (groupId: String, index: Int) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onSeriesClick: (Series) -> Unit = {},
 ) {
     val lazyPagingItems = viewModel.imageGroups.collectAsLazyPagingItems()
+    val series by viewModel.series.collectAsStateWithLifecycle()
 
     DesignsScreenContent(
         groups = lazyPagingItems,
@@ -89,6 +96,8 @@ fun ImagesGroupsScreen(
         },
         onGroupClick = onGroupClick,
         onNavigateBack = onNavigateBack,
+        series = series,
+        onSeriesClick = onSeriesClick,
     )
 }
 
@@ -96,6 +105,7 @@ fun ImagesGroupsScreen(
  * The designs without the ViewModel (previews and UI tests use it too). Compact: the phone's
  * two-column staggered grid. Medium and Expanded: tiles at their designed 156dp, rows
  * aligned and centred (Figma `60:1597`: 6 across, 24 apart; `64:4089`: 4 across, 16 apart).
+ * The design [series] come first, as cards the width of the grid.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +114,8 @@ fun DesignsScreenContent(
     imageCount: @Composable (groupId: String) -> Int,
     onGroupClick: (groupId: String) -> Unit,
     onNavigateBack: () -> Unit,
+    series: List<Series> = emptyList(),
+    onSeriesClick: (Series) -> Unit = {},
 ) {
     val lazyPagingItems = groups
     val tokens = layoutTokens
@@ -121,7 +133,7 @@ fun DesignsScreenContent(
                 is LoadState.Loading -> ContentPhase.Loading
                 is LoadState.Error -> ContentPhase.Error
                 is LoadState.NotLoading ->
-                    if (lazyPagingItems.itemCount == 0) ContentPhase.Empty else ContentPhase.Content
+                    if (lazyPagingItems.itemCount == 0 && series.isEmpty()) ContentPhase.Empty else ContentPhase.Content
             }
             val reduced = reducedMotion
             AnimatedContent(
@@ -162,7 +174,13 @@ fun DesignsScreenContent(
                                 )
                             }
                         } else if (!tokens.isCompact) {
-                            DesignsGrid(groups = lazyPagingItems, imageCount = imageCount, onGroupClick = onGroupClick)
+                            DesignsGrid(
+                                groups = lazyPagingItems,
+                                imageCount = imageCount,
+                                onGroupClick = onGroupClick,
+                                series = series,
+                                onSeriesClick = onSeriesClick,
+                            )
                         } else {
                             // Designs come in many shapes: a staggered grid keeps each image's
                             // own proportions instead of cropping them all to one ratio.
@@ -173,6 +191,10 @@ fun DesignsScreenContent(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalItemSpacing = 16.dp,
                             ) {
+                                items(series, key = ::seriesItemKey, span = { StaggeredGridItemSpan.FullLine }) { item ->
+                                    SeriesCard(series = item, onClick = { onSeriesClick(item) })
+                                }
+
                                 items(
                                     count = lazyPagingItems.itemCount,
                                     key = lazyPagingItems.itemKey { it.id }
@@ -211,7 +233,7 @@ fun DesignsScreenContent(
 }
 
 /** Tablet designs, measured in Figma (`60:1597` Expanded, `64:4089` Medium). */
-private object DesignsTablet {
+internal object DesignsTablet {
     /** DesignTile's designed width: the tiles keep it and the grid is centred. */
     val TileWidth = 156.dp
     val ExpandedGap = 24.dp
@@ -229,6 +251,8 @@ private fun DesignsGrid(
     groups: LazyPagingItems<ImageGroup>,
     imageCount: @Composable (groupId: String) -> Int,
     onGroupClick: (groupId: String) -> Unit,
+    series: List<Series>,
+    onSeriesClick: (Series) -> Unit,
 ) {
     val gap = if (layoutTokens.isExpanded) DesignsTablet.ExpandedGap else DesignsTablet.MediumGap
     LazyVerticalGrid(
@@ -238,6 +262,9 @@ private fun DesignsGrid(
         horizontalArrangement = Arrangement.spacedBy(gap, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(gap),
     ) {
+        items(series, key = ::seriesItemKey, span = { GridItemSpan(maxLineSpan) }) { item ->
+            SeriesCard(series = item, onClick = { onSeriesClick(item) })
+        }
         items(count = groups.itemCount, key = groups.itemKey { it.id }) { index ->
             val group = groups[index]
             if (group != null) {
@@ -255,6 +282,9 @@ private fun DesignsGrid(
         }
     }
 }
+
+/** A series card's key: apart from the groups' ids in the same grid. */
+private fun seriesItemKey(series: Series): String = "series:${series.id}"
 
 /** Sample design groups for previews and UI tests (no images: tiles show their placeholder). */
 val DesignsPreviewData: List<ImageGroup> = List(12) { index ->
@@ -304,3 +334,50 @@ private fun DesignsExpandedLightPreview() = DesignsPreview(darkTheme = false)
 @Preview(name = "Designs - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun DesignsExpandedDarkPreview() = DesignsPreview(darkTheme = true)
+
+/** A design series for previews. */
+val DesignSeriesPreviewData = Series(
+    id = "ramadan",
+    title = "رمضانيات",
+    collection = SeriesCollection.IMAGE_GROUPS,
+    itemCount = 52,
+)
+
+/** The designs with a series above them. */
+@Composable
+private fun DesignsWithSeriesPreview(darkTheme: Boolean) {
+    val groups = remember { designsPreviewPagingData() }.collectAsLazyPagingItems()
+    AdaptiveShellPreview(darkTheme = darkTheme, mediumMargin = AdaptivePanesDefaults.GridScreenMediumMargin) {
+        DesignsScreenContent(
+            groups = groups,
+            imageCount = { if (it.toInt() % 3 == 0) 4 else 1 },
+            onGroupClick = {},
+            onNavigateBack = {},
+            series = listOf(DesignSeriesPreviewData),
+        )
+    }
+}
+
+@Preview(name = "Designs with series - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun DesignsWithSeriesCompactLightPreview() = DesignsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Designs with series - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun DesignsWithSeriesCompactDarkPreview() = DesignsWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Designs with series - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun DesignsWithSeriesMediumLightPreview() = DesignsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Designs with series - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun DesignsWithSeriesMediumDarkPreview() = DesignsWithSeriesPreview(darkTheme = true)
+
+@Preview(name = "Designs with series - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun DesignsWithSeriesExpandedLightPreview() = DesignsWithSeriesPreview(darkTheme = false)
+
+@Preview(name = "Designs with series - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun DesignsWithSeriesExpandedDarkPreview() = DesignsWithSeriesPreview(darkTheme = true)

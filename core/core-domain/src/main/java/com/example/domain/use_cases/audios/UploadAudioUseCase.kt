@@ -1,6 +1,7 @@
 package com.example.domain.use_cases.audios
 
 
+import com.example.domain.module.SeriesPlacement
 import com.example.domain.repository.AudiosRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -33,16 +34,18 @@ class UploadAudioUseCase @Inject constructor(
      * @param uriString The String representation of the file's content URI.
      * @param durationInMillis The duration of the audio.
      * @param type The category or type of the audio.
+     * @param placement The series it goes in, if any.
      * @return A Flow that emits the current state of the upload (Progress, Success, or Error).
      */
     suspend operator fun invoke(
         title: String,
         uriString: String,
         durationInMillis: Long,
-        type: String = ""
+        type: String = "",
+        placement: SeriesPlacement? = null,
     ): Flow<UploadResult> {
         // The use case now delegates without needing the file size.
         // This is cleaner and more robust.
-        return audiosRepository.uploadAudio(title, uriString, durationInMillis, type)
+        return audiosRepository.uploadAudio(title, uriString, durationInMillis, type, placement)
     }
 }

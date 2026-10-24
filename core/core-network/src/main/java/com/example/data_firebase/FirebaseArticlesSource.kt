@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import com.example.data_firebase.model.ArticleDto
 import com.example.domain.module.Article
@@ -25,7 +26,7 @@ class FirebaseArticlesSource @Inject constructor(
 
     private val articlesCollection = firestoreDb.collection("articles")
 
-    suspend fun uploadArticle(article: Article) {
+    suspend fun uploadArticle(article: Article, placement: SeriesPlacement? = null) {
         try {
             val publishDateIso = article.publishDate.toIsoString()
 
@@ -35,7 +36,7 @@ class FirebaseArticlesSource @Inject constructor(
                 "content" to article.content,
                 "publishDate" to publishDateIso,
                 "type" to article.type
-            )
+            ) + placement.toNewItemFields()
 
             val payload = hashMapOf(
                 "collectionName" to "articles",
@@ -61,13 +62,15 @@ class FirebaseArticlesSource @Inject constructor(
         }
     }
 
-    suspend fun updateArticle(article: Article) {
+    /** [placement]: null leaves the article's series as it is. */
+    suspend fun updateArticle(article: Article, placement: SeriesPlacement? = null) {
         try {
-            val updates = hashMapOf<String, Any>(
+            val updates = hashMapOf<String, Any?>(
                 "title" to article.title,
                 "content" to article.content,
                 "type" to article.type
             )
+            placement?.let { updates.putAll(it.toFirestoreFields()) }
 
             val payload = hashMapOf(
                 "collectionName" to "articles",
@@ -153,6 +156,20 @@ class FirebaseArticlesSource @Inject constructor(
         }
     }
 
+    /**
+     * Every article of series [seriesId], soft-deleted ones included, or null if the fetch
+     * failed. Unordered: the local cache orders them by episodeNumber.
+     */
+    suspend fun fetchSeriesArticles(seriesId: String): List<ArticleDto>? {
+        return try {
+            val snapshot = articlesCollection.whereEqualTo("seriesId", seriesId).get().await()
+            snapshot.documents.mapNotNull { it.toObject<ArticleDto>()?.copy(id = it.id) }
+        } catch (e: Exception) {
+            Log.e("FirebaseArticlesSource", "Error fetching series $seriesId: ${e.message}", e)
+            null
+        }
+    }
+
     suspend fun getUpdatedArticles(lastSyncTime: Long): List<ArticleDto> {
         return try {
             val snapshot = articlesCollection
@@ -195,7 +212,9 @@ class FirebaseArticlesSource @Inject constructor(
                                     publishDate = it.publishDate?.toDate() ?: Date(),
                                     type = it.type,
                                     updatedAt = it.updatedAt?.toDate()?.time ?: 0L,
-                                    isDeleted = it.isDeleted
+                                    isDeleted = it.isDeleted,
+                                    seriesId = it.seriesId,
+                                    episodeNumber = it.episodeNumber
                                 )
                             }
                         }
@@ -205,4 +224,12 @@ class FirebaseArticlesSource @Inject constructor(
             awaitClose { listenerRegistration.remove() }
         }
     }
+
+    /**
+     * Every document of the collection, deleted ones included, for the admin's lists: one
+     * unordered read, so documents with a wrongly typed publishDate can't upset paging.
+     * Throws on failure, so the admin sees the error instead of a short list.
+     */
+    suspend fun fetchAllArticles(): List<ArticleDto> =
+        articlesCollection.get().await().documents.mapNotNull { it.toObject<ArticleDto>() }
 }
