@@ -28,6 +28,8 @@ data class SeriesListUiState(
     val series: List<Series> = emptyList(),
     val isSaving: Boolean = false,
     @StringRes val message: Int? = null,
+    /** Why the last write failed, as the server said it (e.g. a hashtag already in use). */
+    val messageDetail: String? = null,
 )
 
 /**
@@ -48,14 +50,16 @@ class SeriesListViewModel @Inject constructor(
     private val collection = MutableStateFlow(SeriesCollection.AUDIOS)
     private val isSaving = MutableStateFlow(false)
     private val message = MutableStateFlow<Int?>(null)
+    private val messageDetail = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<SeriesListUiState> = combine(
         collection,
         collection.flatMapLatest { getSeriesUseCase(it, includeEmpty = true) },
         isSaving,
         message,
-    ) { collection, series, saving, message ->
-        SeriesListUiState(collection = collection, series = series, isSaving = saving, message = message)
+        messageDetail,
+    ) { collection, series, saving, message, detail ->
+        SeriesListUiState(collection = collection, series = series, isSaving = saving, message = message, messageDetail = detail)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesListUiState())
 
     init {
@@ -117,6 +121,7 @@ class SeriesListViewModel @Inject constructor(
 
     fun onMessageShown() {
         message.value = null
+        messageDetail.value = null
     }
 
     private fun write(block: suspend () -> Result<Unit>) {
@@ -125,6 +130,7 @@ class SeriesListViewModel @Inject constructor(
             isSaving.value = true
             val result = block()
             isSaving.value = false
+            messageDetail.value = result.exceptionOrNull()?.message
             message.value = if (result.isSuccess) R.string.series_saved else R.string.series_save_failed
         }
     }

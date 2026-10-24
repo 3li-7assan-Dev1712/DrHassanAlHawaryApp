@@ -68,6 +68,7 @@ fun SeriesListScreen(
     var deleting by remember { mutableStateOf<Series?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val message = state.message?.let { stringResource(it) }
+        ?.let { text -> state.messageDetail?.let { "$text\n$it" } ?: text }
     LaunchedEffect(message) {
         if (message != null) {
             snackbarHostState.showSnackbar(message)
