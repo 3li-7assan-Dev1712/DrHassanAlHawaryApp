@@ -83,11 +83,11 @@ fun SharePreviewScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val chooserTitle = stringResource(R.string.share_video_chooser)
+    val appStoreLink = stringResource(R.string.share_cta_url)
 
     LaunchedEffect(viewModel) {
         viewModel.shareIntentEvent.collect { uri ->
             val title = uiState.content?.title.orEmpty()
-            val appStoreLink = context.getString(R.string.share_cta_url)
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "video/mp4"
                 putExtra(Intent.EXTRA_STREAM, uri)

@@ -28,12 +28,27 @@ android {
         manifestPlaceholders["crashlyticsCollectionEnabled"] = true
     }
 
+    signingConfigs {
+        // CI only (release.yml): the upload key comes from RELEASE_* environment variables.
+        // Without them the release build stays unsigned and Android Studio's
+        // "Generate Signed Bundle" signs it as before.
+        System.getenv("RELEASE_STORE_FILE")?.let { storePath ->
+            create("release") {
+                storeFile = file(storePath)
+                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // Crashes from development and emulators stay out of the Crashlytics dashboard.
             manifestPlaceholders["crashlyticsCollectionEnabled"] = false
         }
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true      // removes unused code
             isShrinkResources = true    // removes unused resources
 

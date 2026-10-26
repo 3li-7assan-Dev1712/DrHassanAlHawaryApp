@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Lint settings for every module: lint reads lint.xml in a module's folder and its parents. -->
+<lint>
+    <!-- The apps are Arabic only (LocaleForce): a string without an English copy falls back to
+         the Arabic default, which is what users see anyway. -->
+    <issue id="MissingTranslation" severity="ignore" />
+</lint>
