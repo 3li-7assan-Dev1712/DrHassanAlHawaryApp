@@ -96,6 +96,8 @@ object TablerIcons {
     @DrawableRes val Kaaba = R.drawable.ic_tabler_kaaba
     /** Not in Tabler: drawn in its style for marriage. */
     @DrawableRes val Rings = R.drawable.ic_tabler_rings
+    /** The maintenance screen. */
+    @DrawableRes val Tool = R.drawable.ic_tabler_tool
 
     val all: List<Pair<String, Int>> = listOf(
         "notebook" to Notebook, "headphones" to Headphones, "video" to Video,
@@ -115,6 +117,7 @@ object TablerIcons {
         "stack-2" to Stack2, "category" to Category,
         "book-2" to Book2, "feather" to Feather, "quote" to Quote, "scale" to Scale, "moon-stars" to MoonStars,
         "home-heart" to HomeHeart, "hourglass" to Hourglass, "kaaba" to Kaaba, "rings" to Rings,
+        "tool" to Tool,
     )
 }
 

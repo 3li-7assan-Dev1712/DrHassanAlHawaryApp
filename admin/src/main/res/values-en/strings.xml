@@ -96,6 +96,21 @@
     <string name="final_exam">نهائي</string>
     <string name="no_images_found">لا توجد تصاميم متاحة الآن</string>
     <string name="category">التصنيف</string>
-
-
+    <!-- Maintenance mode (config/app_config). -->
+    <string name="maintenance">Maintenance mode</string>
+    <string name="maintenance_on_status">On: users see the maintenance screen now</string>
+    <string name="maintenance_off_status">Off: the app works normally</string>
+    <string name="maintenance_message_label">Maintenance message (optional)</string>
+    <string name="maintenance_message_hint">Shown to users instead of the default text. Leave it empty for the default text.</string>
+    <string name="maintenance_save_message">Save message</string>
+    <string name="maintenance_confirm_title">Turn on maintenance mode?</string>
+    <string name="maintenance_confirm_msg">Every app user will see the maintenance screen right away and can’t use the app until you turn it off.</string>
+    <string name="maintenance_turn_on">Turn on</string>
+    <string name="maintenance_turned_on">Maintenance mode is on</string>
+    <string name="maintenance_turned_off">Maintenance mode is off, the app works again</string>
+    <string name="maintenance_message_saved">Message saved</string>
+    <string name="maintenance_denied">Not saved: the Firestore rules don’t let you write config/app_config.</string>
+    <string name="maintenance_pending">The change hasn’t reached the server yet (no connection?). It will be sent when the connection is back.</string>
+    <string name="maintenance_read_failed">Couldn’t read config/app_config. Check the connection and the Firestore rules.</string>
+    <string name="maintenance_console_note">It can also be controlled in the Firebase console: document config/app_config, field maintenanceMode (true or false) and field maintenanceMessage (text).</string>
 </resources>

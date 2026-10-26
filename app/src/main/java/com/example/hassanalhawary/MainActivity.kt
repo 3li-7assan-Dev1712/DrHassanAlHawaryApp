@@ -84,6 +84,7 @@ import app.netlify.devalihassan.ui.navigation.BottomNavigationBar
 import app.netlify.devalihassan.ui.navigation.Routes
 import app.netlify.devalihassan.ui.theme.HassanAlHawaryTheme
 import com.example.core.ui.components.ContentCategories
+import com.example.core.ui.components.MaintenanceScreen
 import com.example.core.ui.components.UpdateScreen
 import com.example.core_ui.splash_screen.SplashScreen
 import com.example.feature.about_dr_hassan.presentation.AboutDrHassanScreen
@@ -191,6 +192,7 @@ class MainActivity : ComponentActivity() {
             val onboardingCompleted by mainActivityViewModel.onboardingCompleted.collectAsState()
             val mainActivityState by mainActivityViewModel.state.collectAsState()
             val appConfig by mainActivityViewModel.appConfig.collectAsState()
+            val isRetryingConfig by mainActivityViewModel.isRetryingConfig.collectAsState()
 
             if (!mainActivityViewModel.appReady.collectAsState().value) return@setContent
 
@@ -242,7 +244,16 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                if (updateType != "none" && appConfig != null) {
+                // Maintenance first: it replaces the whole app (update, onboarding, sign-in and
+                // the main screens) until it is switched off, then the app continues from here.
+                val maintenance = appConfig?.takeIf { it.maintenanceMode }
+                if (maintenance != null) {
+                    MaintenanceScreen(
+                        message = maintenance.maintenanceMessage,
+                        isRetrying = isRetryingConfig,
+                        onRetry = mainActivityViewModel::retryConfig,
+                    )
+                } else if (updateType != "none" && appConfig != null) {
                     UpdateScreen(
                         updateUrl = appConfig!!.updateUrl,
                         isForceUpdate = updateType == "force",
