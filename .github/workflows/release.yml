@@ -1,0 +1,79 @@
+name: Release to Play (internal testing)
+
+# Push a tag that matches the app's versionName to release it:
+#   git tag v1.2.1 && git push origin v1.2.1
+# The bundle goes to the internal testing track; promote it to production in the Play Console.
+# One-time setup (secrets, service account): docs/ci-cd.md
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+# Never two uploads at once: Play rejects a second edit while one is open.
+concurrency:
+  group: play-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
+
+      - name: Check the tag matches versionName
+        run: |
+          version=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match versionName $version in app/build.gradle.kts"
+            exit 1
+          fi
+
+      - name: Create google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
+
+      - name: Decode the upload keystore
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+
+      # Also uploads the R8 mapping file to Crashlytics (Crashlytics Gradle plugin).
+      # 6 GB heap: gradle.properties' 2 GB runs out of memory in R8.
+      - name: Build the signed bundle
+        env:
+          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
+          GOOGLE_WEB_CLIENT: ${{ secrets.GOOGLE_WEB_CLIENT }}
+          RELEASE_STORE_FILE: ${{ runner.temp }}/upload.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew "-Dorg.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8" :app:bundleRelease
+
+      - name: Keep the bundle and mapping file
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ github.ref_name }}
+          path: |
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/mapping/release/mapping.txt
+
+      - name: Upload to Play (internal testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.netlify.devalihassan
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          mappingFile: app/build/outputs/mapping/release/mapping.txt

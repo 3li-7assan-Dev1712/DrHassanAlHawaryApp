@@ -1,5 +1,8 @@
 name: Android CI
 
+# The user app: lint, unit tests, debug and release builds. The admin app isn't on the Play
+# Store: it is only compiled, so a shared-module change that breaks it still fails here.
+# Releasing: release.yml and docs/ci-cd.md.
 
 on:
   push:
@@ -7,18 +10,26 @@ on:
   pull_request:
     branches: [ master ]
 
+# A new push to the same branch or PR cancels the run still going for the old one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission to gradlew
         run: chmod +x gradlew
@@ -28,9 +39,26 @@ jobs:
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > app/google-services.json
           echo "${{ secrets.ADMIN_GOOGLE_SERVICES_JSON }}" | base64 --decode > admin/google-services.json
 
-      - name: Build with Gradle
+      # 6 GB heap: gradle.properties' 2 GB runs out of memory in lint and R8 (the runner has 16 GB).
+      # --continue reports every failing module, not only the first.
+      # The release build is only checked: its R8 mapping file isn't sent to Crashlytics.
+      - name: Lint, unit tests and builds
         env:
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
           GOOGLE_WEB_CLIENT: ${{ secrets.GOOGLE_WEB_CLIENT }}
-        run: ./gradlew build
+        run: >
+          ./gradlew --continue "-Dorg.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8"
+          lintDebug testDebugUnitTest
+          :app:assembleDebug :app:assembleRelease :admin:assembleDebug
+          -x :admin:lintDebug
+          -x :app:uploadCrashlyticsMappingFileRelease
+
+      - name: Keep the lint and test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: |
+            **/build/reports/lint-results-*.html
+            **/build/reports/tests/
