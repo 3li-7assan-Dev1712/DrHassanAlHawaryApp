@@ -1,5 +1,6 @@
 package app.netlify.devalihassan.ui.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -54,7 +55,12 @@ fun BottomNavigationBar(
  * secondary screens too, so the selected tab is the flow you are in: the nearest tab root
  * in the back stack (Home for everything reached from Home, Search for a result opened
  * from Search, and so on).
+ *
+ * RestrictedApi: [NavHostController.currentBackStack] is marked internal to the navigation
+ * library, but no public API gives the whole back stack, which finding the flow needs.
+ * Check it still exists when upgrading navigation.
  */
+@SuppressLint("RestrictedApi")
 @Composable
 fun AppRail(navController: NavHostController, modifier: Modifier = Modifier) {
     val backStack by navController.currentBackStack.collectAsState()
@@ -81,7 +87,8 @@ private fun tabOf(route: String?): BottomNavItem? = BottomNavItem.all.firstOrNul
     }
 }
 
-/** A tap on a bottom-bar tab or a rail destination. */
+/** A tap on a bottom-bar tab or a rail destination. RestrictedApi: see [AppRail]. */
+@SuppressLint("RestrictedApi")
 private fun NavHostController.navigateToTab(item: BottomNavItem) {
     val startId = graph.findStartDestination().id
     val stack = currentBackStack.value.filter { it.destination !is NavGraph }
