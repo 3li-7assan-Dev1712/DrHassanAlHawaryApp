@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.firebase.crashlytics)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
 }
@@ -22,9 +23,16 @@ android {
         versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Read by the manifest's firebase_crashlytics_collection_enabled.
+        manifestPlaceholders["crashlyticsCollectionEnabled"] = true
     }
 
     buildTypes {
+        debug {
+            // Crashes from development and emulators stay out of the Crashlytics dashboard.
+            manifestPlaceholders["crashlyticsCollectionEnabled"] = false
+        }
         release {
             isMinifyEnabled = true      // removes unused code
             isShrinkResources = true    // removes unused resources
@@ -100,6 +108,7 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.database)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.crashlytics)
     // auth credential
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)

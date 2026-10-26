@@ -8,6 +8,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import app.netlify.devalihassan.core.util.LocaleForce
 import com.example.data.di.ApplicationScope
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.use_cases.IsUserLoggedInUseCase
 import com.example.domain.use_cases.ObserveAuthStateUseCase
 import com.example.domain.use_cases.SyncContentUseCase
@@ -75,6 +76,7 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
 
     override fun onCreate() {
         super<Application>.onCreate()
+        CrashReporting.install()
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 
         // §7: any share-preview handoff from a previous session is long finished by now.
@@ -94,7 +96,10 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
                     // Series, and what changed in the cached content (e.g. items moved into a series).
                     launch {
                         runCatching { syncContentUseCase() }
-                            .onFailure { Log.e(TAG, "content sync failed", it) }
+                            .onFailure {
+                                Log.e(TAG, "content sync failed", it)
+                                ErrorReporter.record("content sync", it)
+                            }
                     }
 
                     launch {
@@ -109,6 +114,7 @@ class HiltApplication : Application(), DefaultLifecycleObserver {
 
                     launch {
                         getStudentDataUseCase().collectLatest {
+                            CrashReporting.setCourseMember(it?.isCourseMember == true)
                             FirebaseMessaging.getInstance()
                                 .subscribeToTopic("all_users")
                             if (it != null) {

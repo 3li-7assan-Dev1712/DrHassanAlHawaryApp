@@ -2,6 +2,7 @@ package com.example.data_firebase
 
 import android.util.Log
 import com.example.data_firebase.model.CategoryDto
+import com.example.domain.diagnostics.ErrorReporter
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
@@ -27,6 +28,7 @@ class CategoryFirestoreSource @Inject constructor(
         toObject<CategoryDto>()?.copy(id = id)
     } catch (e: Exception) {
         Log.e(TAG, "Deserialization failed for category $id", e)
+        ErrorReporter.record("category mapping $id", e)
         null
     }
 
@@ -38,6 +40,7 @@ class CategoryFirestoreSource @Inject constructor(
         val registration = categories.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 Log.e(TAG, "categories listener failed: ${error.message}")
+                ErrorReporter.record("categories listener", error)
                 trySend(emptyList())
                 return@addSnapshotListener
             }

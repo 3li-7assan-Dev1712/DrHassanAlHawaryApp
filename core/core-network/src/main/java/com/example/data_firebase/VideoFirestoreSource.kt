@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import com.example.data_firebase.model.VideoDto
@@ -64,6 +65,7 @@ class VideoFirestoreSource @Inject constructor(
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
+                ErrorReporter.record("video mapping ${this.id}", ex)
                 null
             }
         }
@@ -272,6 +274,7 @@ class VideoFirestoreSource @Inject constructor(
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e(TAG, "Listen failed: ${error.message}", error)
+                        ErrorReporter.record("videos listener", error)
                         if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
                             close()
                         } else {

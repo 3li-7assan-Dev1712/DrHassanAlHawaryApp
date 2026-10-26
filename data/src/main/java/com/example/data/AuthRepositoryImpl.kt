@@ -3,6 +3,7 @@ package com.example.data
 import android.content.Context
 import android.util.Log
 import com.example.data_firebase.GoogleAuthUiClient
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.LoginResult
 import com.example.domain.module.UserData
 import com.example.domain.repository.AuthRepository
@@ -94,6 +95,7 @@ class AuthRepositoryImpl @Inject constructor(
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "deleteAccount error: ${e.message}")
+            ErrorReporter.record("account deletion", e)
             Result.failure(e)
         }
     }

@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.core.net.toUri
@@ -67,6 +68,7 @@ class ImageFirestoreSource @Inject constructor(
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for image group ${this.id}", ex)
+                ErrorReporter.record("image group mapping ${this.id}", ex)
                 null
             }
         }
@@ -317,6 +319,7 @@ class ImageFirestoreSource @Inject constructor(
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e(TAG, "Listen failed: ${error.message}", error)
+                        ErrorReporter.record("image groups listener", error)
                         if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
                             close()
                         } else {

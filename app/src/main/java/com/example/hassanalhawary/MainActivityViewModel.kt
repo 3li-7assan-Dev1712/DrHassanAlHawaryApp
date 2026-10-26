@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.ui.components.CategoryCatalog
 import com.example.core.ui.theme.BrandTheme
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.ContentType
 import com.example.domain.use_cases.categories.GetCategoriesUseCase
 import kotlinx.coroutines.flow.StateFlow
@@ -136,7 +137,10 @@ class MainActivityViewModel @Inject constructor(
 
     private suspend fun observeAppConfig() {
         getAppConfigUseCase()
-            .catch { e -> Log.e(TAG, "observeAppConfig error: ${e.message}") }
+            .catch { e ->
+                Log.e(TAG, "observeAppConfig error: ${e.message}")
+                ErrorReporter.record("app config", e)
+            }
             .collect { config ->
                 _appConfig.value = config
             }

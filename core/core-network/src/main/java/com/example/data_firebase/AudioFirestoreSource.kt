@@ -1,5 +1,6 @@
 package com.example.data_firebase
 
+import com.example.domain.diagnostics.ErrorReporter
 import com.example.domain.module.SeriesPlacement
 import android.util.Log
 import androidx.core.net.toUri
@@ -68,6 +69,7 @@ class AudioFirestoreSource @Inject constructor(
                 )
             } catch (ex: Exception) {
                 Log.e(TAG, "Manual mapping failed for ${this.id}", ex)
+                ErrorReporter.record("audio mapping ${this.id}", ex)
                 null
             }
         }
@@ -343,6 +345,7 @@ class AudioFirestoreSource @Inject constructor(
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         Log.e(TAG, "Listen failed: ${error.message}", error)
+                        ErrorReporter.record("audios listener", error)
                         if (error.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
                             close()
                         } else {
