@@ -47,12 +47,14 @@ import com.example.core.ui.theme.staggeredEntrance
 import androidx.compose.animation.AnimatedContent
 import com.example.core.ui.util.LightSystemBarIcons
 import com.example.domain.module.NetworkMessageEvent
+import com.example.domain.module.PlaybackProgress
 import com.example.domain.text.HijriDate
 import com.example.feature.home.R
 import com.example.feature.home.domain.model.ArticleFeed
 import com.example.feature.home.domain.model.AudioFeed
 import com.example.feature.home.presentation.components.ArticleCard
 import com.example.feature.home.presentation.components.AudioCard
+import com.example.feature.home.presentation.components.ContinueListeningCard
 import com.example.feature.home.presentation.components.HomeHeader
 import com.example.feature.home.presentation.components.Category
 import com.example.feature.home.presentation.components.ImageCarousel
@@ -154,6 +156,17 @@ fun HomeScreenContent(
                             onCategoryClick(route)
                         }
                     }
+                    if (uiState.continueListening.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(SECTION_GAP))
+                            ContinueListeningSection(
+                                audios = uiState.continueListening,
+                                onNavigateToDetailAudio = onNavigateToDetailAudio,
+                                modifier = Modifier.staggeredEntrance(3, entrance),
+                                cardWidth = { Modifier.fillParentMaxWidth(0.75f) },
+                            )
+                        }
+                    }
                     item {
                         Spacer(modifier = Modifier.height(SECTION_GAP))
                         LatestArticlesSection(
@@ -241,8 +254,9 @@ private object HomeTablet {
 }
 
 /**
- * Medium and Expanded: the latest articles and audios, 12 between header, row and the next
- * header, each row showing two cards across (the rest scroll in).
+ * Medium and Expanded: «متابعة الاستماع» (when there is any), the latest articles and audios,
+ * 12 between header, row and the next header, each row showing two cards across (the rest
+ * scroll in).
  */
 @Composable
 private fun TwoAcrossSections(
@@ -256,6 +270,16 @@ private fun TwoAcrossSections(
         val cardWidth = (maxWidth - HomeTablet.RowStartPadding - HomeTablet.CardGap) / 2
         val rowPadding = PaddingValues(start = HomeTablet.RowStartPadding)
         Column(verticalArrangement = Arrangement.spacedBy(HomeTablet.BlockGap)) {
+            if (uiState.continueListening.isNotEmpty()) {
+                ContinueListeningSection(
+                    audios = uiState.continueListening,
+                    onNavigateToDetailAudio = onNavigateToDetailAudio,
+                    modifier = Modifier.staggeredEntrance(3, entrance),
+                    cardWidth = { Modifier.width(cardWidth) },
+                    contentPadding = rowPadding,
+                    headerSpacing = HomeTablet.BlockGap,
+                )
+            }
             LatestArticlesSection(
                 uiState = uiState,
                 onNavigateToDetailArticle = onNavigateToDetailArticle,
@@ -318,6 +342,38 @@ private fun LatestArticlesSection(
                 modifier = cardWidth(),
             )
         }
+    )
+}
+
+/**
+ * «متابعة الاستماع»: the audios left part way, the latest first; a card opens the player, which
+ * opens the audio where it was left. Not in Figma: the home rows' header and the audio card,
+ * with the lesson rows' progress.
+ */
+@Composable
+private fun ContinueListeningSection(
+    audios: List<PlaybackProgress>,
+    onNavigateToDetailAudio: (title: String, audioUrl: String) -> Unit,
+    modifier: Modifier,
+    cardWidth: LazyItemScope.() -> Modifier,
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp),
+    headerSpacing: Dp = 0.dp,
+) {
+    LatestArticleAudioLazyRow(
+        modifier = modifier,
+        title = stringResource(R.string.continue_listening),
+        showLoading = false,
+        items = audios,
+        itemKey = { audio -> audio.audioUrl },
+        contentPadding = contentPadding,
+        headerSpacing = headerSpacing,
+        itemContent = { audio ->
+            ContinueListeningCard(
+                progress = audio,
+                onClick = { onNavigateToDetailAudio(audio.title, audio.audioUrl) },
+                modifier = cardWidth(),
+            )
+        },
     )
 }
 
@@ -398,11 +454,19 @@ val HomePreviewState = HomeScreenUiState(
     loadingImages = false,
 )
 
+/** [HomePreviewState] with two audios left part way («متابعة الاستماع», not in Figma). */
+val HomeContinueListeningPreviewState = HomePreviewState.copy(
+    continueListening = listOf(
+        PlaybackProgress("c1", "شرح صحيح البخاري (٣) تابع التعريف بالكتاب", positionMs = 948_000, durationMs = 1_668_000, updatedAt = 2L),
+        PlaybackProgress("c2", "خطبة بعنوان: فضل العشر، والأضحية", positionMs = 300_000, durationMs = 1_499_000, updatedAt = 1L),
+    ),
+)
+
 @Composable
-private fun HomePreview(darkTheme: Boolean) {
+private fun HomePreview(darkTheme: Boolean, uiState: HomeScreenUiState = HomePreviewState) {
     AdaptiveShellPreview(darkTheme = darkTheme) {
         HomeScreenContent(
-            uiState = HomePreviewState,
+            uiState = uiState,
             onNavigateToDetailArticle = {},
             onNavigateToDetailAudio = { _, _ -> },
             onCategoryClick = {},
@@ -433,3 +497,27 @@ private fun HomeExpandedLightPreview() = HomePreview(darkTheme = false)
 @Preview(name = "Home - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
 @Composable
 private fun HomeExpandedDarkPreview() = HomePreview(darkTheme = true)
+
+@Preview(name = "Home + continue listening - compact, light", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun HomeContinueCompactLightPreview() = HomePreview(darkTheme = false, HomeContinueListeningPreviewState)
+
+@Preview(name = "Home + continue listening - compact, dark", locale = "ar", widthDp = 360, heightDp = 800)
+@Composable
+private fun HomeContinueCompactDarkPreview() = HomePreview(darkTheme = true, HomeContinueListeningPreviewState)
+
+@Preview(name = "Home + continue listening - medium, light", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun HomeContinueMediumLightPreview() = HomePreview(darkTheme = false, HomeContinueListeningPreviewState)
+
+@Preview(name = "Home + continue listening - medium, dark", locale = "ar", device = "spec:width=800dp,height=1280dp,dpi=320")
+@Composable
+private fun HomeContinueMediumDarkPreview() = HomePreview(darkTheme = true, HomeContinueListeningPreviewState)
+
+@Preview(name = "Home + continue listening - expanded, light", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun HomeContinueExpandedLightPreview() = HomePreview(darkTheme = false, HomeContinueListeningPreviewState)
+
+@Preview(name = "Home + continue listening - expanded, dark", locale = "ar", device = "spec:width=1280dp,height=800dp,dpi=320")
+@Composable
+private fun HomeContinueExpandedDarkPreview() = HomePreview(darkTheme = true, HomeContinueListeningPreviewState)

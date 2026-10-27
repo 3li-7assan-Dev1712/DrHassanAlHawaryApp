@@ -91,4 +91,21 @@ object ArabicNumerals {
         }
         return digits(western)
     }
+
+    /**
+     * Time left in an audio, in whole minutes rounded up: "١٢ د", "١ س ٢٠ د", "٢ س"; "١ د"
+     * for less than a minute.
+     */
+    fun formatRemaining(millis: Long): String {
+        val minutes = ((millis.coerceAtLeast(0L) + MINUTE_MS - 1) / MINUTE_MS).coerceAtLeast(1L)
+        val hours = minutes / 60L
+        val rest = minutes % 60L
+        return when {
+            hours == 0L -> "${digits(rest.toString())} د"
+            rest == 0L -> "${digits(hours.toString())} س"
+            else -> "${digits(hours.toString())} س ${digits(rest.toString())} د"
+        }
+    }
+
+    private const val MINUTE_MS = 60_000L
 }

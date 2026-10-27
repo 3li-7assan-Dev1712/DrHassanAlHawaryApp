@@ -53,6 +53,7 @@ import com.example.domain.module.Series
 import com.example.domain.module.SeriesCollection
 import com.example.domain.text.SeriesIcon
 import com.example.domain.text.SeriesIcons
+import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.SeriesText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -67,13 +68,39 @@ import kotlinx.coroutines.launch
 /**
  * A series on a content screen: its subject's icon ([seriesIcon]) in a 48dp accentContainer
  * circle, the title (two lines at most), "٥٩ درسًا · ٢٨ ساعة" and a chevron, on the list
- * items' surface card. The whole card opens the series.
+ * items' surface card. The whole card opens the series. Once the listener has started it
+ * ([completed] lessons finished, not null), "أكملت ١٢ من ٥٩" and its bar under the meta
+ * (Figma SeriesCard/Progress).
  */
 @Composable
-fun SeriesCard(series: Series, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun SeriesCard(series: Series, onClick: () -> Unit, modifier: Modifier = Modifier, completed: Int? = null) {
     val meta = remember(series) { SeriesText.meta(series) }
     val icon = remember(series.title) { seriesIcon(series.title) }
-    SeriesCardLayout(icon, series.title, meta, onClick, modifier)
+    SeriesCardLayout(icon, series.title, meta, onClick, modifier) {
+        if (completed != null) SeriesCardProgress(completed, series.itemCount)
+    }
+}
+
+/** "أكملت ١٢ من ٥٩" at the start, the bar filling the rest. */
+@Composable
+private fun SeriesCardProgress(completed: Int, itemCount: Long) {
+    val total = maxOf(itemCount, completed.toLong())
+    Row(
+        modifier = Modifier.padding(top = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.series_completed, ArabicNumerals.digits(completed), ArabicNumerals.digits(total.toString())),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+            color = Brand.colors.accentText,
+            maxLines = 1,
+        )
+        SeriesProgressBar(
+            fraction = if (total > 0) completed.toFloat() / total else 0f,
+            modifier = Modifier.weight(1f),
+        )
+    }
 }
 
 /** «متفرقات», after the series cards: opens the items that are in no series. */
@@ -89,7 +116,14 @@ fun SeriesMiscCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SeriesCardLayout(icon: Int, title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier) {
+private fun SeriesCardLayout(
+    icon: Int,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    below: @Composable () -> Unit = {},
+) {
     val colors = Brand.colors
     Surface(
         onClick = onClick,
@@ -118,6 +152,7 @@ private fun SeriesCardLayout(icon: Int, title: String, subtitle: String, onClick
                     color = colors.textMuted,
                     modifier = Modifier.padding(top = 2.dp),
                 )
+                below()
             }
             Icon(
                 painter = painterResource(TablerIcons.ChevronLeft),
@@ -293,7 +328,7 @@ fun seriesIcon(title: String): Int = when (SeriesIcons.forTitle(title)) {
  * A content screen whose items are grouped in series: "١٢ سلسلة · ١٥٨ درسًا", the series'
  * cards, then «متفرقات» for
  * the items in none. Expanded: the cards in the list pane, [emptyDetail] beside them (a card
- * opens its own screen).
+ * opens its own screen). [completion]: the lessons finished in each started series, by id.
  */
 @Composable
 fun SeriesCategoryContent(
@@ -304,15 +339,16 @@ fun SeriesCategoryContent(
     onNavigateBack: () -> Unit,
     emptyDetail: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    completion: Map<String, Int> = emptyMap(),
 ) {
     if (layoutTokens.isExpanded) {
         TwoPaneLayout(
             modifier = modifier,
-            listPane = { SeriesCards(title, series, onSeriesClick, onMiscClick, onNavigateBack) },
+            listPane = { SeriesCards(title, series, completion, onSeriesClick, onMiscClick, onNavigateBack) },
             detailPane = { emptyDetail() },
         )
     } else {
-        SeriesCards(title, series, onSeriesClick, onMiscClick, onNavigateBack, modifier)
+        SeriesCards(title, series, completion, onSeriesClick, onMiscClick, onNavigateBack, modifier)
     }
 }
 
@@ -320,6 +356,7 @@ fun SeriesCategoryContent(
 private fun SeriesCards(
     title: String,
     series: List<Series>,
+    completion: Map<String, Int>,
     onSeriesClick: (Series) -> Unit,
     onMiscClick: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -343,7 +380,9 @@ private fun SeriesCards(
                     Text(text = summary, style = MaterialTheme.typography.labelSmall, color = Brand.colors.textMuted)
                 }
             }
-            items(series, key = { it.id }) { item -> SeriesCard(series = item, onClick = { onSeriesClick(item) }) }
+            items(series, key = { it.id }) { item ->
+                SeriesCard(series = item, onClick = { onSeriesClick(item) }, completed = completion[item.id])
+            }
             item(key = SERIES_MISC_KEY) { SeriesMiscCard(onClick = onMiscClick) }
         }
     }
@@ -417,7 +456,9 @@ private fun SeriesComponentsPreviewContent() {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         SeriesHeader(SeriesPreviewData[0])
-        SeriesPreviewData.forEach { SeriesCard(it, onClick = {}) }
+        // The first one started (Figma SeriesCard/Progress).
+        SeriesCard(SeriesPreviewData[0], onClick = {}, completed = 12)
+        SeriesCard(SeriesPreviewData[1], onClick = {})
         SeriesMiscCard(onClick = {})
         EpisodeRow(number = 1) { SeriesCard(SeriesPreviewData[1], onClick = {}) }
     }
@@ -468,6 +509,8 @@ private fun SeriesListPreview(darkTheme: Boolean) {
             onMiscClick = {},
             onNavigateBack = {},
             emptyDetail = {},
+            // As the Figma frame: the first series started.
+            completion = mapOf("preview-0" to 12),
         )
     }
 }

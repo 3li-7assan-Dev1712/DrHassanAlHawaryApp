@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -56,7 +57,9 @@ import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.Cairo
 import com.example.core.ui.theme.ContentPhase
+import com.example.domain.module.PlaybackProgress
 import com.example.domain.module.Series
+import com.example.domain.module.SeriesProgress
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.SeriesText
 
@@ -66,6 +69,10 @@ import com.example.domain.text.SeriesText
  * on it would: [onItemClick]) and [headerAction] beside it, then "الدروس · ٥٩" and the items
  * by episode in one surface card, each drawn by [item] (a [SeriesItemRow]); the spinner, the
  * error or the empty text while there are none.
+ *
+ * [progress]: how far the series has been heard. Once started, the header shows "أكملت ٢ من
+ * ٥٩ درسًا" over its bar, and the play button goes on with the lesson to resume, "متابعة:
+ * الدرس ٣" ([itemNumber] gives its number).
  *
  * [shareText]: the share sheet's text, given the series' title, its meta line and the store
  * link. [maxContentWidth]: the column's width at most, centred (a wide single pane).
@@ -80,6 +87,8 @@ fun <T> SeriesDetailList(
     modifier: Modifier = Modifier,
     maxContentWidth: Dp = Dp.Unspecified,
     headerAction: @Composable (enabled: Boolean) -> Unit = {},
+    progress: SeriesProgress = SeriesProgress.NotStarted,
+    itemNumber: (item: T, index: Int) -> Long = { _, index -> index + 1L },
     item: @Composable (item: T, index: Int, count: Int) -> Unit,
 ) {
     val colors = Brand.colors
@@ -116,10 +125,13 @@ fun <T> SeriesDetailList(
             ) {
                 if (series != null) {
                     item(key = SERIES_HEADER_KEY) {
+                        val resumeIndex = progress.resumeIndex?.takeIf { it in items.indices }
                         SeriesDetailHeader(
                             series = series,
                             canPlay = items.isNotEmpty(),
-                            onPlayFromStart = { items.firstOrNull()?.let(onItemClick) },
+                            onPlay = { (resumeIndex?.let(items::get) ?: items.firstOrNull())?.let(onItemClick) },
+                            resumeNumber = resumeIndex?.let { itemNumber(items[it], it) },
+                            completed = progress.completed.takeIf { progress.isStarted },
                             action = headerAction,
                         )
                     }
@@ -144,13 +156,17 @@ fun <T> SeriesDetailList(
 
 /**
  * The series' subject icon in a 64dp circle beside its title, "٥٩ درسًا · ٢٩ ساعة" and its
- * category's chip; below, "تشغيل من البداية" and [action] (audio: "download the series").
+ * category's chip; once started ([completed] lessons, not null), "أكملت ٢ من ٥٩ درسًا" over
+ * its bar; below, "تشغيل من البداية" ("متابعة: الدرس ٣" with a [resumeNumber]) and [action]
+ * (audio: "download the series").
  */
 @Composable
 private fun SeriesDetailHeader(
     series: Series,
     canPlay: Boolean,
-    onPlayFromStart: () -> Unit,
+    onPlay: () -> Unit,
+    resumeNumber: Long?,
+    completed: Int?,
     action: @Composable (enabled: Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -181,10 +197,16 @@ private fun SeriesDetailHeader(
                 }
             }
         }
-        Spacer(Modifier.height(16.dp))
+        if (completed != null) {
+            Spacer(Modifier.height(HeaderProgressGap))
+            SeriesHeaderProgress(completed = completed, series = series)
+            Spacer(Modifier.height(HeaderProgressGap))
+        } else {
+            Spacer(Modifier.height(16.dp))
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Button(
-                onClick = onPlayFromStart,
+                onClick = onPlay,
                 enabled = canPlay,
                 modifier = Modifier
                     .weight(1f)
@@ -194,10 +216,35 @@ private fun SeriesDetailHeader(
             ) {
                 Icon(painterResource(TablerIcons.PlayerPlay), contentDescription = null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.series_play_from_start), fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = if (resumeNumber != null) {
+                        stringResource(R.string.series_resume_lesson, SeriesText.episodeNumber(resumeNumber))
+                    } else {
+                        stringResource(R.string.series_play_from_start)
+                    },
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
             action(canPlay)
         }
+    }
+}
+
+/** "أكملت ٢ من ٥٩ درسًا" over the series' bar, filled by the lessons finished (Figma 84:1752). */
+@Composable
+private fun SeriesHeaderProgress(completed: Int, series: Series) {
+    val total = maxOf(series.itemCount, completed.toLong())
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = stringResource(
+                R.string.series_completed,
+                ArabicNumerals.digits(completed),
+                SeriesText.itemCount(total, series.collection),
+            ),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal),
+            color = Brand.colors.accentText,
+        )
+        SeriesProgressBar(fraction = if (total > 0) completed.toFloat() / total else 0f)
     }
 }
 
@@ -206,6 +253,10 @@ private fun SeriesDetailHeader(
  * (the episode, else its place) in a 36dp surfaceMuted circle, the [title] (two lines at
  * most) and [meta] under it. While it plays, the circle is accentStrong with a pause icon
  * and the title accentText; on a tablet the item open beside the list is [selected].
+ *
+ * [progress]: how far it was heard (Figma LessonRow). Finished: a success check in place of
+ * the number and the title textSecondary; part way: the number ringed in accentStrong and
+ * its bar under [meta].
  */
 @Composable
 fun SeriesItemRow(
@@ -216,9 +267,12 @@ fun SeriesItemRow(
     onClick: () -> Unit,
     selected: Boolean = false,
     playing: Boolean = false,
+    progress: PlaybackProgress? = null,
     meta: @Composable () -> Unit = {},
 ) {
     val colors = Brand.colors
+    val finished = progress?.isFinished == true
+    val inProgress = progress?.isInProgress == true
     val fill = animatedListItemStyle(selected = selected && !playing).fill
     Column(Modifier.seriesCardSlice(index, count, fill)) {
         Row(
@@ -232,11 +286,21 @@ fun SeriesItemRow(
             Box(
                 modifier = Modifier
                     .size(ItemNumberSize)
-                    .background(if (playing) colors.accentStrong else colors.surfaceMuted, CircleShape),
+                    .background(
+                        when {
+                            playing -> colors.accentStrong
+                            finished -> colors.successContainer
+                            else -> colors.surfaceMuted
+                        },
+                        CircleShape,
+                    )
+                    .then(if (inProgress && !playing) Modifier.border(ItemRingWidth, colors.accentStrong, CircleShape) else Modifier),
                 contentAlignment = Alignment.Center,
             ) {
                 if (playing) {
                     Icon(painterResource(TablerIcons.PlayerPause), contentDescription = null, tint = colors.onGold, modifier = Modifier.size(18.dp))
+                } else if (finished) {
+                    Icon(painterResource(TablerIcons.Check), contentDescription = null, tint = colors.success, modifier = Modifier.size(18.dp))
                 } else {
                     Text(
                         text = SeriesText.episodeNumber(number),
@@ -250,11 +314,18 @@ fun SeriesItemRow(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 1.5.em),
-                    color = if (playing) colors.accentText else colors.textPrimary,
+                    color = when {
+                        playing -> colors.accentText
+                        finished -> colors.textSecondary
+                        else -> colors.textPrimary
+                    },
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
                 meta()
+                if (inProgress) {
+                    ListeningProgressBar(progress?.fraction ?: 0f, Modifier.padding(top = 4.dp))
+                }
             }
         }
         if (index < count - 1) {
@@ -304,6 +375,10 @@ private fun Modifier.cardOutline(first: Boolean, last: Boolean, color: Color): M
 private const val SERIES_ITEMS_TITLE_KEY = "series:lessons"
 private val ItemCardRadius = 14.dp
 private val ItemNumberSize = 36.dp
+// A lesson part way: its number's ring (Figma LessonRow/InProgress).
+private val ItemRingWidth = 2.dp
+// Above and below the started series' progress in its header (Figma SeriesHeader).
+private val HeaderProgressGap = 14.dp
 // Under the title: past the 14dp padding, the 36dp number and the 12dp gap.
 private val ItemDividerInset = 62.dp
 

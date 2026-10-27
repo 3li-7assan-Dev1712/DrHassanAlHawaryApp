@@ -64,4 +64,14 @@ class ArabicNumeralsTest {
         org.junit.Assert.assertEquals("١:٠٥:٣٠", ArabicNumerals.formatMediaTime(3_930_000))
         org.junit.Assert.assertEquals("٠:٠٠", ArabicNumerals.formatMediaTime(-5))
     }
+
+    @Test
+    fun `time left rounds up to whole minutes, with hours past sixty`() {
+        assertEquals("١ د", ArabicNumerals.formatRemaining(0))
+        assertEquals("١ د", ArabicNumerals.formatRemaining(20_000))
+        assertEquals("١٢ د", ArabicNumerals.formatRemaining(11 * 60_000L + 1))
+        assertEquals("١٢ د", ArabicNumerals.formatRemaining(12 * 60_000L))
+        assertEquals("٢ س", ArabicNumerals.formatRemaining(120 * 60_000L))
+        assertEquals("١ س ٢٠ د", ArabicNumerals.formatRemaining(80 * 60_000L))
+    }
 }
