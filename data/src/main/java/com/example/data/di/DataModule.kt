@@ -8,6 +8,7 @@ import com.example.data.ContentSyncRepositoryImpl
 import com.example.data.DataStoreRepositoryImpl
 import com.example.data.ImagesRepositoryImpl
 import com.example.data.NetworkRepositoryImpl
+import com.example.data.PlaybackProgressRepositoryImpl
 import com.example.data.SeriesRepositoryImpl
 import com.example.data.StudyRepositoryImpl
 import com.example.data.VideoRepositoryImpl
@@ -20,6 +21,7 @@ import com.example.domain.repository.ContentSyncRepository
 import com.example.domain.repository.DataStoreRepository
 import com.example.domain.repository.ImagesRepository
 import com.example.domain.repository.NetworkRepository
+import com.example.domain.repository.PlaybackProgressRepository
 import com.example.domain.repository.SeriesRepository
 import com.example.domain.repository.StudyRepository
 import com.example.domain.repository.VideosRepository
@@ -120,6 +122,12 @@ abstract class DataModule {
     abstract fun bindContentSyncRepository(
         impl: ContentSyncRepositoryImpl
     ): ContentSyncRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPlaybackProgressRepository(
+        impl: PlaybackProgressRepositoryImpl
+    ): PlaybackProgressRepository
 
 }
 

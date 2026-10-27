@@ -97,6 +97,21 @@ object LocalDataModule {
         }
     }
 
+    /** Where each audio was left: a table of its own (see PlaybackProgressEntity). */
+    private val MIGRATION_40_41 = object : Migration(40, 41) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `playback_progress` (" +
+                    "`audioUrl` TEXT NOT NULL, " +
+                    "`title` TEXT NOT NULL, " +
+                    "`positionMs` INTEGER NOT NULL, " +
+                    "`durationMs` INTEGER NOT NULL, " +
+                    "`updatedAt` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`audioUrl`))"
+            )
+        }
+    }
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -113,7 +128,8 @@ object LocalDataModule {
             MIGRATION_34_35,
             MIGRATION_37_38,
             MIGRATION_38_39,
-            MIGRATION_39_40
+            MIGRATION_39_40,
+            MIGRATION_40_41
         )
         .fallbackToDestructiveMigration(true)
         .build()
@@ -161,6 +177,10 @@ object LocalDataModule {
     @Provides
     @Singleton
     fun provideSeriesDao(appDatabase: AppDatabase) = appDatabase.seriesDao()
+
+    @Provides
+    @Singleton
+    fun providePlaybackProgressDao(appDatabase: AppDatabase) = appDatabase.playbackProgressDao()
 
 
     @Provides

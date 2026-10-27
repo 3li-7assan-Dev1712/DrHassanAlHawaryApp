@@ -5,14 +5,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import com.example.core.player.ResumableMedia
 import com.example.domain.module.Audio
 import com.example.domain.repository.DataStoreRepository
 import com.example.domain.use_cases.audios.DownloadAudioUseCase
 import com.example.domain.use_cases.audios.DownloadResult
 import com.example.domain.use_cases.audios.GetAudioByUrlUseCase
+import com.example.domain.use_cases.progress.GetResumePositionUseCase
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -33,6 +34,7 @@ class AudioDetailViewModel @Inject constructor(
     private val getAudioByUrlUseCase: GetAudioByUrlUseCase,
     private val downloadAudioUseCase: DownloadAudioUseCase,
     private val dataStoreRepository: DataStoreRepository,
+    private val getResumePositionUseCase: GetResumePositionUseCase,
 ) : ViewModel() {
 
     /** The running "save offline" download, so the inline card's (x) can cancel it. */
@@ -54,8 +56,8 @@ class AudioDetailViewModel @Inject constructor(
     private var currentAudio: Audio? = null
 
     /**
-     * The "restart from the beginning" behavior below is only meant for a fresh visit to
-     * this screen, not every controller reconnect. [mediaControllerFuture] gets reassigned
+     * The "restart a finished audio from the beginning" behavior below is only meant for a
+     * fresh visit to this screen, not every controller reconnect. [mediaControllerFuture] gets reassigned
      * (and [listenToController] re-runs) on every config change too, because the Composable's
      * `remember { MediaController.Builder(...).buildAsync() }` doesn't survive Activity
      * recreation - only the ViewModel does. Gating on this flag stops rotation from
@@ -168,27 +170,8 @@ class AudioDetailViewModel @Inject constructor(
                 return@launch
             }
 
-            val metadata = MediaMetadata.Builder()
-                .setTitle(audioTitle)
-                .build()
-
-            // Use local file path if downloaded, else use remote URL
-            val uriToPlay =
-                if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
-                    currentAudio!!.localFilePath!!
-
-                } else {
-                    audioUrl
-                }
-
-            Log.d("AudioDetailViewModel", "onPlayPauseToggle: uri to play : $uriToPlay")
-            val mediaItem = MediaItem.Builder()
-                .setUri(uriToPlay)
-                .setMediaMetadata(metadata)
-                .setMediaId(audioUrl) // keep original ID for reference
-                .build()
-
-            controller.setMediaItem(mediaItem)
+            Log.d("AudioDetailViewModel", "onPlayPauseToggle: uri to play : ${playableUri()}")
+            controller.setMediaItem(mediaItem(playableUri()), getResumePositionUseCase(audioUrl))
             controller.prepare()
             controller.play()
         }
@@ -286,32 +269,21 @@ class AudioDetailViewModel @Inject constructor(
         controllerJob = viewModelScope.launch {
             val controller = controllerFuture.await()
 
-            val uriToPlay =
-                if (currentAudio?.isDownloaded == true && currentAudio?.localFilePath != null) {
-                    currentAudio!!.localFilePath!!
-                } else {
-                    audioUrl
-                }
-
-            // 1. Handle Media Item and Force Restart
+            // 1. Load the audio where it was left (the start the first time and once finished)
             if (controller.currentMediaItem?.mediaId != audioUrl) {
                 Log.d("AudioVM", "Controller has wrong audio. Setting new media item.")
-                val metadata = MediaMetadata.Builder().setTitle(audioTitle).build()
-                val mediaItem = MediaItem.Builder()
-                    .setUri(uriToPlay)
-                    .setMediaId(audioUrl)
-                    .setMediaMetadata(metadata)
-                    .build()
-                controller.setMediaItem(mediaItem)
+                controller.setMediaItem(mediaItem(playableUri()), getResumePositionUseCase(audioUrl))
                 controller.prepare()
             } else if (isFirstControllerConnection) {
-                Log.d("AudioVM", "Same audio, fresh screen visit. Restarting from the beginning.")
-                // Reset to the beginning as requested - but only for a genuinely fresh
-                // visit to this screen, not a reconnect from a rotation (see
-                // isFirstControllerConnection's doc).
-                controller.seekTo(0L)
+                Log.d("AudioVM", "Same audio, fresh screen visit. Keeping its position unless it ended.")
+                // Already in the player: it is where it was left. A finished one starts again,
+                // but only on a genuinely fresh visit to this screen, not a reconnect from a
+                // rotation (see isFirstControllerConnection's doc).
+                if (controller.playbackState == Player.STATE_ENDED) {
+                    controller.seekTo(0L)
+                }
 
-                // If the audio had previously finished, it needs to be prepared again
+                // A finished or stopped audio needs to be prepared again
                 if (controller.playbackState == Player.STATE_ENDED || controller.playbackState == Player.STATE_IDLE) {
                     controller.prepare()
                 }
@@ -386,22 +358,14 @@ class AudioDetailViewModel @Inject constructor(
             val wasPlaying = controller.isPlaying
             val currentPosition = controller.currentPosition
 
-            // 2. Create new MediaItem with the LOCAL file path, but KEEP the original ID
-            val metadata = MediaMetadata.Builder()
-                .setTitle(audioTitle)
-                .build()
-
-            val localMediaItem = MediaItem.Builder()
-                .setUri(localFilePath)
-                .setMediaId(audioUrl) // Must remain audioUrl so listenToController doesn't reset it
-                .setMediaMetadata(metadata)
-                .build()
+            // 2. Create new MediaItem with the LOCAL file path, but KEEP the original ID (it
+            // must remain audioUrl so listenToController doesn't reset it)
+            val localMediaItem = mediaItem(localFilePath)
 
             Log.d(TAG, "Switching to local playback: $localFilePath at position $currentPosition")
 
-            // 3. Swap the item, seek to the exact same position, and prepare
-            controller.setMediaItem(localMediaItem)
-            controller.seekTo(currentPosition)
+            // 3. Swap the item at the exact same position, and prepare
+            controller.setMediaItem(localMediaItem, currentPosition)
             controller.prepare()
 
             // 4. Resume playing if it was playing before the swap
@@ -410,6 +374,20 @@ class AudioDetailViewModel @Inject constructor(
             }
         }
     }
+
+    /** The downloaded file when there is one, else the stream. */
+    private fun playableUri(): String =
+        currentAudio?.takeIf { it.isDownloaded }?.localFilePath ?: audioUrl
+
+    /**
+     * The player's item for [uri]: identified by [audioUrl] whichever file plays, and marked
+     * resumable, so the playback service keeps where it is left.
+     */
+    private fun mediaItem(uri: String): MediaItem = MediaItem.Builder()
+        .setUri(uri)
+        .setMediaId(audioUrl)
+        .setMediaMetadata(ResumableMedia.metadata(audioTitle))
+        .build()
 
     companion object {
         /** The speed button's cycle, in order. */

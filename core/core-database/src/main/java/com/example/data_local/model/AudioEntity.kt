@@ -18,7 +18,8 @@ data class AudioEntity(
     //User-Specific
     val isFavorite: Boolean = false,
     val localFilePath: String? = null,
-    val lastPlayedTimestamp: Long? = null, // will be used to play from the last position
+    // Never written: where an audio was left lives in playback_progress (PlaybackProgressEntity).
+    val lastPlayedTimestamp: Long? = null,
     val updatedAt: Long,
     val isDeleted: Boolean = false,
     val type: String = "",

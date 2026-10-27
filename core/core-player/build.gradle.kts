@@ -52,6 +52,9 @@ dependencies {
     // guava
     implementation(libs.kotlinx.coroutines.guava)
 
+    // The playback position is saved through the domain's use case.
+    implementation(project(":core:core-domain"))
+
 
     // Hilt
     implementation(libs.hilt.android)
