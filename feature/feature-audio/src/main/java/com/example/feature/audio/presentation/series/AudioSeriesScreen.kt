@@ -37,10 +37,13 @@ import com.example.core.ui.components.SeriesItemRow
 import com.example.core.ui.components.SeriesPreviewData
 import com.example.core.ui.components.SeriesScreenState
 import com.example.core.ui.components.TwoPaneLayout
+import com.example.core.ui.components.listeningStatus
 import com.example.core.ui.icons.TablerIcons
 import com.example.core.ui.theme.Brand
 import com.example.core.ui.theme.layoutTokens
 import com.example.domain.module.Audio
+import com.example.domain.module.PlaybackProgress
+import com.example.domain.module.SeriesProgress
 import com.example.domain.text.ArabicNumerals
 import com.example.domain.text.AudioTitleCleaner
 import com.example.feature.audio.presentation.detail.AUDIO_PLAYER_PANE_KEY
@@ -72,6 +75,8 @@ fun AudioSeriesScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val download by viewModel.download.collectAsStateWithLifecycle()
+    val progress by viewModel.progress.collectAsStateWithLifecycle()
+    val seriesProgress by viewModel.seriesProgress.collectAsStateWithLifecycle()
     val expanded = layoutTokens.isExpanded
 
     if (!expanded && selectedAudio != null) {
@@ -107,6 +112,8 @@ fun AudioSeriesScreen(
         modifier = modifier,
         download = download,
         onDownloadSeries = viewModel::onDownloadSeries,
+        progress = progress,
+        seriesProgress = seriesProgress,
         playerPane = { selection ->
             AudioPlayerPane(
                 title = selection.title,
@@ -121,6 +128,7 @@ fun AudioSeriesScreen(
 /**
  * [AudioSeriesScreen] without its ViewModels (previews pass the player pane). Expanded: the
  * lessons and the selected one's player, or the empty state before one is chosen.
+ * [progress]: where each lesson was left, by URL; [seriesProgress]: the header's.
  */
 @Composable
 fun AudioSeriesAdaptiveContent(
@@ -134,6 +142,8 @@ fun AudioSeriesAdaptiveContent(
     modifier: Modifier = Modifier,
     download: SeriesDownload = SeriesDownload(),
     onDownloadSeries: () -> Unit = {},
+    progress: Map<String, PlaybackProgress> = emptyMap(),
+    seriesProgress: SeriesProgress = SeriesProgress.NotStarted,
 ) {
     if (layoutTokens.isExpanded) {
         TwoPaneLayout(
@@ -145,6 +155,8 @@ fun AudioSeriesAdaptiveContent(
                     onNavigateBack = onNavigateBack,
                     download = download,
                     onDownloadSeries = onDownloadSeries,
+                    progress = progress,
+                    seriesProgress = seriesProgress,
                     selectedAudioUrl = selectedAudio?.audioUrl,
                     playingAudioUrl = playingAudioUrl,
                 )
@@ -168,6 +180,8 @@ fun AudioSeriesAdaptiveContent(
             onNavigateBack = onNavigateBack,
             download = download,
             onDownloadSeries = onDownloadSeries,
+            progress = progress,
+            seriesProgress = seriesProgress,
             modifier = modifier,
             playingAudioUrl = playingAudioUrl,
         )
@@ -176,9 +190,11 @@ fun AudioSeriesAdaptiveContent(
 
 /**
  * The audio series' [SeriesDetailList]: "تشغيل من البداية" opens the first lesson as a tap on
- * it would (the player has no queue, so the next lesson is not played after it), and
- * "download the series" is beside it. Lesson titles are shown without the series' name and
- * numbering ([AudioTitleCleaner.lesson], display only), with the duration and "محفوظ".
+ * it would (the player has no queue, so the next lesson is not played after it), "متابعة:
+ * الدرس ٣" the lesson to go on with once the series is started, and "download the series" is
+ * beside it. Lesson titles are shown without the series' name and numbering
+ * ([AudioTitleCleaner.lesson], display only), with the duration, how far each was heard and
+ * "محفوظ".
  */
 @Composable
 private fun AudioSeriesList(
@@ -187,6 +203,8 @@ private fun AudioSeriesList(
     onNavigateBack: () -> Unit,
     download: SeriesDownload,
     onDownloadSeries: () -> Unit,
+    progress: Map<String, PlaybackProgress>,
+    seriesProgress: SeriesProgress,
     modifier: Modifier = Modifier,
     // Tablet: the lesson open in the player beside the list, and the one playing there.
     selectedAudioUrl: String? = null,
@@ -201,20 +219,27 @@ private fun AudioSeriesList(
         shareText = R.string.series_share_text,
         modifier = modifier,
         headerAction = { enabled -> SeriesDownloadButton(download, onDownloadSeries, enabled) },
+        progress = seriesProgress,
+        itemNumber = ::lessonNumber,
     ) { audio, index, count ->
         val title = remember(audio.title, seriesTitle) { AudioTitleCleaner.lesson(audio.title, seriesTitle) }
+        val heard = progress[audio.audioUrl]
         SeriesItemRow(
             index = index,
             count = count,
-            number = audio.episodeNumber ?: (index + 1L),
+            number = lessonNumber(audio, index),
             title = title,
             onClick = { onAudioClick(audio) },
             selected = audio.audioUrl == selectedAudioUrl,
             playing = audio.isPlaying || audio.audioUrl == playingAudioUrl,
-            meta = { LessonMeta(audio) },
+            progress = heard,
+            meta = { LessonMeta(audio, heard) },
         )
     }
 }
+
+/** The lesson's episode, else its place in the series. */
+private fun lessonNumber(audio: Audio, index: Int): Long = audio.episodeNumber ?: (index + 1L)
 
 /**
  * A 52dp outlined circle: the download icon; while saving, a ring with its progress around
@@ -263,21 +288,28 @@ private fun SeriesDownloadButton(download: SeriesDownload, onClick: () -> Unit, 
     }
 }
 
-/** "٠١:٠٥" and, for a saved lesson, the download icon and "محفوظ" (as the fatwa rows). */
+/**
+ * "٠١:٠٥", then how far it was heard ("متبقٍ ١٢ د", "تم الاستماع") and, for a saved lesson,
+ * the download icon and "محفوظ" (as the fatwa rows).
+ */
 @Composable
-private fun LessonMeta(audio: Audio) {
+private fun LessonMeta(audio: Audio, progress: PlaybackProgress?) {
     val colors = Brand.colors
-    if (audio.durationInMillis <= 0 && !audio.isDownloaded) return
+    val timing = listOfNotNull(
+        ArabicNumerals.formatDuration(audio.durationInMillis).takeIf { audio.durationInMillis > 0 },
+        listeningStatus(progress),
+    )
+    if (timing.isEmpty() && !audio.isDownloaded) return
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-        if (audio.durationInMillis > 0) {
+        if (timing.isNotEmpty()) {
             Text(
-                text = ArabicNumerals.formatDuration(audio.durationInMillis),
+                text = timing.joinToString(ArabicNumerals.DATE_SEPARATOR),
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.textMuted,
             )
         }
         if (audio.isDownloaded) {
-            if (audio.durationInMillis > 0) Spacer(Modifier.width(10.dp))
+            if (timing.isNotEmpty()) Spacer(Modifier.width(10.dp))
             Icon(painterResource(TablerIcons.Download), contentDescription = null, tint = colors.accent, modifier = Modifier.size(13.dp))
             Spacer(Modifier.width(4.dp))
             Text(text = stringResource(R.string.audio_saved), style = MaterialTheme.typography.labelSmall, color = colors.accentText)
@@ -314,6 +346,12 @@ private val SeriesPreviewState = SeriesScreenState(
     isRefreshing = false,
 )
 
+/** Lesson 1 heard to the end, lesson 3 left part way (Figma 84:1715's states). */
+private val SeriesPreviewProgress: Map<String, PlaybackProgress> = listOf(
+    SeriesAudiosPreviewData[0].let { PlaybackProgress(it.audioUrl, it.title, it.durationInMillis, it.durationInMillis, updatedAt = 1L) },
+    SeriesAudiosPreviewData[2].let { PlaybackProgress(it.audioUrl, it.title, 1_385_000L, it.durationInMillis, updatedAt = 2L) },
+).associateBy { it.audioUrl }
+
 @Composable
 private fun AudioSeriesPreview(darkTheme: Boolean, download: SeriesDownload = SeriesDownload()) {
     val selection = AudioSelection(SeriesAudiosPreviewData[1].title, SeriesAudiosPreviewData[1].audioUrl)
@@ -327,6 +365,8 @@ private fun AudioSeriesPreview(darkTheme: Boolean, download: SeriesDownload = Se
             onNavigateBack = {},
             playerPane = { PlayerPanePreviewContent() },
             download = download,
+            progress = SeriesPreviewProgress,
+            seriesProgress = SeriesProgress.of(SeriesAudiosPreviewData.map { it.audioUrl }, SeriesPreviewProgress),
         )
     }
 }

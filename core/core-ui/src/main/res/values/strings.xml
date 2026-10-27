@@ -230,6 +230,14 @@
     <string name="series_downloaded">السلسلة محفوظة على الجهاز</string>
     <!-- Above the lessons: "الدروس · ٥٩". -->
     <string name="series_lessons_count">الدروس · %1$s</string>
+    <!-- A started series: "أكملت ١٢ من ٥٩" on its card, "أكملت ٢ من ٥٩ درسًا" on its screen. -->
+    <string name="series_completed">أكملت %1$s من %2$s</string>
+    <!-- A started series' screen: opens the lesson to go on with ("متابعة: الدرس ٣"). -->
+    <string name="series_resume_lesson">متابعة: الدرس %1$s</string>
+    <!-- After an audio's duration, while it is part way: "٢٧:٤٨ · متبقٍ ١٢ د". -->
+    <string name="listening_remaining">متبقٍ %1$s</string>
+    <!-- After an audio's duration, once it was heard to the end. -->
+    <string name="listening_finished">تم الاستماع</string>
     <!-- Shared as text: the series' title, "٥٩ درسًا · ٢٩ ساعة", then the store link. -->
     <string name="series_share_text">سلسلة «%1$s» (%2$s)\nاستمع إليها في تطبيق الشيخ د. حسن الهواري:\n%3$s</string>
     <!-- The same for a video series ("٢٨ درسًا"). -->

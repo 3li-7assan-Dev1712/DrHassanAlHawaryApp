@@ -76,6 +76,7 @@ import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.ui.theme.Brand
 import com.example.domain.module.Audio
+import com.example.domain.module.PlaybackProgress
 import com.example.feature.audio.presentation.components.AudioListItem
 
 
@@ -129,12 +130,14 @@ fun AudioListScreen(
 
     if (showSeries) {
         val series by audiosViewModel.series.collectAsStateWithLifecycle()
+        val completion by audiosViewModel.seriesCompletion.collectAsStateWithLifecycle()
         // Nothing until the cached series are read: the list would flash before the cards.
         val loaded = series ?: return
         if (loaded.isNotEmpty()) {
             SeriesCategoryContent(
                 title = title ?: audiosViewModel.categoryTitle ?: stringResource(R.string.audios),
                 series = loaded,
+                completion = completion,
                 onSeriesClick = onNavigateToSeries,
                 onMiscClick = onNavigateToMisc,
                 onNavigateBack = onNavigateBack,
@@ -146,6 +149,7 @@ fun AudioListScreen(
     }
 
     val audios = audiosViewModel.audios.collectAsLazyPagingItems()
+    val progress by audiosViewModel.progress.collectAsStateWithLifecycle()
     val playingAudioUrl = if (expanded) {
         val playerViewModel: AudioDetailViewModel = hiltViewModel(key = playerViewModelKey)
         val playerState by playerViewModel.uiState.collectAsStateWithLifecycle()
@@ -170,13 +174,14 @@ fun AudioListScreen(
                 viewModel = hiltViewModel(key = playerViewModelKey),
             )
         },
+        progress = progress,
     )
 }
 
 /**
  * [AudioListScreen] without its ViewModels (previews and UI tests pass the player pane).
  * Expanded: the list pane and the detail pane, which shows the selected audio's player or,
- * before anything is chosen, the empty state.
+ * before anything is chosen, the empty state. [progress]: where each audio was left, by URL.
  */
 @Composable
 fun AudioListAdaptiveContent(
@@ -189,6 +194,7 @@ fun AudioListAdaptiveContent(
     onNavigateBack: () -> Unit,
     playerPane: @Composable (AudioSelection) -> Unit,
     modifier: Modifier = Modifier,
+    progress: Map<String, PlaybackProgress> = emptyMap(),
 ) {
     if (layoutTokens.isExpanded) {
         TwoPaneLayout(
@@ -201,6 +207,7 @@ fun AudioListAdaptiveContent(
                     onNavigateBack = onNavigateBack,
                     selectedAudioUrl = selectedAudio?.audioUrl,
                     playingAudioUrl = playingAudioUrl,
+                    progress = progress,
                 )
             },
             detailPane = {
@@ -222,6 +229,7 @@ fun AudioListAdaptiveContent(
             categoryTitle = categoryTitle,
             onNavigateToAudioDetail = onNavigateToAudioDetail,
             onNavigateBack = onNavigateBack,
+            progress = progress,
         )
     }
 }
@@ -238,6 +246,8 @@ fun AudioListComposable(
     // Tablet: the row open in the player beside the list, and the one playing there.
     selectedAudioUrl: String? = null,
     playingAudioUrl: String? = null,
+    // Where each audio was left, by URL.
+    progress: Map<String, PlaybackProgress> = emptyMap(),
 ) {
 
     val listState = rememberLazyListState()
@@ -332,6 +342,7 @@ fun AudioListComposable(
                                 AudioListItem(
                                     selected = audio.audioUrl == selectedAudioUrl,
                                     playing = audio.isPlaying || audio.audioUrl == playingAudioUrl,
+                                    progress = progress[audio.audioUrl],
                                     audio = audio,
                                     onClick = {
                                         onNavigateToAudioDetail(

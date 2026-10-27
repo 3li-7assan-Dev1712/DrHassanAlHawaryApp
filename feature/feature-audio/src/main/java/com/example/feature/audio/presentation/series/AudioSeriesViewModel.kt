@@ -7,8 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.core.ui.components.SeriesScreenState
 import com.example.core.ui.components.seriesScreenState
 import com.example.domain.module.Audio
+import com.example.domain.module.PlaybackProgress
+import com.example.domain.module.SeriesProgress
 import com.example.domain.use_cases.audios.DownloadAudioUseCase
 import com.example.domain.use_cases.audios.DownloadResult
+import com.example.domain.use_cases.progress.ObservePlaybackProgressUseCase
 import com.example.domain.use_cases.series.GetSeriesAudiosUseCase
 import com.example.domain.use_cases.series.GetSeriesByIdUseCase
 import com.example.domain.use_cases.series.RefreshSeriesItemsUseCase
@@ -36,6 +39,7 @@ class AudioSeriesViewModel @Inject constructor(
     getSeriesAudiosUseCase: GetSeriesAudiosUseCase,
     refreshSeriesItemsUseCase: RefreshSeriesItemsUseCase,
     private val downloadAudioUseCase: DownloadAudioUseCase,
+    observePlaybackProgressUseCase: ObservePlaybackProgressUseCase,
 ) : ViewModel() {
 
     private val seriesId: String = checkNotNull(savedStateHandle["seriesId"])
@@ -45,6 +49,15 @@ class AudioSeriesViewModel @Inject constructor(
         items = getSeriesAudiosUseCase(seriesId),
         refreshItems = { refreshSeriesItemsUseCase(it) },
     )
+
+    /** Where each lesson was left, by URL: the rows' progress. */
+    val progress: StateFlow<Map<String, PlaybackProgress>> = observePlaybackProgressUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    /** The lessons finished and the one «متابعة» opens, for the header. */
+    val seriesProgress: StateFlow<SeriesProgress> = combine(state, progress) { shown, heard ->
+        SeriesProgress.of(shown.items.map { it.audioUrl }, heard)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SeriesProgress.NotStarted)
 
     private val downloadProgress = MutableStateFlow<Float?>(null)
     private var downloadJob: Job? = null

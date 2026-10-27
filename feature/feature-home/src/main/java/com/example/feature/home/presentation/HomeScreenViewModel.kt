@@ -7,6 +7,7 @@ import com.example.data_local.NotificationDao
 import com.example.domain.module.NetworkMessageEvent
 import com.example.domain.module.NetworkStatus
 import com.example.domain.use_cases.GetCurrentNetworkStatusUseCase
+import com.example.domain.use_cases.progress.ObserveContinueListeningUseCase
 import com.example.feature.home.domain.use_cases.GetLatestArticlesUseCase
 import com.example.feature.home.domain.use_cases.GetLatestAudiosUseCase
 import com.example.feature.home.domain.use_cases.GetLatestImagesUseCase
@@ -35,6 +36,7 @@ class HomeScreenViewModel @Inject constructor(
     private val syncLatestDataUseCase: SyncLatestDataUseCase,
     private val getCurrentNetworkStatusUseCase: GetCurrentNetworkStatusUseCase,
     private val notificationDao: NotificationDao,
+    private val observeContinueListeningUseCase: ObserveContinueListeningUseCase,
 ) : ViewModel() {
 
 
@@ -55,6 +57,7 @@ class HomeScreenViewModel @Inject constructor(
     init {
         loadArticlesFromDb()
         loadLatestAudios()
+        observeContinueListening()
         observeUnreadNotifications()
 
         checkCurrentNetworkStatus()
@@ -164,6 +167,12 @@ class HomeScreenViewModel @Inject constructor(
         }
 
 
+    }
+
+    private fun observeContinueListening() {
+        observeContinueListeningUseCase()
+            .onEach { audios -> _homeScreenUiState.update { it.copy(continueListening = audios) } }
+            .launchIn(viewModelScope)
     }
 
     private fun observeUnreadNotifications() {
